@@ -52,7 +52,7 @@ jobs:
             username: ${{ secrets.EC2_USER }}
             key: ${{ secrets.EC2_KEY }}
             port: 22
-            source: ${{ env.JAR_NAME }}
+            source: backend/${{ env.JAR_NAME }}
             target: /home/${{ secrets.EC2_USER }}/deploy/
 
       - name: Rodar o Docker Compose na EC2

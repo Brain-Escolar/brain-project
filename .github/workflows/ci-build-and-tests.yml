@@ -2,12 +2,12 @@ name: CI - Build & Tests - Backend
 
 on:
   push:
-    branches:
+    branches-ignore:
       - main
     paths:
       - 'backend/**'
   pull_request:
-    branches:
+    branches-ignore:
       - main
     paths:
       - 'backend/**'
