@@ -1,0 +1,5 @@
+ALTER TABLE anotacoes
+  DROP COLUMN anotacao;
+
+ALTER TABLE anotacoes
+  ADD COLUMN tipo_anotacao VARCHAR(50) NOT NULL DEFAULT 'OUTROS';

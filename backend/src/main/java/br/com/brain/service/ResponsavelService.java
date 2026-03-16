@@ -1,0 +1,126 @@
+package br.com.brain.service;
+
+import br.com.brain.domain.aluno.Aluno;
+import br.com.brain.domain.dadosPessoais.DadosPessoais;
+import br.com.brain.domain.responsavel.Responsavel;
+import br.com.brain.domain.responsavel.ResponsavelRepository;
+import br.com.brain.dto.responsavel.AtualizacaoResponsavelDto;
+import br.com.brain.dto.responsavel.CadastroResponsavelDto;
+import br.com.brain.dto.responsavel.ListagemResponsavelDto;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class ResponsavelService {
+
+    private final ResponsavelRepository repository;
+    private final EnderecoService enderecoService;
+    private final DadosPessoaisService dadosPessoaisService;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Transactional
+    public Responsavel cadastrarResponsavel(CadastroResponsavelDto dados, Long alunoId) {
+
+        var responsavel = new Responsavel();
+        var dadosPessoais = dadosPessoaisService
+            .buscarDadosPessoaisPorCpf(dados.cpf())
+            .orElseGet(() -> criarDadosPessoais(dados));
+
+        responsavel.setDadosPessoais(dadosPessoais);
+        responsavel.setFinanceiro(dados.financeiro());
+
+        var responsavelCadastrado = repository.save(responsavel);
+
+        vincularAlunos(responsavelCadastrado.getId(), List.of(alunoId));
+
+        return responsavel;
+    }
+
+    @Transactional
+    public Optional<Responsavel> buscarResponsavelPorCpf(String cpf) {
+        return repository.findByDadosPessoaisCpf(cpf);
+    }
+
+    public Page<ListagemResponsavelDto> listar(Pageable paginacao) {
+        return repository.findAll(paginacao).map(ListagemResponsavelDto::new);
+    }
+
+    @Transactional
+    public Responsavel atualizar(AtualizacaoResponsavelDto dados, Long id) {
+        var responsavel = repository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Responsavel de id " + id + " não existe."));
+
+        if (dados.nome() != null) {
+            responsavel.getDadosPessoais().setNome(dados.nome());
+        }
+        if (dados.email() != null) {
+            responsavel.getDadosPessoais().setEmail(dados.email());
+        }
+        if (dados.endereco() != null) {
+            var endereco = enderecoService.atualizarEndereco(responsavel.getDadosPessoais().getEndereco(), dados.endereco());
+            responsavel.getDadosPessoais().setEndereco(endereco);
+        }
+        if (dados.dataDeNascimento() != null) {
+            responsavel.getDadosPessoais().setDataDeNascimento(dados.dataDeNascimento());
+        }
+        if (dados.financeiro() != null) {
+            responsavel.setFinanceiro(dados.financeiro());
+        }
+        if (dados.telefones() != null) {
+            responsavel.getDadosPessoais().setTelefones(dados.telefones());
+        }
+
+        repository.save(responsavel);
+
+        return responsavel;
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        var responsavel = repository.findById(id).get();
+        repository.delete(responsavel);
+    }
+
+    public Responsavel detalhar(Long id) {
+        return repository.findById(id).get();
+    }
+
+    @Transactional
+    public Responsavel vincularAlunos(Long responsavelId, List<Long> alunoIds) {
+        var responsavel = repository.findById(responsavelId).orElseThrow();
+        var alunos = responsavel.getAlunos();
+        for (Long alunoId : alunoIds) {
+            var aluno = em.getReference(Aluno.class, alunoId);
+            alunos.add(aluno);
+        }
+        responsavel.setAlunos(alunos);
+        repository.save(responsavel);
+        return responsavel;
+    }
+
+    private DadosPessoais criarDadosPessoais(CadastroResponsavelDto dados) {
+        var dadosPessoais = new DadosPessoais();
+        
+        dadosPessoais.setCpf(dados.cpf());
+        dadosPessoais.setNome(dados.nome());
+        dadosPessoais.setEmail(dados.email());
+        dadosPessoais.setDataDeNascimento(dados.dataDeNascimento());
+        dadosPessoais.setEndereco(enderecoService.preencherEnderco(dados.endereco()));
+        dadosPessoais.setTelefones(dados.telefones());
+
+        return dadosPessoaisService.salvar(dadosPessoais);
+    }
+}

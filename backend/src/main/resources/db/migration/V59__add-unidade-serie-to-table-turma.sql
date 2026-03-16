@@ -1,0 +1,16 @@
+ALTER TABLE turmas
+    ADD COLUMN IF NOT EXISTS unidade_id BIGINT NOT NULL;
+ALTER TABLE turmas
+    ADD COLUMN IF NOT EXISTS serie_id BIGINT NOT NULL;
+ALTER TABLE turmas
+    ADD CONSTRAINT fk_turma_unidade FOREIGN KEY (unidade_id) REFERENCES unidades(id);
+ALTER TABLE turmas
+    ADD CONSTRAINT fk_turma_serie FOREIGN KEY (serie_id) REFERENCES series(id);
+ALTER TABLE turmas
+    ADD COLUMN IF NOT EXISTS vagas INTEGER;
+ALTER TABLE turmas
+    ADD COLUMN IF NOT EXISTS ano_letivo INTEGER NOT NULL;
+ALTER TABLE turmas
+    ADD COLUMN IF NOT EXISTS turno VARCHAR(50);
+ALTER TABLE turmas
+    RENAME COLUMN nome TO turma;

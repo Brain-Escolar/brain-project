@@ -1,0 +1,2 @@
+ALTER TABLE responsaveis
+  ADD COLUMN financeiro BOOLEAN NOT NULL DEFAULT FALSE;

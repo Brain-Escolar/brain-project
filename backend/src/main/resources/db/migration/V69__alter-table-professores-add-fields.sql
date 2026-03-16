@@ -1,0 +1,10 @@
+ALTER TABLE professores ADD COLUMN titulo_eleitor VARCHAR(12);
+ALTER TABLE professores ADD COLUMN grupo_disciplina_id BIGINT REFERENCES grupos_disciplinas(id);
+ALTER TABLE professores ADD COLUMN pis_pasep VARCHAR(11);
+ALTER TABLE professores ADD COLUMN reservista VARCHAR(20);
+ALTER TABLE professores ADD COLUMN codigo_banco VARCHAR(10);
+ALTER TABLE professores ADD COLUMN agencia VARCHAR(10);
+ALTER TABLE professores ADD COLUMN conta VARCHAR(20);
+ALTER TABLE professores ADD COLUMN escolaridade_id BIGINT REFERENCES escolaridades(id);
+ALTER TABLE professores ADD COLUMN exame_admissional BOOLEAN DEFAULT FALSE;
+ALTER TABLE professores ADD COLUMN consentimento_lgpd BOOLEAN DEFAULT FALSE;

@@ -1,0 +1,37 @@
+{"properties": [
+  {
+    "name": "api.security.token.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'api.security.token.secret'"
+  },
+  {
+    "name": "google.oauth.client.id",
+    "type": "java.lang.String",
+    "description": "A description for 'google.oauth.client.id'"
+  },
+  {
+    "name": "google.oauth.client.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'google.oauth.client.secret'"
+  },
+  {
+    "name": "site.url",
+    "type": "java.lang.String",
+    "description": "A description for 'site.url'"
+  },
+  {
+    "name": "google.calendar.api.key",
+    "type": "java.lang.String",
+    "description": "A description for 'google.calendar.api.key'"
+  },
+  {
+    "name": "application.path",
+    "type": "java.lang.String",
+    "description": "A description for 'application.path'"
+  },
+  {
+    "name": "aws.s3.bucket",
+    "type": "java.lang.String",
+    "description": "A description for 'aws.s3.bucket'"
+  }
+]}

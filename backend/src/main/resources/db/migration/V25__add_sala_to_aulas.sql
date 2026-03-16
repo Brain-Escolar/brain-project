@@ -1,0 +1,1 @@
+ALTER TABLE aulas ADD COLUMN sala VARCHAR(20);

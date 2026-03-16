@@ -1,0 +1,2 @@
+ALTER TABLE professores
+  ADD COLUMN ativo BOOLEAN DEFAULT TRUE;

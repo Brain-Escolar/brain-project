@@ -1,0 +1,7 @@
+CREATE SEQUENCE revinfo_seq START WITH 1 INCREMENT BY 50;
+
+CREATE TABLE revinfo (
+    rev INTEGER NOT NULL PRIMARY KEY,
+    revtstmp BIGINT,
+    usuario_id BIGINT
+);

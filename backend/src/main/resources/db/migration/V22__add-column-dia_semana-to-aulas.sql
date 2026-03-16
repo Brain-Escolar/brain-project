@@ -1,0 +1,1 @@
+ALTER TABLE aulas ADD COLUMN dia_semana VARCHAR(16);
