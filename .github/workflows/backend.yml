@@ -50,7 +50,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t $IMAGE .
+          docker build -t $IMAGE -f backend/Dockerfile backend
           docker push $IMAGE
 
   deploy:
