@@ -1,6 +1,7 @@
 package br.com.brain.infra.security;
 
 import br.com.brain.domain.autenticacao.DadosAutenticacaoRepository;
+import br.com.brain.infra.multitenancy.TenantContext;
 import br.com.brain.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,17 +27,24 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        var tokenJWT = recuperarToken(request);
+        try {
+            var tokenJWT = recuperarToken(request);
 
-        if (tokenJWT != null) {
-            var subject = tokenService.getSubject(tokenJWT);
-            var usuario = repository.findByEmailIgnoreCaseAndVerificadoTrue(subject).orElseThrow();
+            if (tokenJWT != null) {
+                var tenantId = tokenService.getTenantId(tokenJWT);
+                TenantContext.setTenantId(tenantId);
 
-            var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                var subject = tokenService.getSubject(tokenJWT);
+                var usuario = repository.findByEmailIgnoreCaseAndVerificadoTrue(subject).orElseThrow();
+
+                var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+
+            filterChain.doFilter(request, response);
+        } finally {
+            TenantContext.clear();
         }
-
-        filterChain.doFilter(request, response);
     }
 
     private String recuperarToken(HttpServletRequest request) {

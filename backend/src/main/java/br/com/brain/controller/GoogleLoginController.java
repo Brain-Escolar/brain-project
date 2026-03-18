@@ -1,5 +1,7 @@
 package br.com.brain.controller;
 
+import br.com.brain.infra.multitenancy.TenantContext;
+import br.com.brain.service.EscolaService;
 import br.com.brain.service.TokenService;
 import br.com.brain.service.google.LoginGoogleService;
 import br.com.brain.domain.autenticacao.DadosAutenticacao;
@@ -25,17 +27,19 @@ public class GoogleLoginController {
     private final LoginGoogleService loginGoogleService;
     private final DadosAutenticacaoRepository usuarioRepository;
     private final TokenService tokenService;
+    private final EscolaService escolaService;
 
     public GoogleLoginController(LoginGoogleService loginGoogleService, DadosAutenticacaoRepository usuarioRepository,
-            TokenService tokenService) {
+            TokenService tokenService, EscolaService escolaService) {
         this.loginGoogleService = loginGoogleService;
         this.usuarioRepository = usuarioRepository;
         this.tokenService = tokenService;
+        this.escolaService = escolaService;
     }
 
     @GetMapping
-    public ResponseEntity<Void> redirecionarGoogle() {
-        var url = loginGoogleService.gerarUrl();
+    public ResponseEntity<Void> redirecionarGoogle(@RequestParam String codigoEscola) {
+        var url = loginGoogleService.gerarUrl(codigoEscola);
 
         var headers = new HttpHeaders();
         headers.setLocation(URI.create(url));
@@ -44,7 +48,10 @@ public class GoogleLoginController {
     }
 
     @GetMapping("/autorizado")
-    public ResponseEntity<AccessTokenDto> autenticarUsuarioOAuth(@RequestParam String code) {
+    public ResponseEntity<AccessTokenDto> autenticarUsuarioOAuth(@RequestParam String code, @RequestParam String state) {
+        var tenantId = escolaService.buscarSchemaPorCodigo(state);
+        TenantContext.setTenantId(tenantId);
+
         var oAuth = loginGoogleService.obterOAuthGoogle(code);
         var email = loginGoogleService.obterEmail(oAuth);
 
@@ -54,8 +61,8 @@ public class GoogleLoginController {
         var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String tokenAcesso = tokenService.gerarAutenticationToken((DadosAutenticacao) authentication.getPrincipal());
-        String refreshToken = tokenService.gerarRefreshToken((DadosAutenticacao) authentication.getPrincipal());
+        String tokenAcesso = tokenService.gerarAutenticationToken((DadosAutenticacao) authentication.getPrincipal(), tenantId);
+        String refreshToken = tokenService.gerarRefreshToken((DadosAutenticacao) authentication.getPrincipal(), tenantId);
 
         return ResponseEntity.ok(new AccessTokenDto(tokenAcesso, refreshToken));
     }

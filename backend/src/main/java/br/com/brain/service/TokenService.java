@@ -19,7 +19,7 @@ public class TokenService {
     @Value("${api.security.token.secret}")
     private String secret;
 
-    public String gerarAutenticationToken(DadosAutenticacao usuario) {
+    public String gerarAutenticationToken(DadosAutenticacao usuario, String tenantId) {
         try {
             var algoritmo = Algorithm.HMAC256(secret); // TODO - trocar algoritmo para chave publica/privada
             return JWT.create()
@@ -28,6 +28,7 @@ public class TokenService {
                     .withClaim("id", usuario.getId())
                     .withClaim("role", usuario.getAuthorities().toString())
                     .withClaim("name", usuario.getSocialName())
+                    .withClaim("tenantId", tenantId)
                     .withExpiresAt(expiracao(30))
                     .sign(algoritmo);
         } catch (JWTCreationException exception) {
@@ -35,12 +36,13 @@ public class TokenService {
         }
     }
 
-    public String gerarRefreshToken(DadosAutenticacao usuario) {
+    public String gerarRefreshToken(DadosAutenticacao usuario, String tenantId) {
         try {
             var algoritmo = Algorithm.HMAC256(secret); // TODO - trocar algoritmo para chave publica/privada
             return JWT.create()
                     .withIssuer("API Brain")
                     .withSubject(usuario.getId().toString())
+                    .withClaim("tenantId", tenantId)
                     .withExpiresAt(expiracao(120))
                     .sign(algoritmo);
         } catch (JWTCreationException exception) {
@@ -52,6 +54,15 @@ public class TokenService {
         try {
             var algoritmo = Algorithm.HMAC256(secret);
             return JWT.require(algoritmo).withIssuer("API Brain").build().verify(tokenJWT).getSubject();
+        } catch (JWTVerificationException exception) {
+            throw new RuntimeException("Token JWT inválido ou expirado!");
+        }
+    }
+
+    public String getTenantId(String tokenJWT) {
+        try {
+            var algoritmo = Algorithm.HMAC256(secret);
+            return JWT.require(algoritmo).withIssuer("API Brain").build().verify(tokenJWT).getClaim("tenantId").asString();
         } catch (JWTVerificationException exception) {
             throw new RuntimeException("Token JWT inválido ou expirado!");
         }

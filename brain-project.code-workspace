@@ -1,0 +1,6 @@
+{
+  "folders": [
+    { "path": ".", "name": "Root" },
+    { "path": "backend", "name": "Backend (Java)" }
+  ]
+}

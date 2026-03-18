@@ -5,6 +5,8 @@ import br.com.brain.domain.autenticacao.DadosAutenticacao;
 import br.com.brain.dto.autenticacao.EmailDto;
 import br.com.brain.dto.token.AccessTokenDto;
 import br.com.brain.dto.usuario.AutenticacaoDto;
+import br.com.brain.infra.multitenancy.TenantContext;
+import br.com.brain.service.EscolaService;
 import br.com.brain.service.TokenService;
 import br.com.brain.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -24,15 +26,18 @@ public class AutenticacaoController {
 
     private final AuthenticationManager manager;
     private final UsuarioService usuarioService;
-
     private final TokenService tokenService;
+    private final EscolaService escolaService;
 
     @PostMapping
     public ResponseEntity<AccessTokenDto> efetuarLogin(@RequestBody @Valid AutenticacaoDto dados) {
+        var tenantId = escolaService.buscarSchemaPorCodigo(dados.codigoEscola());
+        TenantContext.setTenantId(tenantId);
+
         var authenticationToken = new UsernamePasswordAuthenticationToken(dados.email(), dados.senha());
         var authentication = manager.authenticate(authenticationToken);
-        var tokenAcesso = tokenService.gerarAutenticationToken((DadosAutenticacao) authentication.getPrincipal());
-        var refreshToken = tokenService.gerarRefreshToken((DadosAutenticacao) authentication.getPrincipal());
+        var tokenAcesso = tokenService.gerarAutenticationToken((DadosAutenticacao) authentication.getPrincipal(), tenantId);
+        var refreshToken = tokenService.gerarRefreshToken((DadosAutenticacao) authentication.getPrincipal(), tenantId);
 
         return ResponseEntity.ok(new AccessTokenDto(tokenAcesso, refreshToken));
     }
@@ -46,11 +51,14 @@ public class AutenticacaoController {
 
     @PostMapping("/atualizar-token")
     public ResponseEntity<AccessTokenDto> atualizarToken(@RequestBody @Valid RefreshTokenDto dados) {
+        var tenantId = tokenService.getTenantId(dados.refreshToken());
+        TenantContext.setTenantId(tenantId);
+
         var usuarioId = Long.valueOf(tokenService.getSubject(dados.refreshToken()));
         var usuario = usuarioService.recuperarUsuarioPorId(usuarioId);
 
-        var tokenAcesso = tokenService.gerarAutenticationToken(usuario);
-        var refreshToken = tokenService.gerarRefreshToken(usuario);
+        var tokenAcesso = tokenService.gerarAutenticationToken(usuario, tenantId);
+        var refreshToken = tokenService.gerarRefreshToken(usuario, tenantId);
 
         return ResponseEntity.ok(new AccessTokenDto(tokenAcesso, refreshToken));
     }

@@ -30,14 +30,15 @@ public class LoginGoogleService {
         this.usuarioService = usuarioService;
     }
 
-    public String gerarUrl() {
+    public String gerarUrl(String codigoEscola) {
         return "https://accounts.google.com/o/oauth2/v2/auth?" +
                 "client_id=" + clientId +
                 "&redirect_uri=" + siteUrl + redirectUri +
                 "&scope=https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/calendar+https://www.googleapis.com/auth/calendar.events"
                 +
                 "&access_type=offline" +
-                "&response_type=code";
+                "&response_type=code" +
+                "&state=" + codigoEscola;
     }
 
     @SuppressWarnings("unchecked")
