@@ -13,8 +13,10 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.envers.Audited;
 
 @Entity
+@Audited
 @Table(name = "laudos_medicos")
 @Data
 @EqualsAndHashCode(callSuper = false)

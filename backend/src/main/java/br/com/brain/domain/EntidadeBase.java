@@ -1,6 +1,5 @@
 package br.com.brain.domain;
 
-import org.hibernate.envers.Audited;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -16,7 +15,6 @@ import java.time.Instant;
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-@Audited
 @Getter
 @Setter
 public abstract class EntidadeBase {

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 import br.com.brain.domain.EntidadeBase;
@@ -25,6 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
+@Audited
 @Table(name = "avaliacoes")
 @Data
 @EqualsAndHashCode(callSuper = false)

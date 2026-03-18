@@ -13,8 +13,10 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.envers.Audited;
 
 @Entity
+@Audited
 @Table(name = "disciplinas_grades")
 @Data
 @EqualsAndHashCode(callSuper = false)

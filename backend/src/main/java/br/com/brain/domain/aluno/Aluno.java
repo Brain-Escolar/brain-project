@@ -23,6 +23,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Audited
 @Table(name = "alunos")
 @Data
 @EqualsAndHashCode(callSuper = false)

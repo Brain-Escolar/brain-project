@@ -25,10 +25,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 import org.springframework.security.core.GrantedAuthority;
 
 @Entity
+@Audited
 @Table(name = "perfis")
 @Data
 @EqualsAndHashCode(callSuper = false)

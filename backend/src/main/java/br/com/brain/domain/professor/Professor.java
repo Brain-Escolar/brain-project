@@ -26,9 +26,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 @Entity
+@Audited
 @Table(name = "professores")
 @Data
 @EqualsAndHashCode(callSuper = false, exclude = { "dadosPessoais", "aulas", "tarefas", "disponibilidades" })

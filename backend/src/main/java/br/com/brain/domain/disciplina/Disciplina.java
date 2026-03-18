@@ -19,12 +19,14 @@ import jakarta.persistence.Table;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
+@Audited
 @Table(name = "disciplinas")
 @Data
 @EqualsAndHashCode(callSuper = false)

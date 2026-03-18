@@ -11,11 +11,13 @@ import jakarta.persistence.Table;
 
 import java.util.List;
 
+import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
+@Audited
 @Table(name = "grupos_disciplinas")
 @Data
 @EqualsAndHashCode(callSuper = false)

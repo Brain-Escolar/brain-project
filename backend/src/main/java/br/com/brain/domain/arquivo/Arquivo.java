@@ -14,10 +14,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 import lombok.EqualsAndHashCode;
 
 @Entity
+@Audited
 @Table(name = "arquivos")
 @Data
 @EqualsAndHashCode(callSuper = false)

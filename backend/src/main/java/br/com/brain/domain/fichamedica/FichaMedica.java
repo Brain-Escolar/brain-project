@@ -21,10 +21,12 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
+import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 import lombok.EqualsAndHashCode;
 
 @Entity
+@Audited
 @Table(name = "fichas_medicas")
 @Data
 @EqualsAndHashCode(callSuper = false)
