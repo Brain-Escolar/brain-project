@@ -4,6 +4,7 @@ import br.com.brain.domain.autenticacao.DadosAutenticacao;
 import br.com.brain.dto.usuario.AlteracaoSenhaDto;
 import br.com.brain.dto.usuario.ListagemUsuarioDto;
 import br.com.brain.dto.usuario.RedefinicaoSenhaDto;
+import br.com.brain.infra.multitenancy.TenantContext;
 import br.com.brain.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,8 @@ public class UsuarioController {
     private final UsuarioService service;
 
     @GetMapping("/verificar-conta")
-    public ResponseEntity<String> verificarEmail(@RequestParam String codigo) {
+    public ResponseEntity<String> verificarEmail(@RequestParam String codigo, @RequestParam String schema) {
+        TenantContext.setTenantId(schema);
         service.verificarEmail(codigo);
         return ResponseEntity.ok("Conta verificada com sucesso!");
     }

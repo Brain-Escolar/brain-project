@@ -10,6 +10,7 @@ import br.com.brain.dto.usuario.RedefinicaoSenhaDto;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.infra.email.EmailService;
+import br.com.brain.infra.multitenancy.TenantContext;
 import br.com.brain.utils.Utils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -47,7 +48,8 @@ public class UsuarioService {
 
         usuario.setDadosPessoais(dadosPessoais);
         var usuarioCriado = usuarioRepository.save(usuario);
-        emailService.enviarEmailVerificacao(dadosPessoais.getNomeSocial(), dadosPessoais.getEmail(), senha, usuario);
+        String schema = TenantContext.getTenantId();
+        emailService.enviarEmailVerificacao(dadosPessoais.getNomeSocial(), dadosPessoais.getEmail(), senha, usuario, schema);
         return usuarioCriado.getId();
     }
 

@@ -43,7 +43,7 @@ public class EmailService {
     }
 
     @Async
-    public void enviarEmailVerificacao(String nome, String email, String senha, DadosAutenticacao usuario) {
+    public void enviarEmailVerificacao(String nome, String email, String senha, DadosAutenticacao usuario, String schema) {
         String assunto = "Aqui está seu link para verificar o email";
         String conteudo = gerarConteudoEmail(
                 "Olá [[name]],<br>"
@@ -58,7 +58,7 @@ public class EmailService {
                 nome,
                 usuario.getUsername(),
                 senha,
-                urlSite + "/usuario/verificar-conta?codigo=" + usuario.getToken());
+                urlSite + "/usuario/verificar-conta?codigo=" + usuario.getToken() + "&schema=" + schema);
 
         enviarEmail(email, assunto, conteudo);
     }
