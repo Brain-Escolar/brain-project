@@ -2,36 +2,19 @@ package br.com.brain.domain.dadosPessoais;
 
 import br.com.brain.domain.endereco.Endereco;
 import br.com.brain.domain.fichamedica.FichaMedica;
-import br.com.brain.domain.grupo.GrupoDisciplina;
-import br.com.brain.domain.horario.Horario;
-import br.com.brain.domain.notas.Notas;
-import br.com.brain.domain.orientador.Orientador;
 import br.com.brain.domain.perfil.Perfil;
 import br.com.brain.domain.professor.Professor;
 import br.com.brain.domain.responsavel.Responsavel;
 import br.com.brain.domain.rh.Rh;
 import br.com.brain.domain.secretario.Secretario;
-import br.com.brain.domain.serie.Serie;
-import br.com.brain.domain.tarefa.Tarefa;
 import br.com.brain.domain.telefone.Telefone;
-import br.com.brain.domain.turma.Turma;
-import br.com.brain.domain.unidade.Unidade;
 import br.com.brain.domain.EntidadeBase;
-import br.com.brain.domain.alerta.Alerta;
 import br.com.brain.domain.alerta.AlertaUsuario;
 import br.com.brain.domain.aluno.Aluno;
-import br.com.brain.domain.anotacao.Anotacao;
-import br.com.brain.domain.arquivo.Arquivo;
-import br.com.brain.domain.aula.Aula;
 import br.com.brain.domain.autenticacao.DadosAutenticacao;
-import br.com.brain.domain.avaliacao.Avaliacao;
-import br.com.brain.domain.chamada.Chamada;
-import br.com.brain.domain.comunicado.Comunicado;
-import br.com.brain.domain.conteudo.Conteudo;
 import br.com.brain.domain.coordenador.Coordenador;
 import br.com.brain.domain.diretor.Diretor;
-import br.com.brain.domain.disciplina.Disciplina;
-import br.com.brain.domain.disponibilidadeProfessor.DisponibilidadeProfessor;
+import br.com.brain.domain.orientador.Orientador;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -116,156 +99,6 @@ public class DadosPessoais extends EntidadeBase {
                 .map(Telefone::getNumero)
                 .collect(Collectors.toList());
     }
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Turma> turmasAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Unidade> unidadesAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Serie> serieAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Alerta> alertaAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Avaliacao> avaliacaoAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Secretario> secretarioAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<FichaMedica> fichaMedicaAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Orientador> orientadorAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<GrupoDisciplina> grupoDisciplinaAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Horario> horariosAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Responsavel> responsaveisAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Aluno> alunosAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Rh> RhAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Diretor> diretorAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Tarefa> tarefaAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Comunicado> comunicadoAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<DadosPessoais> dadosPessoaisAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Professor> professorAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Coordenador> coordenadorAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Aula> aulaAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Arquivo> arquivosAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Chamada> chamadaAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Disciplina> disciplinaAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Perfil> perfilAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Conteudo> conteudoAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<DadosAutenticacao> dadosAutenticacaoAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<DisponibilidadeProfessor> disponibilidadeProfessorAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Telefone> telefoneAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Notas> notasAtualizadoPor = new ArrayList<>();
-
-    @NotAudited
-    @OneToMany(mappedBy = "atualizadoPor", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Anotacao> anotacoesAtualizadoPor = new ArrayList<>();
 
     @OneToOne(mappedBy = "dadosPessoais", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
