@@ -8,7 +8,6 @@ import br.com.brain.dto.alerta.CadastroAlertaDto;
 import br.com.brain.dto.alerta.ListagemAlertaDto;
 import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +45,7 @@ public class AlertaService {
     @Transactional
     public Alerta atualizar(AtualizacaoAlertaDto dados, Long id) {
         var alerta = alertaRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Alerta de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Alerta", id));
 
         if (dados.titulo() != null) {
             alerta.setTitulo(dados.titulo());
@@ -68,20 +67,19 @@ public class AlertaService {
         var alerta = alertaRepository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Alerta de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Alerta", id));
         alertaRepository.delete(alerta);
     }
 
     public Alerta detalhar(Long id) {
         return alertaRepository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Alerta de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Alerta", id));
     }
 
     public void marcarComoLido(Long alertaId, Long usuarioId) {
         var alertaUsuario = alertaUsuarioRepository.findByAlertaIdAndUsuarioId(alertaId, usuarioId).orElseThrow(
-                () -> new ErrosSistema.RecursoNaoEncontradoException(
-                        "AlertaUsuario não encontrado para o alertaId " + alertaId + " e usuarioId " + usuarioId));
+                () -> ErrosSistema.RecursoNaoEncontradoException.para("AlertaUsuario", alertaId + " e " + usuarioId));
 
         alertaUsuario.setLido(true);
         em.merge(alertaUsuario);

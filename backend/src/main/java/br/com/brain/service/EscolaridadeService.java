@@ -5,8 +5,8 @@ import br.com.brain.domain.escolaridade.EscolaridadeRepository;
 import br.com.brain.dto.escolaridade.AtualizacaoEscolaridadeDto;
 import br.com.brain.dto.escolaridade.CadastroEscolaridadeDto;
 import br.com.brain.dto.escolaridade.ListagemEscolaridadeDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ public class EscolaridadeService {
         var escolaridade = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Escolaridade de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Escolaridade", id));
 
         if (dados.descricao() != null) {
             escolaridade.setDescricao(dados.descricao());
@@ -57,6 +57,6 @@ public class EscolaridadeService {
     public Escolaridade detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Escolaridade de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Escolaridade", id));
     }
 }

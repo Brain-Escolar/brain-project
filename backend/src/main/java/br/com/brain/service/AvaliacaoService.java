@@ -6,8 +6,8 @@ import br.com.brain.domain.disciplina.Disciplina;
 import br.com.brain.dto.avaliacao.AtualizacaoAvaliacaoDto;
 import br.com.brain.dto.avaliacao.CadastroAvaliacaoDto;
 import br.com.brain.dto.avaliacao.ListagemAvaliacaoDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +50,7 @@ public class AvaliacaoService {
     @Transactional
     public Avaliacao atualizar(AtualizacaoAvaliacaoDto dados, Long id) {
         var avaliacao = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Avaliacao de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Avaliação", id));
 
         if (dados.nome() != null) {
             avaliacao.setNome(dados.nome());

@@ -6,8 +6,8 @@ import br.com.brain.domain.conteudo.ConteudoRepository;
 import br.com.brain.dto.conteudo.AtualizacaoConteudoDto;
 import br.com.brain.dto.conteudo.CadastroConteudoDto;
 import br.com.brain.dto.conteudo.ListagemConteudoDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +47,7 @@ public class ConteudoService {
         var conteudo = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Conteudo de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Conteudo", id));
 
         if (dados.conteudo() != null) {
             conteudo.setConteudo(dados.conteudo());
@@ -69,13 +69,13 @@ public class ConteudoService {
         var conteudo = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Conteudo de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Conteudo", id));
         repository.delete(conteudo);
     }
 
     public Conteudo detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Conteudo de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Conteudo", id));
     }
 }

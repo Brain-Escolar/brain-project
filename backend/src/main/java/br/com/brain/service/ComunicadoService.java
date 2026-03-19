@@ -5,8 +5,8 @@ import br.com.brain.domain.comunicado.ComunicadoRepository;
 import br.com.brain.dto.comunicado.AtualizacaoComunicadoDto;
 import br.com.brain.dto.comunicado.CadastroComunicadoDto;
 import br.com.brain.dto.comunicado.ListagemComunicadoDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,7 @@ public class ComunicadoService {
     @Transactional
     public Comunicado atualizar(AtualizacaoComunicadoDto dados, Long id) {
         var comunicado = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Comunicado de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Comunicado", id));
 
         if (dados.titulo() != null) {
             comunicado.setTitulo(dados.titulo());
@@ -65,13 +65,13 @@ public class ComunicadoService {
         var comunicado = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Comunicado de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Comunicado", id));
         repository.delete(comunicado);
     }
 
     public Comunicado detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Comunicado de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Comunicado", id));
     }
 }

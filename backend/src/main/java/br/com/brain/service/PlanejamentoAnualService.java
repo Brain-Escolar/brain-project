@@ -63,8 +63,8 @@ public class PlanejamentoAnualService {
 
     public ListagemArquivoDto recuperarPlanejamentoAnual(Integer ano) {
         var planejamentoAnual = repository.findByAno(ano)
-                .orElseThrow(() -> new ErrosSistema.RecursoNaoEncontradoException(
-                        "Planejamento anual não encontrado para o ano: " + ano));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para(
+                        "Planejamento anual", ano));
         String downloadUrl = s3Service.generatePresignedDownloadUrl(planejamentoAnual.getArquivo().getS3Key(),
                 Duration.ofMinutes(5));
         return new ListagemArquivoDto(planejamentoAnual.getArquivo(), downloadUrl);

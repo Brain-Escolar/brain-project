@@ -14,8 +14,8 @@ import br.com.brain.dto.aula.ListagemAulaDto;
 import br.com.brain.dto.responsavel.CadastroResponsavelDto;
 import br.com.brain.dto.serie.SerieUnidadeTurmaDto;
 import br.com.brain.enums.PerfilNome;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
@@ -83,7 +83,7 @@ public class AlunoService {
     @Transactional
     public Aluno atualizar(Long id, AtualizacaoAlunoDto dados) {
         var aluno = repository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Aluno de id " + id + " não existe."));
+                () -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
 
         var dadosPessoais = aluno.getDadosPessoais();
         dadosPessoais.atualizarNome(dados.nome());
@@ -102,14 +102,14 @@ public class AlunoService {
     public void excluir(Long id) {
         var aluno = repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
         repository.delete(aluno);
     }
 
     public Aluno detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
     }
 
     public List<ListagemAulaDto> gerarGradeHoraria(String matricula) {
@@ -120,7 +120,7 @@ public class AlunoService {
     public Aluno matricular(Long id) {
         var aluno = repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
         var dadosPessoais = aluno.getDadosPessoais();
         dadosPessoais.setMatricula("M" + aluno.getId());
         dadosPessoais.setEmailProfissional(dadosPessoais.getMatricula() + "@escola.com");
@@ -136,7 +136,7 @@ public class AlunoService {
     public Aluno desmatricular(Long id) {
         var aluno = repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
         usuarioService.desativarUsuario(aluno.getDadosPessoais().getEmailProfissional());
         aluno.setMatriculado(false);
         aluno.getDadosPessoais().setMatricula(null);
@@ -149,7 +149,7 @@ public class AlunoService {
     public Aluno vincularSerie(Long id, SerieUnidadeTurmaDto dados) {
         var aluno = repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Aluno de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
 
         Serie serie = em.getReference(Serie.class, dados.serieId());
         Unidade unidade = em.getReference(Unidade.class, dados.unidadeId());

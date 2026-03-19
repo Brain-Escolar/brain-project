@@ -5,8 +5,8 @@ import br.com.brain.domain.grupo.GrupoDisciplinaRepository;
 import br.com.brain.dto.grupo.AtualizacaoGrupoDisciplinaDto;
 import br.com.brain.dto.grupo.CadastroGrupoDisciplinaDto;
 import br.com.brain.dto.grupo.ListagemGrupoDisciplinaDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class GrupoDisciplinaService {
     @Transactional
     public GrupoDisciplina atualizar(AtualizacaoGrupoDisciplinaDto dados, Long id) {
         var grupo = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("GrupoDisciplina de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("GrupoDisciplina", id));
 
         if (dados.nome() != null) {
             grupo.setNome(dados.nome());
@@ -58,11 +58,13 @@ public class GrupoDisciplinaService {
 
     @Transactional
     public void excluir(Long id) {
-        var grupo = repository.findById(id).get();
+        var grupo = repository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("GrupoDisciplina", id));
         repository.delete(grupo);
     }
 
     public GrupoDisciplina detalhar(Long id) {
-        return repository.findById(id).get();
+        return repository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("GrupoDisciplina", id));
     }
 }

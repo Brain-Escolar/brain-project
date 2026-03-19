@@ -9,8 +9,8 @@ import br.com.brain.dto.gradeCurricular.AtualizacaoGradeCurricularDto;
 import br.com.brain.dto.gradeCurricular.CadastroDisciplinaGradeDto;
 import br.com.brain.dto.gradeCurricular.CadastroGradeCurricularDto;
 import br.com.brain.dto.gradeCurricular.ListagemGradeCurricularDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ public class GradeCurricularService {
         var gradeCurricular = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("GradeCurricular de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("GradeCurricular", id));
 
         if (dados.nome() != null) {
             gradeCurricular.setNome(dados.nome());
@@ -64,7 +64,7 @@ public class GradeCurricularService {
         var gradeCurricular = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("GradeCurricular de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("GradeCurricular", id));
         gradeCurricular.setAtivo(false);
         repository.save(gradeCurricular);
         return gradeCurricular;
@@ -73,14 +73,14 @@ public class GradeCurricularService {
     public GradeCurricular detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("GradeCurricular de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("GradeCurricular", id));
     }
 
     public GradeCurricular adicionarDisciplinas(CadastroDisciplinaGradeDto dados) {
         var gradeCurricular = repository
                 .findById(dados.gradeCurricularId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "GradeCurricular de id " + dados.gradeCurricularId() + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("GradeCurricular",
+                        dados.gradeCurricularId()));
 
         dados.disciplinasId().forEach(disciplinaId -> {
             var disciplina = em.find(Disciplina.class, disciplinaId);

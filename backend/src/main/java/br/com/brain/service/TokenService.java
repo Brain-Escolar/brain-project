@@ -6,6 +6,7 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 
 import br.com.brain.domain.autenticacao.DadosAutenticacao;
+import br.com.brain.exception.ErrosSistema;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -32,7 +33,7 @@ public class TokenService {
                     .withExpiresAt(expiracao(30))
                     .sign(algoritmo);
         } catch (JWTCreationException exception) {
-            throw new RuntimeException("erro ao gerar token jwt", exception);
+            throw new ErrosSistema.ErroInternoException("Erro ao gerar token JWT", exception);
         }
     }
 
@@ -46,7 +47,7 @@ public class TokenService {
                     .withExpiresAt(expiracao(120))
                     .sign(algoritmo);
         } catch (JWTCreationException exception) {
-            throw new RuntimeException("erro ao gerar token jwt", exception);
+            throw new ErrosSistema.ErroInternoException("Erro ao gerar token JWT", exception);
         }
     }
 
@@ -55,16 +56,17 @@ public class TokenService {
             var algoritmo = Algorithm.HMAC256(secret);
             return JWT.require(algoritmo).withIssuer("API Brain").build().verify(tokenJWT).getSubject();
         } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Token JWT inválido ou expirado!");
+            throw new ErrosSistema.ErroInternoException("Token JWT inválido ou expirado!", exception);
         }
     }
 
     public String getTenantId(String tokenJWT) {
         try {
             var algoritmo = Algorithm.HMAC256(secret);
-            return JWT.require(algoritmo).withIssuer("API Brain").build().verify(tokenJWT).getClaim("tenantId").asString();
+            return JWT.require(algoritmo).withIssuer("API Brain").build().verify(tokenJWT).getClaim("tenantId")
+                    .asString();
         } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Token JWT inválido ou expirado!");
+            throw new ErrosSistema.ErroInternoException("Token JWT inválido ou expirado!", exception);
         }
     }
 

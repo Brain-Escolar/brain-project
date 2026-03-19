@@ -9,8 +9,8 @@ import br.com.brain.dto.anotacao.AnotacaoAulaDto;
 import br.com.brain.dto.anotacao.AtualizacaoAnotacaoDto;
 import br.com.brain.dto.anotacao.CadastroAnotacaoDto;
 import br.com.brain.dto.anotacao.ListagemAnotacaoDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
@@ -55,7 +55,7 @@ public class AnotacaoService {
     @Transactional
     public Anotacao atualizar(AtualizacaoAnotacaoDto dados, Long id) {
         var anotacao = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Anotacao de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Anotacao", id));
 
         if (dados.alunoId() != null) {
             Aluno aluno = em.getReference(Aluno.class, dados.alunoId());

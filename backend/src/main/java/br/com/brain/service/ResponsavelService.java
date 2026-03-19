@@ -7,8 +7,8 @@ import br.com.brain.domain.responsavel.ResponsavelRepository;
 import br.com.brain.dto.responsavel.AtualizacaoResponsavelDto;
 import br.com.brain.dto.responsavel.CadastroResponsavelDto;
 import br.com.brain.dto.responsavel.ListagemResponsavelDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +36,8 @@ public class ResponsavelService {
 
         var responsavel = new Responsavel();
         var dadosPessoais = dadosPessoaisService
-            .buscarDadosPessoaisPorCpf(dados.cpf())
-            .orElseGet(() -> criarDadosPessoais(dados));
+                .buscarDadosPessoaisPorCpf(dados.cpf())
+                .orElseGet(() -> criarDadosPessoais(dados));
 
         responsavel.setDadosPessoais(dadosPessoais);
         responsavel.setFinanceiro(dados.financeiro());
@@ -61,7 +61,7 @@ public class ResponsavelService {
     @Transactional
     public Responsavel atualizar(AtualizacaoResponsavelDto dados, Long id) {
         var responsavel = repository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Responsavel de id " + id + " não existe."));
+                () -> ErrosSistema.RecursoNaoEncontradoException.para("Responsável", id));
 
         if (dados.nome() != null) {
             responsavel.getDadosPessoais().setNome(dados.nome());
@@ -70,7 +70,8 @@ public class ResponsavelService {
             responsavel.getDadosPessoais().setEmail(dados.email());
         }
         if (dados.endereco() != null) {
-            var endereco = enderecoService.atualizarEndereco(responsavel.getDadosPessoais().getEndereco(), dados.endereco());
+            var endereco = enderecoService.atualizarEndereco(responsavel.getDadosPessoais().getEndereco(),
+                    dados.endereco());
             responsavel.getDadosPessoais().setEndereco(endereco);
         }
         if (dados.dataDeNascimento() != null) {
@@ -90,17 +91,20 @@ public class ResponsavelService {
 
     @Transactional
     public void excluir(Long id) {
-        var responsavel = repository.findById(id).get();
+        var responsavel = repository.findById(id).orElseThrow(
+                () -> ErrosSistema.RecursoNaoEncontradoException.para("Responsável", id));
         repository.delete(responsavel);
     }
 
     public Responsavel detalhar(Long id) {
-        return repository.findById(id).get();
+        return repository.findById(id).orElseThrow(
+                () -> ErrosSistema.RecursoNaoEncontradoException.para("Responsável", id));
     }
 
     @Transactional
     public Responsavel vincularAlunos(Long responsavelId, List<Long> alunoIds) {
-        var responsavel = repository.findById(responsavelId).orElseThrow();
+        var responsavel = repository.findById(responsavelId).orElseThrow(
+                () -> ErrosSistema.RecursoNaoEncontradoException.para("Responsável", responsavelId));
         var alunos = responsavel.getAlunos();
         for (Long alunoId : alunoIds) {
             var aluno = em.getReference(Aluno.class, alunoId);
@@ -113,7 +117,7 @@ public class ResponsavelService {
 
     private DadosPessoais criarDadosPessoais(CadastroResponsavelDto dados) {
         var dadosPessoais = new DadosPessoais();
-        
+
         dadosPessoais.setCpf(dados.cpf());
         dadosPessoais.setNome(dados.nome());
         dadosPessoais.setEmail(dados.email());

@@ -8,8 +8,8 @@ import br.com.brain.dto.turma.AtualizacaoTurmaDto;
 import br.com.brain.dto.turma.CadastroTurmaDto;
 import br.com.brain.dto.turma.ListagemTurmaDto;
 import br.com.brain.enums.Turno;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -56,7 +56,7 @@ public class TurmaService {
         var turma = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Turma de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", id));
 
         if (dados.nome() != null) {
             turma.setNome(dados.nome());
@@ -74,13 +74,13 @@ public class TurmaService {
         var turma = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Turma de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", id));
         repository.delete(turma);
     }
 
     public Turma detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Turma de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", id));
     }
 }

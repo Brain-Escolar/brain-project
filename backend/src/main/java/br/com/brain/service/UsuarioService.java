@@ -13,7 +13,6 @@ import br.com.brain.infra.email.EmailService;
 import br.com.brain.infra.multitenancy.TenantContext;
 import br.com.brain.utils.Utils;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
@@ -49,7 +48,8 @@ public class UsuarioService {
         usuario.setDadosPessoais(dadosPessoais);
         var usuarioCriado = usuarioRepository.save(usuario);
         String schema = TenantContext.getTenantId();
-        emailService.enviarEmailVerificacao(dadosPessoais.getNomeSocial(), dadosPessoais.getEmail(), senha, usuario, schema);
+        emailService.enviarEmailVerificacao(dadosPessoais.getNomeSocial(), dadosPessoais.getEmail(), senha, usuario,
+                schema);
         return usuarioCriado.getId();
     }
 
@@ -61,14 +61,14 @@ public class UsuarioService {
     public void excluir(Long id) {
         var usuario = usuarioRepository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Usuario", id));
         usuarioRepository.delete(usuario);
     }
 
     public DadosAutenticacao recuperarUsuarioPorId(Long id) {
         return usuarioRepository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Usuario", id));
     }
 
     public DadosAutenticacao recuperarUsuarioLogado(DadosAutenticacao usuario) {
@@ -78,7 +78,7 @@ public class UsuarioService {
         }
         return usuarioRepository
                 .findById(usuario.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Usuario de id " + usuario.getId() + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Usuario", usuario.getId()));
     }
 
     @Transactional
@@ -117,7 +117,8 @@ public class UsuarioService {
 
     public DadosAutenticacao recuperarUsuarioPorEmail(String email) {
         return usuarioRepository.findByEmailIgnoreCaseAndVerificadoTrue(email)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado ou não verificado"));
+                .orElseThrow(() -> new ErrosSistema.RecursoNaoEncontradoException(
+                        "Usuário de email " + email + " não encontrado ou não verificado"));
     }
 
     @Transactional
@@ -134,7 +135,7 @@ public class UsuarioService {
     @Transactional
     public void alterarSenha(AlteracaoSenhaDto dados, DadosAutenticacao usuario) {
         if (!passwordEncoder.matches(dados.senhaAtual(), usuario.getSenha())) {
-            throw new RuntimeException("Senha atual incorreta");
+            throw new ErrosSistema.SenhaIncorretaException("Senha atual incorreta");
         }
 
         var novaSenhaCriptografada = passwordEncoder.encode(dados.novaSenha());
@@ -145,14 +146,14 @@ public class UsuarioService {
     @Transactional
     public DadosAutenticacao redefinirSenha(RedefinicaoSenhaDto dados, String token) {
         var usuario = usuarioRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token inválido ou expirado"));
+                .orElseThrow(() -> new ErrosSistema.TokenInvalidoOuExpiradoException("Token inválido ou expirado"));
 
         if (usuario.getExpiracaoToken() == null || usuario.getExpiracaoToken().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token expirado");
+            throw new ErrosSistema.TokenInvalidoOuExpiradoException("Token expirado");
         }
 
         if (!dados.novaSenha().equals(dados.novaSenhaConfirmacao())) {
-            throw new RuntimeException("As senhas não coincidem");
+            throw new ErrosSistema.SenhaIncorretaException("As senhas não coincidem");
         }
 
         var novaSenhaCriptografada = passwordEncoder.encode(dados.novaSenha());

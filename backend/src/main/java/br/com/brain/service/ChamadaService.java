@@ -3,12 +3,12 @@ package br.com.brain.service;
 import br.com.brain.dto.chamada.AtualizacaoChamadaDto;
 import br.com.brain.dto.chamada.CadastroChamadaDto;
 import br.com.brain.dto.chamada.ListagemChamadaDto;
+import br.com.brain.exception.ErrosSistema;
 import br.com.brain.domain.aluno.Aluno;
 import br.com.brain.domain.aula.Aula;
 import br.com.brain.domain.chamada.Chamada;
 import br.com.brain.domain.chamada.ChamadaRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,8 +33,9 @@ public class ChamadaService {
     public List<ListagemChamadaDto> cadastrarChamada(CadastroChamadaDto dados) {
 
         repository.findByAulaIdAndData(dados.aulaId(), dados.data()).ifPresent(_ -> {
-            throw new IllegalArgumentException("Chamada para a aula " + dados.aulaId() + " na data " + dados.data()
-                    + " já foi registrada.");
+            throw new ErrosSistema.RecursoJaExisteException(
+                    "Chamada para a aula " + dados.aulaId() + " na data " + dados.data()
+                            + " já foi registrada.");
         });
 
         var listagemChamadaDtos = new ArrayList<ListagemChamadaDto>();
@@ -63,7 +64,7 @@ public class ChamadaService {
         var chamada = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Chamada de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Chamada", id));
 
         if (dados.presente() != null) {
             chamada.setPresente(dados.presente());
@@ -90,14 +91,14 @@ public class ChamadaService {
         var chamada = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Chamada de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Chamada", id));
         repository.delete(chamada);
     }
 
     public Chamada detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Chamada de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Chamada", id));
     }
 
     public Integer contarFaltasPorAlunoEPorDisciplina(Long alunoId, Long disciplinaId) {

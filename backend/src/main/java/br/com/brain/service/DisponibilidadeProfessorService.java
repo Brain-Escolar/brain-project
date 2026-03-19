@@ -7,8 +7,8 @@ import br.com.brain.domain.professor.Professor;
 import br.com.brain.dto.disponibilidadeProfessor.AtualizacaoDisponibilidadeProfessorDto;
 import br.com.brain.dto.disponibilidadeProfessor.CadastroDisponibilidadeProfessorDto;
 import br.com.brain.dto.disponibilidadeProfessor.ListagemDisponibilidadeProfessorDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
@@ -31,7 +31,8 @@ public class DisponibilidadeProfessorService {
     private EntityManager em;
 
     @Transactional
-    public List<DisponibilidadeProfessor> cadastrarDisponibilidadeProfessor(Long professorId, CadastroDisponibilidadeProfessorDto dados) {
+    public List<DisponibilidadeProfessor> cadastrarDisponibilidadeProfessor(Long professorId,
+            CadastroDisponibilidadeProfessorDto dados) {
 
         var disponibilidades = new ArrayList<DisponibilidadeProfessor>();
         for (var horarioId : dados.horariosId()) {
@@ -55,7 +56,7 @@ public class DisponibilidadeProfessorService {
     @Transactional
     public DisponibilidadeProfessor atualizar(AtualizacaoDisponibilidadeProfessorDto dados, Long id) {
         var nota = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("DisponibilidadeProfessor de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("DisponibilidadeProfessor", id));
 
         if (dados.horarioId() != null) {
             Horario horario = em.getReference(Horario.class, dados.horarioId());
@@ -75,13 +76,14 @@ public class DisponibilidadeProfessorService {
         var nota = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("DisponibilidadeProfessor de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("DisponibilidadeProfessor", id));
         repository.delete(nota);
     }
 
     public DisponibilidadeProfessor detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("DisponibilidadeProfessor de id " + id + " não existe."));
+                .orElseThrow(
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("DisponibilidadeProfessor", id));
     }
 }

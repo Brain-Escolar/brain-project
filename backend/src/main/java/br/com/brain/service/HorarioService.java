@@ -5,8 +5,8 @@ import br.com.brain.domain.horario.HorarioRepository;
 import br.com.brain.dto.horario.AtualizacaoHorarioDto;
 import br.com.brain.dto.horario.CadastroHorarioDto;
 import br.com.brain.dto.horario.ListagemHorarioDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class HorarioService {
         var horario = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Horario de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Horario", id));
 
         if (dados.nome() != null) {
             horario.setNome(dados.nome());
@@ -69,13 +69,13 @@ public class HorarioService {
         var horario = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Horario de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Horario", id));
         repository.delete(horario);
     }
 
     public Horario detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Horario de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Horario", id));
     }
 }

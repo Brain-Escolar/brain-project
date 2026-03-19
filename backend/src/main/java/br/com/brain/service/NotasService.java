@@ -7,8 +7,8 @@ import br.com.brain.domain.notas.NotasRepository;
 import br.com.brain.dto.notas.AtualizacaoNotasDto;
 import br.com.brain.dto.notas.CadastroNotasDto;
 import br.com.brain.dto.notas.ListagemNotasDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
@@ -49,7 +49,7 @@ public class NotasService {
     @Transactional
     public Notas atualizar(AtualizacaoNotasDto dados, Long id) {
         var nota = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Nota de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Nota", id));
 
         if (dados.alunoId() != null) {
             Aluno aluno = em.getReference(Aluno.class, dados.alunoId());
@@ -76,13 +76,13 @@ public class NotasService {
         var nota = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Nota de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Nota", id));
         repository.delete(nota);
     }
 
     public Notas detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Nota de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Nota", id));
     }
 }

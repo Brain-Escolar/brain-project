@@ -7,6 +7,7 @@ import br.com.brain.domain.serie.Serie;
 import br.com.brain.dto.disciplina.AtualizacaoDisciplinaDto;
 import br.com.brain.dto.disciplina.CadastroDisciplinaDto;
 import br.com.brain.dto.disciplina.ListagemDisciplinaDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -47,7 +48,8 @@ public class DisciplinaService {
 
     @Transactional
     public Disciplina atualizar(AtualizacaoDisciplinaDto dados, Long id) {
-        var disciplina = repository.findById(id).get();
+        var disciplina = repository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Disciplina", id));
 
         if (dados.nome() != null) {
             disciplina.setNome(dados.nome());
@@ -71,11 +73,13 @@ public class DisciplinaService {
 
     @Transactional
     public void excluir(Long id) {
-        var disciplina = repository.findById(id).get();
+        var disciplina = repository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Disciplina", id));
         repository.delete(disciplina);
     }
 
     public Disciplina detalhar(Long id) {
-        return repository.findById(id).get();
+        return repository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Disciplina", id));
     }
 }

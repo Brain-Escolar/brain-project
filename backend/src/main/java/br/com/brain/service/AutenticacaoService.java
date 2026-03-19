@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import br.com.brain.domain.autenticacao.DadosAutenticacaoRepository;
+import br.com.brain.exception.ErrosSistema;
 
 @Service
 public class AutenticacaoService implements UserDetailsService {
@@ -18,6 +19,6 @@ public class AutenticacaoService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return repository
                 .findByEmailIgnoreCaseAndVerificadoTrue(username)
-                .orElseThrow(() -> new UsernameNotFoundException("O usuário não foi encontrado!"));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Usuário", username));
     }
 }

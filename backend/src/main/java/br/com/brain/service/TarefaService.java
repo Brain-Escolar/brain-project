@@ -6,8 +6,8 @@ import br.com.brain.domain.tarefa.TarefaRepository;
 import br.com.brain.dto.tarefa.AtualizacaoTarefaDto;
 import br.com.brain.dto.tarefa.CadastroTarefaDto;
 import br.com.brain.dto.tarefa.ListagemTarefaDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ public class TarefaService {
         var tarefa = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Tarefa de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Tarefa", id));
 
         if (dados.titulo() != null) {
             tarefa.setTitulo(dados.titulo());
@@ -80,14 +80,14 @@ public class TarefaService {
         var tarefa = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Tarefa de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Tarefa", id));
         repository.delete(tarefa);
     }
 
     public Tarefa detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Tarefa de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Tarefa", id));
     }
 
     public Page<ListagemTarefaDto> recuperarTarefasProfessor(Long id, Pageable paginacao) {

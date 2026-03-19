@@ -12,9 +12,9 @@ import br.com.brain.dto.fichamedica.AtualizacaoFichaMedicaDto;
 import br.com.brain.dto.fichamedica.CadastroFichaMedicaDto;
 import br.com.brain.dto.fichamedica.ListagemFichaMedicaDto;
 import br.com.brain.enums.TipoSanguineo;
+import br.com.brain.exception.ErrosSistema;
 import br.com.brain.service.aws.S3Service;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +65,7 @@ public class FichaMedicaService {
             arquivo.setContentType(laudo.getContentType());
             arquivo.setTamanho(laudo.getSize());
             arquivoRepository.save(arquivo);
-            
+
             laudoMedico.setArquivo(arquivo);
             laudoMedico.setFichaMedica(fichaMedica);
 
@@ -84,7 +84,7 @@ public class FichaMedicaService {
     @Transactional
     public FichaMedica atualizar(AtualizacaoFichaMedicaDto dados, Long id) {
         var fichaMedica = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("FichaMedica de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("FichaMedica", id));
 
         if (dados.alergiasAlimentares() != null) {
             fichaMedica.setAlergiasAlimentares(dados.alergiasAlimentares());
@@ -113,7 +113,8 @@ public class FichaMedicaService {
 
     public Page<ListagemArquivoDto> listarLaudos(Pageable paginacao) {
         return laudoMedicoRepository.findAll(paginacao).map(laudo -> {
-            String downloadUrl = s3Service.generatePresignedDownloadUrl(laudo.getArquivo().getS3Key(), Duration.ofMinutes(5));
+            String downloadUrl = s3Service.generatePresignedDownloadUrl(laudo.getArquivo().getS3Key(),
+                    Duration.ofMinutes(5));
             return new ListagemArquivoDto(laudo.getArquivo(), downloadUrl);
         });
     }

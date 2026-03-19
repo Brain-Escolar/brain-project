@@ -5,8 +5,8 @@ import br.com.brain.domain.serie.SerieRepository;
 import br.com.brain.dto.serie.AtualizacaoSerieDto;
 import br.com.brain.dto.serie.CadastroSerieDto;
 import br.com.brain.dto.serie.ListagemSerieDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ public class SerieService {
         var serie = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Serie de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Série", id));
 
         if (dados.nome() != null) {
             serie.setNome(dados.nome());
@@ -59,13 +59,13 @@ public class SerieService {
         var serie = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Serie de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Série", id));
         repository.delete(serie);
     }
 
     public Serie detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Serie de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Série", id));
     }
 }

@@ -10,8 +10,8 @@ import br.com.brain.domain.turma.Turma;
 import br.com.brain.dto.aula.AtualizacaoAulaDto;
 import br.com.brain.dto.aula.CadastroAulaDto;
 import br.com.brain.dto.aula.ListagemAulaDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +60,7 @@ public class AulaService {
     @Transactional
     public Aula atualizar(AtualizacaoAulaDto dados, Long id) {
         var aula = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Aula de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", id));
 
         if (dados.disciplinaId() != null) {
             Disciplina disciplina = em.getReference(Disciplina.class, dados.professorId());
@@ -100,7 +100,7 @@ public class AulaService {
     public Page<ListagemAulaDto> recuperarAulasPeloProfessorEData(Long professorId, LocalDate data,
             Pageable paginacao) {
         if (data == null) {
-            throw new IllegalArgumentException("Data não pode ser nula");
+            throw new ErrosSistema.DataInvalidaException("Data não pode ser nula.");
         }
         var diaSemana = data.getDayOfWeek();
         return repository.findByProfessorIdAndDiaSemana(professorId, diaSemana, paginacao).map(ListagemAulaDto::new);
@@ -108,7 +108,7 @@ public class AulaService {
 
     public List<Aluno> recuperarAlunos(Long id) {
         var aula = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Aula de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", id));
         List<Aluno> alunos = alunoService.recuperarAlunosPorUnidadeSerieTurma(aula.getTurma().getUnidade().getId(),
                 aula.getTurma().getSerie().getId(), aula.getTurma().getId());
         return alunos;
@@ -116,7 +116,7 @@ public class AulaService {
 
     public Disciplina recuperarDisciplina(Long aulaId) {
         var aula = repository.findById(aulaId)
-                .orElseThrow(() -> new EntityNotFoundException("Aula de id " + aulaId + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
         return aula.getDisciplina();
     }
 

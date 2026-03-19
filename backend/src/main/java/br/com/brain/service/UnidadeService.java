@@ -5,8 +5,8 @@ import br.com.brain.domain.unidade.UnidadeRepository;
 import br.com.brain.dto.unidade.AtualizacaoUnidadeDto;
 import br.com.brain.dto.unidade.CadastroUnidadeDto;
 import br.com.brain.dto.unidade.ListagemUnidadeDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ public class UnidadeService {
         var unidade = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Unidade de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Unidade", id));
 
         if (dados.nome() != null) {
             unidade.setNome(dados.nome());
@@ -59,13 +59,13 @@ public class UnidadeService {
         var unidade = repository
                 .findById(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Unidade de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Unidade", id));
         repository.delete(unidade);
     }
 
     public Unidade detalhar(Long id) {
         return repository
                 .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Unidade de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Unidade", id));
     }
 }

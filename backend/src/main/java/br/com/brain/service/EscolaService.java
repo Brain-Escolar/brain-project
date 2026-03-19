@@ -7,13 +7,13 @@ import br.com.brain.dto.escola.CadastroEscolaDto;
 import br.com.brain.dto.escola.CadastroPrimeiroAdminDto;
 import br.com.brain.dto.escola.DetalhamentoEscolaDto;
 import br.com.brain.enums.PerfilNome;
+import br.com.brain.exception.ErrosSistema;
 import br.com.brain.infra.multitenancy.TenantContext;
 import br.com.brain.infra.multitenancy.TenantFlywayMigrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,7 +43,7 @@ public class EscolaService {
         LocalDateTime agora = LocalDateTime.now();
         Long id = jdbcTemplate.queryForObject(
                 "INSERT INTO public.escolas (nome, cnpj, codigo, schema_name, ativa, criada_em) " +
-                "VALUES (?, ?, ?, ?, true, ?) RETURNING id",
+                        "VALUES (?, ?, ?, ?, true, ?) RETURNING id",
                 Long.class,
                 dto.nome(), dto.cnpj(), dto.codigo(), schema, agora);
 
@@ -56,8 +56,8 @@ public class EscolaService {
                     "SELECT schema_name FROM public.escolas WHERE codigo = ? AND ativa = true",
                     String.class,
                     codigo);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Escola não encontrada ou inativa.");
+        } catch (EmptyResultDataAccessException e) {
+            throw ErrosSistema.RecursoNaoEncontradoException.para("Escola", codigo);
         }
     }
 
@@ -66,8 +66,8 @@ public class EscolaService {
         TenantContext.setTenantId(schema);
 
         if (dadosAutenticacaoRepository.count() > 0) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Esta escola já possui usuários cadastrados. Use o fluxo normal de criação de usuários.");
+            throw ErrosSistema.OperacaoInvalidaException
+                    .com("Esta escola já possui usuários cadastrados. Use o fluxo normal de criação de usuários.");
         }
 
         var endereco = new Endereco(dto.logradouro(), dto.bairro(), dto.cep(),
@@ -105,12 +105,10 @@ public class EscolaService {
     }
 
     private void criarSchema(String schema) {
-        // schema foi gerado internamente por gerarNomeSchema(), seguro contra SQL injection
         jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
     }
 
     private String gerarNomeSchema(String codigo) {
-        // Transforma o código público (ex: "colegio-abc") em nome de schema PostgreSQL (ex: "colegio_abc")
         return codigo.toLowerCase().replaceAll("[^a-z0-9]", "_");
     }
 }

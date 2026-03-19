@@ -7,8 +7,8 @@ import br.com.brain.dto.aula.ListagemAulaDto;
 import br.com.brain.dto.professor.AtualizacaoProfessorDto;
 import br.com.brain.dto.professor.CadastroProfessorDto;
 import br.com.brain.dto.professor.ListagemProfessorDto;
+import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
@@ -64,7 +64,7 @@ public class ProfessorService {
         var professor = repository
                 .findByIdAndAtivoTrue(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Professor de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Professor", id));
 
         var dadosPessoais = professor.getDadosPessoais();
         dadosPessoais.atualizarNome(dados.nome());
@@ -83,7 +83,7 @@ public class ProfessorService {
         var professor = repository
                 .findByIdAndAtivoTrue(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Professor de id " + id + " não existe."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Professor", id));
         professor.setAtivo(false);
         repository.save(professor);
     }
@@ -91,7 +91,7 @@ public class ProfessorService {
     public Professor detalhar(Long id) {
         return repository
                 .findByIdAndAtivoTrue(id)
-                .orElseThrow(() -> new EntityNotFoundException("Professor de id " + id + " não existe."));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Professor", id));
     }
 
     public List<ListagemAulaDto> gerarGradeHoraria(String matricula) {
@@ -100,8 +100,7 @@ public class ProfessorService {
 
     public Professor recuperarProfessorPorDadosPessoais(Long dadosPessoaisId) {
         return repository.findByDadosPessoaisId(dadosPessoaisId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Professor não encontrado para o usuário de id " + dadosPessoaisId));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Professor", dadosPessoaisId));
     }
 
     @Transactional
@@ -109,7 +108,7 @@ public class ProfessorService {
         var professor = repository
                 .findByIdAndAtivoFalse(id)
                 .orElseThrow(
-                        () -> new EntityNotFoundException("Professor de id " + id + " não existe ou já está ativo."));
+                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Professor", id));
         professor.setAtivo(true);
         repository.save(professor);
         return professor;
