@@ -2,27 +2,22 @@
 <configuration>
     <springProperty name="LOG_LEVEL" source="logging.level.root" defaultValue="INFO"/>
 
-    <!-- Configuração para console com cores -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <withJansi>true</withJansi>
         <encoder>
-            <pattern>
-                %highlight(%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg){FATAL=red, ERROR=red, WARN=yellow, INFO=cyan, DEBUG=blue, TRACE=black}%n%rEx{full}
-            </pattern>
+            <pattern>%highlight(%d{HH:mm:ss.SSS} %-5level %logger{35} - %msg%n%rEx{15, sun, jdk.internal, java.lang.reflect, org.springframework.web.servlet, org.springframework.web.filter, org.springframework.web.util, org.springframework.web.method, org.springframework.aop, org.springframework.cglib, org.springframework.transaction, org.springframework.security.web, org.apache.catalina, org.apache.tomcat, org.apache.coyote, com.zaxxer.hikari, org.hibernate.engine, org.hibernate.event, org.hibernate.internal}){FATAL=red bold, ERROR=red, WARN=yellow, INFO=cyan, DEBUG=blue, TRACE=black}%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
 
-    <!-- Nível de logging padrão -->
     <root level="${LOG_LEVEL}">
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <!-- Nível específico para sua aplicação (DEBUG para mais detalhes) -->
     <logger name="br.com.brain" level="DEBUG"/>
-
-    <!-- Reduza verbosidade de bibliotecas externas -->
     <logger name="org.springframework.web" level="INFO"/>
     <logger name="org.hibernate" level="WARN"/>
     <logger name="org.springframework.security" level="INFO"/>
+    <logger name="org.flywaydb" level="WARN"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
 </configuration>
