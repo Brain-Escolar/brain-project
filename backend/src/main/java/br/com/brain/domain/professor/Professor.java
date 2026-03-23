@@ -87,4 +87,5 @@ public class Professor extends EntidadeBase {
     @OneToMany(mappedBy = "professor", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<DisponibilidadeProfessor> disponibilidades = new ArrayList<>();
+
 }

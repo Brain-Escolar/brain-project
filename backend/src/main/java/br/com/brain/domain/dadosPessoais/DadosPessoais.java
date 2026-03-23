@@ -1,5 +1,6 @@
 package br.com.brain.domain.dadosPessoais;
 
+import br.com.brain.domain.dependente.Dependente;
 import br.com.brain.domain.endereco.Endereco;
 import br.com.brain.domain.fichamedica.FichaMedica;
 import br.com.brain.domain.perfil.Perfil;
@@ -46,7 +47,7 @@ import java.util.stream.Collectors;
 @Table(name = "dados_pessoais")
 @Data
 @EqualsAndHashCode(callSuper = false, exclude = { "professor", "aluno", "responsavel", "rhs", "diretores",
-        "coordenadores", "orientadores", "secretarios" })
+        "coordenadores", "orientadores", "secretarios", "dependentes" })
 public class DadosPessoais extends EntidadeBase {
 
     @Id
@@ -151,6 +152,9 @@ public class DadosPessoais extends EntidadeBase {
     @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
     private DadosAutenticacao dadosAutenticacao;
+
+    @OneToMany(mappedBy = "responsavel", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Dependente> dependentes = new ArrayList<>();
 
     public void atualizarCpf(String cpf) {
         if (cpf != null && !cpf.isBlank()) {

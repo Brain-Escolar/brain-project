@@ -24,6 +24,7 @@ public class ProfessorService {
 
     private final ProfessorRepository repository;
     private final EnderecoService enderecoService;
+    private final DependenteService dependenteService;
 
     @PersistenceContext
     private EntityManager em;
@@ -52,6 +53,9 @@ public class ProfessorService {
 
         repository.save(professor);
 
+        for (var dependente : dados.dependentes()) {
+            dependenteService.cadastrarDependente(dadosPessoais.getId(), dependente);
+        }
         return professor;
     }
 

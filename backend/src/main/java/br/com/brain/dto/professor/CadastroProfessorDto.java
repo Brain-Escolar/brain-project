@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Pattern;
 import java.time.LocalDate;
 import java.util.List;
 
+import br.com.brain.dto.dependente.CadastroDependenteDto;
 import br.com.brain.dto.endereco.EnderecoDto;
 
 public record CadastroProfessorDto(
@@ -22,5 +23,6 @@ public record CadastroProfessorDto(
         String corRaca,
         String cidadeNaturalidade,
         String carteiraDeTrabalho,
-        List<String> telefones) {
+        List<String> telefones,
+        List<CadastroDependenteDto> dependentes) {
 }
