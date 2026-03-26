@@ -1,0 +1,1 @@
+export { BrainTextHorarioControlled } from "./brainTextHorarioControlled";

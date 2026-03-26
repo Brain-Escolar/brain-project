@@ -1,0 +1,4 @@
+#!/bin/sh
+. "$HOME/.nvm/nvm.sh"
+nvm use
+npm run lint

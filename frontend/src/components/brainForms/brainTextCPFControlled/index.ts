@@ -1,0 +1,1 @@
+export { BrainTextCPFControlled } from "./brainTextCPFControlled";
