@@ -153,7 +153,7 @@ public class AulaService {
                     LocalDate proximaData = (mesmodia && inicioAula.isAfter(horario))
                             ? data
                             : data.with(TemporalAdjusters.next(a.getDiaSemana()));
-                    return new ProximaAulaDto(proximaData, inicioAula, a.getHorario().getHorarioFim());
+                    return new ProximaAulaDto(a.getId(), proximaData, inicioAula, a.getHorario().getHorarioFim());
                 })
                 .min(Comparator.comparing(ProximaAulaDto::data)
                         .thenComparing(ProximaAulaDto::horarioInicio))
