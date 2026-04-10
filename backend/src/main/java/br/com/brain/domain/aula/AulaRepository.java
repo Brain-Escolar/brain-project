@@ -34,4 +34,6 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
     List<Turma> findTurmasByDisciplinaId(@Param("disciplinaId") Long disciplinaId);
 
     List<Aula> findByProfessorIdAndVigenciaBetween(Long id, LocalDate dataInicio, LocalDate dataFim);
+
+    List<Aula> findByDisciplinaId(Long disciplinaId);
 }

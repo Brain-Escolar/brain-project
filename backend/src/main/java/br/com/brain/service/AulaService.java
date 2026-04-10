@@ -10,6 +10,7 @@ import br.com.brain.domain.turma.Turma;
 import br.com.brain.dto.aula.AtualizacaoAulaDto;
 import br.com.brain.dto.aula.CadastroAulaDto;
 import br.com.brain.dto.aula.ListagemAulaDto;
+import br.com.brain.dto.aula.ProximaAulaDto;
 import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -17,6 +18,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -134,5 +138,26 @@ public class AulaService {
 
     public List<Turma> recuperarTurmasPorDisciplina(Long id) {
         return repository.findTurmasByDisciplinaId(id);
+    }
+
+    public ProximaAulaDto recuperarProximaAula(Long aulaId, LocalDate data, LocalTime horario) {
+        var aula = repository.findById(aulaId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
+
+        var aulasDaDisciplina = repository.findByDisciplinaId(aula.getDisciplina().getId());
+
+        return aulasDaDisciplina.stream()
+                .map(a -> {
+                    LocalTime inicioAula = a.getHorario().getHorarioInicio();
+                    boolean mesmodia = a.getDiaSemana() == data.getDayOfWeek();
+                    LocalDate proximaData = (mesmodia && inicioAula.isAfter(horario))
+                            ? data
+                            : data.with(TemporalAdjusters.next(a.getDiaSemana()));
+                    return new ProximaAulaDto(proximaData, inicioAula, a.getHorario().getHorarioFim());
+                })
+                .min(Comparator.comparing(ProximaAulaDto::data)
+                        .thenComparing(ProximaAulaDto::horarioInicio))
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Disciplina",
+                        aula.getDisciplina().getId()));
     }
 }

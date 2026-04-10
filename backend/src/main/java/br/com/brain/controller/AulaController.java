@@ -6,6 +6,8 @@ import br.com.brain.dto.anotacao.AnotacaoAulaDto;
 import br.com.brain.dto.aula.AtualizacaoAulaDto;
 import br.com.brain.dto.aula.CadastroAulaDto;
 import br.com.brain.dto.aula.ListagemAulaDto;
+import br.com.brain.dto.aula.ProximaAulaDto;
+import br.com.brain.dto.aula.AulaAtualDto;
 import br.com.brain.service.AnotacaoService;
 import br.com.brain.service.AulaService;
 import jakarta.validation.Valid;
@@ -65,5 +67,12 @@ public class AulaController {
             @RequestBody DataDto data) {
         var alunosDto = anotacaoService.recuperarAnotacoesPorAula(aulaId, data.data());
         return ResponseEntity.ok(alunosDto);
+    }
+
+    @PostMapping("{id}/proxima-aula")
+    public ResponseEntity<ProximaAulaDto> recuperarProximaAula(@PathVariable("id") Long aulaId,
+            @RequestBody @Valid AulaAtualDto dados) {
+        var proximaAula = service.recuperarProximaAula(aulaId, dados.data(), dados.horario());
+        return ResponseEntity.ok(proximaAula);
     }
 }
