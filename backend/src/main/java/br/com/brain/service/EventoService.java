@@ -57,6 +57,10 @@ public class EventoService {
         return evento;
     }
 
+    public Page<ListagemEventoDto> listarEventosProfessor(Long professorId, Pageable pageable) {
+        return repository.findAllByProfessorId(professorId, pageable).map(ListagemEventoDto::new);
+    }
+
     public Page<ListagemEventoDto> listar(Long turmaId, Long serieId, Long unidadeId, Long professorId,
             Pageable pageable) {
         if (turmaId != null) {
@@ -71,7 +75,7 @@ public class EventoService {
         if (professorId != null) {
             return repository.findAllByProfessorId(professorId, pageable).map(ListagemEventoDto::new);
         }
-        return repository.findAll(pageable).map(ListagemEventoDto::new);
+        return repository.findAllOrderByClosestDate(pageable).map(ListagemEventoDto::new);
     }
 
     @Transactional

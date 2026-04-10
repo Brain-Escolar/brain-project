@@ -7,7 +7,7 @@ import br.com.brain.dto.aula.ListagemAulaDto;
 import br.com.brain.dto.disponibilidadeProfessor.AtualizacaoDisponibilidadeProfessorDto;
 import br.com.brain.dto.disponibilidadeProfessor.CadastroDisponibilidadeProfessorDto;
 import br.com.brain.dto.disponibilidadeProfessor.ListagemDisponibilidadeProfessorDto;
-import br.com.brain.dto.google.EventoCalendarioDto;
+import br.com.brain.dto.evento.ListagemEventoDto;
 import br.com.brain.dto.professor.AtualizacaoProfessorDto;
 import br.com.brain.dto.professor.CadastroProfessorDto;
 import br.com.brain.dto.professor.DetalhamentoProfessorDto;
@@ -15,9 +15,9 @@ import br.com.brain.dto.professor.ListagemProfessorDto;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.service.AulaService;
 import br.com.brain.service.DisponibilidadeProfessorService;
+import br.com.brain.service.EventoService;
 import br.com.brain.service.ProfessorService;
 import br.com.brain.service.UsuarioService;
-import br.com.brain.service.google.CalendarGoogleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -41,7 +41,7 @@ public class ProfessorController {
     private final DisponibilidadeProfessorService disponibilidadeProfessorService;
     private final UsuarioService usuarioService;
     private final AulaService aulaService;
-    private final CalendarGoogleService googleService;
+    private final EventoService eventoService;
 
     @PostMapping
     public ResponseEntity<DetalhamentoProfessorDto> cadastrar(
@@ -95,8 +95,10 @@ public class ProfessorController {
     }
 
     @GetMapping("/planejamento")
-    public ResponseEntity<List<EventoCalendarioDto>> planejamento(@AuthenticationPrincipal DadosAutenticacao usuario) {
-        var eventos = googleService.getNextEvents("primary", usuario.getGoogleAccessToken());
+    public ResponseEntity<Page<ListagemEventoDto>> planejamento(@AuthenticationPrincipal DadosAutenticacao usuario,
+            @PageableDefault(size = 10) Pageable paginacao) {
+        var professor = service.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
+        var eventos = eventoService.listarEventosProfessor(professor.getId(), paginacao);
         return ResponseEntity.ok(eventos);
     }
 
