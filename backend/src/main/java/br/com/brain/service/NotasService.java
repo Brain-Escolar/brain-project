@@ -1,11 +1,13 @@
 package br.com.brain.service;
 
 import br.com.brain.domain.aluno.Aluno;
+import br.com.brain.domain.aluno.AlunoRepository;
 import br.com.brain.domain.avaliacao.Avaliacao;
 import br.com.brain.domain.notas.Notas;
 import br.com.brain.domain.notas.NotasRepository;
 import br.com.brain.dto.notas.AtualizacaoNotasDto;
 import br.com.brain.dto.notas.CadastroNotasDto;
+import br.com.brain.dto.notas.DetalhamentoNotasAlunoDisciplinaDto;
 import br.com.brain.dto.notas.ListagemNotasDto;
 import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 public class NotasService {
 
     private final NotasRepository repository;
+    private final AlunoRepository alunoRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -84,5 +87,12 @@ public class NotasService {
         return repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Nota", id));
+    }
+
+    public DetalhamentoNotasAlunoDisciplinaDto buscarNotasAlunoPorDisciplina(Long alunoId, Long disciplinaId) {
+        var aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
+        var notas = repository.findByAlunoIdAndAvaliacaoDisciplinaId(alunoId, disciplinaId);
+        return new DetalhamentoNotasAlunoDisciplinaDto(aluno, notas);
     }
 }

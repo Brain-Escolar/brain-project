@@ -2,6 +2,7 @@ package br.com.brain.controller;
 
 import br.com.brain.dto.notas.AtualizacaoNotasDto;
 import br.com.brain.dto.notas.CadastroNotasDto;
+import br.com.brain.dto.notas.DetalhamentoNotasAlunoDisciplinaDto;
 import br.com.brain.dto.notas.ListagemNotasDto;
 import br.com.brain.service.NotasService;
 import jakarta.validation.Valid;
@@ -52,5 +53,13 @@ public class NotasController {
     public ResponseEntity<ListagemNotasDto> detalhar(@PathVariable("id") Long id) {
         var notas = service.detalhar(id);
         return ResponseEntity.ok(new ListagemNotasDto(notas));
+    }
+
+    @GetMapping("/aluno/{alunoId}/disciplina/{disciplinaId}")
+    public ResponseEntity<DetalhamentoNotasAlunoDisciplinaDto> buscarNotasAlunoPorDisciplina(
+            @PathVariable Long alunoId,
+            @PathVariable Long disciplinaId) {
+        var resultado = service.buscarNotasAlunoPorDisciplina(alunoId, disciplinaId);
+        return ResponseEntity.ok(resultado);
     }
 }
