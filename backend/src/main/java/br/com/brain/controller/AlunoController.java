@@ -4,9 +4,12 @@ import br.com.brain.dto.aluno.AtualizacaoAlunoDto;
 import br.com.brain.dto.aluno.CadastroAlunoDto;
 import br.com.brain.dto.aluno.DetalhamentoAlunoDto;
 import br.com.brain.dto.aluno.ListagemAlunoDto;
+import br.com.brain.dto.anotacao.AnotacaoAlunoDisciplinaDto;
+import java.util.List;
 import br.com.brain.dto.fichamedica.DetalhamentoFichaMedicaDto;
 import br.com.brain.dto.serie.SerieUnidadeTurmaDto;
 import br.com.brain.service.AlunoService;
+import br.com.brain.service.AnotacaoService;
 import br.com.brain.service.FichaMedicaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ public class AlunoController {
 
     private final AlunoService service;
     private final FichaMedicaService fichaMedicaService;
+    private final AnotacaoService anotacaoService;
 
     @PostMapping
     public ResponseEntity<DetalhamentoAlunoDto> cadastrar(
@@ -82,5 +86,11 @@ public class AlunoController {
     @GetMapping("/{id}/ficha-medica")
     public ResponseEntity<DetalhamentoFichaMedicaDto> buscarFichaMedica(@PathVariable Long id) {
         return ResponseEntity.ok(fichaMedicaService.buscarPorAluno(id));
+    }
+
+    @GetMapping("/{id}/anotacoes/{disciplinaId}")
+    public ResponseEntity<List<AnotacaoAlunoDisciplinaDto>> buscarAnotacoesPorDisciplina(
+            @PathVariable Long id, @PathVariable Long disciplinaId) {
+        return ResponseEntity.ok(anotacaoService.buscarPorAlunoEDisciplina(id, disciplinaId));
     }
 }

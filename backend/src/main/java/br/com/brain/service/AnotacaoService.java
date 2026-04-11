@@ -8,6 +8,7 @@ import br.com.brain.dto.aluno.AlunosAulaDto;
 import br.com.brain.dto.anotacao.AnotacaoAulaDto;
 import br.com.brain.dto.anotacao.AtualizacaoAnotacaoDto;
 import br.com.brain.dto.anotacao.CadastroAnotacaoDto;
+import br.com.brain.dto.anotacao.AnotacaoAlunoDisciplinaDto;
 import br.com.brain.dto.anotacao.ListagemAnotacaoDto;
 import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
@@ -103,6 +104,12 @@ public class AnotacaoService {
     public List<AnotacaoAulaDto> recuperarAnotacoesPorAula(Long aulaId, LocalDate data) {
         return repository.findByAulaIdAndDataAnotacao(aulaId, data).stream()
                 .map(anotacao -> new AnotacaoAulaDto(anotacao))
+                .toList();
+    }
+
+    public List<AnotacaoAlunoDisciplinaDto> buscarPorAlunoEDisciplina(Long alunoId, Long disciplinaId) {
+        return repository.findByDisciplinaIdAndAlunoId(disciplinaId, alunoId).stream()
+                .map(AnotacaoAlunoDisciplinaDto::new)
                 .toList();
     }
 }
