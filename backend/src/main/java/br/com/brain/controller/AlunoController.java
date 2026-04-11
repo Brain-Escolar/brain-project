@@ -4,8 +4,10 @@ import br.com.brain.dto.aluno.AtualizacaoAlunoDto;
 import br.com.brain.dto.aluno.CadastroAlunoDto;
 import br.com.brain.dto.aluno.DetalhamentoAlunoDto;
 import br.com.brain.dto.aluno.ListagemAlunoDto;
+import br.com.brain.dto.fichamedica.DetalhamentoFichaMedicaDto;
 import br.com.brain.dto.serie.SerieUnidadeTurmaDto;
 import br.com.brain.service.AlunoService;
+import br.com.brain.service.FichaMedicaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class AlunoController {
 
     private final AlunoService service;
+    private final FichaMedicaService fichaMedicaService;
 
     @PostMapping
     public ResponseEntity<DetalhamentoAlunoDto> cadastrar(
@@ -74,5 +77,10 @@ public class AlunoController {
     public ResponseEntity<DetalhamentoAlunoDto> detalhar(@PathVariable("id") Long id) {
         var aluno = service.detalhar(id);
         return ResponseEntity.ok(new DetalhamentoAlunoDto(aluno));
+    }
+
+    @GetMapping("/{id}/ficha-medica")
+    public ResponseEntity<DetalhamentoFichaMedicaDto> buscarFichaMedica(@PathVariable Long id) {
+        return ResponseEntity.ok(fichaMedicaService.buscarPorAluno(id));
     }
 }

@@ -1,5 +1,6 @@
 package br.com.brain.service;
 
+import br.com.brain.domain.aluno.AlunoRepository;
 import br.com.brain.domain.arquivo.Arquivo;
 import br.com.brain.domain.arquivo.ArquivoRepository;
 import br.com.brain.domain.dadosPessoais.DadosPessoais;
@@ -10,6 +11,7 @@ import br.com.brain.domain.laudoMedico.LaudoMedicoRepository;
 import br.com.brain.dto.arquivo.ListagemArquivoDto;
 import br.com.brain.dto.fichamedica.AtualizacaoFichaMedicaDto;
 import br.com.brain.dto.fichamedica.CadastroFichaMedicaDto;
+import br.com.brain.dto.fichamedica.DetalhamentoFichaMedicaDto;
 import br.com.brain.dto.fichamedica.ListagemFichaMedicaDto;
 import br.com.brain.enums.TipoSanguineo;
 import br.com.brain.exception.ErrosSistema;
@@ -33,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class FichaMedicaService {
 
     private final FichaMedicaRepository repository;
+    private final AlunoRepository alunoRepository;
     private final ArquivoRepository arquivoRepository;
     private final LaudoMedicoRepository laudoMedicoRepository;
     private final S3Service s3Service;
@@ -117,5 +120,32 @@ public class FichaMedicaService {
                     Duration.ofMinutes(5));
             return new ListagemArquivoDto(laudo.getArquivo(), downloadUrl);
         });
+    }
+
+    public DetalhamentoFichaMedicaDto buscarPorAluno(Long alunoId) {
+        var aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
+        var fichaMedica = repository.findByDadosPessoaisId(aluno.getDadosPessoais().getId())
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("FichaMedica do aluno", alunoId));
+
+        var laudos = fichaMedica.getLaudos().stream().map(laudo -> {
+            String downloadUrl = s3Service.generatePresignedDownloadUrl(laudo.getArquivo().getS3Key(),
+                    Duration.ofMinutes(5));
+            return new ListagemArquivoDto(laudo.getArquivo(), downloadUrl);
+        }).toList();
+
+        var tipoSanguineo = fichaMedica.getTipoSanguineo() != null
+                ? fichaMedica.getTipoSanguineo().getTipo()
+                : null;
+
+        return new DetalhamentoFichaMedicaDto(
+                fichaMedica.getId(),
+                fichaMedica.getDadosPessoais().getNome(),
+                tipoSanguineo,
+                fichaMedica.getNecessidadesEspeciais(),
+                fichaMedica.getDoencasRespiratorias(),
+                fichaMedica.getAlergiasAlimentares(),
+                fichaMedica.getAlergiasMedicamentosas(),
+                laudos);
     }
 }

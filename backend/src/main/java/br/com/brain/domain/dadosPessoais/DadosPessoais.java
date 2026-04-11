@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 @Table(name = "dados_pessoais")
 @Data
 @EqualsAndHashCode(callSuper = false, exclude = { "professor", "aluno", "responsavel", "rhs", "diretores",
-        "coordenadores", "orientadores", "secretarios", "dependentes" })
+        "coordenadores", "orientadores", "secretarios", "dependentes", "fichaMedica" })
 public class DadosPessoais extends EntidadeBase {
 
     @Id
