@@ -7,5 +7,6 @@ public record AtualizacaoTarefaDto(
         String conteudo,
         String documentoUrl,
         Long professorId,
+        Long turmaId,
         LocalDate prazo) {
 }

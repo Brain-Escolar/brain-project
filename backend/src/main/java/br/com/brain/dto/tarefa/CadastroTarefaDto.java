@@ -8,5 +8,6 @@ public record CadastroTarefaDto(
         @NotBlank String titulo,
         String conteudo,
         String documentoUrl,
+        @NotNull Long turmaId,
         @NotNull LocalDate prazo) {
 }

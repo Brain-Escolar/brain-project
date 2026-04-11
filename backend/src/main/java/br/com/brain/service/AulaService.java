@@ -42,16 +42,17 @@ public class AulaService {
     public Aula cadastrarAula(CadastroAulaDto dados) {
 
         Disciplina disciplina = em.getReference(Disciplina.class, dados.disciplinaId());
-        Professor professor = em.getReference(Professor.class, dados.professorId());
         Horario horario = em.getReference(Horario.class, dados.horarioId());
         Turma turma = em.getReference(Turma.class, dados.turmaId());
         var aula = new Aula();
         aula.setDisciplina(disciplina);
         aula.setHorario(horario);
         aula.setDiaSemana(dados.diaSemana());
-        aula.setProfessor(professor);
         aula.setTurma(turma);
-
+        if (dados.professorId() != null) {
+            Professor professor = em.getReference(Professor.class, dados.professorId());
+            aula.setProfessor(professor);
+        }
         repository.save(aula);
 
         return aula;

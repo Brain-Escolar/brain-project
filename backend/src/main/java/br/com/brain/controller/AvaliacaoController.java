@@ -1,9 +1,15 @@
 package br.com.brain.controller;
 
+import br.com.brain.domain.autenticacao.DadosAutenticacao;
 import br.com.brain.dto.avaliacao.AtualizacaoAvaliacaoDto;
 import br.com.brain.dto.avaliacao.CadastroAvaliacaoDto;
+import br.com.brain.dto.avaliacao.CadastroNotasAvaliacaoDto;
+import br.com.brain.dto.aluno.NomeAlunoDto;
 import br.com.brain.dto.avaliacao.ListagemAvaliacaoDto;
+
+import java.util.List;
 import br.com.brain.service.AvaliacaoService;
+import br.com.brain.service.ProfessorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -11,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,6 +27,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class AvaliacaoController {
 
     private final AvaliacaoService service;
+    private final ProfessorService professorService;
 
     @PostMapping
     public ResponseEntity<ListagemAvaliacaoDto> cadastrar(
@@ -55,5 +63,27 @@ public class AvaliacaoController {
     public ResponseEntity<ListagemAvaliacaoDto> detalhar(@PathVariable("id") Long id) {
         var avaliacao = service.detalhar(id);
         return ResponseEntity.ok(new ListagemAvaliacaoDto(avaliacao));
+    }
+
+    @GetMapping("/professor")
+    public ResponseEntity<Page<ListagemAvaliacaoDto>> listarPorProfessor(
+            @PageableDefault(size = 10, sort = { "nome" }) Pageable paginacao,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var professor = professorService.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
+        return ResponseEntity.ok(service.listarPorProfessor(professor.getId(), paginacao));
+    }
+
+    @PostMapping("/{id}/notas")
+    public ResponseEntity<Void> cadastrarNotasPorAvaliacao(
+            @PathVariable Long id,
+            @RequestBody @Valid CadastroNotasAvaliacaoDto dados) {
+        service.cadastrarNotasDeUmaAvaliacao(id, dados);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/alunos")
+    public ResponseEntity<List<NomeAlunoDto>> recuperarAlunosPorAvaliacao(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(service.recuperarAlunosPorAvaliacao(id));
     }
 }

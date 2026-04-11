@@ -9,10 +9,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import br.com.brain.dto.aluno.ListagemAlunoDto;
 import br.com.brain.dto.turma.AtualizacaoTurmaDto;
 import br.com.brain.dto.turma.CadastroTurmaDto;
 import br.com.brain.dto.turma.ListagemTurmaDto;
 import br.com.brain.service.TurmaService;
+
+import java.util.List;
 import jakarta.validation.Valid;
 
 @RestController
@@ -54,5 +57,10 @@ public class TurmaController {
     public ResponseEntity<ListagemTurmaDto> detalhar(@PathVariable("id") Long id) {
         var turma = service.detalhar(id);
         return ResponseEntity.ok(new ListagemTurmaDto(turma));
+    }
+
+    @GetMapping("/{id}/alunos")
+    public ResponseEntity<List<ListagemAlunoDto>> listarAlunos(@PathVariable Long id) {
+        return ResponseEntity.ok(service.listarAlunos(id));
     }
 }

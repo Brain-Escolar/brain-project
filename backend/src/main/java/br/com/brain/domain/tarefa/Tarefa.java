@@ -1,6 +1,7 @@
 package br.com.brain.domain.tarefa;
 
 import br.com.brain.domain.professor.Professor;
+import br.com.brain.domain.turma.Turma;
 import br.com.brain.domain.EntidadeBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,6 +35,10 @@ public class Tarefa extends EntidadeBase {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "professor_id", referencedColumnName = "id")
     private Professor professor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "turma_id", referencedColumnName = "id")
+    private Turma turma;
 
     @Column(name = "data_criacao")
     private LocalDate dataCriacao;

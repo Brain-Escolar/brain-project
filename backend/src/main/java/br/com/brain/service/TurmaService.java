@@ -4,6 +4,7 @@ import br.com.brain.domain.serie.Serie;
 import br.com.brain.domain.turma.Turma;
 import br.com.brain.domain.turma.TurmaRepository;
 import br.com.brain.domain.unidade.Unidade;
+import br.com.brain.dto.aluno.ListagemAlunoDto;
 import br.com.brain.dto.turma.AtualizacaoTurmaDto;
 import br.com.brain.dto.turma.CadastroTurmaDto;
 import br.com.brain.dto.turma.ListagemTurmaDto;
@@ -14,6 +15,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -82,5 +84,12 @@ public class TurmaService {
         return repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", id));
+    }
+
+    public List<ListagemAlunoDto> listarAlunos(Long id) {
+        var turma = repository
+                .findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", id));
+        return turma.getAlunos().stream().map(ListagemAlunoDto::new).toList();
     }
 }

@@ -5,7 +5,10 @@ import java.math.BigDecimal;
 public record AtualizacaoAvaliacaoDto(
         String nome,
         Long disciplinaId,
-        BigDecimal peso,
+        Long turmaId,
+        BigDecimal notaMaxima,
         String conteudo,
-        Boolean notaExtra) {
+        Boolean notaExtra,
+        java.time.LocalDate dataAplicacao,
+        java.time.LocalDate dataEntregaNotas) {
 }

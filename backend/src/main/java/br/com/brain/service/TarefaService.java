@@ -2,6 +2,7 @@ package br.com.brain.service;
 
 import br.com.brain.domain.professor.Professor;
 import br.com.brain.domain.tarefa.Tarefa;
+import br.com.brain.domain.turma.Turma;
 import br.com.brain.domain.tarefa.TarefaRepository;
 import br.com.brain.dto.tarefa.AtualizacaoTarefaDto;
 import br.com.brain.dto.tarefa.CadastroTarefaDto;
@@ -30,8 +31,11 @@ public class TarefaService {
     @Transactional
     public Tarefa cadastrarTarefa(CadastroTarefaDto dados, Professor professor) {
 
+        var turma = em.getReference(Turma.class, dados.turmaId());
+
         var tarefa = new Tarefa();
         tarefa.setProfessor(professor);
+        tarefa.setTurma(turma);
         tarefa.setConteudo(dados.conteudo());
         tarefa.setDataCriacao(LocalDate.now());
         tarefa.setDocumentoUrl(dados.documentoUrl());
@@ -66,6 +70,10 @@ public class TarefaService {
         if (dados.professorId() != null) {
             var professor = em.getReference(Professor.class, dados.professorId());
             tarefa.setProfessor(professor);
+        }
+        if (dados.turmaId() != null) {
+            var turma = em.getReference(Turma.class, dados.turmaId());
+            tarefa.setTurma(turma);
         }
         if (dados.prazo() != null) {
             tarefa.setPrazo(dados.prazo());

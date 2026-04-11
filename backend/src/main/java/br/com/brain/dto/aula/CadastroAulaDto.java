@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 public record CadastroAulaDto(
         @NotNull Long disciplinaId,
         @NotNull Long turmaId,
-        @NotNull Long professorId,
+        Long professorId,
         @NotNull DayOfWeek diaSemana,
         @NotNull Long horarioId) {
 }

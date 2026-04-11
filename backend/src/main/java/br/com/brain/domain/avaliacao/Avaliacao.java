@@ -1,15 +1,14 @@
 package br.com.brain.domain.avaliacao;
 
 import br.com.brain.domain.disciplina.Disciplina;
-import br.com.brain.domain.notas.Notas;
+import br.com.brain.domain.evento.Evento;
+import br.com.brain.domain.professor.Professor;
+import br.com.brain.domain.turma.Turma;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.envers.Audited;
-import org.hibernate.envers.NotAudited;
 
 import br.com.brain.domain.EntidadeBase;
 import jakarta.persistence.Column;
@@ -20,7 +19,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,16 +40,30 @@ public class Avaliacao extends EntidadeBase {
     @JoinColumn(name = "disciplina_id", referencedColumnName = "id")
     private Disciplina disciplina;
 
-    @Column(name = "peso")
-    private BigDecimal peso;
+    @Column(name = "nota_maxima")
+    private BigDecimal notaMaxima;
 
     private String conteudo;
 
     @Column(name = "nota_extra")
     private Boolean notaExtra = false;
 
-    @NotAudited
-    @OneToMany(mappedBy = "avaliacao", fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Notas> notas = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "professor_id", referencedColumnName = "id")
+    private Professor professor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "turma_id", referencedColumnName = "id")
+    private Turma turma;
+
+    @Column(name = "data_aplicacao")
+    private LocalDate dataAplicacao;
+
+    @Column(name = "data_entrega_notas")
+    private LocalDate dataEntregaNotas;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "evento_id", referencedColumnName = "id")
+    private Evento evento;
+
 }

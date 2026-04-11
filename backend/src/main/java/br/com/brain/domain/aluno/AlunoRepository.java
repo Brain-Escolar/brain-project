@@ -24,4 +24,8 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
     List<Aula> gerarGradeHoraria(@Param("matricula") String matricula);
 
     List<Aluno> findByUnidadeIdAndSerieIdAndTurmaIdAndMatriculadoTrue(Long unidadeId, Long serieId, Long turmaId);
+
+    long countByTurmaIdAndMatriculadoTrue(Long turmaId);
+
+    List<Aluno> findByTurmaIdAndMatriculadoTrue(Long turmaId);
 }

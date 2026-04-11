@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import br.com.brain.domain.EntidadeBase;
 import br.com.brain.domain.aluno.Aluno;
 import br.com.brain.domain.aula.Aula;
+import br.com.brain.domain.tarefa.Tarefa;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -68,4 +69,9 @@ public class Turma extends EntidadeBase {
     @OneToMany(mappedBy = "turma", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Aula> aulas = new ArrayList<>();
+
+    @NotAudited
+    @OneToMany(mappedBy = "turma", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Tarefa> tarefas = new ArrayList<>();
 }

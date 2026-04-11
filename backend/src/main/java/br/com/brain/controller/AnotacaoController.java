@@ -1,5 +1,6 @@
 package br.com.brain.controller;
 
+import br.com.brain.dto.anotacao.AnotacaoAulaDto;
 import br.com.brain.dto.anotacao.AtualizacaoAnotacaoDto;
 import br.com.brain.dto.anotacao.CadastroAnotacaoDto;
 import br.com.brain.dto.anotacao.ListagemAnotacaoDto;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +19,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,6 +45,14 @@ public class AnotacaoController {
             @PageableDefault(size = 10, sort = { "dataAnotacao" }) Pageable paginacao) {
         var page = service.listar(paginacao);
         return ResponseEntity.ok(page);
+    }
+
+    @GetMapping("/aula/{aulaId}/data")
+    public ResponseEntity<List<AnotacaoAulaDto>> listarAnotacoesPorData(
+            @PathVariable("aulaId") Long aulaId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        var anotacoes = service.recuperarAnotacoesPorAula(aulaId, data);
+        return ResponseEntity.ok(anotacoes);
     }
 
     @PutMapping("/{id}")

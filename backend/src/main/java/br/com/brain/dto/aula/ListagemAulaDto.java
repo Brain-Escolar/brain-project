@@ -12,7 +12,7 @@ public record ListagemAulaDto(Long id, String unidade, String serie, String turm
                 aula.getTurma().getSerie().getNome(),
                 aula.getTurma().getNome(),
                 aula.getDisciplina().getNome(),
-                aula.getProfessor().getDadosPessoais().getNome(),
+                aula.getProfessor() == null ? "Sem professor" : aula.getProfessor().getDadosPessoais().getNome(),
                 aula.getDiaSemana().name(),
                 aula.getTurma().getSala(),
                 aula.getHorario().getHorarioInicio().toString(),

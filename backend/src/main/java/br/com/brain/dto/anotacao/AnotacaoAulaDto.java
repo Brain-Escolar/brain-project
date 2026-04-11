@@ -2,12 +2,13 @@ package br.com.brain.dto.anotacao;
 
 import br.com.brain.domain.anotacao.Anotacao;
 
-public record AnotacaoAulaDto(Long anotacaoId, String nomeAluno, String anotacao) {
+public record AnotacaoAulaDto(Long anotacaoId, String nomeAluno, String anotacao, String observacao) {
 
     public AnotacaoAulaDto(Anotacao anotacao) {
         this(
                 anotacao.getId(),
                 anotacao.getAluno().getDadosPessoais().getNome(),
-                anotacao.getTipoAnotacao().getDescricao());
+                anotacao.getTipoAnotacao().getDescricao(),
+                anotacao.getObservacao());
     }
 }

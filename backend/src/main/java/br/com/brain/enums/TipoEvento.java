@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum TipoEvento {
     PROVA("Prova"),
     ENTREGA_PROVA("Entrega de Prova"),
+    ENTREGA_NOTAS("Entrega de Notas"),
     REUNIAO("Reunião"),
     FERIADO("Feriado"),
     OUTRO("Outro");
