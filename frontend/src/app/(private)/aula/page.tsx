@@ -5,7 +5,6 @@ import {
   mapAulaResponseToFormData,
 } from "@/app/(private)/aula/aulaUtils";
 import { useAulaMutations } from "@/app/(private)/aula/useAulaMutations";
-import { UserRoleEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
@@ -13,7 +12,6 @@ import { BrainDropdownControlled } from "@/components/brainForms/brainDropdownCo
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useAulaDetalhe } from "@/hooks/useAulaDetalhe";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
@@ -128,106 +126,104 @@ function AulaPageContent() {
   const isLoading = loadingDisciplinas || loadingTurmas || loadingProfessores || loadingHorarios;
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {loadingAula && isEditMode ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : errorAula && isEditMode ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorAula}
-          </Alert>
-        ) : (
-          <>
-            <PageTitle
-              title={isEditMode ? "Editar Aula" : "Cadastro de Aula"}
-              description="Preencha os dados abaixo para completar o cadastro no sistema"
-            />
-            <BrainFormProvider
-              methodsHookForm={methodsHookForm}
-              onSubmit={handleSubmit(onFormSubmit)}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {loadingAula && isEditMode ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : errorAula && isEditMode ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorAula}
+        </Alert>
+      ) : (
+        <>
+          <PageTitle
+            title={isEditMode ? "Editar Aula" : "Cadastro de Aula"}
+            description="Preencha os dados abaixo para completar o cadastro no sistema"
+          />
+          <BrainFormProvider
+            methodsHookForm={methodsHookForm}
+            onSubmit={handleSubmit(onFormSubmit)}
+          >
+            {/* Seção Informações Básicas */}
+            <ContainerSection
+              title="Informações da Aula"
+              description="Dados principais da aula"
+              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
             >
-              {/* Seção Informações Básicas */}
-              <ContainerSection
-                title="Informações da Aula"
-                description="Dados principais da aula"
-                numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
+              <BrainDropdownControlled
+                name="disciplinaId"
+                control={control}
+                label="Disciplina"
+                placeholder="Selecione a disciplina"
+                options={disciplinasOptions}
+                required
+                disabled={isLoading}
+              />
+
+              <BrainDropdownControlled
+                name="turmaId"
+                control={control}
+                label="Turma"
+                placeholder="Selecione a turma"
+                options={turmasOptions}
+                required
+                disabled={isLoading}
+              />
+
+              <BrainDropdownControlled
+                name="professorId"
+                control={control}
+                label="Professor"
+                placeholder="Selecione o professor"
+                options={professoresOptions}
+                required
+                disabled={isLoading}
+              />
+
+              <BrainDropdownControlled
+                name="diaSemana"
+                control={control}
+                label="Dia da Semana"
+                placeholder="Selecione o dia da semana"
+                options={diasSemanaOptions}
+                required
+              />
+
+              <BrainTextFieldControlled
+                name="sala"
+                control={control}
+                label="Sala"
+                placeholder="Digite a sala"
+                required
+              />
+
+              <BrainDropdownControlled
+                name="horarioId"
+                control={control}
+                label="Horário"
+                placeholder="Selecione o horário"
+                options={horariosOptions}
+                required
+                disabled={isLoading}
+              />
+            </ContainerSection>
+
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
+              <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
+              <BrainButtonPrimary
+                type="submit"
+                disabled={
+                  isSubmitting || createAula.isPending || updateAula.isPending || isLoading
+                }
               >
-                <BrainDropdownControlled
-                  name="disciplinaId"
-                  control={control}
-                  label="Disciplina"
-                  placeholder="Selecione a disciplina"
-                  options={disciplinasOptions}
-                  required
-                  disabled={isLoading}
-                />
-
-                <BrainDropdownControlled
-                  name="turmaId"
-                  control={control}
-                  label="Turma"
-                  placeholder="Selecione a turma"
-                  options={turmasOptions}
-                  required
-                  disabled={isLoading}
-                />
-
-                <BrainDropdownControlled
-                  name="professorId"
-                  control={control}
-                  label="Professor"
-                  placeholder="Selecione o professor"
-                  options={professoresOptions}
-                  required
-                  disabled={isLoading}
-                />
-
-                <BrainDropdownControlled
-                  name="diaSemana"
-                  control={control}
-                  label="Dia da Semana"
-                  placeholder="Selecione o dia da semana"
-                  options={diasSemanaOptions}
-                  required
-                />
-
-                <BrainTextFieldControlled
-                  name="sala"
-                  control={control}
-                  label="Sala"
-                  placeholder="Digite a sala"
-                  required
-                />
-
-                <BrainDropdownControlled
-                  name="horarioId"
-                  control={control}
-                  label="Horário"
-                  placeholder="Selecione o horário"
-                  options={horariosOptions}
-                  required
-                  disabled={isLoading}
-                />
-              </ContainerSection>
-
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
-                <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
-                <BrainButtonPrimary
-                  type="submit"
-                  disabled={
-                    isSubmitting || createAula.isPending || updateAula.isPending || isLoading
-                  }
-                >
-                  {createAula.isPending || updateAula.isPending ? "Salvando..." : "Salvar"}
-                </BrainButtonPrimary>
-              </Box>
-            </BrainFormProvider>
-          </>
-        )}
-      </Container>
-    </ProtectedRoute>
+                {createAula.isPending || updateAula.isPending ? "Salvando..." : "Salvar"}
+              </BrainButtonPrimary>
+            </Box>
+          </BrainFormProvider>
+        </>
+      )}
+    </Container>
   );
 }
 

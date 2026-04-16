@@ -5,7 +5,7 @@ import {
   mapAlertaResponseToFormData,
 } from "@/app/(private)/alerta/alertaUtils";
 import { useAlertaMutations } from "@/app/(private)/alerta/useAlertaMutations";
-import { RoutesEnum, UserRoleEnum } from "@/enums";
+import { RoutesEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import { BrainDateTextControlled } from "@/components/brainForms/brainDateTextControlled";
@@ -13,7 +13,6 @@ import { BrainTextFieldControlled } from "@/components/brainForms/brainTextField
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useAlerta } from "@/hooks/useAlerta";
 import { Alert, Box, CircularProgress, Container } from "@mui/material";
@@ -70,79 +69,77 @@ function AlertaPageContent() {
   const QUANTITY_COLLUMNS_DEFAULT = 3;
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {loadingAlerta && isEditMode ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : errorAlerta && isEditMode ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorAlerta}
-          </Alert>
-        ) : (
-          <>
-            <PageTitle
-              title={isEditMode ? "Editar Alerta" : "Cadastro de Alerta"}
-              description="Preencha os dados abaixo para completar o cadastro no sistema"
-            />
-            <BrainFormProvider
-              methodsHookForm={methodsHookForm}
-              onSubmit={handleSubmit(onFormSubmit)}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {loadingAlerta && isEditMode ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : errorAlerta && isEditMode ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorAlerta}
+        </Alert>
+      ) : (
+        <>
+          <PageTitle
+            title={isEditMode ? "Editar Alerta" : "Cadastro de Alerta"}
+            description="Preencha os dados abaixo para completar o cadastro no sistema"
+          />
+          <BrainFormProvider
+            methodsHookForm={methodsHookForm}
+            onSubmit={handleSubmit(onFormSubmit)}
+          >
+            {/* Seção Informações do Alerta */}
+            <ContainerSection
+              title="Informações do Alerta"
+              description="Dados básicos do alerta"
+              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
             >
-              {/* Seção Informações do Alerta */}
-              <ContainerSection
-                title="Informações do Alerta"
-                description="Dados básicos do alerta"
-                numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
+              <BrainTextFieldControlled
+                name="titulo"
+                control={control}
+                label="Título"
+                placeholder="Digite o título do alerta"
+                required
+              />
+
+              <BrainDateTextControlled
+                name="data"
+                control={control}
+                label="Data de Publicação"
+                required
+              />
+            </ContainerSection>
+
+            {/* Seção Conteúdo */}
+            <ContainerSection
+              title="Conteúdo"
+              description="Descrição detalhada do alerta"
+              numberOfCollumns={1}
+            >
+              <BrainTextFieldControlled
+                name="conteudo"
+                control={control}
+                label="Conteúdo"
+                placeholder="Digite o conteúdo do alerta"
+                required
+                multiline
+                rows={6}
+              />
+            </ContainerSection>
+
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
+              <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
+              <BrainButtonPrimary
+                type="submit"
+                disabled={isSubmitting || createAlerta.isPending || updateAlerta.isPending}
               >
-                <BrainTextFieldControlled
-                  name="titulo"
-                  control={control}
-                  label="Título"
-                  placeholder="Digite o título do alerta"
-                  required
-                />
-
-                <BrainDateTextControlled
-                  name="data"
-                  control={control}
-                  label="Data de Publicação"
-                  required
-                />
-              </ContainerSection>
-
-              {/* Seção Conteúdo */}
-              <ContainerSection
-                title="Conteúdo"
-                description="Descrição detalhada do alerta"
-                numberOfCollumns={1}
-              >
-                <BrainTextFieldControlled
-                  name="conteudo"
-                  control={control}
-                  label="Conteúdo"
-                  placeholder="Digite o conteúdo do alerta"
-                  required
-                  multiline
-                  rows={6}
-                />
-              </ContainerSection>
-
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
-                <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
-                <BrainButtonPrimary
-                  type="submit"
-                  disabled={isSubmitting || createAlerta.isPending || updateAlerta.isPending}
-                >
-                  {createAlerta.isPending || updateAlerta.isPending ? "Salvando..." : "Salvar"}
-                </BrainButtonPrimary>
-              </Box>
-            </BrainFormProvider>
-          </>
-        )}
-      </Container>
-    </ProtectedRoute>
+                {createAlerta.isPending || updateAlerta.isPending ? "Salvando..." : "Salvar"}
+              </BrainButtonPrimary>
+            </Box>
+          </BrainFormProvider>
+        </>
+      )}
+    </Container>
   );
 }
 

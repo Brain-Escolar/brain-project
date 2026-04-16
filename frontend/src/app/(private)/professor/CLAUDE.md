@@ -167,7 +167,7 @@ Todos os campos de formulário devem usar os componentes BrainForms em vez de ca
 - LGPD: `.refine(val => val === true)`
 
 ### Proteção de rota
-- `<ProtectedRoute allowedRoles={[UserRoleEnum.PROFESSOR]}>`
+- Centralizada no middleware (`src/middleware.ts`) e no `routesConfig.tsx`. As páginas não precisam envolver nada — quem chega na rota já passou pela validação de role.
 
 ---
 

@@ -5,7 +5,6 @@ import {
   mapAlunoResponseToFormData,
 } from "@/app/(private)/aluno/alunoUtils";
 import { useAlunoMutations } from "@/app/(private)/aluno/useAlunoMutations";
-import { UserRoleEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import { BrainDateTextControlled } from "@/components/brainForms/brainDateTextControlled";
@@ -18,7 +17,6 @@ import { BrainTextRGControlled } from "@/components/brainForms/brainTextRGContro
 import { BrainTextPhoneControlled } from "@/components/brainForms/brainTextPhoneControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useAluno } from "@/hooks/useAluno";
 import { buscarCep } from "@/services/cep";
@@ -254,400 +252,398 @@ function AlunoPageContent() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {loadingAluno && isEditMode ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : errorAluno && isEditMode ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorAluno}
-          </Alert>
-        ) : (
-          <>
-            <PageTitle
-              title={isEditMode ? "Editar Aluno" : "Cadastro de Aluno"}
-              description="Preencha os dados abaixo para completar o cadastro no sistema"
-            />
-            <BrainFormProvider
-              methodsHookForm={methodsHookForm}
-              onSubmit={handleSubmit(onFormSubmit)}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {loadingAluno && isEditMode ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : errorAluno && isEditMode ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorAluno}
+        </Alert>
+      ) : (
+        <>
+          <PageTitle
+            title={isEditMode ? "Editar Aluno" : "Cadastro de Aluno"}
+            description="Preencha os dados abaixo para completar o cadastro no sistema"
+          />
+          <BrainFormProvider
+            methodsHookForm={methodsHookForm}
+            onSubmit={handleSubmit(onFormSubmit)}
+          >
+            {/* Seção Informações Pessoais */}
+            <ContainerSection
+              title="Informações Pessoais"
+              description="Dados básicos do aluno"
+              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
             >
-              {/* Seção Informações Pessoais */}
-              <ContainerSection
-                title="Informações Pessoais"
-                description="Dados básicos do aluno"
-                numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-              >
-                <BrainTextFieldControlled
-                  name="nomeCompleto"
+              <BrainTextFieldControlled
+                name="nomeCompleto"
+                control={control}
+                label="Nome Completo"
+                placeholder="Digite o nome completo"
+                required
+              />
+
+              <BrainTextFieldControlled
+                name="nomeSocial"
+                control={control}
+                label="Nome Social"
+                placeholder="Digite o nome social (opcional)"
+              />
+
+              <BrainTextFieldControlled
+                name="email"
+                control={control}
+                label="E-mail"
+                placeholder="exemplo@email.com"
+                type="email"
+                required
+              />
+
+              <BrainDateTextControlled
+                name="dataNascimento"
+                control={control}
+                label="Data de Nascimento"
+                required
+              />
+
+              <BrainDropdownControlled
+                name="genero"
+                control={control}
+                label="Gênero"
+                required
+                options={OPTIONS_GENDER}
+                placeholder="Selecione o gênero"
+              />
+
+              <BrainDropdownControlled
+                name="corRaca"
+                control={control}
+                label="Cor/Raça"
+                required
+                options={OPTIONS_COR_RACA}
+                placeholder="Selecione a cor/raça"
+              />
+
+              <BrainTextFieldControlled
+                name="cidadeNaturalidade"
+                control={control}
+                label="Cidade de Naturalidade"
+                placeholder="Digite a cidade de nascimento"
+                required
+              />
+
+              <BrainTextPhoneControlled
+                name="telefone"
+                control={control}
+                label="Telefone"
+                required
+              />
+            </ContainerSection>
+
+            {/* Seção Documentos */}
+            <ContainerSection
+              title="Documentos"
+              description="Informações de documentação"
+              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
+            >
+              <BrainTextCPFControlled name="cpf" control={control} label="CPF" required={true} />
+
+              <BrainTextRGControlled name="rg" control={control} label="RG" required={true} />
+            </ContainerSection>
+
+            {/* Seção Endereço */}
+            <ContainerSection
+              title="Endereço"
+              description="Informações de localização"
+              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
+            >
+              <Box sx={{ position: "relative", width: "100%" }}>
+                <BrainTextCEPControlled
+                  name="cep"
                   control={control}
-                  label="Nome Completo"
-                  placeholder="Digite o nome completo"
-                  required
+                  label="CEP"
+                  required={true}
                 />
-
-                <BrainTextFieldControlled
-                  name="nomeSocial"
-                  control={control}
-                  label="Nome Social"
-                  placeholder="Digite o nome social (opcional)"
-                />
-
-                <BrainTextFieldControlled
-                  name="email"
-                  control={control}
-                  label="E-mail"
-                  placeholder="exemplo@email.com"
-                  type="email"
-                  required
-                />
-
-                <BrainDateTextControlled
-                  name="dataNascimento"
-                  control={control}
-                  label="Data de Nascimento"
-                  required
-                />
-
-                <BrainDropdownControlled
-                  name="genero"
-                  control={control}
-                  label="Gênero"
-                  required
-                  options={OPTIONS_GENDER}
-                  placeholder="Selecione o gênero"
-                />
-
-                <BrainDropdownControlled
-                  name="corRaca"
-                  control={control}
-                  label="Cor/Raça"
-                  required
-                  options={OPTIONS_COR_RACA}
-                  placeholder="Selecione a cor/raça"
-                />
-
-                <BrainTextFieldControlled
-                  name="cidadeNaturalidade"
-                  control={control}
-                  label="Cidade de Naturalidade"
-                  placeholder="Digite a cidade de nascimento"
-                  required
-                />
-
-                <BrainTextPhoneControlled
-                  name="telefone"
-                  control={control}
-                  label="Telefone"
-                  required
-                />
-              </ContainerSection>
-
-              {/* Seção Documentos */}
-              <ContainerSection
-                title="Documentos"
-                description="Informações de documentação"
-                numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-              >
-                <BrainTextCPFControlled name="cpf" control={control} label="CPF" required={true} />
-
-                <BrainTextRGControlled name="rg" control={control} label="RG" required={true} />
-              </ContainerSection>
-
-              {/* Seção Endereço */}
-              <ContainerSection
-                title="Endereço"
-                description="Informações de localização"
-                numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-              >
-                <Box sx={{ position: "relative", width: "100%" }}>
-                  <BrainTextCEPControlled
-                    name="cep"
-                    control={control}
-                    label="CEP"
-                    required={true}
-                  />
-                  {buscandoCep && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        right: 10,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                      }}
-                    >
-                      <CircularProgress size={20} />
-                    </Box>
-                  )}
-                </Box>
-
-                <BrainTextFieldControlled
-                  name="logradouro"
-                  control={control}
-                  label="Logradouro"
-                  placeholder="Rua, Avenida, etc."
-                  required
-                />
-
-                <BrainTextFieldControlled
-                  name="numero"
-                  control={control}
-                  label="Número"
-                  placeholder="Nº"
-                  required
-                />
-
-                <BrainTextFieldControlled
-                  name="complemento"
-                  control={control}
-                  label="Complemento"
-                  placeholder="Apto, Bloco, etc. (opcional)"
-                />
-
-                <BrainTextFieldControlled
-                  name="bairro"
-                  control={control}
-                  label="Bairro"
-                  placeholder="Digite o bairro"
-                  required
-                />
-
-                <BrainTextFieldControlled
-                  name="cidade"
-                  control={control}
-                  label="Cidade"
-                  placeholder="Digite a cidade"
-                  required
-                />
-
-                <BrainDropdownControlled
-                  name="uf"
-                  control={control}
-                  label="UF"
-                  required
-                  options={OPTIONS_UF}
-                  placeholder="UF"
-                />
-              </ContainerSection>
-
-              {/* Seção Dados do Responsável (múltiplos, com Accordion) */}
-              <ContainerSection
-                title="Dados do Responsável"
-                description="Informações do responsável legal (opcional, até 5 responsáveis)"
-                numberOfCollumns={1}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    width: "100%",
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant="subtitle1">
-                    Responsáveis ({responsaveisFields.length}/{MAX_RESPONSAVEIS})
-                  </Typography>
-
-                  <Button
-                    variant="contained"
-                    onClick={handleAddResponsavel}
-                    disabled={responsaveisFields.length >= MAX_RESPONSAVEIS}
+                {buscandoCep && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      right: 10,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                    }}
                   >
-                    Adicionar responsável
-                  </Button>
-                </Box>
-
-                {responsaveisFields.length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    Nenhum responsável adicionado. Clique em &quot;Adicionar responsável&quot; para
-                    incluir um.
-                  </Typography>
+                    <CircularProgress size={20} />
+                  </Box>
                 )}
+              </Box>
 
-                {responsaveisFields.map((field, index) => (
-                  <Accordion
-                    key={field.id}
-                    defaultExpanded={index === responsaveisFields.length - 1}
-                    sx={{ width: "100%", mt: 1 }}
+              <BrainTextFieldControlled
+                name="logradouro"
+                control={control}
+                label="Logradouro"
+                placeholder="Rua, Avenida, etc."
+                required
+              />
+
+              <BrainTextFieldControlled
+                name="numero"
+                control={control}
+                label="Número"
+                placeholder="Nº"
+                required
+              />
+
+              <BrainTextFieldControlled
+                name="complemento"
+                control={control}
+                label="Complemento"
+                placeholder="Apto, Bloco, etc. (opcional)"
+              />
+
+              <BrainTextFieldControlled
+                name="bairro"
+                control={control}
+                label="Bairro"
+                placeholder="Digite o bairro"
+                required
+              />
+
+              <BrainTextFieldControlled
+                name="cidade"
+                control={control}
+                label="Cidade"
+                placeholder="Digite a cidade"
+                required
+              />
+
+              <BrainDropdownControlled
+                name="uf"
+                control={control}
+                label="UF"
+                required
+                options={OPTIONS_UF}
+                placeholder="UF"
+              />
+            </ContainerSection>
+
+            {/* Seção Dados do Responsável (múltiplos, com Accordion) */}
+            <ContainerSection
+              title="Dados do Responsável"
+              description="Informações do responsável legal (opcional, até 5 responsáveis)"
+              numberOfCollumns={1}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                  mb: 1,
+                }}
+              >
+                <Typography variant="subtitle1">
+                  Responsáveis ({responsaveisFields.length}/{MAX_RESPONSAVEIS})
+                </Typography>
+
+                <Button
+                  variant="contained"
+                  onClick={handleAddResponsavel}
+                  disabled={responsaveisFields.length >= MAX_RESPONSAVEIS}
+                >
+                  Adicionar responsável
+                </Button>
+              </Box>
+
+              {responsaveisFields.length === 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  Nenhum responsável adicionado. Clique em &quot;Adicionar responsável&quot; para
+                  incluir um.
+                </Typography>
+              )}
+
+              {responsaveisFields.map((field, index) => (
+                <Accordion
+                  key={field.id}
+                  defaultExpanded={index === responsaveisFields.length - 1}
+                  sx={{ width: "100%", mt: 1 }}
+                >
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    sx={{
+                      "& .MuiAccordionSummary-content": {
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        width: "100%",
+                      },
+                    }}
                   >
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
+                    <Typography>Responsável {index + 1}</Typography>
+                    <Box
+                      component="div"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeResponsavel(index);
+                      }}
                       sx={{
-                        "& .MuiAccordionSummary-content": {
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          width: "100%",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "8px",
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                        "&:hover": {
+                          backgroundColor: "action.hover",
                         },
                       }}
                     >
-                      <Typography>Responsável {index + 1}</Typography>
-                      <Box
-                        component="div"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeResponsavel(index);
-                        }}
-                        sx={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          padding: "8px",
-                          borderRadius: "50%",
-                          cursor: "pointer",
-                          "&:hover": {
-                            backgroundColor: "action.hover",
-                          },
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </Box>
-                    </AccordionSummary>
+                      <DeleteIcon fontSize="small" />
+                    </Box>
+                  </AccordionSummary>
 
-                    <AccordionDetails>
-                      <ContainerSection
-                        title=""
-                        description=""
-                        numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-                      >
-                        <BrainTextCPFControlled
-                          name={`responsaveis.${index}.cpfResponsavel`}
+                  <AccordionDetails>
+                    <ContainerSection
+                      title=""
+                      description=""
+                      numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
+                    >
+                      <BrainTextCPFControlled
+                        name={`responsaveis.${index}.cpfResponsavel`}
+                        control={control}
+                        label="CPF do Responsável"
+                        required={true}
+                      />
+
+                      <BrainTextFieldControlled
+                        name={`responsaveis.${index}.nomeResponsavel`}
+                        control={control}
+                        label="Nome do Responsável"
+                        placeholder="Digite o nome completo"
+                        required
+                      />
+
+                      <BrainTextPhoneControlled
+                        name={`responsaveis.${index}.telefoneResponsavel`}
+                        control={control}
+                        label="Telefone do Responsável"
+                        required
+                      />
+
+                      <BrainTextFieldControlled
+                        name={`responsaveis.${index}.emailResponsavel`}
+                        control={control}
+                        label="E-mail do Responsável"
+                        placeholder="exemplo@email.com"
+                        type="email"
+                        required
+                      />
+
+                      <BrainDateTextControlled
+                        name={`responsaveis.${index}.dataNascimentoResponsavel`}
+                        control={control}
+                        label="Data de Nascimento"
+                        required
+                      />
+
+                      {/* Endereço do Responsável */}
+                      <Box sx={{ position: "relative", width: "100%" }}>
+                        <BrainTextCEPControlled
+                          name={`responsaveis.${index}.cep`}
                           control={control}
-                          label="CPF do Responsável"
+                          label="CEP"
                           required={true}
                         />
+                        {buscandoCepResponsavel[index] && (
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              right: 10,
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                            }}
+                          >
+                            <CircularProgress size={20} />
+                          </Box>
+                        )}
+                      </Box>
 
-                        <BrainTextFieldControlled
-                          name={`responsaveis.${index}.nomeResponsavel`}
-                          control={control}
-                          label="Nome do Responsável"
-                          placeholder="Digite o nome completo"
-                          required
-                        />
+                      <BrainTextFieldControlled
+                        name={`responsaveis.${index}.logradouro`}
+                        control={control}
+                        label="Logradouro"
+                        placeholder="Rua, Avenida, etc."
+                        required
+                      />
 
-                        <BrainTextPhoneControlled
-                          name={`responsaveis.${index}.telefoneResponsavel`}
-                          control={control}
-                          label="Telefone do Responsável"
-                          required
-                        />
+                      <BrainTextFieldControlled
+                        name={`responsaveis.${index}.numero`}
+                        control={control}
+                        label="Número"
+                        placeholder="Nº"
+                        required
+                      />
 
-                        <BrainTextFieldControlled
-                          name={`responsaveis.${index}.emailResponsavel`}
-                          control={control}
-                          label="E-mail do Responsável"
-                          placeholder="exemplo@email.com"
-                          type="email"
-                          required
-                        />
+                      <BrainTextFieldControlled
+                        name={`responsaveis.${index}.complemento`}
+                        control={control}
+                        label="Complemento"
+                        placeholder="Apto, Bloco, etc. (opcional)"
+                      />
 
-                        <BrainDateTextControlled
-                          name={`responsaveis.${index}.dataNascimentoResponsavel`}
-                          control={control}
-                          label="Data de Nascimento"
-                          required
-                        />
+                      <BrainTextFieldControlled
+                        name={`responsaveis.${index}.bairro`}
+                        control={control}
+                        label="Bairro"
+                        placeholder="Digite o bairro"
+                        required
+                      />
 
-                        {/* Endereço do Responsável */}
-                        <Box sx={{ position: "relative", width: "100%" }}>
-                          <BrainTextCEPControlled
-                            name={`responsaveis.${index}.cep`}
-                            control={control}
-                            label="CEP"
-                            required={true}
-                          />
-                          {buscandoCepResponsavel[index] && (
-                            <Box
-                              sx={{
-                                position: "absolute",
-                                right: 10,
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                              }}
-                            >
-                              <CircularProgress size={20} />
-                            </Box>
-                          )}
-                        </Box>
+                      <BrainTextFieldControlled
+                        name={`responsaveis.${index}.cidade`}
+                        control={control}
+                        label="Cidade"
+                        placeholder="Digite a cidade"
+                        required
+                      />
 
-                        <BrainTextFieldControlled
-                          name={`responsaveis.${index}.logradouro`}
-                          control={control}
-                          label="Logradouro"
-                          placeholder="Rua, Avenida, etc."
-                          required
-                        />
+                      <BrainDropdownControlled
+                        name={`responsaveis.${index}.uf`}
+                        control={control}
+                        label="UF"
+                        required
+                        options={OPTIONS_UF}
+                        placeholder="UF"
+                      />
 
-                        <BrainTextFieldControlled
-                          name={`responsaveis.${index}.numero`}
-                          control={control}
-                          label="Número"
-                          placeholder="Nº"
-                          required
-                        />
+                      <BrainDropdownControlled
+                        name={`responsaveis.${index}.financeiro`}
+                        control={control}
+                        label="Financeiro"
+                        options={OPTIONS_FINANCEIRO}
+                        placeholder="Selecione"
+                      />
+                    </ContainerSection>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+            </ContainerSection>
 
-                        <BrainTextFieldControlled
-                          name={`responsaveis.${index}.complemento`}
-                          control={control}
-                          label="Complemento"
-                          placeholder="Apto, Bloco, etc. (opcional)"
-                        />
-
-                        <BrainTextFieldControlled
-                          name={`responsaveis.${index}.bairro`}
-                          control={control}
-                          label="Bairro"
-                          placeholder="Digite o bairro"
-                          required
-                        />
-
-                        <BrainTextFieldControlled
-                          name={`responsaveis.${index}.cidade`}
-                          control={control}
-                          label="Cidade"
-                          placeholder="Digite a cidade"
-                          required
-                        />
-
-                        <BrainDropdownControlled
-                          name={`responsaveis.${index}.uf`}
-                          control={control}
-                          label="UF"
-                          required
-                          options={OPTIONS_UF}
-                          placeholder="UF"
-                        />
-
-                        <BrainDropdownControlled
-                          name={`responsaveis.${index}.financeiro`}
-                          control={control}
-                          label="Financeiro"
-                          options={OPTIONS_FINANCEIRO}
-                          placeholder="Selecione"
-                        />
-                      </ContainerSection>
-                    </AccordionDetails>
-                  </Accordion>
-                ))}
-              </ContainerSection>
-
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
-                <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
-                <BrainButtonPrimary
-                  type="submit"
-                  disabled={isSubmitting || createAluno.isPending || updateAluno.isPending}
-                >
-                  {createAluno.isPending || updateAluno.isPending ? "Salvando..." : "Salvar"}
-                </BrainButtonPrimary>
-              </Box>
-            </BrainFormProvider>
-          </>
-        )}
-      </Container>
-    </ProtectedRoute>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
+              <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
+              <BrainButtonPrimary
+                type="submit"
+                disabled={isSubmitting || createAluno.isPending || updateAluno.isPending}
+              >
+                {createAluno.isPending || updateAluno.isPending ? "Salvando..." : "Salvar"}
+              </BrainButtonPrimary>
+            </Box>
+          </BrainFormProvider>
+        </>
+      )}
+    </Container>
   );
 }
 

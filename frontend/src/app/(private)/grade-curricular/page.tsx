@@ -5,14 +5,12 @@ import {
   mapGradeCurricularResponseToFormData,
 } from "@/app/(private)/grade-curricular/gradeCurricularUtils";
 import { useGradeCurricularMutations } from "@/app/(private)/grade-curricular/useGradeCurricularMutations";
-import { UserRoleEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useGradeCurricular } from "@/hooks/useGradeCurricular";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
@@ -110,236 +108,234 @@ function GradeCurricularPageContent() {
   }, [disciplinas, watchDisciplinaIds]);
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {loadingGrade && isEditMode ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : errorGrade && isEditMode ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorGrade}
-          </Alert>
-        ) : (
-          <>
-            <PageTitle
-              title={
-                isEditMode
-                  ? "Editar Grade Curricular"
-                  : "Cadastro de Grade Curricular"
-              }
-              description="Defina as disciplinas que compõem a grade curricular e suas cargas horárias."
-            />
-            <BrainFormProvider
-              methodsHookForm={methodsHookForm}
-              onSubmit={handleSubmit(onFormSubmit)}
-            >
-              <S.PageLayout>
-                {/* Coluna Principal */}
-                <div>
-                  <ContainerSection
-                    title="Identificação da Grade"
-                    numberOfCollumns={2}
-                  >
-                    <BrainTextFieldControlled
-                      name="nome"
-                      control={control}
-                      label="Nome da Grade"
-                      placeholder="Ex: Grade Fundamental I — 2025"
-                      required
-                    />
-                    <BrainTextFieldControlled
-                      name="versao"
-                      control={control}
-                      label="Versão"
-                      placeholder="Ex: 1.0"
-                      required
-                    />
-                  </ContainerSection>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {loadingGrade && isEditMode ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : errorGrade && isEditMode ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorGrade}
+        </Alert>
+      ) : (
+        <>
+          <PageTitle
+            title={
+              isEditMode
+                ? "Editar Grade Curricular"
+                : "Cadastro de Grade Curricular"
+            }
+            description="Defina as disciplinas que compõem a grade curricular e suas cargas horárias."
+          />
+          <BrainFormProvider
+            methodsHookForm={methodsHookForm}
+            onSubmit={handleSubmit(onFormSubmit)}
+          >
+            <S.PageLayout>
+              {/* Coluna Principal */}
+              <div>
+                <ContainerSection
+                  title="Identificação da Grade"
+                  numberOfCollumns={2}
+                >
+                  <BrainTextFieldControlled
+                    name="nome"
+                    control={control}
+                    label="Nome da Grade"
+                    placeholder="Ex: Grade Fundamental I — 2025"
+                    required
+                  />
+                  <BrainTextFieldControlled
+                    name="versao"
+                    control={control}
+                    label="Versão"
+                    placeholder="Ex: 1.0"
+                    required
+                  />
+                </ContainerSection>
 
-                  <ContainerSection
-                    title="Disciplinas"
-                    numberOfCollumns={1}
-                  >
-                    <Box>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        placeholder="Buscar disciplina..."
-                        value={disciplinaSearch}
-                        onChange={(e) => setDisciplinaSearch(e.target.value)}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <SearchIcon fontSize="small" />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    </Box>
+                <ContainerSection
+                  title="Disciplinas"
+                  numberOfCollumns={1}
+                >
+                  <Box>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      placeholder="Buscar disciplina..."
+                      value={disciplinaSearch}
+                      onChange={(e) => setDisciplinaSearch(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <SearchIcon fontSize="small" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Box>
 
-                    <Controller
-                      name="disciplinaIds"
-                      control={control}
-                      render={({ field, fieldState: { error } }) => (
-                        <Box>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              flexDirection: "column",
-                              gap: 1,
-                              mt: 1,
-                            }}
-                          >
-                            {filteredDisciplinas.length === 0 ? (
-                              <Box sx={{ py: 3, textAlign: "center" }}>
-                                <Typography
-                                  variant="body2"
-                                  color="textSecondary"
-                                  sx={{ mb: 1 }}
+                  <Controller
+                    name="disciplinaIds"
+                    control={control}
+                    render={({ field, fieldState: { error } }) => (
+                      <Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 1,
+                            mt: 1,
+                          }}
+                        >
+                          {filteredDisciplinas.length === 0 ? (
+                            <Box sx={{ py: 3, textAlign: "center" }}>
+                              <Typography
+                                variant="body2"
+                                color="textSecondary"
+                                sx={{ mb: 1 }}
+                              >
+                                Nenhuma disciplina encontrada.
+                              </Typography>
+                              {disciplinas.length === 0 && (
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  startIcon={<AddIcon />}
+                                  onClick={() => router.push("/disciplina")}
                                 >
-                                  Nenhuma disciplina encontrada.
-                                </Typography>
-                                {disciplinas.length === 0 && (
-                                  <Button
-                                    variant="outlined"
+                                  Cadastrar Disciplina
+                                </Button>
+                              )}
+                            </Box>
+                          ) : (
+                            filteredDisciplinas.map((disc) => {
+                              const isChecked = field.value?.includes(disc.id);
+                              return (
+                                <S.DisciplinaCheckItem
+                                  key={disc.id}
+                                  $checked={isChecked}
+                                  onClick={() => {
+                                    const newValue = isChecked
+                                      ? field.value.filter((id: number) => id !== disc.id)
+                                      : [...(field.value || []), disc.id];
+                                    field.onChange(newValue);
+                                  }}
+                                >
+                                  <Checkbox
+                                    checked={isChecked}
                                     size="small"
-                                    startIcon={<AddIcon />}
-                                    onClick={() => router.push("/disciplina")}
-                                  >
-                                    Cadastrar Disciplina
-                                  </Button>
-                                )}
-                              </Box>
-                            ) : (
-                              filteredDisciplinas.map((disc) => {
-                                const isChecked = field.value?.includes(disc.id);
-                                return (
-                                  <S.DisciplinaCheckItem
-                                    key={disc.id}
-                                    $checked={isChecked}
-                                    onClick={() => {
-                                      const newValue = isChecked
-                                        ? field.value.filter((id: number) => id !== disc.id)
-                                        : [...(field.value || []), disc.id];
-                                      field.onChange(newValue);
-                                    }}
-                                  >
-                                    <Checkbox
-                                      checked={isChecked}
-                                      size="small"
-                                      sx={{ p: 0 }}
-                                    />
-                                    <div className="disc-info">
-                                      <span className="disc-nome">
-                                        <MenuBookIcon
-                                          sx={{
-                                            fontSize: 14,
-                                            mr: 0.5,
-                                            verticalAlign: "text-bottom",
-                                          }}
-                                        />
-                                        {disc.nome}
-                                      </span>
-                                      <span className="disc-meta">
-                                        {disc.cargaHoraria}h semanais · {disc.grupo}
-                                      </span>
-                                    </div>
-                                  </S.DisciplinaCheckItem>
-                                );
-                              })
-                            )}
-                          </Box>
-                          {error && (
-                            <Typography
-                              variant="caption"
-                              color="error"
-                              sx={{ mt: 0.5, display: "block" }}
-                            >
-                              {error.message}
-                            </Typography>
+                                    sx={{ p: 0 }}
+                                  />
+                                  <div className="disc-info">
+                                    <span className="disc-nome">
+                                      <MenuBookIcon
+                                        sx={{
+                                          fontSize: 14,
+                                          mr: 0.5,
+                                          verticalAlign: "text-bottom",
+                                        }}
+                                      />
+                                      {disc.nome}
+                                    </span>
+                                    <span className="disc-meta">
+                                      {disc.cargaHoraria}h semanais · {disc.grupo}
+                                    </span>
+                                  </div>
+                                </S.DisciplinaCheckItem>
+                              );
+                            })
                           )}
                         </Box>
-                      )}
-                    />
-                  </ContainerSection>
-                </div>
+                        {error && (
+                          <Typography
+                            variant="caption"
+                            color="error"
+                            sx={{ mt: 0.5, display: "block" }}
+                          >
+                            {error.message}
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
+                  />
+                </ContainerSection>
+              </div>
 
-                {/* Sidebar */}
-                <S.SidebarCard>
-                  <S.SidebarHeader>
-                    <h4>Resumo da Grade</h4>
-                  </S.SidebarHeader>
-                  <S.StatsContainer>
-                    <div className="stats-number">{selectedCount}</div>
-                    <div className="stats-label">disciplinas selecionadas</div>
-                  </S.StatsContainer>
-                  <S.ResumoItem>
-                    <span className="resumo-label">Nome</span>
-                    <span className="resumo-value">{watchNome || "—"}</span>
-                  </S.ResumoItem>
-                  <S.ResumoItem>
-                    <span className="resumo-label">Versão</span>
-                    <span className="resumo-value">{watchVersao || "—"}</span>
-                  </S.ResumoItem>
-                  <S.ResumoItem>
-                    <span className="resumo-label">Carga Horária Total</span>
-                    <span className="resumo-value">{totalCargaHoraria}h</span>
-                  </S.ResumoItem>
+              {/* Sidebar */}
+              <S.SidebarCard>
+                <S.SidebarHeader>
+                  <h4>Resumo da Grade</h4>
+                </S.SidebarHeader>
+                <S.StatsContainer>
+                  <div className="stats-number">{selectedCount}</div>
+                  <div className="stats-label">disciplinas selecionadas</div>
+                </S.StatsContainer>
+                <S.ResumoItem>
+                  <span className="resumo-label">Nome</span>
+                  <span className="resumo-value">{watchNome || "—"}</span>
+                </S.ResumoItem>
+                <S.ResumoItem>
+                  <span className="resumo-label">Versão</span>
+                  <span className="resumo-value">{watchVersao || "—"}</span>
+                </S.ResumoItem>
+                <S.ResumoItem>
+                  <span className="resumo-label">Carga Horária Total</span>
+                  <span className="resumo-value">{totalCargaHoraria}h</span>
+                </S.ResumoItem>
 
-                  {selectedCount > 0 && (
-                    <>
-                      <S.SidebarHeader>
-                        <h4>Disciplinas Selecionadas</h4>
-                      </S.SidebarHeader>
-                      {disciplinas
-                        .filter((d) => watchDisciplinaIds?.includes(d.id))
-                        .map((disc) => (
-                          <S.ResumoItem key={disc.id}>
-                            <span className="resumo-label">{disc.nome}</span>
-                            <span className="resumo-value">
-                              {disc.cargaHoraria}h
-                            </span>
-                          </S.ResumoItem>
-                        ))}
-                    </>
-                  )}
-                </S.SidebarCard>
-              </S.PageLayout>
+                {selectedCount > 0 && (
+                  <>
+                    <S.SidebarHeader>
+                      <h4>Disciplinas Selecionadas</h4>
+                    </S.SidebarHeader>
+                    {disciplinas
+                      .filter((d) => watchDisciplinaIds?.includes(d.id))
+                      .map((disc) => (
+                        <S.ResumoItem key={disc.id}>
+                          <span className="resumo-label">{disc.nome}</span>
+                          <span className="resumo-value">
+                            {disc.cargaHoraria}h
+                          </span>
+                        </S.ResumoItem>
+                      ))}
+                  </>
+                )}
+              </S.SidebarCard>
+            </S.PageLayout>
 
-              {/* Botões de ação */}
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: 2,
-                  mt: 4,
-                }}
-              >
-                <BrainButtonSecondary onClick={handleCancel}>
-                  Cancelar
-                </BrainButtonSecondary>
-                <BrainButtonPrimary
-                  type="submit"
-                  disabled={
-                    isSubmitting ||
-                    createGradeCurricular.isPending ||
-                    updateGradeCurricular.isPending
-                  }
-                >
-                  {createGradeCurricular.isPending ||
+            {/* Botões de ação */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 2,
+                mt: 4,
+              }}
+            >
+              <BrainButtonSecondary onClick={handleCancel}>
+                Cancelar
+              </BrainButtonSecondary>
+              <BrainButtonPrimary
+                type="submit"
+                disabled={
+                  isSubmitting ||
+                  createGradeCurricular.isPending ||
                   updateGradeCurricular.isPending
-                    ? "Salvando..."
-                    : isEditMode
-                      ? "Atualizar Grade"
-                      : "Criar Grade"}
-                </BrainButtonPrimary>
-              </Box>
-            </BrainFormProvider>
-          </>
-        )}
-      </Container>
-    </ProtectedRoute>
+                }
+              >
+                {createGradeCurricular.isPending ||
+                updateGradeCurricular.isPending
+                  ? "Salvando..."
+                  : isEditMode
+                    ? "Atualizar Grade"
+                    : "Criar Grade"}
+              </BrainButtonPrimary>
+            </Box>
+          </BrainFormProvider>
+        </>
+      )}
+    </Container>
   );
 }
 

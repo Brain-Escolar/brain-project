@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { UserRoleEnum } from "@/enums";
 import { useAlertas } from "@/hooks/useAlertas";
 import { useAlertaMutations } from "@/app/(private)/alerta/useAlertaMutations";
 import { AlertaResponse } from "@/services/domains/alerta";
@@ -349,156 +347,170 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <ProtectedRoute allowedRoles={[UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR]}>
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
-            <CircularProgress />
-          </Box>
-        </Container>
-      </ProtectedRoute>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
+          <CircularProgress />
+        </Box>
+      </Container>
     );
   }
 
   if (error) {
     return (
-      <ProtectedRoute allowedRoles={[UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR]}>
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-            <Button onClick={() => refetch()} sx={{ ml: 2 }}>
-              Tentar novamente
-            </Button>
-          </Alert>
-        </Container>
-      </ProtectedRoute>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+          <Button onClick={() => refetch()} sx={{ ml: 2 }}>
+            Tentar novamente
+          </Button>
+        </Alert>
+      </Container>
     );
   }
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2, flexWrap: "wrap" }}>
-          <Box>
-            <PageTitle
-              title="Notificações"
-              description={`Você tem ${unreadCount} notificação${unreadCount !== 1 ? "ões" : ""} não lida${unreadCount !== 1 ? "s" : ""}`}
-            />
-          </Box>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-            <Button
-              variant="outlined"
-              size="medium"
-              startIcon={<FilterList />}
-              onClick={handleFilterClick}
-              sx={{
-                textTransform: "none",
-                fontWeight: 400,
-                borderColor: "#E5E7EB",
-                color: "#374151",
-                bgcolor: "#FFFFFF",
-                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
-                "&:hover": {
-                  borderColor: "#D1D5DB",
-                  bgcolor: "#F9FAFB",
-                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-                },
-              }}
-            >
-              {typeFilter
-                ? notificationTypeConfig[typeFilter as keyof typeof notificationTypeConfig].label
-                : "Todos os Tipos"}
-            </Button>
-            <Menu
-              anchorEl={filterAnchorEl}
-              open={Boolean(filterAnchorEl)}
-              onClose={handleFilterClose}
-            >
-              <MenuItem onClick={() => handleFilterSelect(null)}>Todos os Tipos</MenuItem>
-              {Object.entries(notificationTypeConfig).map(([key, config]) => {
-                const IconComp = config.icon;
-                return (
-                  <MenuItem key={key} onClick={() => handleFilterSelect(key)}>
-                    <IconComp sx={{ mr: 1, fontSize: 18 }} /> {config.label}
-                  </MenuItem>
-                );
-              })}
-            </Menu>
-            <Button
-              variant="outlined"
-              size="medium"
-              startIcon={<CheckCircle />}
-              onClick={handleMarkAllRead}
-              disabled={unreadCount === 0}
-              sx={{
-                textTransform: "none",
-                fontWeight: 400,
-                borderColor: "#E5E7EB",
-                color: "#374151",
-                bgcolor: "#FFFFFF",
-                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
-                "&:hover": {
-                  borderColor: "#D1D5DB",
-                  bgcolor: "#F9FAFB",
-                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-                },
-                "&:disabled": {
-                  borderColor: "#E5E7EB",
-                  color: "#9CA3AF",
-                  bgcolor: "#FFFFFF",
-                },
-              }}
-            >
-              Marcar todas como lidas
-            </Button>
-          </Box>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2, flexWrap: "wrap" }}>
+        <Box>
+          <PageTitle
+            title="Notificações"
+            description={`Você tem ${unreadCount} notificação${unreadCount !== 1 ? "ões" : ""} não lida${unreadCount !== 1 ? "s" : ""}`}
+          />
         </Box>
-
-        <Box sx={{ mb: 3 }}>
-          <ToggleButtonGroup
-            value={activeTab}
-            exclusive
-            onChange={(_, newValue: number | null) => {
-              if (newValue !== null) {
-                setActiveTab(newValue);
-              }
-            }}
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <Button
+            variant="outlined"
+            size="medium"
+            startIcon={<FilterList />}
+            onClick={handleFilterClick}
             sx={{
-              bgcolor: "#E5E7EB",
-              borderRadius: "8px",
-              p: 0.5,
-              gap: 0.5,
-              "& .MuiToggleButton-root": {
-                border: "none",
-                borderRadius: "6px",
-                px: 2,
-                py: 1,
-                textTransform: "none",
-                fontWeight: 400,
-                fontSize: "0.875rem",
-                color: "#374151",
-                "&.Mui-selected": {
-                  bgcolor: "#FFFFFF",
-                  color: "#111827",
-                  boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
-                  "&:hover": {
-                    bgcolor: "#FFFFFF",
-                  },
-                },
-                "&:hover": {
-                  bgcolor: "rgba(255, 255, 255, 0.5)",
-                },
+              textTransform: "none",
+              fontWeight: 400,
+              borderColor: "#E5E7EB",
+              color: "#374151",
+              bgcolor: "#FFFFFF",
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+              "&:hover": {
+                borderColor: "#D1D5DB",
+                bgcolor: "#F9FAFB",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
               },
             }}
           >
-            <ToggleButton value={0}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Notifications fontSize="small" />
-                <Box component="span" sx={{ marginRight: 1 }}>Todas</Box>
+            {typeFilter
+              ? notificationTypeConfig[typeFilter as keyof typeof notificationTypeConfig].label
+              : "Todos os Tipos"}
+          </Button>
+          <Menu
+            anchorEl={filterAnchorEl}
+            open={Boolean(filterAnchorEl)}
+            onClose={handleFilterClose}
+          >
+            <MenuItem onClick={() => handleFilterSelect(null)}>Todos os Tipos</MenuItem>
+            {Object.entries(notificationTypeConfig).map(([key, config]) => {
+              const IconComp = config.icon;
+              return (
+                <MenuItem key={key} onClick={() => handleFilterSelect(key)}>
+                  <IconComp sx={{ mr: 1, fontSize: 18 }} /> {config.label}
+                </MenuItem>
+              );
+            })}
+          </Menu>
+          <Button
+            variant="outlined"
+            size="medium"
+            startIcon={<CheckCircle />}
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0}
+            sx={{
+              textTransform: "none",
+              fontWeight: 400,
+              borderColor: "#E5E7EB",
+              color: "#374151",
+              bgcolor: "#FFFFFF",
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+              "&:hover": {
+                borderColor: "#D1D5DB",
+                bgcolor: "#F9FAFB",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+              },
+              "&:disabled": {
+                borderColor: "#E5E7EB",
+                color: "#9CA3AF",
+                bgcolor: "#FFFFFF",
+              },
+            }}
+          >
+            Marcar todas como lidas
+          </Button>
+        </Box>
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <ToggleButtonGroup
+          value={activeTab}
+          exclusive
+          onChange={(_, newValue: number | null) => {
+            if (newValue !== null) {
+              setActiveTab(newValue);
+            }
+          }}
+          sx={{
+            bgcolor: "#E5E7EB",
+            borderRadius: "8px",
+            p: 0.5,
+            gap: 0.5,
+            "& .MuiToggleButton-root": {
+              border: "none",
+              borderRadius: "6px",
+              px: 2,
+              py: 1,
+              textTransform: "none",
+              fontWeight: 400,
+              fontSize: "0.875rem",
+              color: "#374151",
+              "&.Mui-selected": {
+                bgcolor: "#FFFFFF",
+                color: "#111827",
+                boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+                "&:hover": {
+                  bgcolor: "#FFFFFF",
+                },
+              },
+              "&:hover": {
+                bgcolor: "rgba(255, 255, 255, 0.5)",
+              },
+            },
+          }}
+        >
+          <ToggleButton value={0}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Notifications fontSize="small" />
+              <Box component="span" sx={{ marginRight: 1 }}>Todas</Box>
+              <Badge
+                badgeContent={notifications.length}
+                sx={{
+                  "& .MuiBadge-badge": {
+                    bgcolor: "#9CA3AF",
+                    color: "white",
+                    fontSize: "0.7rem",
+                    minWidth: 18,
+                    height: 18,
+                    borderRadius: "6px",
+                  },
+                }}
+              />
+            </Box>
+          </ToggleButton>
+          <ToggleButton value={1}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Box component="span" sx={{ marginRight: 1 }}>Não lidas</Box>
+              {unreadCount > 0 && (
                 <Badge
-                  badgeContent={notifications.length}
+                  badgeContent={unreadCount}
                   sx={{
                     "& .MuiBadge-badge": {
-                      bgcolor: "#9CA3AF",
+                      bgcolor: "#EF4444",
                       color: "white",
                       fontSize: "0.7rem",
                       minWidth: 18,
@@ -507,113 +519,93 @@ export default function NotificationsPage() {
                     },
                   }}
                 />
-              </Box>
-            </ToggleButton>
-            <ToggleButton value={1}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Box component="span" sx={{ marginRight: 1 }}>Não lidas</Box>
-                {unreadCount > 0 && (
-                  <Badge
-                    badgeContent={unreadCount}
-                    sx={{
-                      "& .MuiBadge-badge": {
-                        bgcolor: "#EF4444",
-                        color: "white",
-                        fontSize: "0.7rem",
-                        minWidth: 18,
-                        height: 18,
-                        borderRadius: "6px",
-                      },
-                    }}
-                  />
-                )}
-              </Box>
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </Box>
-
-        {filteredNotifications.length > 0 ? (
-          <Stack spacing={3}>
-            {filteredNotifications.map((notification) => (
-              <NotificationCard
-                key={notification.id}
-                notification={notification}
-                onMarkRead={handleMarkRead}
-                onDelete={handleDeleteClick}
-              />
-            ))}
-          </Stack>
-        ) : (
-          <Card>
-            <CardContent sx={{ textAlign: "center", py: 8 }}>
-              {activeTab === 0 ? (
-                <>
-                  <Campaign sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
-                  <Typography variant="h6" color="text.secondary" gutterBottom>
-                    Nenhuma notificação
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {typeFilter
-                      ? `Nenhuma notificação do tipo ${notificationTypeConfig[typeFilter as keyof typeof notificationTypeConfig].label.toLowerCase()}`
-                      : "Você está em dia!"}
-                  </Typography>
-                </>
-              ) : (
-                <>
-                  <CheckCircle sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
-                  <Typography variant="h6" color="text.secondary" gutterBottom>
-                    Tudo em dia!
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Você não tem notificações não lidas
-                  </Typography>
-                </>
               )}
-            </CardContent>
-          </Card>
-        )}
+            </Box>
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
-        {notifications.length > 0 && (
-          <Box sx={{ display: "flex", justifyContent: "center", pt: 4, borderTop: 1, borderColor: "divider", mt: 4 }}>
-            <Button
-              variant="text"
-              color="error"
-              startIcon={<Delete />}
-              onClick={handleClearAll}
-              disabled={deleteAlerta.isPending}
-              sx={{ textTransform: "none", fontWeight: 400 }}
-            >
-              {deleteAlerta.isPending ? "Excluindo..." : "Limpar todas as notificações"}
-            </Button>
-          </Box>
-        )}
+      {filteredNotifications.length > 0 ? (
+        <Stack spacing={3}>
+          {filteredNotifications.map((notification) => (
+            <NotificationCard
+              key={notification.id}
+              notification={notification}
+              onMarkRead={handleMarkRead}
+              onDelete={handleDeleteClick}
+            />
+          ))}
+        </Stack>
+      ) : (
+        <Card>
+          <CardContent sx={{ textAlign: "center", py: 8 }}>
+            {activeTab === 0 ? (
+              <>
+                <Campaign sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  Nenhuma notificação
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {typeFilter
+                    ? `Nenhuma notificação do tipo ${notificationTypeConfig[typeFilter as keyof typeof notificationTypeConfig].label.toLowerCase()}`
+                    : "Você está em dia!"}
+                </Typography>
+              </>
+            ) : (
+              <>
+                <CheckCircle sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  Tudo em dia!
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Você não tem notificações não lidas
+                </Typography>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Dialog de confirmação para deletar */}
-        <Dialog open={deleteDialogOpen} onClose={handleCancelDelete}>
-          <DialogTitle>Confirmar Exclusão</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Tem certeza que deseja excluir esta notificação?
-              <br />
-              Esta ação não pode ser desfeita.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCancelDelete} color="inherit" disabled={deleteAlerta.isPending}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirmDelete}
-              color="error"
-              variant="contained"
-              disabled={deleteAlerta.isPending}
-              startIcon={deleteAlerta.isPending ? <CircularProgress size={16} /> : <Delete />}
-            >
-              {deleteAlerta.isPending ? "Excluindo..." : "Excluir"}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Container>
-    </ProtectedRoute>
+      {notifications.length > 0 && (
+        <Box sx={{ display: "flex", justifyContent: "center", pt: 4, borderTop: 1, borderColor: "divider", mt: 4 }}>
+          <Button
+            variant="text"
+            color="error"
+            startIcon={<Delete />}
+            onClick={handleClearAll}
+            disabled={deleteAlerta.isPending}
+            sx={{ textTransform: "none", fontWeight: 400 }}
+          >
+            {deleteAlerta.isPending ? "Excluindo..." : "Limpar todas as notificações"}
+          </Button>
+        </Box>
+      )}
+
+      {/* Dialog de confirmação para deletar */}
+      <Dialog open={deleteDialogOpen} onClose={handleCancelDelete}>
+        <DialogTitle>Confirmar Exclusão</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja excluir esta notificação?
+            <br />
+            Esta ação não pode ser desfeita.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelDelete} color="inherit" disabled={deleteAlerta.isPending}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+            disabled={deleteAlerta.isPending}
+            startIcon={deleteAlerta.isPending ? <CircularProgress size={16} /> : <Delete />}
+          >
+            {deleteAlerta.isPending ? "Excluindo..." : "Excluir"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 }

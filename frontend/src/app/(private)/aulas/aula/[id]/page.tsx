@@ -1,7 +1,5 @@
 "use client";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import AulaDetailView from "@/components/aulaDetailView";
-import { UserRoleEnum } from "@/enums";
 import ConteudosTarefas from "@/components/aulaDetailView/conteudosTarefas/conteudosTarefas";
 import ListaPresenca from "@/components/aulaDetailView/listaPresenca/listaPresenca";
 import LayoutColumns from "@/components/layoutColumns/layoutColumns";
@@ -68,101 +66,99 @@ export default function AulaDetailPage() {
   const existeAulaNoDia = aulas && aulas.length > 0;
   const messageNaoExisteAulanoDia = "Não foi encontrada nenhuma aula para a data selecionada.";
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {/* Breadcrumb */}
-        <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton onClick={handleGoBack} size="small">
-            <ArrowBackIcon fontSize="small" />
-          </IconButton>
-          <Typography variant="body2" color="text.secondary">
-            Pagina inicial
-          </Typography>
-        </Box>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Breadcrumb */}
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+        <IconButton onClick={handleGoBack} size="small">
+          <ArrowBackIcon fontSize="small" />
+        </IconButton>
+        <Typography variant="body2" color="text.secondary">
+          Pagina inicial
+        </Typography>
+      </Box>
 
-        {/* Header: Titulo + Info da aula */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mb: 3,
-          }}
-        >
-          <Typography variant="h5" fontWeight="bold">
-            {aula.titulo}
-          </Typography>
+      {/* Header: Titulo + Info da aula */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h5" fontWeight="bold">
+          {aula.titulo}
+        </Typography>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <AccessTimeIcon fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                {aula.horario}
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <PlaceIcon fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                {aula.sala}
-              </Typography>
-            </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <AccessTimeIcon fontSize="small" color="action" />
             <Typography variant="body2" color="text.secondary">
-              {aula.unidade}
+              {aula.horario}
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <TagIcon fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                {aula.numeroEstudantes} estudantes
-              </Typography>
-            </Box>
+          </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <PlaceIcon fontSize="small" color="action" />
+            <Typography variant="body2" color="text.secondary">
+              {aula.sala}
+            </Typography>
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            {aula.unidade}
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <TagIcon fontSize="small" color="action" />
+            <Typography variant="body2" color="text.secondary">
+              {aula.numeroEstudantes} estudantes
+            </Typography>
           </Box>
         </Box>
+      </Box>
 
-        <LayoutColumns sizeLeft="70%" sizeRight="30%">
-          <Box>
-            <DateSelector selectedDate={selectedDate} onDateChange={handleDateChange} />
+      <LayoutColumns sizeLeft="70%" sizeRight="30%">
+        <Box>
+          <DateSelector selectedDate={selectedDate} onDateChange={handleDateChange} />
 
-            {!existeAulaNoDia ? (
-              <BrainResultNotFound message={messageNaoExisteAulanoDia} />
-            ) : (
-              <>
-                <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
-                  <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
-                    <Tab
-                      icon={<StarIcon fontSize="small" />}
-                      iconPosition="start"
-                      label="Lista de Presenca"
-                    />
-                    <Tab
-                      icon={<StarIcon fontSize="small" />}
-                      iconPosition="start"
-                      label="Conteudo e Tarefas"
-                    />
-                    <Tab
-                      icon={<StarIcon fontSize="small" />}
-                      iconPosition="start"
-                      label="Registros Disciplinares"
-                    />
-                  </Tabs>
-                </Box>
+          {!existeAulaNoDia ? (
+            <BrainResultNotFound message={messageNaoExisteAulanoDia} />
+          ) : (
+            <>
+              <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+                <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
+                  <Tab
+                    icon={<StarIcon fontSize="small" />}
+                    iconPosition="start"
+                    label="Lista de Presenca"
+                  />
+                  <Tab
+                    icon={<StarIcon fontSize="small" />}
+                    iconPosition="start"
+                    label="Conteudo e Tarefas"
+                  />
+                  <Tab
+                    icon={<StarIcon fontSize="small" />}
+                    iconPosition="start"
+                    label="Registros Disciplinares"
+                  />
+                </Tabs>
+              </Box>
 
-                <TabPanel value={activeTab} index={0}>
-                  <ListaPresenca idAula={aulaId} />
-                </TabPanel>
-                <TabPanel value={activeTab} index={1}>
-                  <ConteudosTarefas />
-                </TabPanel>
-                <TabPanel value={activeTab} index={2}>
-                  <AulaDetailView type="registros" data={aula.registros} />
-                </TabPanel>
-              </>
-            )}
-          </Box>
+              <TabPanel value={activeTab} index={0}>
+                <ListaPresenca idAula={aulaId} />
+              </TabPanel>
+              <TabPanel value={activeTab} index={1}>
+                <ConteudosTarefas />
+              </TabPanel>
+              <TabPanel value={activeTab} index={2}>
+                <AulaDetailView type="registros" data={aula.registros} />
+              </TabPanel>
+            </>
+          )}
+        </Box>
 
-          {/* Visao geral - Secao lateral */}
-          <SectionVisaoGeral existeAulaNoDia={existeAulaNoDia} />
-        </LayoutColumns>
-      </Container>
-    </ProtectedRoute>
+        {/* Visao geral - Secao lateral */}
+        <SectionVisaoGeral existeAulaNoDia={existeAulaNoDia} />
+      </LayoutColumns>
+    </Container>
   );
 }

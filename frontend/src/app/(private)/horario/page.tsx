@@ -5,7 +5,6 @@ import {
   mapHorarioResponseToFormData,
 } from "@/app/(private)/horario/horarioUtils";
 import { useHorarioMutations } from "@/app/(private)/horario/useHorarioMutations";
-import { UserRoleEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
@@ -13,7 +12,6 @@ import { BrainTextFieldControlled } from "@/components/brainForms/brainTextField
 import { BrainTextHorarioControlled } from "@/components/brainForms/brainTextHorarioControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useHorario } from "@/hooks/useHorario";
 import { Alert, Box, CircularProgress, Container } from "@mui/material";
@@ -69,73 +67,71 @@ function HorarioPageContent() {
   const QUANTITY_COLLUMNS_DEFAULT = 2;
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {loadingHorario && isEditMode ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : errorHorario && isEditMode ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorHorario}
-          </Alert>
-        ) : (
-          <>
-            <PageTitle
-              title={isEditMode ? "Editar Horário" : "Cadastro de Horário"}
-              description="Preencha os dados abaixo para completar o cadastro no sistema"
-            />
-            <BrainFormProvider
-              methodsHookForm={methodsHookForm}
-              onSubmit={handleSubmit(onFormSubmit)}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {loadingHorario && isEditMode ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : errorHorario && isEditMode ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorHorario}
+        </Alert>
+      ) : (
+        <>
+          <PageTitle
+            title={isEditMode ? "Editar Horário" : "Cadastro de Horário"}
+            description="Preencha os dados abaixo para completar o cadastro no sistema"
+          />
+          <BrainFormProvider
+            methodsHookForm={methodsHookForm}
+            onSubmit={handleSubmit(onFormSubmit)}
+          >
+            {/* Seção Informações Básicas */}
+            <ContainerSection
+              title="Informações do Horário"
+              description="Dados do período de aula"
+              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
             >
-              {/* Seção Informações Básicas */}
-              <ContainerSection
-                title="Informações do Horário"
-                description="Dados do período de aula"
-                numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
+              <BrainTextFieldControlled
+                name="nome"
+                control={control}
+                label="Nome do Horário"
+                placeholder="Ex: 1º Horário, Manhã, etc."
+                required
+              />
+
+              <Box />
+
+              <BrainTextHorarioControlled
+                name="horarioInicio"
+                control={control}
+                label="Horário de Início"
+                placeholder="08:00"
+                required
+              />
+
+              <BrainTextHorarioControlled
+                name="horarioFim"
+                control={control}
+                label="Horário de Fim"
+                placeholder="18:00"
+                required
+              />
+            </ContainerSection>
+
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
+              <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
+              <BrainButtonPrimary
+                type="submit"
+                disabled={isSubmitting || createHorario.isPending || updateHorario.isPending}
               >
-                <BrainTextFieldControlled
-                  name="nome"
-                  control={control}
-                  label="Nome do Horário"
-                  placeholder="Ex: 1º Horário, Manhã, etc."
-                  required
-                />
-
-                <Box />
-
-                <BrainTextHorarioControlled
-                  name="horarioInicio"
-                  control={control}
-                  label="Horário de Início"
-                  placeholder="08:00"
-                  required
-                />
-
-                <BrainTextHorarioControlled
-                  name="horarioFim"
-                  control={control}
-                  label="Horário de Fim"
-                  placeholder="18:00"
-                  required
-                />
-              </ContainerSection>
-
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
-                <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
-                <BrainButtonPrimary
-                  type="submit"
-                  disabled={isSubmitting || createHorario.isPending || updateHorario.isPending}
-                >
-                  {createHorario.isPending || updateHorario.isPending ? "Salvando..." : "Salvar"}
-                </BrainButtonPrimary>
-              </Box>
-            </BrainFormProvider>
-          </>
-        )}
-      </Container>
-    </ProtectedRoute>
+                {createHorario.isPending || updateHorario.isPending ? "Salvando..." : "Salvar"}
+              </BrainButtonPrimary>
+            </Box>
+          </BrainFormProvider>
+        </>
+      )}
+    </Container>
   );
 }
 

@@ -1,7 +1,4 @@
 "use client";
-
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
-import { UserRoleEnum } from "@/enums";
 import { useAvaliacaoDetalheComAlunos } from "@/hooks/useAvaliacaoDetalheComAlunos";
 import {
   Alert,
@@ -239,16 +236,14 @@ function AvaliacaoDetalheContent() {
 
 export default function AvaliacaoDetalhePage() {
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.PROFESSOR]}>
-      <Suspense
-        fallback={
-          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <CircularProgress />
-          </Box>
-        }
-      >
-        <AvaliacaoDetalheContent />
-      </Suspense>
-    </ProtectedRoute>
+    <Suspense
+      fallback={
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+          <CircularProgress />
+        </Box>
+      }
+    >
+      <AvaliacaoDetalheContent />
+    </Suspense>
   );
 }

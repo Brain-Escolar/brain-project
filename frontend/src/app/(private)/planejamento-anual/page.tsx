@@ -1,14 +1,12 @@
 "use client";
 import { mapFormDataToPlanejamentoAnualRequest } from "@/app/(private)/planejamento-anual/planejamentoAnualUtils";
 import { usePlanejamentoAnualMutations } from "@/app/(private)/planejamento-anual/usePlanejamentoAnualMutations";
-import { UserRoleEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import {
   Box,
@@ -94,132 +92,130 @@ export default function PlanejamentoAnualCadastroPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <PageTitle
-          title="Cadastro de Planejamento Anual"
-          description="Faça upload do arquivo com o planejamento anual da escola"
-        />
-        <BrainFormProvider
-          methodsHookForm={methodsHookForm}
-          onSubmit={handleSubmit(onFormSubmit)}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <PageTitle
+        title="Cadastro de Planejamento Anual"
+        description="Faça upload do arquivo com o planejamento anual da escola"
+      />
+      <BrainFormProvider
+        methodsHookForm={methodsHookForm}
+        onSubmit={handleSubmit(onFormSubmit)}
+      >
+        {/* Seção Ano */}
+        <ContainerSection
+          title="Informações do Planejamento"
+          description="Defina o ano do planejamento"
+          numberOfCollumns={1}
         >
-          {/* Seção Ano */}
-          <ContainerSection
-            title="Informações do Planejamento"
-            description="Defina o ano do planejamento"
-            numberOfCollumns={1}
-          >
-            <BrainTextFieldControlled
-              name="ano"
-              control={control}
-              label="Ano"
-              placeholder="Digite o ano (ex: 2025)"
-              type="number"
+          <BrainTextFieldControlled
+            name="ano"
+            control={control}
+            label="Ano"
+            placeholder="Digite o ano (ex: 2025)"
+            type="number"
+          />
+        </ContainerSection>
+
+        {/* Seção Arquivo */}
+        <ContainerSection
+          title="Arquivo"
+          description="Faça upload do planejamento anual da escola"
+          numberOfCollumns={1}
+        >
+          <Box>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              O arquivo deve estar no formato Excel (.xls ou .xlsx) e conter
+              o planejamento anual completo da escola.
+            </Alert>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xls,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+              onChange={handleFileSelect}
+              style={{ display: "none" }}
+              id="planejamento-file-input"
             />
-          </ContainerSection>
+            <label htmlFor="planejamento-file-input">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<AttachFile />}
+                sx={{ mb: 2 }}
+              >
+                {planejamentoFile ? "Alterar Arquivo" : "Selecionar Arquivo"}
+              </Button>
+            </label>
 
-          {/* Seção Arquivo */}
-          <ContainerSection
-            title="Arquivo"
-            description="Faça upload do planejamento anual da escola"
-            numberOfCollumns={1}
-          >
-            <Box>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                O arquivo deve estar no formato Excel (.xls ou .xlsx) e conter
-                o planejamento anual completo da escola.
-              </Alert>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xls,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-                onChange={handleFileSelect}
-                style={{ display: "none" }}
-                id="planejamento-file-input"
-              />
-              <label htmlFor="planejamento-file-input">
+            {planejamentoFile && planejamentoFile instanceof File && (
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  mt: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  bgcolor: "background.paper",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Description color="primary" sx={{ fontSize: 40 }} />
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      {planejamentoFile.name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {formatFileSize(planejamentoFile.size)}
+                    </Typography>
+                  </Box>
+                </Box>
                 <Button
                   variant="outlined"
-                  component="span"
-                  startIcon={<AttachFile />}
-                  sx={{ mb: 2 }}
+                  color="error"
+                  startIcon={<Delete />}
+                  onClick={handleRemoveFile}
+                  size="small"
                 >
-                  {planejamentoFile ? "Alterar Arquivo" : "Selecionar Arquivo"}
+                  Remover
                 </Button>
-              </label>
+              </Paper>
+            )}
 
-              {planejamentoFile && planejamentoFile instanceof File && (
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    p: 2,
-                    mt: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    bgcolor: "background.paper",
-                  }}
-                >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Description color="primary" sx={{ fontSize: 40 }} />
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                        {planejamentoFile.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatFileSize(planejamentoFile.size)}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    startIcon={<Delete />}
-                    onClick={handleRemoveFile}
-                    size="small"
-                  >
-                    Remover
-                  </Button>
-                </Paper>
+            <Controller
+              name="planejamento"
+              control={control}
+              render={({ fieldState: { error } }) => (
+                <>
+                  {error && (
+                    <Typography
+                      variant="caption"
+                      color="error"
+                      sx={{ mt: 1, display: "block" }}
+                    >
+                      {error.message}
+                    </Typography>
+                  )}
+                </>
               )}
-
-              <Controller
-                name="planejamento"
-                control={control}
-                render={({ fieldState: { error } }) => (
-                  <>
-                    {error && (
-                      <Typography
-                        variant="caption"
-                        color="error"
-                        sx={{ mt: 1, display: "block" }}
-                      >
-                        {error.message}
-                      </Typography>
-                    )}
-                  </>
-                )}
-              />
-            </Box>
-          </ContainerSection>
-
-          <Box
-            sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}
-          >
-            <BrainButtonSecondary onClick={handleCancel}>
-              Cancelar
-            </BrainButtonSecondary>
-            <BrainButtonPrimary
-              type="submit"
-              disabled={isSubmitting || createPlanejamentoAnual.isPending}
-            >
-              {createPlanejamentoAnual.isPending ? "Salvando..." : "Salvar"}
-            </BrainButtonPrimary>
+            />
           </Box>
-        </BrainFormProvider>
-      </Container>
-    </ProtectedRoute>
+        </ContainerSection>
+
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}
+        >
+          <BrainButtonSecondary onClick={handleCancel}>
+            Cancelar
+          </BrainButtonSecondary>
+          <BrainButtonPrimary
+            type="submit"
+            disabled={isSubmitting || createPlanejamentoAnual.isPending}
+          >
+            {createPlanejamentoAnual.isPending ? "Salvando..." : "Salvar"}
+          </BrainButtonPrimary>
+        </Box>
+      </BrainFormProvider>
+    </Container>
   );
 }

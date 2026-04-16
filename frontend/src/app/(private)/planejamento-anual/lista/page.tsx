@@ -1,7 +1,5 @@
 "use client";
-import { UserRoleEnum } from "@/enums";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import {
   Container,
   Paper,
@@ -50,62 +48,60 @@ export default function PlanejamentoAnualListaPage() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <PageTitle
-            title="Planejamentos Anuais"
-            description="Visualize e gerencie os planejamentos anuais da escola"
-          />
-          <Button variant="contained" startIcon={<Add />} onClick={handleNovo}>
-            Novo Planejamento
-          </Button>
-        </Box>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <PageTitle
+          title="Planejamentos Anuais"
+          description="Visualize e gerencie os planejamentos anuais da escola"
+        />
+        <Button variant="contained" startIcon={<Add />} onClick={handleNovo}>
+          Novo Planejamento
+        </Button>
+      </Box>
 
-        {isLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <CircularProgress />
-          </Box>
-        ) : planejamentos && planejamentos.length > 0 ? (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Ano</TableCell>
-                  <TableCell>Arquivo</TableCell>
-                  <TableCell>Tamanho</TableCell>
-                  <TableCell>Ações</TableCell>
+      {isLoading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : planejamentos && planejamentos.length > 0 ? (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Ano</TableCell>
+                <TableCell>Arquivo</TableCell>
+                <TableCell>Tamanho</TableCell>
+                <TableCell>Ações</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {planejamentos.map((planejamento, index) => (
+                <TableRow key={index} hover>
+                  <TableCell>{planejamento.ano}</TableCell>
+                  <TableCell>{planejamento.nome}</TableCell>
+                  <TableCell>{formatFileSize(planejamento.tamanho)}</TableCell>
+                  <TableCell>
+                    <Tooltip title="Download">
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleDownload(planejamento.downloadUrl)}
+                      >
+                        <Download />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {planejamentos.map((planejamento, index) => (
-                  <TableRow key={index} hover>
-                    <TableCell>{planejamento.ano}</TableCell>
-                    <TableCell>{planejamento.nome}</TableCell>
-                    <TableCell>{formatFileSize(planejamento.tamanho)}</TableCell>
-                    <TableCell>
-                      <Tooltip title="Download">
-                        <IconButton
-                          color="primary"
-                          onClick={() => handleDownload(planejamento.downloadUrl)}
-                        >
-                          <Download />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          <Paper sx={{ p: 4, textAlign: "center" }}>
-            <Typography variant="body1" color="text.secondary">
-              Nenhum planejamento anual cadastrado ainda.
-            </Typography>
-          </Paper>
-        )}
-      </Container>
-    </ProtectedRoute>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : (
+        <Paper sx={{ p: 4, textAlign: "center" }}>
+          <Typography variant="body1" color="text.secondary">
+            Nenhum planejamento anual cadastrado ainda.
+          </Typography>
+        </Paper>
+      )}
+    </Container>
   );
 }

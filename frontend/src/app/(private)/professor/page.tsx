@@ -19,8 +19,6 @@ import { BrainTextPhoneControlled } from "@/components/brainForms/brainTextPhone
 import { BrainTextRGControlled } from "@/components/brainForms/brainTextRGControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
-import { UserRoleEnum } from "@/enums";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
@@ -341,340 +339,399 @@ function ProfessorPageContent() {
   const isSaving = createProfessor.isPending || updateProfessor.isPending;
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {loadingProfessor && isEditMode ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <CircularProgress />
-          </Box>
-        ) : errorProfessor && isEditMode ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorProfessor}
-          </Alert>
-        ) : (
-          <>
-            <PageTitle
-              title={isEditMode ? "Editar Professor" : "Cadastro de Professor"}
-              description="Preencha todos os dados necessários para o registro"
-            />
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {loadingProfessor && isEditMode ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : errorProfessor && isEditMode ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorProfessor}
+        </Alert>
+      ) : (
+        <>
+          <PageTitle
+            title={isEditMode ? "Editar Professor" : "Cadastro de Professor"}
+            description="Preencha todos os dados necessários para o registro"
+          />
 
-            <BrainFormProvider
-              methodsHookForm={methodsHookForm}
-              onSubmit={handleSubmit(onFormSubmit)}
+          <BrainFormProvider
+            methodsHookForm={methodsHookForm}
+            onSubmit={handleSubmit(onFormSubmit)}
+          >
+            {/* ── Dados Pessoais ─────────────────────────────────────────── */}
+            <ContainerSection
+              title="Dados Pessoais"
+              description="Informações pessoais e documentos do professor"
+              numberOfCollumns={2}
             >
-              {/* ── Dados Pessoais ─────────────────────────────────────────── */}
-              <ContainerSection
-                title="Dados Pessoais"
-                description="Informações pessoais e documentos do professor"
-                numberOfCollumns={2}
-              >
-                {/* Nome Completo — largura total */}
-                <Box sx={{ gridColumn: "1 / -1" }}>
-                  <BrainTextFieldControlled
-                    name="nomeCompleto"
-                    control={control}
-                    label="Nome Completo"
-                    placeholder="Nome completo do professor"
-                    required
-                  />
-                </Box>
-
-                {/* Nome Social — largura total */}
-                <Box sx={{ gridColumn: "1 / -1" }}>
-                  <BrainTextFieldControlled
-                    name="nomeSocial"
-                    control={control}
-                    label="Nome Social"
-                    placeholder="Nome social (opcional)"
-                  />
-                </Box>
-
-                {/* E-mail | Data de Nascimento */}
+              {/* Nome Completo — largura total */}
+              <Box sx={{ gridColumn: "1 / -1" }}>
                 <BrainTextFieldControlled
-                  name="email"
+                  name="nomeCompleto"
                   control={control}
-                  label="E-mail"
-                  placeholder="email@exemplo.com"
-                  type="email"
+                  label="Nome Completo"
+                  placeholder="Nome completo do professor"
                   required
                 />
-                <BrainDateTextControlled
-                  name="dataNascimento"
-                  control={control}
-                  label="Data de Nascimento"
-                  required
-                />
+              </Box>
 
-                {/* Gênero | Cor/Raça */}
-                <BrainDropdownControlled
-                  name="genero"
-                  control={control}
-                  label="Gênero"
-                  required
-                  options={OPTIONS_GENDER}
-                  placeholder="Selecione o gênero"
-                />
-                <BrainDropdownControlled
-                  name="corRaca"
-                  control={control}
-                  label="Cor/Raça"
-                  required
-                  options={OPTIONS_COR_RACA}
-                  placeholder="Selecione a cor/raça"
-                />
-
-                {/* Cidade de Naturalidade | CPF */}
+              {/* Nome Social — largura total */}
+              <Box sx={{ gridColumn: "1 / -1" }}>
                 <BrainTextFieldControlled
-                  name="cidadeNaturalidade"
+                  name="nomeSocial"
                   control={control}
-                  label="Cidade de Naturalidade"
-                  placeholder="Cidade onde nasceu"
-                  required
+                  label="Nome Social"
+                  placeholder="Nome social (opcional)"
                 />
-                <BrainTextCPFControlled
-                  name="cpf"
+              </Box>
+
+              {/* E-mail | Data de Nascimento */}
+              <BrainTextFieldControlled
+                name="email"
+                control={control}
+                label="E-mail"
+                placeholder="email@exemplo.com"
+                type="email"
+                required
+              />
+              <BrainDateTextControlled
+                name="dataNascimento"
+                control={control}
+                label="Data de Nascimento"
+                required
+              />
+
+              {/* Gênero | Cor/Raça */}
+              <BrainDropdownControlled
+                name="genero"
+                control={control}
+                label="Gênero"
+                required
+                options={OPTIONS_GENDER}
+                placeholder="Selecione o gênero"
+              />
+              <BrainDropdownControlled
+                name="corRaca"
+                control={control}
+                label="Cor/Raça"
+                required
+                options={OPTIONS_COR_RACA}
+                placeholder="Selecione a cor/raça"
+              />
+
+              {/* Cidade de Naturalidade | CPF */}
+              <BrainTextFieldControlled
+                name="cidadeNaturalidade"
+                control={control}
+                label="Cidade de Naturalidade"
+                placeholder="Cidade onde nasceu"
+                required
+              />
+              <BrainTextCPFControlled
+                name="cpf"
+                control={control}
+                label="CPF"
+                required={true}
+              />
+
+              {/* RG | Carteira de Trabalho */}
+              <BrainTextRGControlled
+                name="rg"
+                control={control}
+                label="RG"
+                required={true}
+              />
+              <BrainTextFieldControlled
+                name="carteiraTrabalho"
+                control={control}
+                label="Carteira de Trabalho"
+                placeholder="Número da CTPS"
+                required
+              />
+
+              {/* Título de Eleitor | PIS/PASEP */}
+              <BrainTextFieldControlled
+                name="tituloEleitor"
+                control={control}
+                label="Título de Eleitor"
+                placeholder="0000 0000 0000"
+                required
+              />
+              <BrainTextFieldControlled
+                name="pisPasep"
+                control={control}
+                label="PIS/PASEP"
+                placeholder="000.00000.00-0"
+                required
+              />
+            </ContainerSection>
+
+            {/* ── Endereço ───────────────────────────────────────────────── */}
+            <ContainerSection
+              title="Endereço"
+              description="Endereço residencial do professor"
+              numberOfCollumns={3}
+            >
+              {/* CEP com spinner de busca */}
+              <Box sx={{ position: "relative" }}>
+                <BrainTextCEPControlled
+                  name="cep"
                   control={control}
-                  label="CPF"
+                  label="CEP"
                   required={true}
                 />
-
-                {/* RG | Carteira de Trabalho */}
-                <BrainTextRGControlled
-                  name="rg"
-                  control={control}
-                  label="RG"
-                  required={true}
-                />
-                <BrainTextFieldControlled
-                  name="carteiraTrabalho"
-                  control={control}
-                  label="Carteira de Trabalho"
-                  placeholder="Número da CTPS"
-                  required
-                />
-
-                {/* Título de Eleitor | PIS/PASEP */}
-                <BrainTextFieldControlled
-                  name="tituloEleitor"
-                  control={control}
-                  label="Título de Eleitor"
-                  placeholder="0000 0000 0000"
-                  required
-                />
-                <BrainTextFieldControlled
-                  name="pisPasep"
-                  control={control}
-                  label="PIS/PASEP"
-                  placeholder="000.00000.00-0"
-                  required
-                />
-              </ContainerSection>
-
-              {/* ── Endereço ───────────────────────────────────────────────── */}
-              <ContainerSection
-                title="Endereço"
-                description="Endereço residencial do professor"
-                numberOfCollumns={3}
-              >
-                {/* CEP com spinner de busca */}
-                <Box sx={{ position: "relative" }}>
-                  <BrainTextCEPControlled
-                    name="cep"
-                    control={control}
-                    label="CEP"
-                    required={true}
-                  />
-                  {buscandoCep && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        right: 10,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                      }}
-                    >
-                      <CircularProgress size={18} />
-                    </Box>
-                  )}
-                </Box>
-
-                <BrainTextFieldControlled
-                  name="logradouro"
-                  control={control}
-                  label="Logradouro"
-                  placeholder="Rua, avenida, etc."
-                  required
-                />
-                <BrainTextFieldControlled
-                  name="numero"
-                  control={control}
-                  label="Número"
-                  placeholder="Número"
-                  required
-                />
-                <BrainTextFieldControlled
-                  name="complemento"
-                  control={control}
-                  label="Complemento"
-                  placeholder="Apto, bloco, etc. (opcional)"
-                />
-                <BrainTextFieldControlled
-                  name="bairro"
-                  control={control}
-                  label="Bairro"
-                  placeholder="Bairro"
-                  required
-                />
-                <BrainTextFieldControlled
-                  name="cidade"
-                  control={control}
-                  label="Cidade"
-                  placeholder="Cidade"
-                  required
-                />
-                <BrainDropdownControlled
-                  name="uf"
-                  control={control}
-                  label="UF"
-                  required
-                  options={OPTIONS_UF}
-                  placeholder="UF"
-                />
-              </ContainerSection>
-
-              {/* ── Contato ────────────────────────────────────────────────── */}
-              <ContainerSection
-                title="Contato"
-                description="Informações de contato"
-                numberOfCollumns={2}
-              >
-                <BrainTextPhoneControlled
-                  name="telefone"
-                  control={control}
-                  label="Telefone"
-                  placeholder="(00) 00000-0000"
-                  required
-                />
-              </ContainerSection>
-
-              {/* ── Disciplinas ────────────────────────────────────────────── */}
-              <ContainerSection
-                title="Disciplinas"
-                description="Disciplinas que o professor leciona"
-                numberOfCollumns={1}
-              >
-                <BrainMultiSelectControlled
-                  name="disciplinaIds"
-                  control={control}
-                  label="Disciplinas"
-                  options={disciplinasOptions}
-                  placeholder="Selecione as disciplinas..."
-                />
-              </ContainerSection>
-
-              {/* ── Dados Bancários ────────────────────────────────────────── */}
-              <ContainerSection
-                title="Dados Bancários (Opcional)"
-                description="Informações bancárias para pagamento"
-                numberOfCollumns={3}
-              >
-                <BrainTextFieldControlled
-                  name="nomeBanco"
-                  control={control}
-                  label="Nome do Banco"
-                  placeholder="Nome do banco"
-                />
-                <BrainDropdownControlled
-                  name="tipoConta"
-                  control={control}
-                  label="Tipo de Conta"
-                  options={OPTIONS_TIPO_CONTA}
-                  placeholder="Tipo de conta"
-                />
-                <BrainTextFieldControlled
-                  name="agencia"
-                  control={control}
-                  label="Agência"
-                  placeholder="Agência"
-                />
-                <BrainTextFieldControlled
-                  name="conta"
-                  control={control}
-                  label="Conta"
-                  placeholder="00000-0"
-                />
-                <BrainTextFieldControlled
-                  name="chavePix"
-                  control={control}
-                  label="Chave PIX"
-                  placeholder="CPF, e-mail, telefone ou chave aleatória"
-                />
-              </ContainerSection>
-
-              {/* ── Dependentes ────────────────────────────────────────────── */}
-              <ContainerSection
-                title="Dependentes"
-                description="Adicione os dependentes do professor"
-                numberOfCollumns={1}
-              >
-                {dependentesFields.length === 0 ? (
-                  <S.EmptyDependentesContainer>
-                    <PersonOffIcon sx={{ fontSize: 40, opacity: 0.4 }} />
-                    <Typography variant="body2" color="text.secondary">
-                      Nenhum dependente adicionado
-                    </Typography>
-                  </S.EmptyDependentesContainer>
-                ) : (
-                  dependentesFields.map((field, index) => (
-                    <DependenteRow
-                      key={field.id}
-                      index={index}
-                      control={control}
-                      onRemove={() => removeDependente(index)}
-                    />
-                  ))
+                {buscandoCep && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      right: 10,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                    }}
+                  >
+                    <CircularProgress size={18} />
+                  </Box>
                 )}
+              </Box>
 
-                <Button
-                  variant="outlined"
-                  startIcon={<AddIcon />}
-                  onClick={() => appendDependente(dependenteDefaultValues)}
-                  sx={{ alignSelf: "flex-start", mt: dependentesFields.length > 0 ? 0 : 2 }}
-                >
-                  Adicionar Dependente
-                </Button>
-              </ContainerSection>
+              <BrainTextFieldControlled
+                name="logradouro"
+                control={control}
+                label="Logradouro"
+                placeholder="Rua, avenida, etc."
+                required
+              />
+              <BrainTextFieldControlled
+                name="numero"
+                control={control}
+                label="Número"
+                placeholder="Número"
+                required
+              />
+              <BrainTextFieldControlled
+                name="complemento"
+                control={control}
+                label="Complemento"
+                placeholder="Apto, bloco, etc. (opcional)"
+              />
+              <BrainTextFieldControlled
+                name="bairro"
+                control={control}
+                label="Bairro"
+                placeholder="Bairro"
+                required
+              />
+              <BrainTextFieldControlled
+                name="cidade"
+                control={control}
+                label="Cidade"
+                placeholder="Cidade"
+                required
+              />
+              <BrainDropdownControlled
+                name="uf"
+                control={control}
+                label="UF"
+                required
+                options={OPTIONS_UF}
+                placeholder="UF"
+              />
+            </ContainerSection>
 
-              {/* ── Informações Profissionais ──────────────────────────────── */}
-              <ContainerSection
-                title="Informações Profissionais"
-                description="Dados acadêmicos e profissionais"
-                numberOfCollumns={2}
-              >
-                {/* Escolaridade | Enquadramento */}
-                <BrainDropdownControlled
-                  name="escolaridade"
-                  control={control}
-                  label="Escolaridade"
-                  required
-                  options={OPTIONS_ESCOLARIDADE}
-                  placeholder="Selecione a escolaridade"
-                />
-                <BrainDropdownControlled
-                  name="enquadramentoHoraAula"
-                  control={control}
-                  label="Enquadramento de Hora Aula"
-                  required
-                  options={OPTIONS_ENQUADRAMENTO_HORA_AULA}
-                  placeholder="Selecione o enquadramento"
-                />
+            {/* ── Contato ────────────────────────────────────────────────── */}
+            <ContainerSection
+              title="Contato"
+              description="Informações de contato"
+              numberOfCollumns={2}
+            >
+              <BrainTextPhoneControlled
+                name="telefone"
+                control={control}
+                label="Telefone"
+                placeholder="(00) 00000-0000"
+                required
+              />
+            </ContainerSection>
 
-                {/* Exame admissional — largura total */}
-                <Box sx={{ gridColumn: "1 / -1" }}>
-                  <Controller
-                    name="exameAdmissionalRealizado"
+            {/* ── Disciplinas ────────────────────────────────────────────── */}
+            <ContainerSection
+              title="Disciplinas"
+              description="Disciplinas que o professor leciona"
+              numberOfCollumns={1}
+            >
+              <BrainMultiSelectControlled
+                name="disciplinaIds"
+                control={control}
+                label="Disciplinas"
+                options={disciplinasOptions}
+                placeholder="Selecione as disciplinas..."
+              />
+            </ContainerSection>
+
+            {/* ── Dados Bancários ────────────────────────────────────────── */}
+            <ContainerSection
+              title="Dados Bancários (Opcional)"
+              description="Informações bancárias para pagamento"
+              numberOfCollumns={3}
+            >
+              <BrainTextFieldControlled
+                name="nomeBanco"
+                control={control}
+                label="Nome do Banco"
+                placeholder="Nome do banco"
+              />
+              <BrainDropdownControlled
+                name="tipoConta"
+                control={control}
+                label="Tipo de Conta"
+                options={OPTIONS_TIPO_CONTA}
+                placeholder="Tipo de conta"
+              />
+              <BrainTextFieldControlled
+                name="agencia"
+                control={control}
+                label="Agência"
+                placeholder="Agência"
+              />
+              <BrainTextFieldControlled
+                name="conta"
+                control={control}
+                label="Conta"
+                placeholder="00000-0"
+              />
+              <BrainTextFieldControlled
+                name="chavePix"
+                control={control}
+                label="Chave PIX"
+                placeholder="CPF, e-mail, telefone ou chave aleatória"
+              />
+            </ContainerSection>
+
+            {/* ── Dependentes ────────────────────────────────────────────── */}
+            <ContainerSection
+              title="Dependentes"
+              description="Adicione os dependentes do professor"
+              numberOfCollumns={1}
+            >
+              {dependentesFields.length === 0 ? (
+                <S.EmptyDependentesContainer>
+                  <PersonOffIcon sx={{ fontSize: 40, opacity: 0.4 }} />
+                  <Typography variant="body2" color="text.secondary">
+                    Nenhum dependente adicionado
+                  </Typography>
+                </S.EmptyDependentesContainer>
+              ) : (
+                dependentesFields.map((field, index) => (
+                  <DependenteRow
+                    key={field.id}
+                    index={index}
                     control={control}
-                    render={({ field }) => (
+                    onRemove={() => removeDependente(index)}
+                  />
+                ))
+              )}
+
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() => appendDependente(dependenteDefaultValues)}
+                sx={{ alignSelf: "flex-start", mt: dependentesFields.length > 0 ? 0 : 2 }}
+              >
+                Adicionar Dependente
+              </Button>
+            </ContainerSection>
+
+            {/* ── Informações Profissionais ──────────────────────────────── */}
+            <ContainerSection
+              title="Informações Profissionais"
+              description="Dados acadêmicos e profissionais"
+              numberOfCollumns={2}
+            >
+              {/* Escolaridade | Enquadramento */}
+              <BrainDropdownControlled
+                name="escolaridade"
+                control={control}
+                label="Escolaridade"
+                required
+                options={OPTIONS_ESCOLARIDADE}
+                placeholder="Selecione a escolaridade"
+              />
+              <BrainDropdownControlled
+                name="enquadramentoHoraAula"
+                control={control}
+                label="Enquadramento de Hora Aula"
+                required
+                options={OPTIONS_ENQUADRAMENTO_HORA_AULA}
+                placeholder="Selecione o enquadramento"
+              />
+
+              {/* Exame admissional — largura total */}
+              <Box sx={{ gridColumn: "1 / -1" }}>
+                <Controller
+                  name="exameAdmissionalRealizado"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          {...field}
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                        />
+                      }
+                      label="Exame admissional realizado"
+                    />
+                  )}
+                />
+              </Box>
+
+              {/* Upload do exame (condicional) */}
+              {watchExameRealizado && (
+                <Box sx={{ gridColumn: "1 / -1" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+                    Upload do Exame Admissional
+                  </Typography>
+                  <ExameUpload
+                    fileName={exameFileName}
+                    onChange={(file) => setExameFileName(file?.name ?? null)}
+                  />
+                </Box>
+              )}
+
+              {/* Férias */}
+              <BrainDateTextControlled
+                name="dataInicioFerias"
+                control={control}
+                label="Data de Início das Férias"
+              />
+              <BrainDateTextControlled
+                name="dataFimFerias"
+                control={control}
+                label="Data de Fim das Férias"
+              />
+
+              {/* Observações — largura total */}
+              <Box sx={{ gridColumn: "1 / -1" }}>
+                <BrainTextFieldControlled
+                  name="observacoesFerias"
+                  control={control}
+                  label="Observações sobre Férias"
+                  placeholder="Observações adicionais"
+                  multiline
+                  rows={3}
+                />
+              </Box>
+            </ContainerSection>
+
+            {/* ── Footer: LGPD + Ações ───────────────────────────────────── */}
+            <Box sx={{ mt: 2 }}>
+              <S.LgpdContainer>
+                <Controller
+                  name="aceitoLgpd"
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <>
                       <FormControlLabel
                         control={
                           <Checkbox
@@ -683,102 +740,41 @@ function ProfessorPageContent() {
                             onChange={(e) => field.onChange(e.target.checked)}
                           />
                         }
-                        label="Exame admissional realizado"
+                        label={
+                          <Typography variant="body2">
+                            Aceito o{" "}
+                            <strong>termo de consentimento LGPD</strong>
+                            {" "}*
+                          </Typography>
+                        }
                       />
-                    )}
-                  />
-                </Box>
-
-                {/* Upload do exame (condicional) */}
-                {watchExameRealizado && (
-                  <Box sx={{ gridColumn: "1 / -1" }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
-                      Upload do Exame Admissional
-                    </Typography>
-                    <ExameUpload
-                      fileName={exameFileName}
-                      onChange={(file) => setExameFileName(file?.name ?? null)}
-                    />
-                  </Box>
-                )}
-
-                {/* Férias */}
-                <BrainDateTextControlled
-                  name="dataInicioFerias"
-                  control={control}
-                  label="Data de Início das Férias"
+                      {error && (
+                        <FormHelperText error sx={{ ml: 4 }}>
+                          {error.message}
+                        </FormHelperText>
+                      )}
+                    </>
+                  )}
                 />
-                <BrainDateTextControlled
-                  name="dataFimFerias"
-                  control={control}
-                  label="Data de Fim das Férias"
-                />
+              </S.LgpdContainer>
 
-                {/* Observações — largura total */}
-                <Box sx={{ gridColumn: "1 / -1" }}>
-                  <BrainTextFieldControlled
-                    name="observacoesFerias"
-                    control={control}
-                    label="Observações sobre Férias"
-                    placeholder="Observações adicionais"
-                    multiline
-                    rows={3}
-                  />
-                </Box>
-              </ContainerSection>
-
-              {/* ── Footer: LGPD + Ações ───────────────────────────────────── */}
-              <Box sx={{ mt: 2 }}>
-                <S.LgpdContainer>
-                  <Controller
-                    name="aceitoLgpd"
-                    control={control}
-                    render={({ field, fieldState: { error } }) => (
-                      <>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              {...field}
-                              checked={field.value}
-                              onChange={(e) => field.onChange(e.target.checked)}
-                            />
-                          }
-                          label={
-                            <Typography variant="body2">
-                              Aceito o{" "}
-                              <strong>termo de consentimento LGPD</strong>
-                              {" "}*
-                            </Typography>
-                          }
-                        />
-                        {error && (
-                          <FormHelperText error sx={{ ml: 4 }}>
-                            {error.message}
-                          </FormHelperText>
-                        )}
-                      </>
-                    )}
-                  />
-                </S.LgpdContainer>
-
-                <S.FooterActions>
-                  <BrainButtonSecondary onClick={handleCancel}>
-                    Cancelar
-                  </BrainButtonSecondary>
-                  <BrainButtonPrimary
-                    type="submit"
-                    disabled={isSubmitting || isSaving}
-                    isLoading={isSaving}
-                  >
-                    {isSaving ? "Salvando..." : "Salvar Professor"}
-                  </BrainButtonPrimary>
-                </S.FooterActions>
-              </Box>
-            </BrainFormProvider>
-          </>
-        )}
-      </Container>
-    </ProtectedRoute>
+              <S.FooterActions>
+                <BrainButtonSecondary onClick={handleCancel}>
+                  Cancelar
+                </BrainButtonSecondary>
+                <BrainButtonPrimary
+                  type="submit"
+                  disabled={isSubmitting || isSaving}
+                  isLoading={isSaving}
+                >
+                  {isSaving ? "Salvando..." : "Salvar Professor"}
+                </BrainButtonPrimary>
+              </S.FooterActions>
+            </Box>
+          </BrainFormProvider>
+        </>
+      )}
+    </Container>
   );
 }
 

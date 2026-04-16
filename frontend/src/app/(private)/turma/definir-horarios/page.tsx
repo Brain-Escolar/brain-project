@@ -1,9 +1,7 @@
 "use client";
-import { UserRoleEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useTurma } from "@/hooks/useTurma";
 import { useHorarios } from "@/hooks/useHorarios";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
@@ -179,192 +177,190 @@ function DefinirHorariosPageContent() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        {loadingTurma || loadingHorarios ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : errorTurma ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorTurma}
-          </Alert>
-        ) : (
-          <>
-            <PageTitle
-              title={`Definir Horários — ${turma?.nome || ""}`}
-              description="Clique nas células para atribuir disciplinas e professores aos horários."
-            />
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      {loadingTurma || loadingHorarios ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : errorTurma ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorTurma}
+        </Alert>
+      ) : (
+        <>
+          <PageTitle
+            title={`Definir Horários — ${turma?.nome || ""}`}
+            description="Clique nas células para atribuir disciplinas e professores aos horários."
+          />
 
-            <S.PageLayout>
-              {/* Grade de Horários */}
-              <S.HorarioGrid>
-                <S.GridTable>
-                  <thead>
-                    <tr>
-                      <th>Horário</th>
-                      {DIAS_SEMANA.map((dia) => (
-                        <th key={dia.key}>{dia.label}</th>
-                      ))}
+          <S.PageLayout>
+            {/* Grade de Horários */}
+            <S.HorarioGrid>
+              <S.GridTable>
+                <thead>
+                  <tr>
+                    <th>Horário</th>
+                    {DIAS_SEMANA.map((dia) => (
+                      <th key={dia.key}>{dia.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {horarios.map((horario) => (
+                    <tr key={horario.id}>
+                      <td>
+                        <S.HorarioLabel>
+                          <div className="horario-nome">{horario.nome}</div>
+                          <div className="horario-periodo">
+                            {horario.horarioInicio} - {horario.horarioFim}
+                          </div>
+                        </S.HorarioLabel>
+                      </td>
+                      {DIAS_SEMANA.map((dia) => {
+                        const key = `${dia.key}-${horario.id}`;
+                        const assignment = assignments[key];
+                        return (
+                          <td key={dia.key}>
+                            <S.CellContent
+                              $filled={!!assignment}
+                              onClick={() => handleCellClick(dia.key, horario.id)}
+                            >
+                              {assignment ? (
+                                <>
+                                  <span className="cell-disciplina">
+                                    {assignment.disciplinaNome}
+                                  </span>
+                                  <span className="cell-professor">
+                                    {assignment.professorNome}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="cell-empty">+</span>
+                              )}
+                            </S.CellContent>
+                          </td>
+                        );
+                      })}
                     </tr>
-                  </thead>
-                  <tbody>
-                    {horarios.map((horario) => (
-                      <tr key={horario.id}>
-                        <td>
-                          <S.HorarioLabel>
-                            <div className="horario-nome">{horario.nome}</div>
-                            <div className="horario-periodo">
-                              {horario.horarioInicio} - {horario.horarioFim}
-                            </div>
-                          </S.HorarioLabel>
-                        </td>
-                        {DIAS_SEMANA.map((dia) => {
-                          const key = `${dia.key}-${horario.id}`;
-                          const assignment = assignments[key];
-                          return (
-                            <td key={dia.key}>
-                              <S.CellContent
-                                $filled={!!assignment}
-                                onClick={() => handleCellClick(dia.key, horario.id)}
-                              >
-                                {assignment ? (
-                                  <>
-                                    <span className="cell-disciplina">
-                                      {assignment.disciplinaNome}
-                                    </span>
-                                    <span className="cell-professor">
-                                      {assignment.professorNome}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <span className="cell-empty">+</span>
-                                )}
-                              </S.CellContent>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </S.GridTable>
-              </S.HorarioGrid>
+                  ))}
+                </tbody>
+              </S.GridTable>
+            </S.HorarioGrid>
 
-              {/* Sidebar */}
-              <S.SidebarCard>
-                <S.SidebarHeader>
-                  <h4>Resumo</h4>
-                </S.SidebarHeader>
-                <S.ResumoItem>
-                  <span className="resumo-label">Turma</span>
-                  <span className="resumo-value">{turma?.nome || "—"}</span>
-                </S.ResumoItem>
-                <S.ResumoItem>
-                  <span className="resumo-label">Aulas Definidas</span>
-                  <span className="resumo-value">{totalAssigned}</span>
-                </S.ResumoItem>
+            {/* Sidebar */}
+            <S.SidebarCard>
+              <S.SidebarHeader>
+                <h4>Resumo</h4>
+              </S.SidebarHeader>
+              <S.ResumoItem>
+                <span className="resumo-label">Turma</span>
+                <span className="resumo-value">{turma?.nome || "—"}</span>
+              </S.ResumoItem>
+              <S.ResumoItem>
+                <span className="resumo-label">Aulas Definidas</span>
+                <span className="resumo-value">{totalAssigned}</span>
+              </S.ResumoItem>
 
-                {gradeDisciplinas.length > 0 && (
-                  <>
-                    <S.SidebarHeader>
-                      <h4>Distribuição</h4>
-                    </S.SidebarHeader>
-                    {gradeDisciplinas.map((disc) => (
-                      <S.ResumoItem key={disc.id}>
-                        <span className="resumo-label">{disc.nome}</span>
-                        <span className="resumo-value">
-                          {disciplinaCounts[disc.id] || 0} / {disc.cargaHorariaSemanal}h
-                        </span>
-                      </S.ResumoItem>
-                    ))}
-                  </>
-                )}
-              </S.SidebarCard>
-            </S.PageLayout>
+              {gradeDisciplinas.length > 0 && (
+                <>
+                  <S.SidebarHeader>
+                    <h4>Distribuição</h4>
+                  </S.SidebarHeader>
+                  {gradeDisciplinas.map((disc) => (
+                    <S.ResumoItem key={disc.id}>
+                      <span className="resumo-label">{disc.nome}</span>
+                      <span className="resumo-value">
+                        {disciplinaCounts[disc.id] || 0} / {disc.cargaHorariaSemanal}h
+                      </span>
+                    </S.ResumoItem>
+                  ))}
+                </>
+              )}
+            </S.SidebarCard>
+          </S.PageLayout>
 
-            {/* Botões */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 2,
-                mt: 4,
-              }}
+          {/* Botões */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 2,
+              mt: 4,
+            }}
+          >
+            <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
+            <BrainButtonPrimary
+              onClick={() => salvarMutation.mutate()}
+              disabled={totalAssigned === 0 || salvarMutation.isPending}
             >
-              <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
-              <BrainButtonPrimary
-                onClick={() => salvarMutation.mutate()}
-                disabled={totalAssigned === 0 || salvarMutation.isPending}
-              >
-                {salvarMutation.isPending ? "Salvando..." : "Salvar Horários"}
-              </BrainButtonPrimary>
-            </Box>
+              {salvarMutation.isPending ? "Salvando..." : "Salvar Horários"}
+            </BrainButtonPrimary>
+          </Box>
 
-            {/* Dialog para atribuir disciplina/professor */}
-            <Dialog
-              open={dialogOpen}
-              onClose={() => setDialogOpen(false)}
-              maxWidth="xs"
-              fullWidth
-            >
-              <DialogTitle>
-                Atribuir Aula —{" "}
-                {editingCell
-                  ? `${DIAS_SEMANA.find((d) => d.key === editingCell.dia)?.label}, ${horarios.find((h) => h.id === editingCell.horarioId)?.nome}`
-                  : ""}
-              </DialogTitle>
-              <DialogContent>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-                  <TextField
-                    select
-                    label="Disciplina"
-                    value={dialogDisciplinaId}
-                    onChange={(e) => setDialogDisciplinaId(Number(e.target.value))}
-                    fullWidth
-                    size="small"
-                  >
-                    {gradeDisciplinas.map((d) => (
-                      <MenuItem key={d.id} value={d.id}>
-                        {d.nome}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    select
-                    label="Professor"
-                    value={dialogProfessorId}
-                    onChange={(e) => setDialogProfessorId(Number(e.target.value))}
-                    fullWidth
-                    size="small"
-                  >
-                    {professores.map((p) => (
-                      <MenuItem key={p.id} value={p.id}>
-                        {p.nome}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Box>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleDialogClear} color="error">
-                  Limpar
-                </Button>
-                <Button onClick={() => setDialogOpen(false)} color="inherit">
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={handleDialogSave}
-                  variant="contained"
-                  disabled={!dialogDisciplinaId || !dialogProfessorId}
+          {/* Dialog para atribuir disciplina/professor */}
+          <Dialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            maxWidth="xs"
+            fullWidth
+          >
+            <DialogTitle>
+              Atribuir Aula —{" "}
+              {editingCell
+                ? `${DIAS_SEMANA.find((d) => d.key === editingCell.dia)?.label}, ${horarios.find((h) => h.id === editingCell.horarioId)?.nome}`
+                : ""}
+            </DialogTitle>
+            <DialogContent>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+                <TextField
+                  select
+                  label="Disciplina"
+                  value={dialogDisciplinaId}
+                  onChange={(e) => setDialogDisciplinaId(Number(e.target.value))}
+                  fullWidth
+                  size="small"
                 >
-                  Salvar
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </>
-        )}
-      </Container>
-    </ProtectedRoute>
+                  {gradeDisciplinas.map((d) => (
+                    <MenuItem key={d.id} value={d.id}>
+                      {d.nome}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  label="Professor"
+                  value={dialogProfessorId}
+                  onChange={(e) => setDialogProfessorId(Number(e.target.value))}
+                  fullWidth
+                  size="small"
+                >
+                  {professores.map((p) => (
+                    <MenuItem key={p.id} value={p.id}>
+                      {p.nome}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDialogClear} color="error">
+                Limpar
+              </Button>
+              <Button onClick={() => setDialogOpen(false)} color="inherit">
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleDialogSave}
+                variant="contained"
+                disabled={!dialogDisciplinaId || !dialogProfessorId}
+              >
+                Salvar
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
+      )}
+    </Container>
   );
 }
 

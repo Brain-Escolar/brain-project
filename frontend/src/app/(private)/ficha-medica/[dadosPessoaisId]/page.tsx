@@ -1,7 +1,7 @@
 "use client";
 import { mapFormDataToFichaMedicaPostRequest } from "@/app/(private)/ficha-medica/fichaMedicaUtils";
 import { useFichaMedicaMutations } from "@/app/(private)/ficha-medica/useFichaMedicaMutations";
-import { RoutesEnum, UserRoleEnum } from "@/enums";
+import { RoutesEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import { BrainDropdownControlled } from "@/components/brainForms/brainDropdownControlled";
@@ -9,7 +9,6 @@ import { BrainTextFieldControlled } from "@/components/brainForms/brainTextField
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import {
   Box,
@@ -123,183 +122,181 @@ function FichaMedicaPageContent({ params }: PageProps) {
   const QUANTITY_COLLUMNS_DEFAULT = 2;
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <PageTitle
-          title="Cadastro de Ficha Médica"
-          description="Preencha os dados abaixo para completar o cadastro no sistema"
-        />
-        <BrainFormProvider methodsHookForm={methodsHookForm} onSubmit={handleSubmit(onFormSubmit)}>
-          {/* Seção Identificação */}
-          <ContainerSection
-            title="Identificação"
-            description="Usuário selecionado"
-            numberOfCollumns={1}
-          >
-            <BrainTextFieldControlled
-              name="dadosPessoaisId"
-              control={control}
-              label="Usuário"
-              placeholder={`ID: ${dadosPessoaisId}`}
-              disabled={true}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <PageTitle
+        title="Cadastro de Ficha Médica"
+        description="Preencha os dados abaixo para completar o cadastro no sistema"
+      />
+      <BrainFormProvider methodsHookForm={methodsHookForm} onSubmit={handleSubmit(onFormSubmit)}>
+        {/* Seção Identificação */}
+        <ContainerSection
+          title="Identificação"
+          description="Usuário selecionado"
+          numberOfCollumns={1}
+        >
+          <BrainTextFieldControlled
+            name="dadosPessoaisId"
+            control={control}
+            label="Usuário"
+            placeholder={`ID: ${dadosPessoaisId}`}
+            disabled={true}
+          />
+        </ContainerSection>
+
+        {/* Seção Informações Médicas Básicas */}
+        <ContainerSection
+          title="Informações Médicas Básicas"
+          description="Dados gerais de saúde"
+          numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
+        >
+          <BrainDropdownControlled
+            name="tipoSanguineo"
+            control={control}
+            label="Tipo Sanguíneo"
+            options={OPTIONS_TIPO_SANGUINEO}
+            placeholder="Selecione o tipo sanguíneo"
+          />
+
+          <BrainTextFieldControlled
+            name="necessidadesEspeciais"
+            control={control}
+            label="Necessidades Especiais"
+            placeholder="Descreva as necessidades especiais (opcional)"
+            multiline
+            rows={3}
+          />
+        </ContainerSection>
+
+        {/* Seção Condições de Saúde */}
+        <ContainerSection
+          title="Condições de Saúde"
+          description="Informações sobre condições médicas"
+          numberOfCollumns={1}
+        >
+          <BrainTextFieldControlled
+            name="doencasRespiratorias"
+            control={control}
+            label="Doenças Respiratórias"
+            placeholder="Descreva doenças respiratórias (opcional)"
+            multiline
+            rows={3}
+          />
+        </ContainerSection>
+
+        {/* Seção Alergias */}
+        <ContainerSection
+          title="Alergias"
+          description="Informações sobre alergias"
+          numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
+        >
+          <BrainTextFieldControlled
+            name="alergiasAlimentares"
+            control={control}
+            label="Alergias Alimentares"
+            placeholder="Descreva alergias alimentares (opcional)"
+            multiline
+            rows={3}
+          />
+
+          <BrainTextFieldControlled
+            name="alergiasMedicamentosas"
+            control={control}
+            label="Alergias Medicamentosas"
+            placeholder="Descreva alergias a medicamentos (opcional)"
+            multiline
+            rows={3}
+          />
+        </ContainerSection>
+
+        {/* Seção Laudos */}
+        <ContainerSection
+          title="Laudos"
+          description="Adicione arquivos de laudos médicos (opcional)"
+          numberOfCollumns={1}
+        >
+          <Box>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              onChange={handleFileSelect}
+              style={{ display: "none" }}
+              id="laudos-file-input"
             />
-          </ContainerSection>
+            <label htmlFor="laudos-file-input">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<AttachFile />}
+                sx={{ mb: 2 }}
+              >
+                Adicionar Arquivos
+              </Button>
+            </label>
 
-          {/* Seção Informações Médicas Básicas */}
-          <ContainerSection
-            title="Informações Médicas Básicas"
-            description="Dados gerais de saúde"
-            numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-          >
-            <BrainDropdownControlled
-              name="tipoSanguineo"
+            {laudosFiles.length > 0 && (
+              <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                  Arquivos Selecionados ({laudosFiles.length})
+                </Typography>
+                <List dense>
+                  {laudosFiles.map((file, index) => (
+                    <ListItem
+                      key={index}
+                      secondaryAction={
+                        <IconButton
+                          edge="end"
+                          aria-label="remover"
+                          onClick={() => handleRemoveFile(index)}
+                          color="error"
+                          size="small"
+                        >
+                          <Delete />
+                        </IconButton>
+                      }
+                      sx={{
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 1,
+                        mb: 1,
+                        bgcolor: "background.paper",
+                      }}
+                    >
+                      <ListItemText primary={file.name} secondary={formatFileSize(file.size)} />
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            )}
+
+            <Controller
+              name="laudos"
               control={control}
-              label="Tipo Sanguíneo"
-              options={OPTIONS_TIPO_SANGUINEO}
-              placeholder="Selecione o tipo sanguíneo"
-            />
-
-            <BrainTextFieldControlled
-              name="necessidadesEspeciais"
-              control={control}
-              label="Necessidades Especiais"
-              placeholder="Descreva as necessidades especiais (opcional)"
-              multiline
-              rows={3}
-            />
-          </ContainerSection>
-
-          {/* Seção Condições de Saúde */}
-          <ContainerSection
-            title="Condições de Saúde"
-            description="Informações sobre condições médicas"
-            numberOfCollumns={1}
-          >
-            <BrainTextFieldControlled
-              name="doencasRespiratorias"
-              control={control}
-              label="Doenças Respiratórias"
-              placeholder="Descreva doenças respiratórias (opcional)"
-              multiline
-              rows={3}
-            />
-          </ContainerSection>
-
-          {/* Seção Alergias */}
-          <ContainerSection
-            title="Alergias"
-            description="Informações sobre alergias"
-            numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-          >
-            <BrainTextFieldControlled
-              name="alergiasAlimentares"
-              control={control}
-              label="Alergias Alimentares"
-              placeholder="Descreva alergias alimentares (opcional)"
-              multiline
-              rows={3}
-            />
-
-            <BrainTextFieldControlled
-              name="alergiasMedicamentosas"
-              control={control}
-              label="Alergias Medicamentosas"
-              placeholder="Descreva alergias a medicamentos (opcional)"
-              multiline
-              rows={3}
-            />
-          </ContainerSection>
-
-          {/* Seção Laudos */}
-          <ContainerSection
-            title="Laudos"
-            description="Adicione arquivos de laudos médicos (opcional)"
-            numberOfCollumns={1}
-          >
-            <Box>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                onChange={handleFileSelect}
-                style={{ display: "none" }}
-                id="laudos-file-input"
-              />
-              <label htmlFor="laudos-file-input">
-                <Button
-                  variant="outlined"
-                  component="span"
-                  startIcon={<AttachFile />}
-                  sx={{ mb: 2 }}
-                >
-                  Adicionar Arquivos
-                </Button>
-              </label>
-
-              {laudosFiles.length > 0 && (
-                <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                    Arquivos Selecionados ({laudosFiles.length})
-                  </Typography>
-                  <List dense>
-                    {laudosFiles.map((file, index) => (
-                      <ListItem
-                        key={index}
-                        secondaryAction={
-                          <IconButton
-                            edge="end"
-                            aria-label="remover"
-                            onClick={() => handleRemoveFile(index)}
-                            color="error"
-                            size="small"
-                          >
-                            <Delete />
-                          </IconButton>
-                        }
-                        sx={{
-                          border: "1px solid",
-                          borderColor: "divider",
-                          borderRadius: 1,
-                          mb: 1,
-                          bgcolor: "background.paper",
-                        }}
-                      >
-                        <ListItemText primary={file.name} secondary={formatFileSize(file.size)} />
-                      </ListItem>
-                    ))}
-                  </List>
-                </Paper>
+              render={({ fieldState: { error } }) => (
+                <>
+                  {error && (
+                    <Typography variant="caption" color="error" sx={{ mt: 1, display: "block" }}>
+                      {error.message}
+                    </Typography>
+                  )}
+                </>
               )}
-
-              <Controller
-                name="laudos"
-                control={control}
-                render={({ fieldState: { error } }) => (
-                  <>
-                    {error && (
-                      <Typography variant="caption" color="error" sx={{ mt: 1, display: "block" }}>
-                        {error.message}
-                      </Typography>
-                    )}
-                  </>
-                )}
-              />
-            </Box>
-          </ContainerSection>
-
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
-            <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
-            <BrainButtonPrimary
-              type="submit"
-              disabled={isSubmitting || createFichaMedica.isPending}
-            >
-              {createFichaMedica.isPending ? "Salvando..." : "Salvar"}
-            </BrainButtonPrimary>
+            />
           </Box>
-        </BrainFormProvider>
-      </Container>
-    </ProtectedRoute>
+        </ContainerSection>
+
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
+          <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
+          <BrainButtonPrimary
+            type="submit"
+            disabled={isSubmitting || createFichaMedica.isPending}
+          >
+            {createFichaMedica.isPending ? "Salvando..." : "Salvar"}
+          </BrainButtonPrimary>
+        </Box>
+      </BrainFormProvider>
+    </Container>
   );
 }
 

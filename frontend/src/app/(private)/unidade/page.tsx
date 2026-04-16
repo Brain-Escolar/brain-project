@@ -5,14 +5,12 @@ import {
   mapUnidadeResponseToFormData,
 } from "@/app/(private)/unidade/unidadeUtils";
 import { useUnidadeMutations } from "@/app/(private)/unidade/useUnidadeMutations";
-import { UserRoleEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
-import { ProtectedRoute } from "@/components/ProtectedRoute/ProtectedRoute";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useUnidade } from "@/hooks/useUnidade";
 import { Alert, Box, CircularProgress, Container } from "@mui/material";
@@ -68,55 +66,53 @@ function UnidadePageContent() {
   const QUANTITY_COLLUMNS_DEFAULT = 3;
 
   return (
-    <ProtectedRoute allowedRoles={[UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR]}>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {loadingUnidade && isEditMode ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : errorUnidade && isEditMode ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {errorUnidade}
-          </Alert>
-        ) : (
-          <>
-            <PageTitle
-              title={isEditMode ? "Editar Unidade" : "Cadastro de Unidade"}
-              description="Preencha os dados abaixo para completar o cadastro no sistema"
-            />
-            <BrainFormProvider
-              methodsHookForm={methodsHookForm}
-              onSubmit={handleSubmit(onFormSubmit)}
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {loadingUnidade && isEditMode ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : errorUnidade && isEditMode ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {errorUnidade}
+        </Alert>
+      ) : (
+        <>
+          <PageTitle
+            title={isEditMode ? "Editar Unidade" : "Cadastro de Unidade"}
+            description="Preencha os dados abaixo para completar o cadastro no sistema"
+          />
+          <BrainFormProvider
+            methodsHookForm={methodsHookForm}
+            onSubmit={handleSubmit(onFormSubmit)}
+          >
+            {/* Seção Informações da Unidade */}
+            <ContainerSection
+              title="Informações da Unidade"
+              description="Dados básicos da unidade"
+              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
             >
-              {/* Seção Informações da Unidade */}
-              <ContainerSection
-                title="Informações da Unidade"
-                description="Dados básicos da unidade"
-                numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-              >
-                <BrainTextFieldControlled
-                  name="nome"
-                  control={control}
-                  label="Nome da Unidade"
-                  placeholder="Digite o nome da unidade"
-                  required
-                />
-              </ContainerSection>
+              <BrainTextFieldControlled
+                name="nome"
+                control={control}
+                label="Nome da Unidade"
+                placeholder="Digite o nome da unidade"
+                required
+              />
+            </ContainerSection>
 
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
-                <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
-                <BrainButtonPrimary
-                  type="submit"
-                  disabled={isSubmitting || createUnidade.isPending || updateUnidade.isPending}
-                >
-                  {createUnidade.isPending || updateUnidade.isPending ? "Salvando..." : "Salvar"}
-                </BrainButtonPrimary>
-              </Box>
-            </BrainFormProvider>
-          </>
-        )}
-      </Container>
-    </ProtectedRoute>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
+              <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
+              <BrainButtonPrimary
+                type="submit"
+                disabled={isSubmitting || createUnidade.isPending || updateUnidade.isPending}
+              >
+                {createUnidade.isPending || updateUnidade.isPending ? "Salvando..." : "Salvar"}
+              </BrainButtonPrimary>
+            </Box>
+          </BrainFormProvider>
+        </>
+      )}
+    </Container>
   );
 }
 
