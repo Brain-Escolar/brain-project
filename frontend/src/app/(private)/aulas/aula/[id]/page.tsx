@@ -5,8 +5,11 @@ import { UserRoleEnum } from "@/enums";
 import ConteudosTarefas from "@/components/aulaDetailView/conteudosTarefas/conteudosTarefas";
 import ListaPresenca from "@/components/aulaDetailView/listaPresenca/listaPresenca";
 import LayoutColumns from "@/components/layoutColumns/layoutColumns";
-import PageTitle from "@/components/pageTitle/pageTitle";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import PlaceIcon from "@mui/icons-material/Place";
+import TagIcon from "@mui/icons-material/Tag";
+import StarIcon from "@mui/icons-material/Star";
 import { Box, Container, IconButton, Tab, Tabs, Typography } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -48,14 +51,10 @@ export default function AulaDetailPage() {
     data: formatDateForAPI(selectedDate),
   });
 
-  // Pega o ID da URL para uso futuro
   const aulaId = params.id as string;
-  const aula = {
-    ...mockAulaDetail,
-    titulo: `${mockAulaDetail.titulo} - Aula ${aulaId}`,
-  };
+  const aula = mockAulaDetail;
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
   const handleDateChange = (date: Date) => {
@@ -71,17 +70,54 @@ export default function AulaDetailPage() {
   return (
     <ProtectedRoute allowedRoles={[UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN]}>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
+        {/* Breadcrumb */}
+        <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
           <IconButton onClick={handleGoBack} size="small">
-            <ArrowBackIcon />
+            <ArrowBackIcon fontSize="small" />
           </IconButton>
           <Typography variant="body2" color="text.secondary">
-            Página inicial
+            Pagina inicial
           </Typography>
         </Box>
 
-        <PageTitle title={aula.titulo} />
-        {/* Tabs */}
+        {/* Header: Titulo + Info da aula */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 3,
+          }}
+        >
+          <Typography variant="h5" fontWeight="bold">
+            {aula.titulo}
+          </Typography>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <AccessTimeIcon fontSize="small" color="action" />
+              <Typography variant="body2" color="text.secondary">
+                {aula.horario}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <PlaceIcon fontSize="small" color="action" />
+              <Typography variant="body2" color="text.secondary">
+                {aula.sala}
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary">
+              {aula.unidade}
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <TagIcon fontSize="small" color="action" />
+              <Typography variant="body2" color="text.secondary">
+                {aula.numeroEstudantes} estudantes
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
         <LayoutColumns sizeLeft="70%" sizeRight="30%">
           <Box>
             <DateSelector selectedDate={selectedDate} onDateChange={handleDateChange} />
@@ -92,9 +128,21 @@ export default function AulaDetailPage() {
               <>
                 <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
                   <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
-                    <Tab label="⭐ Lista de Presença" />
-                    <Tab label="⭐ Conteúdo e Tarefas" />
-                    <Tab label="⭐ Registros Disciplinares" />
+                    <Tab
+                      icon={<StarIcon fontSize="small" />}
+                      iconPosition="start"
+                      label="Lista de Presenca"
+                    />
+                    <Tab
+                      icon={<StarIcon fontSize="small" />}
+                      iconPosition="start"
+                      label="Conteudo e Tarefas"
+                    />
+                    <Tab
+                      icon={<StarIcon fontSize="small" />}
+                      iconPosition="start"
+                      label="Registros Disciplinares"
+                    />
                   </Tabs>
                 </Box>
 
@@ -111,7 +159,7 @@ export default function AulaDetailPage() {
             )}
           </Box>
 
-          {/* Visão geral - Seção lateral */}
+          {/* Visao geral - Secao lateral */}
           <SectionVisaoGeral existeAulaNoDia={existeAulaNoDia} />
         </LayoutColumns>
       </Container>

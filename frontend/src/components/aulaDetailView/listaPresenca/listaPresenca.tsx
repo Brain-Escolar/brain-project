@@ -15,8 +15,8 @@ import {
   Typography,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import * as S from "./styles";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
+
 interface IListaPresencaProps {
   idAula?: string;
 }
@@ -46,12 +46,12 @@ function ListaPresenca({ idAula }: IListaPresencaProps) {
   const handleSalvarPresenca = () => {
     if (!idAula) return;
     if (alunosPresentes.length === 0) {
-      toast.error("Selecione pelo menos um aluno para marcar presença.");
+      toast.error("Selecione pelo menos um aluno para marcar presenca.");
       return;
     }
-    toast.success("Presença salva com sucesso!");
+    toast.success("Presenca salva com sucesso!");
     setAlunosPresentes([]);
-    // TODO: Integrar com API para salvar presença
+    // TODO: Integrar com API para salvar presenca
   };
 
   if (loading && idAula) {
@@ -77,65 +77,98 @@ function ListaPresenca({ idAula }: IListaPresencaProps) {
   if (alunos.length === 0) {
     return <BrainResultNotFound message="Nenhum aluno encontrado para esta aula." />;
   }
+
   return (
-    <Box sx={{ paddingTop: 0 }}>
-      <TableContainer component={Paper} sx={{ p: 0 }}>
-        <Table>
+    <Box>
+      <TableContainer component={Paper} variant="outlined" sx={{ boxShadow: "none" }}>
+        <Table size="small">
+          <colgroup>
+            <col style={{ width: "15%" }} />
+            <col style={{ width: "45%" }} />
+            <col style={{ width: "20%" }} />
+            <col style={{ width: "20%" }} />
+          </colgroup>
           <TableHead>
-            <TableRow sx={{ bgcolor: "grey.50" }}>
-              <TableCell>
-                <S.AreaCheckbox>
+            <TableRow>
+              <TableCell sx={{ py: 1.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Checkbox
+                    size="small"
                     checked={alunosPresentes.length === alunos.length && alunos.length > 0}
                     indeterminate={
                       alunosPresentes.length > 0 && alunosPresentes.length < alunos.length
                     }
                     onChange={handleSelectAll}
+                    sx={{ p: 0 }}
                   />
-                  Presença
-                </S.AreaCheckbox>
+                  <Typography variant="body2" color="text.secondary">
+                    Presenca
+                  </Typography>
+                </Box>
               </TableCell>
-              <TableCell>Nome</TableCell>
-              <TableCell align="center">Registros no bim.</TableCell>
-              <TableCell align="center">Faltas</TableCell>
+              <TableCell sx={{ py: 1.5 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Nome
+                </Typography>
+              </TableCell>
+              <TableCell align="center" sx={{ py: 1.5 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Registros no bim.
+                </Typography>
+              </TableCell>
+              <TableCell align="center" sx={{ py: 1.5 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Faltas
+                </Typography>
+              </TableCell>
             </TableRow>
           </TableHead>
-          <colgroup>
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "50%" }} />
-            <col style={{ width: "20%" }} />
-            <col style={{ width: "20%" }} />
-          </colgroup>
           <TableBody>
-            {alunos.map((aluno) => (
-              <TableRow
-                key={aluno.id}
-                sx={{ bgcolor: isSelected(aluno.id) ? "#edf4fb" : "inherit" }}
-              >
-                <TableCell>
-                  <S.AreaCheckbox>
-                    <Checkbox
-                      checked={alunosPresentes.includes(aluno.id)}
-                      onChange={() => handleCheckboxChange(aluno.id)}
-                    />
-                    Presente
-                  </S.AreaCheckbox>
-                </TableCell>
-                <TableCell>{aluno.nome}</TableCell>
-                <TableCell align="center">{aluno.faltas}</TableCell>
-                <TableCell align="center">{aluno.faltas}</TableCell>
-              </TableRow>
-            ))}
+            {alunos.map((aluno) => {
+              const selected = isSelected(aluno.id);
+              return (
+                <TableRow
+                  key={aluno.id}
+                  sx={{
+                    bgcolor: selected ? "primary.50" : "inherit",
+                    "&:hover": { bgcolor: selected ? "primary.50" : "action.hover" },
+                  }}
+                >
+                  <TableCell sx={{ py: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Checkbox
+                        size="small"
+                        checked={selected}
+                        onChange={() => handleCheckboxChange(aluno.id)}
+                        color="primary"
+                        sx={{ p: 0 }}
+                      />
+                      <Typography variant="body2" color={selected ? "primary.main" : "text.primary"}>
+                        Presente
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                  <TableCell sx={{ py: 1 }}>
+                    <Typography variant="body2">{aluno.nome}</Typography>
+                  </TableCell>
+                  <TableCell align="center" sx={{ py: 1 }}>
+                    <Typography variant="body2">{aluno.faltas}</Typography>
+                  </TableCell>
+                  <TableCell align="center" sx={{ py: 1 }}>
+                    <Typography variant="body2">{aluno.faltas}</Typography>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
-      <Button
-        variant="contained"
-        sx={{ mt: 2, ml: "auto", display: "block" }}
-        onClick={handleSalvarPresenca}
-      >
-        Salvar
-      </Button>
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Button variant="contained" onClick={handleSalvarPresenca}>
+          SALVAR
+        </Button>
+      </Box>
     </Box>
   );
 }
