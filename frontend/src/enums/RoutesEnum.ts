@@ -8,6 +8,9 @@ export enum RoutesEnum {
   PROFESSOR_LISTA = "/professor/lista",
   PROFESSOR = "/professor",
 
+  // Aluno routes
+  ALUNO_LISTA = "/aluno/lista",
+
   // Turma routes
   TURMA_LISTA = "/turma/lista",
   TURMA = "/turma",

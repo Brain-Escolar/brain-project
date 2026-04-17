@@ -8,6 +8,10 @@ export enum RouteLabelsEnum {
   PROFESSORES = "Professores",
   PROFESSOR = "Professor",
 
+  // Aluno labels
+  ALUNOS = "Alunos",
+  ALUNO = "Aluno",
+
   // Turma labels
   TURMAS = "Turmas",
   TURMA = "Turma",

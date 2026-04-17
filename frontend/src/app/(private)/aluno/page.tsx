@@ -15,8 +15,6 @@ import { BrainTextCPFControlled } from "@/components/brainForms/brainTextCPFCont
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import { BrainTextRGControlled } from "@/components/brainForms/brainTextRGControlled";
 import { BrainTextPhoneControlled } from "@/components/brainForms/brainTextPhoneControlled";
-import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useAluno } from "@/hooks/useAluno";
 import { buscarCep } from "@/services/cep";
@@ -25,23 +23,608 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
+  Chip,
   CircularProgress,
-  Container,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
+  FormControlLabel,
+  IconButton,
+  Paper,
+  Stack,
   Typography,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+import CakeIcon from "@mui/icons-material/Cake";
+import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import PersonIcon from "@mui/icons-material/Person";
+import PlaceIcon from "@mui/icons-material/Place";
+import SaveIcon from "@mui/icons-material/Save";
 import { useRouter } from "next/navigation";
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useFieldArray } from "react-hook-form";
+import type { Control } from "react-hook-form";
 import { alunoDefaultValues, AlunoFormData, alunoSchema } from "./schema";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 
 const MAX_RESPONSAVEIS = 5;
+
+const OPTIONS_UF: KeyValue[] = [
+  "AC",
+  "AL",
+  "AP",
+  "AM",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MT",
+  "MS",
+  "MG",
+  "PA",
+  "PB",
+  "PR",
+  "PE",
+  "PI",
+  "RJ",
+  "RN",
+  "RS",
+  "RO",
+  "RR",
+  "SC",
+  "SP",
+  "SE",
+  "TO",
+].map((uf) => ({ key: uf, value: uf }));
+
+const OPTIONS_GENDER: KeyValue[] = [
+  { key: "masculino", value: "Masculino" },
+  { key: "feminino", value: "Feminino" },
+  { key: "outro", value: "Outro" },
+];
+
+const OPTIONS_COR_RACA: KeyValue[] = [
+  { key: "branca", value: "Branca" },
+  { key: "preta", value: "Preta" },
+  { key: "parda", value: "Parda" },
+  { key: "amarela", value: "Amarela" },
+  { key: "indigena", value: "Indígena" },
+  { key: "outro", value: "Outro" },
+];
+
+function SectionCard({
+  icon,
+  title,
+  action,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderRadius: 3,
+        borderColor: "#F3F4F6",
+        boxShadow: "0px 1px 3px 0px rgba(0,0,0,0.1), 0px 1px 2px 0px rgba(0,0,0,0.1)",
+        p: 3,
+      }}
+    >
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Box sx={{ color: "#101828", display: "flex" }}>{icon}</Box>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: "#101828", fontSize: 18 }}>
+            {title}
+          </Typography>
+        </Stack>
+        {action}
+      </Stack>
+      {children}
+    </Paper>
+  );
+}
+
+function calcularIdade(dataBR: string): number | null {
+  if (!dataBR || !/^\d{2}\/\d{2}\/\d{4}$/.test(dataBR)) return null;
+  const [dia, mes, ano] = dataBR.split("/").map(Number);
+  const nasc = new Date(ano, mes - 1, dia);
+  if (Number.isNaN(nasc.getTime())) return null;
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - nasc.getFullYear();
+  const m = hoje.getMonth() - nasc.getMonth();
+  if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+  return idade >= 0 ? idade : null;
+}
+
+function TelefonesArray({
+  control,
+  name,
+}: {
+  control: Control<AlunoFormData>;
+  name: "telefones" | `responsaveis.${number}.telefones`;
+}) {
+  const { fields, append, remove } = useFieldArray({ control, name });
+
+  return (
+    <Stack spacing={1.5}>
+      {fields.map((field, index) => (
+        <Stack key={field.id} direction="row" spacing={1} alignItems="flex-start">
+          <Box sx={{ flex: 1 }}>
+            <BrainTextPhoneControlled
+              name={`${name}.${index}.value` as const}
+              control={control}
+              label={`Telefone ${index + 1}`}
+              required
+            />
+          </Box>
+          {fields.length > 1 && (
+            <IconButton
+              aria-label="Remover telefone"
+              onClick={() => remove(index)}
+              sx={{ mt: 2.5 }}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Stack>
+      ))}
+      <Box>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={() => append({ value: "" })}
+          sx={{
+            borderColor: "#BEDBFF",
+            backgroundColor: "#EFF6FF",
+            color: "#155DFC",
+            textTransform: "none",
+            fontWeight: 500,
+            "&:hover": { backgroundColor: "#dbeafe", borderColor: "#BEDBFF" },
+          }}
+        >
+          Adicionar telefone
+        </Button>
+      </Box>
+    </Stack>
+  );
+}
+
+function ResponsavelCard({
+  index,
+  control,
+  onRemove,
+  onCopiarEnderecoAluno,
+  buscandoCep,
+}: {
+  index: number;
+  control: Control<AlunoFormData>;
+  onRemove: () => void;
+  onCopiarEnderecoAluno: (index: number) => void;
+  buscandoCep: boolean;
+}) {
+  const { watch, setValue } = useBrainFormCtx();
+  const financeiro = watch(`responsaveis.${index}.financeiro`) ?? false;
+  const mesmoEndereco = watch(`responsaveis.${index}.mesmoEnderecoAluno`) ?? false;
+
+  useEffect(() => {
+    if (mesmoEndereco) onCopiarEnderecoAluno(index);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mesmoEndereco]);
+
+  return (
+    <Box
+      sx={{
+        borderRadius: 2.5,
+        border: "2px solid #E5E7EB",
+        backgroundColor: "rgba(249,250,251,0.5)",
+        p: 3,
+      }}
+    >
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Typography sx={{ fontWeight: 600, fontSize: 18, color: "#101828" }}>
+            Responsável {index + 1}
+          </Typography>
+          {financeiro && (
+            <Chip
+              label="Financeiro"
+              size="small"
+              sx={{
+                backgroundColor: "#DCFCE7",
+                color: "#008236",
+                fontWeight: 600,
+                fontSize: 12,
+                height: 22,
+              }}
+            />
+          )}
+        </Stack>
+        <IconButton aria-label="Remover responsável" onClick={onRemove} size="small">
+          <DeleteOutlineIcon fontSize="small" />
+        </IconButton>
+      </Stack>
+
+      <Stack spacing={2}>
+        <BrainTextFieldControlled
+          name={`responsaveis.${index}.nomeResponsavel`}
+          control={control}
+          label="Nome"
+          placeholder="Nome completo do responsável"
+          required
+        />
+
+        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2 }}>
+          <BrainTextCPFControlled
+            name={`responsaveis.${index}.cpfResponsavel`}
+            control={control}
+            label="CPF"
+            required
+          />
+          <BrainDateTextControlled
+            name={`responsaveis.${index}.dataNascimentoResponsavel`}
+            control={control}
+            label="Data de Nascimento"
+            required
+          />
+        </Box>
+
+        <BrainTextFieldControlled
+          name={`responsaveis.${index}.emailResponsavel`}
+          control={control}
+          label="E-mail"
+          placeholder="exemplo@email.com"
+          type="email"
+          required
+        />
+
+        <Stack spacing={1}>
+          <Typography sx={{ fontSize: 14, fontWeight: 500, color: "#364153" }}>
+            Telefones
+          </Typography>
+          <TelefonesArray control={control} name={`responsaveis.${index}.telefones`} />
+        </Stack>
+
+        <Box
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2.5,
+            backgroundColor: "white",
+            px: 1.75,
+            py: 1,
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={financeiro}
+                onChange={(e) =>
+                  setValue(`responsaveis.${index}.financeiro`, e.target.checked, {
+                    shouldValidate: true,
+                  })
+                }
+              />
+            }
+            label={
+              <Typography sx={{ fontSize: 14, fontWeight: 500, color: "#364153" }}>
+                Responsável Financeiro
+              </Typography>
+            }
+          />
+        </Box>
+
+        <Box
+          sx={{
+            border: "1px solid #E5E7EB",
+            borderRadius: 2.5,
+            backgroundColor: "white",
+            px: 1.75,
+            py: 1,
+          }}
+        >
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={mesmoEndereco}
+                onChange={(e) =>
+                  setValue(`responsaveis.${index}.mesmoEnderecoAluno`, e.target.checked, {
+                    shouldValidate: true,
+                  })
+                }
+              />
+            }
+            label={
+              <Typography sx={{ fontSize: 14, fontWeight: 500, color: "#364153" }}>
+                Mesmo endereço do aluno
+              </Typography>
+            }
+          />
+        </Box>
+
+        {!mesmoEndereco && (
+          <Stack spacing={2}>
+            <Typography
+              sx={{ fontSize: 14, fontWeight: 600, color: "#101828", letterSpacing: 0.7 }}
+            >
+              ENDEREÇO DO RESPONSÁVEL
+            </Typography>
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2 }}
+            >
+              <Box sx={{ position: "relative" }}>
+                <BrainTextCEPControlled
+                  name={`responsaveis.${index}.cep`}
+                  control={control}
+                  label="CEP"
+                  required
+                />
+                {buscandoCep && (
+                  <Box sx={{ position: "absolute", right: 10, top: "50%" }}>
+                    <CircularProgress size={18} />
+                  </Box>
+                )}
+              </Box>
+              <BrainTextFieldControlled
+                name={`responsaveis.${index}.numero`}
+                control={control}
+                label="Número"
+                required
+              />
+            </Box>
+            <BrainTextFieldControlled
+              name={`responsaveis.${index}.logradouro`}
+              control={control}
+              label="Logradouro"
+              required
+            />
+            <BrainTextFieldControlled
+              name={`responsaveis.${index}.complemento`}
+              control={control}
+              label="Complemento"
+              placeholder="Apto, bloco, etc. (opcional)"
+            />
+            <Box
+              sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, gap: 2 }}
+            >
+              <BrainTextFieldControlled
+                name={`responsaveis.${index}.bairro`}
+                control={control}
+                label="Bairro"
+                required
+              />
+              <BrainTextFieldControlled
+                name={`responsaveis.${index}.cidade`}
+                control={control}
+                label="Cidade"
+                required
+              />
+            </Box>
+            <Box sx={{ maxWidth: { md: "50%" } }}>
+              <BrainDropdownControlled
+                name={`responsaveis.${index}.uf`}
+                control={control}
+                label="UF"
+                options={OPTIONS_UF}
+                placeholder="UF"
+                required
+              />
+            </Box>
+          </Stack>
+        )}
+      </Stack>
+    </Box>
+  );
+}
+
+function PreviewPanel({ data }: { data: AlunoFormData }) {
+  const idade = calcularIdade(data.dataNascimento);
+  const responsaveis = data.responsaveis ?? [];
+  const financeiro = responsaveis.find((r) => r.financeiro);
+  const temAluno = !!data.nomeCompleto || !!data.email;
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        borderRadius: 3,
+        borderColor: "#F3F4F6",
+        boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1), 0px 4px 6px -4px rgba(0,0,0,0.1)",
+        position: "sticky",
+        top: 24,
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          backgroundColor: "#F9FAFB",
+          borderBottom: "1px solid #F3F4F6",
+          px: 3,
+          py: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <Box sx={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#2B7FFF" }} />
+        <Typography sx={{ fontWeight: 600, fontSize: 18, color: "#1E2939" }}>
+          Preview em Tempo Real
+        </Typography>
+      </Box>
+
+      <Box sx={{ p: 3 }}>
+        {!temAluno && responsaveis.length === 0 ? (
+          <Typography sx={{ color: "#6A7282", fontSize: 14 }}>
+            Preencha o formulário para visualizar os dados do aluno.
+          </Typography>
+        ) : (
+          <Stack spacing={3}>
+            <Box sx={{ borderBottom: "1px solid #F3F4F6", pb: 1.5 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: 20, color: "#101828", mb: 1 }}>
+                {data.nomeCompleto || "Nome do aluno"}
+              </Typography>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {idade !== null && (
+                  <Chip
+                    icon={<CakeIcon sx={{ fontSize: "12px !important", color: "#1447E6" }} />}
+                    label={`${idade} anos`}
+                    size="small"
+                    sx={{
+                      backgroundColor: "#EFF6FF",
+                      color: "#1447E6",
+                      border: "1px solid #DBEAFE",
+                      fontWeight: 500,
+                      fontSize: 12,
+                    }}
+                  />
+                )}
+                {(data.cidade || data.uf) && (
+                  <Chip
+                    icon={<PlaceIcon sx={{ fontSize: "12px !important", color: "#8200DB" }} />}
+                    label={`${data.cidade || ""}${data.cidade && data.uf ? "/" : ""}${data.uf || ""}`}
+                    size="small"
+                    sx={{
+                      backgroundColor: "#FAF5FF",
+                      color: "#8200DB",
+                      border: "1px solid #F3E8FF",
+                      fontWeight: 500,
+                      fontSize: 12,
+                    }}
+                  />
+                )}
+                {data.email && (
+                  <Chip
+                    icon={
+                      <MailOutlineIcon sx={{ fontSize: "12px !important", color: "#008236" }} />
+                    }
+                    label="Email cadastrado"
+                    size="small"
+                    sx={{
+                      backgroundColor: "#F0FDF4",
+                      color: "#008236",
+                      border: "1px solid #DCFCE7",
+                      fontWeight: 500,
+                      fontSize: 12,
+                    }}
+                  />
+                )}
+              </Stack>
+            </Box>
+
+            {responsaveis.length > 0 && (
+              <Stack spacing={1.5}>
+                <Typography
+                  sx={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "#101828",
+                    textTransform: "uppercase",
+                    letterSpacing: 0.7,
+                  }}
+                >
+                  Responsáveis
+                </Typography>
+                <Stack spacing={1}>
+                  {responsaveis.map((r, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        border: "1px solid #E5E7EB",
+                        backgroundColor: "#F9FAFB",
+                        borderRadius: 2.5,
+                        p: 1.5,
+                      }}
+                    >
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Typography sx={{ fontSize: 14, fontWeight: 500, color: "#101828" }}>
+                          {r.nomeResponsavel || `Responsável ${idx + 1}`}
+                        </Typography>
+                        {r.financeiro && (
+                          <Chip
+                            label="Financeiro"
+                            size="small"
+                            sx={{
+                              backgroundColor: "#DCFCE7",
+                              color: "#008236",
+                              fontWeight: 500,
+                              fontSize: 12,
+                              height: 20,
+                            }}
+                          />
+                        )}
+                      </Stack>
+                      {r.cpfResponsavel && (
+                        <Typography sx={{ fontSize: 12, color: "#6A7282", mt: 0.5 }}>
+                          CPF: {r.cpfResponsavel}
+                        </Typography>
+                      )}
+                      {r.emailResponsavel && (
+                        <Typography sx={{ fontSize: 12, color: "#6A7282" }}>
+                          Email: {r.emailResponsavel}
+                        </Typography>
+                      )}
+                      {r.telefones?.[0]?.value && (
+                        <Box
+                          sx={{
+                            mt: 1,
+                            display: "inline-block",
+                            backgroundColor: "white",
+                            border: "1px solid #E5E7EB",
+                            borderRadius: 1,
+                            px: 1,
+                            py: 0.5,
+                            fontSize: 12,
+                          }}
+                        >
+                          {r.telefones[0].value}
+                        </Box>
+                      )}
+                    </Box>
+                  ))}
+                </Stack>
+                <Box
+                  sx={{
+                    borderRadius: 2.5,
+                    border: "1px solid #DBEAFE",
+                    backgroundColor: "rgba(239,246,255,0.5)",
+                    px: 1.75,
+                    py: 1,
+                  }}
+                >
+                  <Typography sx={{ fontSize: 12, color: "#1447E6" }}>
+                    {responsaveis.length} responsável(is) cadastrado(s)
+                    {financeiro?.nomeResponsavel &&
+                      ` • Resp. financeiro: ${financeiro.nomeResponsavel}`}
+                  </Typography>
+                </Box>
+              </Stack>
+            )}
+          </Stack>
+        )}
+      </Box>
+    </Paper>
+  );
+}
+
+// Contexto trivial para acesso ao methodsHookForm dentro de ResponsavelCard
+import { createContext, useContext } from "react";
+type FormCtx = {
+  watch: ReturnType<typeof useBrainForm<AlunoFormData>>["watch"];
+  setValue: ReturnType<typeof useBrainForm<AlunoFormData>>["setValue"];
+};
+const BrainFormCtx = createContext<FormCtx | null>(null);
+function useBrainFormCtx() {
+  const ctx = useContext(BrainFormCtx);
+  if (!ctx) throw new Error("BrainFormCtx not found");
+  return ctx;
+}
 
 function AlunoPageContent() {
   const router = useRouter();
@@ -61,118 +644,122 @@ function AlunoPageContent() {
     methodsHookForm,
     setValue,
     watch,
+    getValues,
   } = useBrainForm<AlunoFormData>({
     schema: alunoSchema,
     defaultValues: alunoDefaultValues,
-    onSubmit: onSubmit,
+    onSubmit,
     mode: "all",
   });
 
   const [buscandoCep, setBuscandoCep] = useState(false);
-  const watcherCepValue = watch("cep");
-  const [buscandoCepResponsavel, setBuscandoCepResponsavel] = useState<Record<number, boolean>>({});
-  const responsaveisData = watch("responsaveis") || [];
+  const [buscandoCepResp, setBuscandoCepResp] = useState<Record<number, boolean>>({});
+  const watcherCep = watch("cep");
+  const watchedData = watch();
 
-  // FieldArray para múltiplos responsáveis
   const {
     fields: responsaveisFields,
     append: appendResponsavel,
     remove: removeResponsavel,
-  } = useFieldArray({
-    control,
-    name: "responsaveis",
-  });
+  } = useFieldArray({ control, name: "responsaveis" });
 
   useEffect(() => {
     if (aluno && isEditMode) {
-      const formData = mapAlunoResponseToFormData(aluno);
-      reset(formData);
+      reset(mapAlunoResponseToFormData(aluno));
     }
   }, [aluno, isEditMode, reset]);
 
   const buscarEnderecoPorCep = useCallback(
-    async (cepValue: string) => {
-      if (cepValue && cepValue.length === 9) {
-        setBuscandoCep(true);
-        try {
-          const dadosCep = await buscarCep(cepValue);
-
-          if (dadosCep && !dadosCep.erro) {
-            setValue("logradouro", dadosCep.logradouro, { shouldValidate: true });
-            setValue("bairro", dadosCep.bairro, { shouldValidate: true });
-            setValue("cidade", dadosCep.localidade, { shouldValidate: true });
-            setValue("uf", dadosCep.uf, { shouldValidate: true });
-            if (dadosCep.complemento) {
-              setValue("complemento", dadosCep.complemento, { shouldValidate: true });
-            }
-          } else {
-            const message = "CEP não encontrado.";
-            toast.error(message);
+    async (cep: string) => {
+      if (!cep || cep.length !== 9) return;
+      setBuscandoCep(true);
+      try {
+        const dados = await buscarCep(cep);
+        if (dados && !dados.erro) {
+          setValue("logradouro", dados.logradouro, { shouldValidate: true });
+          setValue("bairro", dados.bairro, { shouldValidate: true });
+          setValue("cidade", dados.localidade, { shouldValidate: true });
+          setValue("uf", dados.uf, { shouldValidate: true });
+          if (dados.complemento) {
+            setValue("complemento", dados.complemento, { shouldValidate: true });
           }
-        } finally {
-          setBuscandoCep(false);
+        } else {
+          toast.error("CEP não encontrado.");
         }
+      } finally {
+        setBuscandoCep(false);
       }
     },
     [setValue],
   );
 
   useEffect(() => {
-    buscarEnderecoPorCep(watcherCepValue);
-  }, [watcherCepValue, buscarEnderecoPorCep]);
+    buscarEnderecoPorCep(watcherCep);
+  }, [watcherCep, buscarEnderecoPorCep]);
 
-  const buscarEnderecoPorCepResponsavel = useCallback(
-    async (cepValue: string, index: number) => {
-      if (cepValue && cepValue.length === 9) {
-        setBuscandoCepResponsavel((prev) => ({ ...prev, [index]: true }));
-        try {
-          const dadosCep = await buscarCep(cepValue);
+  const responsaveisCepsKey = useMemo(
+    () => (watchedData.responsaveis ?? []).map((r) => r?.cep || "").join("|"),
+    [watchedData.responsaveis],
+  );
 
-          if (dadosCep && !dadosCep.erro) {
-            setValue(`responsaveis.${index}.logradouro`, dadosCep.logradouro, {
+  const buscarEnderecoPorCepResp = useCallback(
+    async (cep: string, index: number) => {
+      if (!cep || cep.length !== 9) return;
+      setBuscandoCepResp((p) => ({ ...p, [index]: true }));
+      try {
+        const dados = await buscarCep(cep);
+        if (dados && !dados.erro) {
+          setValue(`responsaveis.${index}.logradouro`, dados.logradouro, { shouldValidate: true });
+          setValue(`responsaveis.${index}.bairro`, dados.bairro, { shouldValidate: true });
+          setValue(`responsaveis.${index}.cidade`, dados.localidade, { shouldValidate: true });
+          setValue(`responsaveis.${index}.uf`, dados.uf, { shouldValidate: true });
+          if (dados.complemento) {
+            setValue(`responsaveis.${index}.complemento`, dados.complemento, {
               shouldValidate: true,
             });
-            setValue(`responsaveis.${index}.bairro`, dadosCep.bairro, { shouldValidate: true });
-            setValue(`responsaveis.${index}.cidade`, dadosCep.localidade, { shouldValidate: true });
-            setValue(`responsaveis.${index}.uf`, dadosCep.uf, { shouldValidate: true });
-            if (dadosCep.complemento) {
-              setValue(`responsaveis.${index}.complemento`, dadosCep.complemento, {
-                shouldValidate: true,
-              });
-            }
-          } else {
-            const message = "CEP não encontrado.";
-            toast.error(message);
           }
-        } finally {
-          setBuscandoCepResponsavel((prev) => ({ ...prev, [index]: false }));
+        } else {
+          toast.error("CEP não encontrado.");
         }
+      } finally {
+        setBuscandoCepResp((p) => ({ ...p, [index]: false }));
       }
     },
     [setValue],
   );
 
-  // Watch CEP changes for each responsável
   useEffect(() => {
     responsaveisFields.forEach((_, index) => {
-      const cepValue = responsaveisData[index]?.cep;
-      if (cepValue && cepValue.length === 9) {
-        buscarEnderecoPorCepResponsavel(cepValue, index);
+      const cep = watchedData.responsaveis?.[index]?.cep;
+      const mesmo = watchedData.responsaveis?.[index]?.mesmoEnderecoAluno;
+      if (!mesmo && cep && cep.length === 9) {
+        buscarEnderecoPorCepResp(cep, index);
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [responsaveisData.map((r) => r?.cep).join(","), buscarEnderecoPorCepResponsavel]);
+  }, [responsaveisCepsKey, buscarEnderecoPorCepResp]);
+
+  const copiarEnderecoAluno = useCallback(
+    (index: number) => {
+      const v = getValues();
+      setValue(`responsaveis.${index}.cep`, v.cep || "", { shouldValidate: true });
+      setValue(`responsaveis.${index}.logradouro`, v.logradouro || "", { shouldValidate: true });
+      setValue(`responsaveis.${index}.numero`, v.numero || "", { shouldValidate: true });
+      setValue(`responsaveis.${index}.complemento`, v.complemento || "", { shouldValidate: true });
+      setValue(`responsaveis.${index}.bairro`, v.bairro || "", { shouldValidate: true });
+      setValue(`responsaveis.${index}.cidade`, v.cidade || "", { shouldValidate: true });
+      setValue(`responsaveis.${index}.uf`, v.uf || "", { shouldValidate: true });
+    },
+    [getValues, setValue],
+  );
 
   async function onSubmit(data: AlunoFormData) {
     try {
       if (isEditMode && alunoId) {
-        const alunoData = mapFormDataToAlunoPutRequest(data, alunoId);
-        await updateAluno.mutateAsync(alunoData);
+        await updateAluno.mutateAsync(mapFormDataToAlunoPutRequest(data, alunoId));
       } else {
-        const alunoData = mapFormDataToAlunoPostRequest(data);
-        await createAluno.mutateAsync(alunoData);
+        await createAluno.mutateAsync(mapFormDataToAlunoPostRequest(data));
       }
-
       router.push("/aluno/lista");
     } catch (error) {
       console.error("Erro ao salvar aluno:", error);
@@ -183,63 +770,16 @@ function AlunoPageContent() {
     router.push("/aluno/lista");
   }
 
-  const OPTIONS_UF: KeyValue[] = [
-    { key: "AC", value: "AC" },
-    { key: "AL", value: "AL" },
-    { key: "AP", value: "AP" },
-    { key: "AM", value: "AM" },
-    { key: "BA", value: "BA" },
-    { key: "CE", value: "CE" },
-    { key: "DF", value: "DF" },
-    { key: "ES", value: "ES" },
-    { key: "GO", value: "GO" },
-    { key: "MA", value: "MA" },
-    { key: "MT", value: "MT" },
-    { key: "MS", value: "MS" },
-    { key: "MG", value: "MG" },
-    { key: "PA", value: "PA" },
-    { key: "PB", value: "PB" },
-    { key: "PR", value: "PR" },
-    { key: "PE", value: "PE" },
-    { key: "PI", value: "PI" },
-    { key: "RJ", value: "RJ" },
-    { key: "RN", value: "RN" },
-    { key: "RS", value: "RS" },
-    { key: "RO", value: "RO" },
-    { key: "RR", value: "RR" },
-    { key: "SC", value: "SC" },
-    { key: "SP", value: "SP" },
-    { key: "SE", value: "SE" },
-    { key: "TO", value: "TO" },
-  ];
-  const OPTIONS_GENDER: KeyValue[] = [
-    { key: "masculino", value: "Masculino" },
-    { key: "feminino", value: "Feminino" },
-    { key: "outro", value: "Outro" },
-  ];
-  const OPTIONS_COR_RACA: KeyValue[] = [
-    { key: "branca", value: "Branca" },
-    { key: "preta", value: "Preta" },
-    { key: "parda", value: "Parda" },
-    { key: "amarela", value: "Amarela" },
-    { key: "indigena", value: "Indígena" },
-    { key: "outro", value: "Outro" },
-  ];
-  const OPTIONS_FINANCEIRO: KeyValue[] = [
-    { key: "true", value: "Sim" },
-    { key: "false", value: "Não" },
-  ];
-  const QUANTITY_COLLUMNS_DEFAULT = 3;
-
-  const handleAddResponsavel = () => {
+  function handleAddResponsavel() {
     if (responsaveisFields.length >= MAX_RESPONSAVEIS) return;
-
     appendResponsavel({
-      cpfResponsavel: "",
       nomeResponsavel: "",
-      telefoneResponsavel: "",
-      emailResponsavel: "",
+      cpfResponsavel: "",
       dataNascimentoResponsavel: "",
+      emailResponsavel: "",
+      telefones: [{ value: "" }],
+      financeiro: false,
+      mesmoEnderecoAluno: false,
       cep: "",
       logradouro: "",
       numero: "",
@@ -247,403 +787,309 @@ function AlunoPageContent() {
       bairro: "",
       cidade: "",
       uf: "",
-      financeiro: "" as unknown as boolean | undefined,
     });
-  };
+  }
+
+  const isSaving = createAluno.isPending || updateAluno.isPending;
+
+  if (loadingAluno && isEditMode) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (errorAluno && isEditMode) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Alert severity="error">{errorAluno}</Alert>
+      </Box>
+    );
+  }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {loadingAluno && isEditMode ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : errorAluno && isEditMode ? (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {errorAluno}
-        </Alert>
-      ) : (
-        <>
-          <PageTitle
-            title={isEditMode ? "Editar Aluno" : "Cadastro de Aluno"}
-            description="Preencha os dados abaixo para completar o cadastro no sistema"
-          />
-          <BrainFormProvider
-            methodsHookForm={methodsHookForm}
-            onSubmit={handleSubmit(onFormSubmit)}
+    <BrainFormCtx.Provider value={{ watch, setValue }}>
+      <Box sx={{ backgroundColor: "#F7F8FA", minHeight: "100%" }}>
+        <Box
+          sx={{
+            backgroundColor: "white",
+            borderBottom: "1px solid #E5E7EB",
+            px: 4,
+            py: 3,
+          }}
+        >
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "flex-start", md: "center" }}
+            spacing={2}
           >
-            {/* Seção Informações Pessoais */}
-            <ContainerSection
-              title="Informações Pessoais"
-              description="Dados básicos do aluno"
-              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-            >
-              <BrainTextFieldControlled
-                name="nomeCompleto"
-                control={control}
-                label="Nome Completo"
-                placeholder="Digite o nome completo"
-                required
-              />
-
-              <BrainTextFieldControlled
-                name="nomeSocial"
-                control={control}
-                label="Nome Social"
-                placeholder="Digite o nome social (opcional)"
-              />
-
-              <BrainTextFieldControlled
-                name="email"
-                control={control}
-                label="E-mail"
-                placeholder="exemplo@email.com"
-                type="email"
-                required
-              />
-
-              <BrainDateTextControlled
-                name="dataNascimento"
-                control={control}
-                label="Data de Nascimento"
-                required
-              />
-
-              <BrainDropdownControlled
-                name="genero"
-                control={control}
-                label="Gênero"
-                required
-                options={OPTIONS_GENDER}
-                placeholder="Selecione o gênero"
-              />
-
-              <BrainDropdownControlled
-                name="corRaca"
-                control={control}
-                label="Cor/Raça"
-                required
-                options={OPTIONS_COR_RACA}
-                placeholder="Selecione a cor/raça"
-              />
-
-              <BrainTextFieldControlled
-                name="cidadeNaturalidade"
-                control={control}
-                label="Cidade de Naturalidade"
-                placeholder="Digite a cidade de nascimento"
-                required
-              />
-
-              <BrainTextPhoneControlled
-                name="telefone"
-                control={control}
-                label="Telefone"
-                required
-              />
-            </ContainerSection>
-
-            {/* Seção Documentos */}
-            <ContainerSection
-              title="Documentos"
-              description="Informações de documentação"
-              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-            >
-              <BrainTextCPFControlled name="cpf" control={control} label="CPF" required={true} />
-
-              <BrainTextRGControlled name="rg" control={control} label="RG" required={true} />
-            </ContainerSection>
-
-            {/* Seção Endereço */}
-            <ContainerSection
-              title="Endereço"
-              description="Informações de localização"
-              numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
-            >
-              <Box sx={{ position: "relative", width: "100%" }}>
-                <BrainTextCEPControlled
-                  name="cep"
-                  control={control}
-                  label="CEP"
-                  required={true}
-                />
-                {buscandoCep && (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      right: 10,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                    }}
-                  >
-                    <CircularProgress size={20} />
-                  </Box>
-                )}
-              </Box>
-
-              <BrainTextFieldControlled
-                name="logradouro"
-                control={control}
-                label="Logradouro"
-                placeholder="Rua, Avenida, etc."
-                required
-              />
-
-              <BrainTextFieldControlled
-                name="numero"
-                control={control}
-                label="Número"
-                placeholder="Nº"
-                required
-              />
-
-              <BrainTextFieldControlled
-                name="complemento"
-                control={control}
-                label="Complemento"
-                placeholder="Apto, Bloco, etc. (opcional)"
-              />
-
-              <BrainTextFieldControlled
-                name="bairro"
-                control={control}
-                label="Bairro"
-                placeholder="Digite o bairro"
-                required
-              />
-
-              <BrainTextFieldControlled
-                name="cidade"
-                control={control}
-                label="Cidade"
-                placeholder="Digite a cidade"
-                required
-              />
-
-              <BrainDropdownControlled
-                name="uf"
-                control={control}
-                label="UF"
-                required
-                options={OPTIONS_UF}
-                placeholder="UF"
-              />
-            </ContainerSection>
-
-            {/* Seção Dados do Responsável (múltiplos, com Accordion) */}
-            <ContainerSection
-              title="Dados do Responsável"
-              description="Informações do responsável legal (opcional, até 5 responsáveis)"
-              numberOfCollumns={1}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  width: "100%",
-                  mb: 1,
-                }}
+            <Box>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <PersonIcon sx={{ color: "#101828" }} />
+                <Typography sx={{ fontWeight: 600, fontSize: 24, color: "#101828" }}>
+                  {isEditMode ? "Editar Aluno" : "Novo Aluno"}
+                </Typography>
+              </Stack>
+              <Typography sx={{ color: "#6A7282", fontSize: 16, mt: 0.5 }}>
+                Preencha todos os dados necessários para o cadastro do aluno
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <BrainButtonSecondary onClick={handleCancel} disabled={isSaving}>
+                Cancelar
+              </BrainButtonSecondary>
+              <BrainButtonPrimary
+                type="submit"
+                disabled={isSubmitting || isSaving}
+                onClick={handleSubmit(onFormSubmit)}
               >
-                <Typography variant="subtitle1">
-                  Responsáveis ({responsaveisFields.length}/{MAX_RESPONSAVEIS})
-                </Typography>
+                <SaveIcon sx={{ fontSize: 16, mr: 1 }} />
+                {isSaving ? "Salvando..." : "Salvar Aluno"}
+              </BrainButtonPrimary>
+            </Stack>
+          </Stack>
+        </Box>
 
-                <Button
-                  variant="contained"
-                  onClick={handleAddResponsavel}
-                  disabled={responsaveisFields.length >= MAX_RESPONSAVEIS}
-                >
-                  Adicionar responsável
-                </Button>
-              </Box>
-
-              {responsaveisFields.length === 0 && (
-                <Typography variant="body2" color="text.secondary">
-                  Nenhum responsável adicionado. Clique em &quot;Adicionar responsável&quot; para
-                  incluir um.
-                </Typography>
-              )}
-
-              {responsaveisFields.map((field, index) => (
-                <Accordion
-                  key={field.id}
-                  defaultExpanded={index === responsaveisFields.length - 1}
-                  sx={{ width: "100%", mt: 1 }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
-                    sx={{
-                      "& .MuiAccordionSummary-content": {
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        width: "100%",
-                      },
-                    }}
-                  >
-                    <Typography>Responsável {index + 1}</Typography>
+        <Box sx={{ p: { xs: 2, md: 4 } }}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", lg: "1fr 420px" },
+              gap: 3,
+              alignItems: "flex-start",
+            }}
+          >
+            <BrainFormProvider
+              methodsHookForm={methodsHookForm}
+              onSubmit={handleSubmit(onFormSubmit)}
+            >
+              <Stack spacing={3}>
+                <SectionCard icon={<PersonIcon />} title="Dados Pessoais">
+                  <Stack spacing={2}>
+                    <BrainTextFieldControlled
+                      name="nomeCompleto"
+                      control={control}
+                      label="Nome Completo"
+                      placeholder="Digite o nome completo"
+                      required
+                    />
+                    <BrainTextFieldControlled
+                      name="nomeSocial"
+                      control={control}
+                      label="Nome Social (Opcional)"
+                      placeholder="Nome social (se aplicável)"
+                    />
                     <Box
-                      component="div"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeResponsavel(index);
-                      }}
                       sx={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: "8px",
-                        borderRadius: "50%",
-                        cursor: "pointer",
-                        "&:hover": {
-                          backgroundColor: "action.hover",
-                        },
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                        gap: 2,
                       }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </Box>
-                  </AccordionSummary>
-
-                  <AccordionDetails>
-                    <ContainerSection
-                      title=""
-                      description=""
-                      numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
                     >
                       <BrainTextCPFControlled
-                        name={`responsaveis.${index}.cpfResponsavel`}
+                        name="cpf"
                         control={control}
-                        label="CPF do Responsável"
-                        required={true}
-                      />
-
-                      <BrainTextFieldControlled
-                        name={`responsaveis.${index}.nomeResponsavel`}
-                        control={control}
-                        label="Nome do Responsável"
-                        placeholder="Digite o nome completo"
+                        label="CPF"
                         required
                       />
-
-                      <BrainTextPhoneControlled
-                        name={`responsaveis.${index}.telefoneResponsavel`}
-                        control={control}
-                        label="Telefone do Responsável"
-                        required
-                      />
-
-                      <BrainTextFieldControlled
-                        name={`responsaveis.${index}.emailResponsavel`}
-                        control={control}
-                        label="E-mail do Responsável"
-                        placeholder="exemplo@email.com"
-                        type="email"
-                        required
-                      />
-
+                      <BrainTextRGControlled name="rg" control={control} label="RG" required />
+                    </Box>
+                    <BrainTextFieldControlled
+                      name="email"
+                      control={control}
+                      label="E-mail"
+                      placeholder="exemplo@email.com"
+                      type="email"
+                      required
+                    />
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                        gap: 2,
+                      }}
+                    >
                       <BrainDateTextControlled
-                        name={`responsaveis.${index}.dataNascimentoResponsavel`}
+                        name="dataNascimento"
                         control={control}
                         label="Data de Nascimento"
                         required
                       />
-
-                      {/* Endereço do Responsável */}
-                      <Box sx={{ position: "relative", width: "100%" }}>
-                        <BrainTextCEPControlled
-                          name={`responsaveis.${index}.cep`}
-                          control={control}
-                          label="CEP"
-                          required={true}
-                        />
-                        {buscandoCepResponsavel[index] && (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              right: 10,
-                              top: "50%",
-                              transform: "translateY(-50%)",
-                            }}
-                          >
-                            <CircularProgress size={20} />
-                          </Box>
-                        )}
-                      </Box>
-
-                      <BrainTextFieldControlled
-                        name={`responsaveis.${index}.logradouro`}
-                        control={control}
-                        label="Logradouro"
-                        placeholder="Rua, Avenida, etc."
-                        required
-                      />
-
-                      <BrainTextFieldControlled
-                        name={`responsaveis.${index}.numero`}
-                        control={control}
-                        label="Número"
-                        placeholder="Nº"
-                        required
-                      />
-
-                      <BrainTextFieldControlled
-                        name={`responsaveis.${index}.complemento`}
-                        control={control}
-                        label="Complemento"
-                        placeholder="Apto, Bloco, etc. (opcional)"
-                      />
-
-                      <BrainTextFieldControlled
-                        name={`responsaveis.${index}.bairro`}
-                        control={control}
-                        label="Bairro"
-                        placeholder="Digite o bairro"
-                        required
-                      />
-
-                      <BrainTextFieldControlled
-                        name={`responsaveis.${index}.cidade`}
-                        control={control}
-                        label="Cidade"
-                        placeholder="Digite a cidade"
-                        required
-                      />
-
                       <BrainDropdownControlled
-                        name={`responsaveis.${index}.uf`}
+                        name="genero"
                         control={control}
-                        label="UF"
+                        label="Gênero"
+                        options={OPTIONS_GENDER}
+                        placeholder="Selecione o gênero"
                         required
-                        options={OPTIONS_UF}
-                        placeholder="UF"
                       />
-
+                    </Box>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                        gap: 2,
+                      }}
+                    >
                       <BrainDropdownControlled
-                        name={`responsaveis.${index}.financeiro`}
+                        name="corRaca"
                         control={control}
-                        label="Financeiro"
-                        options={OPTIONS_FINANCEIRO}
+                        label="Cor/Raça"
+                        options={OPTIONS_COR_RACA}
                         placeholder="Selecione"
                       />
-                    </ContainerSection>
-                  </AccordionDetails>
-                </Accordion>
-              ))}
-            </ContainerSection>
+                      <BrainTextFieldControlled
+                        name="cidadeNaturalidade"
+                        control={control}
+                        label="Cidade de Naturalidade"
+                        placeholder="Ex.: Brasília"
+                      />
+                    </Box>
+                  </Stack>
+                </SectionCard>
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
-              <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
-              <BrainButtonPrimary
-                type="submit"
-                disabled={isSubmitting || createAluno.isPending || updateAluno.isPending}
-              >
-                {createAluno.isPending || updateAluno.isPending ? "Salvando..." : "Salvar"}
-              </BrainButtonPrimary>
+                <SectionCard icon={<ContactPhoneIcon />} title="Contato">
+                  <TelefonesArray control={control} name="telefones" />
+                </SectionCard>
+
+                <SectionCard icon={<LocationOnIcon />} title="Endereço">
+                  <Stack spacing={2}>
+                    <Box sx={{ maxWidth: { md: "50%" }, position: "relative" }}>
+                      <BrainTextCEPControlled
+                        name="cep"
+                        control={control}
+                        label="CEP"
+                        required
+                      />
+                      {buscandoCep && (
+                        <Box sx={{ position: "absolute", right: 10, top: "50%" }}>
+                          <CircularProgress size={18} />
+                        </Box>
+                      )}
+                    </Box>
+                    <BrainTextFieldControlled
+                      name="logradouro"
+                      control={control}
+                      label="Logradouro"
+                      required
+                    />
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                        gap: 2,
+                      }}
+                    >
+                      <BrainTextFieldControlled
+                        name="numero"
+                        control={control}
+                        label="Número"
+                        required
+                      />
+                      <BrainTextFieldControlled
+                        name="complemento"
+                        control={control}
+                        label="Complemento (Opcional)"
+                        placeholder="Apto, bloco, etc."
+                      />
+                    </Box>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+                        gap: 2,
+                      }}
+                    >
+                      <BrainTextFieldControlled
+                        name="bairro"
+                        control={control}
+                        label="Bairro"
+                        required
+                      />
+                      <BrainTextFieldControlled
+                        name="cidade"
+                        control={control}
+                        label="Cidade"
+                        required
+                      />
+                    </Box>
+                    <Box sx={{ maxWidth: { md: "50%" } }}>
+                      <BrainDropdownControlled
+                        name="uf"
+                        control={control}
+                        label="UF"
+                        options={OPTIONS_UF}
+                        placeholder="UF"
+                        required
+                      />
+                    </Box>
+                  </Stack>
+                </SectionCard>
+
+                <SectionCard
+                  icon={<FamilyRestroomIcon />}
+                  title="Responsáveis"
+                  action={
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<AddIcon />}
+                      onClick={handleAddResponsavel}
+                      disabled={responsaveisFields.length >= MAX_RESPONSAVEIS}
+                      sx={{
+                        borderColor: "#BEDBFF",
+                        backgroundColor: "#EFF6FF",
+                        color: "#155DFC",
+                        textTransform: "none",
+                        fontWeight: 500,
+                        "&:hover": { backgroundColor: "#dbeafe", borderColor: "#BEDBFF" },
+                      }}
+                    >
+                      Adicionar Responsável
+                    </Button>
+                  }
+                >
+                  {responsaveisFields.length === 0 ? (
+                    <Box
+                      sx={{
+                        border: "2px dashed #E5E7EB",
+                        borderRadius: 2.5,
+                        p: 4,
+                        textAlign: "center",
+                        color: "#6A7282",
+                        fontSize: 14,
+                      }}
+                    >
+                      Nenhum responsável cadastrado. Clique em &quot;Adicionar Responsável&quot;
+                      para incluir.
+                    </Box>
+                  ) : (
+                    <Stack spacing={2}>
+                      {responsaveisFields.map((field, index) => (
+                        <ResponsavelCard
+                          key={field.id}
+                          index={index}
+                          control={control}
+                          onRemove={() => removeResponsavel(index)}
+                          onCopiarEnderecoAluno={copiarEnderecoAluno}
+                          buscandoCep={!!buscandoCepResp[index]}
+                        />
+                      ))}
+                    </Stack>
+                  )}
+                </SectionCard>
+              </Stack>
+            </BrainFormProvider>
+
+            <Box sx={{ display: { xs: "none", lg: "block" } }}>
+              <PreviewPanel data={watchedData} />
             </Box>
-          </BrainFormProvider>
-        </>
-      )}
-    </Container>
+          </Box>
+        </Box>
+      </Box>
+    </BrainFormCtx.Provider>
   );
 }
 
@@ -651,11 +1097,9 @@ export default function AlunoPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        </Container>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <CircularProgress />
+        </Box>
       }
     >
       <AlunoPageContent />
