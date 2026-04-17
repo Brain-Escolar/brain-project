@@ -33,7 +33,7 @@ export interface MenuModule {
   roles: UserRoleEnum[];
 }
 
-const MODULE_CONFIG: Record<RoutesModuleEnum, { text: string; icon: React.JSX.Element }> = {
+export const MODULE_CONFIG: Record<RoutesModuleEnum, { text: string; icon: React.JSX.Element }> = {
   [RoutesModuleEnum.CADASTROS]: {
     text: "Cadastros",
     icon: <FolderIcon fontSize="small" />,
@@ -459,5 +459,39 @@ export function getRoutesWithoutModule(role: UserRoleEnum): RouteConfig[] {
       route.roles.includes(role) &&
       route.isShowMenu &&
       (route.moduleMenu === null || route.moduleMenu === undefined),
+  );
+}
+
+/**
+ * Encontra a RouteConfig mais adequada para um pathname.
+ * Tenta match exato primeiro; depois testa prefixos progressivamente menores
+ * para cobrir rotas dinâmicas (ex: /turma/123 → /turma).
+ */
+export function findRouteByPath(pathname: string): RouteConfig | undefined {
+  const exact = ROUTES.find((r) => r.router === pathname);
+  if (exact) return exact;
+
+  const segments = pathname.split("/").filter(Boolean);
+  for (let i = segments.length - 1; i > 0; i--) {
+    const prefix = "/" + segments.slice(0, i).join("/");
+    const match = ROUTES.find((r) => r.router === prefix);
+    if (match) return match;
+  }
+  return undefined;
+}
+
+/**
+ * Dada uma rota de detalhe (sem moduleMenu), tenta encontrar a rota-irmã
+ * "lista" que compartilha o mesmo primeiro segmento e tem moduleMenu definido.
+ */
+export function findListSibling(pathname: string): RouteConfig | undefined {
+  const firstSegment = pathname.split("/").filter(Boolean)[0];
+  if (!firstSegment) return undefined;
+
+  return ROUTES.find(
+    (r) =>
+      r.isShowMenu &&
+      r.moduleMenu != null &&
+      r.router.split("/").filter(Boolean)[0] === firstSegment,
   );
 }

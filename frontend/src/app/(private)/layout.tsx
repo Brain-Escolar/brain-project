@@ -1,6 +1,8 @@
 "use client";
 // import DrawnerMenu from "@/components/drawnerMenu/drawnerMenu";
 import AppBar from "@/components/appBar/appBar";
+import Breadcrumbs from "@/components/breadcrumbs";
+import { BreadcrumbProvider } from "@/contexts/BreadcrumbContext";
 import { DrawerProvider, useDrawer } from "@/contexts/DrawerContext";
 import { Toolbar } from "@mui/material";
 import Box from "@mui/material/Box";
@@ -29,6 +31,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
         }}
       >
         <Toolbar />
+        <Breadcrumbs />
         <S.Content>{children}</S.Content>
       </Box>
     </>
@@ -43,7 +46,9 @@ export default function PrivateLayout({
   return (
     <S.Container>
       <DrawerProvider>
-        <PrivateLayoutContent>{children}</PrivateLayoutContent>
+        <BreadcrumbProvider>
+          <PrivateLayoutContent>{children}</PrivateLayoutContent>
+        </BreadcrumbProvider>
       </DrawerProvider>
     </S.Container>
   );
