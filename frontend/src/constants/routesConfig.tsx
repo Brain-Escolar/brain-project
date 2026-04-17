@@ -381,7 +381,23 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
-  // ========== COMUM A TODOS ==========
+  {
+    text: RouteLabelsEnum.UNIDADE,
+    icon: <ClassIcon fontSize="small" />,
+    router: RoutesEnum.UNIDADE,
+    isShowMenu: false,
+    roles: [UserRoleEnum.ADMIN],
+    moduleMenu: RoutesModuleEnum.CADASTROS,
+  },
+  {
+    text: RouteLabelsEnum.UNIDADE_LISTA,
+    icon: <ClassIcon fontSize="small" />,
+    router: RoutesEnum.UNIDADE_LISTA,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ADMIN],
+    moduleMenu: RoutesModuleEnum.CADASTROS,
+  },
+
   {
     text: RouteLabelsEnum.PERFIL,
     icon: <PersonIcon fontSize="small" />,

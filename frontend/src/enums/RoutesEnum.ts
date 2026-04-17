@@ -78,4 +78,7 @@ export enum RoutesEnum {
   USUARIOS = "/usuarios",
   RELATORIOS = "/relatorios",
   CONFIGURACOES = "/configuracoes",
+
+  UNIDADE = "/unidade",
+  UNIDADE_LISTA = "/unidade/lista",
 }

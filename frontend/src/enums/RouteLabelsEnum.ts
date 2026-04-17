@@ -75,4 +75,7 @@ export enum RouteLabelsEnum {
   USUARIOS = "Usuários",
   RELATORIOS = "Relatórios",
   CONFIGURACOES = "Configurações",
+
+  UNIDADE = "Unidade",
+  UNIDADE_LISTA = "Unidades",
 }
