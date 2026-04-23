@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Backend",
+      "request": "launch",
+      "mainClass": "br.com.brain.BrainApplication",
+      "projectName": "brain",
+      "envFile": "${workspaceFolder}/backend/.env",
+      //"env": {
+      //  "SPRING_DATASOURCE_URL": "jdbc:postgresql://localhost:5432/escola"
+      //},
+      "vmArgs": "-Xmx512m"
+    }
+  ]
+}
