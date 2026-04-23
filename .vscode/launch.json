@@ -8,10 +8,28 @@
       "mainClass": "br.com.brain.BrainApplication",
       "projectName": "brain",
       "envFile": "${workspaceFolder}/backend/.env",
-      //"env": {
-      //  "SPRING_DATASOURCE_URL": "jdbc:postgresql://localhost:5432/escola"
-      //},
       "vmArgs": "-Xmx512m"
+    },
+    {
+      "type": "node",
+      "name": "Frontend",
+      "request": "launch",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "source ~/.nvm/nvm.sh && nvm use && npm run dev"],
+      "cwd": "${workspaceFolder}/frontend",
+      "envFile": "${workspaceFolder}/frontend/.env",
+      "console": "internalConsole",
+      "serverReadyAction": {
+        "pattern": "Local:\\s+(https?://\\S+)",
+        "uriFormat": "%s",
+        "action": "openExternally"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack",
+      "configurations": ["Backend", "Frontend"]
     }
   ]
 }
