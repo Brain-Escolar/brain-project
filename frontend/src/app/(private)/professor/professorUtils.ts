@@ -22,10 +22,11 @@ function buildDependentes(formData: ProfessorFormData) {
     return undefined;
   }
   return formData.dependentes.map((dep) => ({
-    nomeCompleto: dep.nomeCompleto,
+    nome: dep.nomeCompleto,
     cpf: unmaskCPF(dep.cpf),
     dataDeNascimento: convertDateStringToISO(dep.dataNascimento),
-    parentesco: dep.parentesco,
+    grauParentesco: dep.parentesco,
+    possuiDeficiencia: false,
   }));
 }
 

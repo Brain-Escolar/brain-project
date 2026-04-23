@@ -18,10 +18,11 @@ export interface ProfessorDadosBancariosRequest {
   chavePix: string;
 }
 export interface ProfessorDependenteRequest {
-  nomeCompleto: string;
+  nome: string;
   cpf: string;
   dataDeNascimento: string;
-  parentesco: string;
+  grauParentesco: string;
+  possuiDeficiencia: boolean;
 }
 export interface ProfessorPostRequest {
   cpf: string;
