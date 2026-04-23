@@ -53,8 +53,10 @@ public class ProfessorService {
 
         repository.save(professor);
 
-        for (var dependente : dados.dependentes()) {
-            dependenteService.cadastrarDependente(dadosPessoais.getId(), dependente);
+        if (dados.dependentes() != null) {
+            for (var dependente : dados.dependentes()) {
+                dependenteService.cadastrarDependente(dadosPessoais.getId(), dependente);
+            }
         }
         return professor;
     }

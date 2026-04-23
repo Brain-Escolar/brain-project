@@ -3,6 +3,7 @@ package br.com.brain.exception;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -106,6 +107,16 @@ public class TratadorDeErros {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiError.of("ERRO_INTERNO", ex.getMessage(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
+        log.warn("Violação de integridade em {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiError.of("CONFLITO_DE_DADOS",
+                        "Registro já existe ou viola uma restrição de integridade",
+                        request.getRequestURI()));
     }
 
     @ExceptionHandler(Exception.class)

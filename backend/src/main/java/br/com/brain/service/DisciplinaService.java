@@ -28,8 +28,14 @@ public class DisciplinaService {
     @Transactional
     public Disciplina cadastrarDisciplina(CadastroDisciplinaDto dados) {
 
-        GrupoDisciplina grupo = em.getReference(GrupoDisciplina.class, dados.grupoId());
-        Serie serie = em.getReference(Serie.class, dados.serieId());
+        GrupoDisciplina grupo = em.find(GrupoDisciplina.class, dados.grupoId());
+        if (grupo == null) {
+            throw ErrosSistema.RecursoNaoEncontradoException.para("GrupoDisciplina", dados.grupoId());
+        }
+        Serie serie = em.find(Serie.class, dados.serieId());
+        if (serie == null) {
+            throw ErrosSistema.RecursoNaoEncontradoException.para("Serie", dados.serieId());
+        }
 
         var disciplina = new Disciplina();
         disciplina.setNome(dados.nome());
@@ -55,14 +61,16 @@ public class DisciplinaService {
             disciplina.setNome(dados.nome());
         }
         if (dados.serieId() != null) {
-            Serie serie = em.getReference(Serie.class, dados.serieId());
+            Serie serie = em.find(Serie.class, dados.serieId());
+            if (serie == null) throw ErrosSistema.RecursoNaoEncontradoException.para("Serie", dados.serieId());
             disciplina.setSerie(serie);
         }
         if (dados.cargaHoraria() != 0) {
             disciplina.setCargaHoraria(dados.cargaHoraria());
         }
         if (dados.grupoId() != null) {
-            GrupoDisciplina grupo = em.getReference(GrupoDisciplina.class, dados.grupoId());
+            GrupoDisciplina grupo = em.find(GrupoDisciplina.class, dados.grupoId());
+            if (grupo == null) throw ErrosSistema.RecursoNaoEncontradoException.para("GrupoDisciplina", dados.grupoId());
             disciplina.setGrupo(grupo);
         }
 
