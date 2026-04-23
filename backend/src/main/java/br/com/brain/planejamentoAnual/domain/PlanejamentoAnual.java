@@ -1,0 +1,32 @@
+package br.com.brain.planejamentoAnual.domain;
+
+import br.com.brain.shared.domain.EntidadeBase;
+import br.com.brain.shared.arquivo.Arquivo;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hibernate.envers.Audited;
+
+@Entity
+@Audited
+@Table(name = "planejamentos_anuais")
+@Data
+@EqualsAndHashCode(callSuper = false)
+public class PlanejamentoAnual extends EntidadeBase {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Integer ano;
+
+    @OneToOne
+    @JoinColumn(name = "arquivo_id")
+    private Arquivo arquivo;
+}

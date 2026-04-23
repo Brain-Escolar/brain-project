@@ -1,0 +1,25 @@
+package br.com.brain.responsavel.dtos;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import br.com.brain.shared.endereco.EnderecoDto;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+
+public record CadastroResponsavelDto(
+        @NotBlank @Pattern(regexp = "\\d{11}") String cpf,
+        
+        @NotBlank String nome,
+
+        @NotBlank @Email String email,
+
+        @NotNull LocalDate dataDeNascimento,
+        @NotNull @Valid EnderecoDto endereco,
+
+        Boolean financeiro,
+        List<String> telefones) {
+}
