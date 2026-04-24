@@ -10,9 +10,10 @@ import br.com.brain.shared.enums.PerfilNome;
 import br.com.brain.shared.exception.ErrosSistema;
 import br.com.brain.shared.infra.multitenancy.TenantContext;
 import br.com.brain.shared.infra.multitenancy.TenantFlywayMigrationService;
+import br.com.brain.usuario.services.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.domain.JdbcTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

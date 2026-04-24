@@ -8,6 +8,8 @@ import br.com.brain.responsavel.dtos.AtualizacaoResponsavelDto;
 import br.com.brain.responsavel.dtos.CadastroResponsavelDto;
 import br.com.brain.responsavel.dtos.ListagemResponsavelDto;
 import br.com.brain.shared.exception.ErrosSistema;
+import br.com.brain.dadosPessoais.services.DadosPessoaisService;
+import br.com.brain.shared.endereco.EnderecoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;

@@ -11,6 +11,7 @@ import br.com.brain.anotacao.dtos.CadastroAnotacaoDto;
 import br.com.brain.anotacao.dtos.AnotacaoAlunoDisciplinaDto;
 import br.com.brain.anotacao.dtos.ListagemAnotacaoDto;
 import br.com.brain.shared.exception.ErrosSistema;
+import br.com.brain.chamada.services.ChamadaService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;

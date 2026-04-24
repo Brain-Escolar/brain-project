@@ -27,8 +27,8 @@ import lombok.Setter;
 
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
-import org.springframework.security.domain.GrantedAuthority;
-import org.springframework.security.domain.userdetails.UserDetails;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Table(name = "dados_autenticacao")
 @Entity(name = "DadosAutenticacao")

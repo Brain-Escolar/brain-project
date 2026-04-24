@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
-import org.springframework.security.domain.GrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 
 @Entity
 @Audited

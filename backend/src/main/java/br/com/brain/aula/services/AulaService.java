@@ -12,6 +12,7 @@ import br.com.brain.aula.dtos.CadastroAulaDto;
 import br.com.brain.aula.dtos.ListagemAulaDto;
 import br.com.brain.aula.dtos.ProximaAulaDto;
 import br.com.brain.shared.exception.ErrosSistema;
+import br.com.brain.aluno.services.AlunoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;

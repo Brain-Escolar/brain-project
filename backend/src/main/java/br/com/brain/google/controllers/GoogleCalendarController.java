@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-import org.springframework.security.domain.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 

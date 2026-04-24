@@ -15,6 +15,9 @@ import br.com.brain.relatorio.dtos.FiltroRelatorioDto;
 import br.com.brain.relatorio.dtos.FiltroSerieDto;
 import br.com.brain.relatorio.dtos.FiltroTurmaDto;
 import br.com.brain.relatorio.dtos.FiltroUnidadeDto;
+import br.com.brain.aula.services.AulaService;
+import br.com.brain.professor.services.ProfessorService;
+import br.com.brain.usuario.services.UsuarioService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 

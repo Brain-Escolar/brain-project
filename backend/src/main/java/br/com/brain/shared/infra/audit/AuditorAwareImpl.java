@@ -2,7 +2,7 @@ package br.com.brain.shared.infra.audit;
 
 import br.com.brain.autenticacao.domain.DadosAutenticacao;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.security.domain.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;

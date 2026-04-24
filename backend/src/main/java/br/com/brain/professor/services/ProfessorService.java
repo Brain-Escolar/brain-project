@@ -8,6 +8,8 @@ import br.com.brain.professor.dtos.AtualizacaoProfessorDto;
 import br.com.brain.professor.dtos.CadastroProfessorDto;
 import br.com.brain.professor.dtos.ListagemProfessorDto;
 import br.com.brain.shared.exception.ErrosSistema;
+import br.com.brain.shared.dependente.DependenteService;
+import br.com.brain.shared.endereco.EnderecoService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
