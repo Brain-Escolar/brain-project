@@ -34,8 +34,24 @@ public class GradeCurricularService {
 
         var gradeCurricular = new GradeCurricular();
         gradeCurricular.setNome(dados.nome());
+        gradeCurricular.setVersao(dados.versao());
+        gradeCurricular.setAtivo(dados.ativo() != null ? dados.ativo() : true);
 
         repository.save(gradeCurricular);
+
+        if (dados.disciplinaIds() != null && !dados.disciplinaIds().isEmpty()) {
+            dados.disciplinaIds().forEach(disciplinaId -> {
+                var disciplina = em.find(Disciplina.class, disciplinaId);
+                if (disciplina != null) {
+                    var disciplinaGrade = new DisciplinaGrade();
+                    disciplinaGrade.setDisciplina(disciplina);
+                    disciplinaGrade.setGradeCurricular(gradeCurricular);
+                    disciplinaGrade.setCargaHoraria(0);
+                    disciplinaGrade.setObrigatoria(false);
+                    disciplinaGradeRepository.save(disciplinaGrade);
+                }
+            });
+        }
 
         return gradeCurricular;
     }
