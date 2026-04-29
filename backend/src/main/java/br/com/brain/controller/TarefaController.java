@@ -69,4 +69,5 @@ public class TarefaController {
         var page = service.recuperarTarefasProfessor(professor.getId(), paginacao);
         return ResponseEntity.ok(page);
     }
+
 }

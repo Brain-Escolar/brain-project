@@ -8,16 +8,20 @@ import br.com.brain.dto.aula.CadastroAulaDto;
 import br.com.brain.dto.aula.ListagemAulaDto;
 import br.com.brain.dto.aula.ProximaAulaDto;
 import br.com.brain.dto.aula.AulaAtualDto;
+import br.com.brain.dto.tarefa.ListagemTarefaDto;
 import br.com.brain.service.AnotacaoService;
 import br.com.brain.service.AulaService;
+import br.com.brain.service.TarefaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -29,6 +33,7 @@ public class AulaController {
 
     private final AulaService service;
     private final AnotacaoService anotacaoService;
+    private final TarefaService tarefaService;
 
     @PostMapping
     public ResponseEntity<ListagemAulaDto> cadastrar(
@@ -45,6 +50,12 @@ public class AulaController {
             @PageableDefault(size = 10, sort = { "turma" }) Pageable paginacao) {
         var page = service.listar(paginacao);
         return ResponseEntity.ok(page);
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<ListagemAulaDto> detalhar(@PathVariable("id") Long id) {
+        var aula = service.detalhar(id);
+        return ResponseEntity.ok(new ListagemAulaDto(aula));
     }
 
     @PutMapping("/{id}")
@@ -74,5 +85,17 @@ public class AulaController {
             @RequestBody @Valid AulaAtualDto dados) {
         var proximaAula = service.recuperarProximaAula(aulaId, dados.data(), dados.horario());
         return ResponseEntity.ok(proximaAula);
+    }
+
+    @GetMapping("{id}/tarefas")
+    public ResponseEntity<List<ListagemTarefaDto>> listarTarefas(
+            @PathVariable("id") Long aulaId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        return ResponseEntity.ok(tarefaService.listarTarefasPorAula(aulaId, data));
+    }
+
+    @GetMapping("{id}/tarefas/datas")
+    public ResponseEntity<List<String>> listarDatasComTarefas(@PathVariable("id") Long aulaId) {
+        return ResponseEntity.ok(tarefaService.listarDatasComTarefas(aulaId));
     }
 }

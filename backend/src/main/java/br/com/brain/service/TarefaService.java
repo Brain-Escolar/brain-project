@@ -1,5 +1,6 @@
 package br.com.brain.service;
 
+import br.com.brain.domain.aula.AulaRepository;
 import br.com.brain.domain.professor.Professor;
 import br.com.brain.domain.tarefa.Tarefa;
 import br.com.brain.domain.turma.Turma;
@@ -14,6 +15,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 public class TarefaService {
 
     private final TarefaRepository repository;
+    private final AulaRepository aulaRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -101,5 +104,19 @@ public class TarefaService {
     public Page<ListagemTarefaDto> recuperarTarefasProfessor(Long id, Pageable paginacao) {
         var hoje = LocalDate.now();
         return repository.findByProfessorIdAndPrazoAfter(id, hoje, paginacao).map(ListagemTarefaDto::new);
+    }
+
+    public List<ListagemTarefaDto> listarTarefasPorAula(Long aulaId, LocalDate data) {
+        var aula = aulaRepository.findById(aulaId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
+        return repository.findByTurmaIdAndPrazo(aula.getTurma().getId(), data)
+                .stream().map(ListagemTarefaDto::new).toList();
+    }
+
+    public List<String> listarDatasComTarefas(Long aulaId) {
+        var aula = aulaRepository.findById(aulaId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
+        return repository.findDistinctPrazoByTurmaId(aula.getTurma().getId())
+                .stream().map(LocalDate::toString).toList();
     }
 }
