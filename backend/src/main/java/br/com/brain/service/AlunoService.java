@@ -167,4 +167,9 @@ public class AlunoService {
     public List<Aluno> recuperarAlunosPorUnidadeSerieTurma(Long unidadeId, Long serieId, Long turmaId) {
         return repository.findByUnidadeIdAndSerieIdAndTurmaIdAndMatriculadoTrue(unidadeId, serieId, turmaId);
     }
+
+    public Aluno recuperarAlunoPorDadosPessoais(Long dadosPessoaisId) {
+        return repository.findByDadosPessoaisId(dadosPessoaisId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", dadosPessoaisId));
+    }
 }

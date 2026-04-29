@@ -8,6 +8,7 @@ import br.com.brain.domain.tarefa.TarefaRepository;
 import br.com.brain.dto.tarefa.AtualizacaoTarefaDto;
 import br.com.brain.dto.tarefa.CadastroTarefaDto;
 import br.com.brain.dto.tarefa.ListagemTarefaDto;
+import br.com.brain.dto.tarefa.ListagemTarefaAlunoDto;
 import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -118,5 +119,11 @@ public class TarefaService {
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
         return repository.findDistinctPrazoByTurmaId(aula.getTurma().getId())
                 .stream().map(LocalDate::toString).toList();
+    }
+
+    public Page<ListagemTarefaAlunoDto> recuperarTarefasAluno(Long turmaId, Pageable paginacao) {
+        var hoje = LocalDate.now();
+        return repository.findByTurmaIdAndPrazoGreaterThanEqual(turmaId, hoje, paginacao)
+                .map(ListagemTarefaAlunoDto::new);
     }
 }

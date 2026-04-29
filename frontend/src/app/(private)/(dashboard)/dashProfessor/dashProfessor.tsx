@@ -11,7 +11,7 @@ export default function DashProfessorPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <PageTitle title={` Bem-vindo, Professor ${user?.email}!`} />
+      <PageTitle title={` Bem-vindo, Professor ${user?.name}!`} />
 
       <LayoutColumns sizeLeft="70%" sizeRight="30%">
         <SectionMinhasAulas />

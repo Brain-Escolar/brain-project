@@ -16,6 +16,8 @@ import br.com.brain.domain.turma.Turma;
 public interface AulaRepository extends JpaRepository<Aula, Long> {
     Page<Aula> findByProfessorIdAndDiaSemana(Long professorId, DayOfWeek diaSemana, Pageable pageable);
 
+    Page<Aula> findByTurmaIdAndDiaSemana(Long turmaId, DayOfWeek diaSemana, Pageable pageable);
+
     @Query("""
                 SELECT aula.disciplina
                 FROM Aula aula

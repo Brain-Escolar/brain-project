@@ -11,7 +11,7 @@ export default function AdminPage() {
       <PageTitle title="Dashboard do Administrador" />
 
       <Typography variant="h4" component="h1" gutterBottom>
-        Bem-vindo, Admin {user?.email}!
+        Bem-vindo, Admin {user?.name}!
       </Typography>
     </Container>
   );

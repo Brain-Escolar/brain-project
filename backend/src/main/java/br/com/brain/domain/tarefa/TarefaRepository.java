@@ -18,4 +18,5 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     @Query("SELECT DISTINCT t.prazo FROM Tarefa t WHERE t.turma.id = :turmaId ORDER BY t.prazo")
     List<LocalDate> findDistinctPrazoByTurmaId(@Param("turmaId") Long turmaId);
 
+    Page<Tarefa> findByTurmaIdAndPrazoGreaterThanEqual(Long turmaId, LocalDate hoje, Pageable paginacao);
 }

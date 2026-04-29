@@ -17,8 +17,10 @@ import { AvaliacaoApi } from "./domains/avaliacao";
 import { NotaApi } from "./domains/notas";
 import { PlanejamentoAnualAPI } from "./domains/planejamento-anual";
 import { GradeCurricularApi } from "./domains/grade-curricular";
+import { EstudanteApi } from "./domains/estudante";
 
 export const alunoApi = new AlunoApi();
+export const estudanteApi = new EstudanteApi();
 export const aulaApi = new AulaApi();
 export const loginApi = new LoginAPI();
 export const professorApi = new ProfessorApi();

@@ -57,7 +57,7 @@ function canAccessRoute(userRole: UserRoleEnum, route: string): boolean {
 function getDefaultRoute(userRole: UserRoleEnum): string {
   switch (userRole) {
     case "ESTUDANTE":
-      return "/aluno";
+      return "/";
     case "PROFESSOR":
       return "/";
     case "ADMIN":

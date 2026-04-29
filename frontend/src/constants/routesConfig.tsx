@@ -51,7 +51,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.HOME_ESTUDANTE,
     icon: <DashboardIcon fontSize="small" />,
-    router: RoutesEnum.HOME_ESTUDANTE,
+    router: RoutesEnum.HOME,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
   },
@@ -193,7 +193,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.AULAS,
     icon: <ClassIcon fontSize="small" />,
-    router: RoutesEnum.AULA_CADASTROS_DETALHE,
+    router: RoutesEnum.AULAS_DETALHE,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -392,7 +392,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.AULAS,
     icon: <ClassIcon fontSize="small" />,
-    router: RoutesEnum.AULA_CADASTROS,
+    router: RoutesEnum.AULA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },

@@ -10,12 +10,15 @@ import br.com.brain.dto.anotacao.AtualizacaoAnotacaoDto;
 import br.com.brain.dto.anotacao.CadastroAnotacaoDto;
 import br.com.brain.dto.anotacao.AnotacaoAlunoDisciplinaDto;
 import br.com.brain.dto.anotacao.ListagemAnotacaoDto;
+import br.com.brain.dto.anotacao.ListagemAnotacaoSemanaDto;
 import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -110,6 +113,16 @@ public class AnotacaoService {
     public List<AnotacaoAlunoDisciplinaDto> buscarPorAlunoEDisciplina(Long alunoId, Long disciplinaId) {
         return repository.findByDisciplinaIdAndAlunoId(disciplinaId, alunoId).stream()
                 .map(AnotacaoAlunoDisciplinaDto::new)
+                .toList();
+    }
+
+    public List<ListagemAnotacaoSemanaDto> recuperarAnotacoesSemana(Long alunoId) {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioDaSemana = hoje.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate fimDaSemana = hoje.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        return repository.findByAlunoIdAndDataAnotacaoBetween(alunoId, inicioDaSemana, fimDaSemana)
+                .stream()
+                .map(ListagemAnotacaoSemanaDto::new)
                 .toList();
     }
 }

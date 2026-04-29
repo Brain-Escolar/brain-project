@@ -1,6 +1,7 @@
 package br.com.brain.service;
 
 import br.com.brain.domain.aluno.Aluno;
+import br.com.brain.domain.aluno.AlunoRepository;
 import br.com.brain.domain.aula.Aula;
 import br.com.brain.domain.aula.AulaRepository;
 import br.com.brain.domain.disciplina.Disciplina;
@@ -9,6 +10,7 @@ import br.com.brain.domain.professor.Professor;
 import br.com.brain.domain.turma.Turma;
 import br.com.brain.dto.aula.AtualizacaoAulaDto;
 import br.com.brain.dto.aula.CadastroAulaDto;
+import br.com.brain.dto.aula.ListagemAulaAlunoDto;
 import br.com.brain.dto.aula.ListagemAulaDto;
 import br.com.brain.dto.aula.ProximaAulaDto;
 import br.com.brain.exception.ErrosSistema;
@@ -34,6 +36,8 @@ public class AulaService {
     private final AulaRepository repository;
 
     private final AlunoService alunoService;
+
+    private final AlunoRepository alunoRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -109,6 +113,17 @@ public class AulaService {
         }
         var diaSemana = data.getDayOfWeek();
         return repository.findByProfessorIdAndDiaSemana(professorId, diaSemana, paginacao).map(ListagemAulaDto::new);
+    }
+
+    public Page<ListagemAulaAlunoDto> recuperarAulasPeloAlunoEData(Long turmaId, LocalDate data,
+            Pageable paginacao) {
+        if (data == null) {
+            throw new ErrosSistema.DataInvalidaException("Data não pode ser nula.");
+        }
+        var diaSemana = data.getDayOfWeek();
+        long quantidadeAlunos = alunoRepository.countByTurmaIdAndMatriculadoTrue(turmaId);
+        return repository.findByTurmaIdAndDiaSemana(turmaId, diaSemana, paginacao)
+                .map(aula -> new ListagemAulaAlunoDto(aula, quantidadeAlunos));
     }
 
     public List<Aluno> recuperarAlunos(Long id) {
