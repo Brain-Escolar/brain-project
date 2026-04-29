@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToSeriePostRequest,
   mapFormDataToSeriePutRequest,
@@ -17,7 +18,7 @@ import { Alert, Box, CircularProgress, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { Suspense, useEffect } from "react";
-import { serieDefaultValues, SerieFormData, serieSchema } from "./schema";
+import { serieDefaultValues, SerieFormData, serieSchema } from "../schema";
 
 function SeriePageContent() {
   const router = useRouter();
@@ -53,14 +54,14 @@ function SeriePageContent() {
         await createSerie.mutateAsync(serieData);
       }
 
-      router.push("/serie/lista");
+      router.push(RoutesEnum.SERIE_LISTA);
     } catch (error) {
       console.error("Erro ao salvar série:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/serie/lista");
+    router.push(RoutesEnum.SERIE_LISTA);
   }
 
   const QUANTITY_COLLUMNS_DEFAULT = 1;

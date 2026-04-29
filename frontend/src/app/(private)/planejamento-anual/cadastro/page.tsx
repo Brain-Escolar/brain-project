@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { mapFormDataToPlanejamentoAnualRequest } from "@/app/(private)/planejamento-anual/planejamentoAnualUtils";
 import { usePlanejamentoAnualMutations } from "@/app/(private)/planejamento-anual/usePlanejamentoAnualMutations";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
@@ -23,7 +24,7 @@ import {
   planejamentoAnualDefaultValues,
   PlanejamentoAnualFormData,
   planejamentoAnualSchema,
-} from "./schema";
+} from "../schema";
 import { Controller } from "react-hook-form";
 
 export default function PlanejamentoAnualCadastroPage() {
@@ -53,14 +54,14 @@ export default function PlanejamentoAnualCadastroPage() {
     try {
       const planejamentoData = mapFormDataToPlanejamentoAnualRequest(data);
       await createPlanejamentoAnual.mutateAsync(planejamentoData);
-      router.push("/planejamento-anual/lista");
+      router.push(RoutesEnum.PLANEJAMENTO_ANUAL_LISTA);
     } catch (error) {
       console.error("Erro ao salvar planejamento anual:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/planejamento-anual/lista");
+    router.push(RoutesEnum.PLANEJAMENTO_ANUAL_LISTA);
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

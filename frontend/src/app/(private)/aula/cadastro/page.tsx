@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToAulaPostRequest,
   mapFormDataToAulaPutRequest,
@@ -21,7 +22,7 @@ import { useHorariosDropdown } from "@/hooks/useHorarios";
 import { Alert, Box, CircularProgress, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useMemo } from "react";
-import { aulaDefaultValues, AulaFormData, aulaSchema } from "./schema";
+import { aulaDefaultValues, AulaFormData, aulaSchema } from "../schema";
 import { KeyValue } from "@/services/models/keyValue";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 
@@ -65,14 +66,14 @@ function AulaPageContent() {
         await createAula.mutateAsync(aulaData);
       }
 
-      router.push("/aula/lista");
+      router.push(RoutesEnum.AULA_LISTA);
     } catch (error) {
       console.error("Erro ao salvar aula:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/aula/lista");
+    router.push(RoutesEnum.AULA_LISTA);
   }
 
   // Opções para os dropdowns

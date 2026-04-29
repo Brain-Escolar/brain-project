@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useAlunoMutations } from "@/app/(private)/aluno/useAlunoMutations";
 import { useState } from "react";
@@ -40,7 +41,7 @@ export default function ListaAlunoPage() {
   } | null>(null);
 
   const handleEditAluno = (alunoId: string) => {
-    router.push(`/aluno?id=${alunoId}`);
+    router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${alunoId}`);
   };
 
   const handleDeleteAluno = (alunoId: string, alunoNome: string) => {
@@ -67,7 +68,7 @@ export default function ListaAlunoPage() {
   };
 
   const handleNewAluno = () => {
-    router.push("/aluno");
+    router.push(RoutesEnum.ALUNO_CADASTRO);
   };
 
   return (

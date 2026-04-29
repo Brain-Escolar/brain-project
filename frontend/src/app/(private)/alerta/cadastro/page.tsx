@@ -1,10 +1,10 @@
 "use client";
 import {
-  mapFormDataToTarefaPostRequest,
-  mapFormDataToTarefaPutRequest,
-  mapTarefaResponseToFormData,
-} from "@/app/(private)/tarefa/tarefaUtils";
-import { useTarefaMutations } from "@/app/(private)/tarefa/useTarefaMutations";
+  mapFormDataToAlertaPostRequest,
+  mapFormDataToAlertaPutRequest,
+  mapAlertaResponseToFormData,
+} from "@/app/(private)/alerta/alertaUtils";
+import { useAlertaMutations } from "@/app/(private)/alerta/useAlertaMutations";
 import { RoutesEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
@@ -14,116 +14,114 @@ import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFo
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
 import { useBrainForm } from "@/hooks/useBrainForm";
-import { useTarefa } from "@/hooks/useTarefa";
+import { useAlerta } from "@/hooks/useAlerta";
 import { Alert, Box, CircularProgress, Container } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
-import { tarefaDefaultValues, TarefaFormData, tarefaSchema } from "./schema";
+import { alertaDefaultValues, AlertaFormData, alertaSchema } from "../schema";
 
-function TarefaPageContent() {
+function AlertaPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tarefaId = searchParams.get("id");
+  const alertaId = searchParams.get("id");
 
-  const { tarefa, loading: loadingTarefa, error: errorTarefa } = useTarefa(tarefaId);
-  const { createTarefa, updateTarefa } = useTarefaMutations();
+  const { alerta, loading: loadingAlerta, error: errorAlerta } = useAlerta(alertaId);
+  const { createAlerta, updateAlerta } = useAlertaMutations();
 
-  const isEditMode = !!tarefaId;
+  const isEditMode = !!alertaId;
 
   const { control, handleSubmit, onFormSubmit, isSubmitting, reset, methodsHookForm } =
-    useBrainForm<TarefaFormData>({
-      schema: tarefaSchema,
-      defaultValues: tarefaDefaultValues,
+    useBrainForm<AlertaFormData>({
+      schema: alertaSchema,
+      defaultValues: alertaDefaultValues,
       onSubmit: onSubmit,
       mode: "all",
     });
 
-  // Buscar tarefa se estiver em modo de edição
+  // Buscar alerta se estiver em modo de edição
   useEffect(() => {
-    if (tarefa && isEditMode) {
-      const formData = mapTarefaResponseToFormData(tarefa);
+    if (alerta && isEditMode) {
+      const formData = mapAlertaResponseToFormData(alerta);
       reset(formData);
     }
-  }, [tarefa, isEditMode, reset]);
+  }, [alerta, isEditMode, reset]);
 
-  async function onSubmit(data: TarefaFormData) {
+  async function onSubmit(data: AlertaFormData) {
     try {
-      if (isEditMode && tarefaId) {
-        const tarefaData = mapFormDataToTarefaPutRequest(data, tarefaId);
-        await updateTarefa.mutateAsync(tarefaData);
+      if (isEditMode && alertaId) {
+        const alertaData = mapFormDataToAlertaPutRequest(data, alertaId);
+        await updateAlerta.mutateAsync(alertaData);
       } else {
-        const tarefaData = mapFormDataToTarefaPostRequest(data);
-        await createTarefa.mutateAsync(tarefaData);
+        const alertaData = mapFormDataToAlertaPostRequest(data);
+        await createAlerta.mutateAsync(alertaData);
       }
 
-      router.push(RoutesEnum.TAREFA_LISTA);
+      router.push(RoutesEnum.ALERTA_LISTA);
     } catch (error) {
-      console.error("Erro ao salvar tarefa:", error);
+      console.error("Erro ao salvar alerta:", error);
     }
   }
 
   function handleCancel() {
-    router.push(RoutesEnum.TAREFA_LISTA);
+    router.push(RoutesEnum.ALERTA_LISTA);
   }
 
   const QUANTITY_COLLUMNS_DEFAULT = 3;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {loadingTarefa && isEditMode ? (
+      {loadingAlerta && isEditMode ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
         </Box>
-      ) : errorTarefa && isEditMode ? (
+      ) : errorAlerta && isEditMode ? (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {errorTarefa}
+          {errorAlerta}
         </Alert>
       ) : (
         <>
           <PageTitle
-            title={isEditMode ? "Editar Tarefa" : "Cadastro de Tarefa"}
+            title={isEditMode ? "Editar Alerta" : "Cadastro de Alerta"}
             description="Preencha os dados abaixo para completar o cadastro no sistema"
           />
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
           >
-            {/* Seção Informações da Tarefa */}
+            {/* Seção Informações do Alerta */}
             <ContainerSection
-              title="Informações da Tarefa"
-              description="Dados básicos da tarefa"
+              title="Informações do Alerta"
+              description="Dados básicos do alerta"
               numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
             >
               <BrainTextFieldControlled
                 name="titulo"
                 control={control}
                 label="Título"
-                placeholder="Digite o título da tarefa"
+                placeholder="Digite o título do alerta"
                 required
               />
 
-              <BrainDateTextControlled name="prazo" control={control} label="Prazo" required />
-
-              <BrainTextFieldControlled
-                name="documentoUrl"
+              <BrainDateTextControlled
+                name="data"
                 control={control}
-                label="URL do Documento"
-                placeholder="https://exemplo.com/documento"
-                type="url"
+                label="Data de Publicação"
+                required
               />
             </ContainerSection>
 
             {/* Seção Conteúdo */}
             <ContainerSection
               title="Conteúdo"
-              description="Descrição detalhada da tarefa"
+              description="Descrição detalhada do alerta"
               numberOfCollumns={1}
             >
               <BrainTextFieldControlled
                 name="conteudo"
                 control={control}
                 label="Conteúdo"
-                placeholder="Digite o conteúdo da tarefa (opcional)"
+                placeholder="Digite o conteúdo do alerta"
+                required
                 multiline
                 rows={6}
               />
@@ -133,9 +131,9 @@ function TarefaPageContent() {
               <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
               <BrainButtonPrimary
                 type="submit"
-                disabled={isSubmitting || createTarefa.isPending || updateTarefa.isPending}
+                disabled={isSubmitting || createAlerta.isPending || updateAlerta.isPending}
               >
-                {createTarefa.isPending || updateTarefa.isPending ? "Salvando..." : "Salvar"}
+                {createAlerta.isPending || updateAlerta.isPending ? "Salvando..." : "Salvar"}
               </BrainButtonPrimary>
             </Box>
           </BrainFormProvider>
@@ -145,7 +143,7 @@ function TarefaPageContent() {
   );
 }
 
-export default function TarefaPage() {
+export default function AlertaPage() {
   return (
     <Suspense
       fallback={
@@ -156,7 +154,7 @@ export default function TarefaPage() {
         </Container>
       }
     >
-      <TarefaPageContent />
+      <AlertaPageContent />
     </Suspense>
   );
 }

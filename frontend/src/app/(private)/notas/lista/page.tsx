@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useNotas } from "@/hooks/useNotas";
 import { useNotaMutations } from "@/app/(private)/notas/useNotaMutations";
 import { NotaListaResponse } from "@/services/domains/notas/response";
@@ -41,7 +42,7 @@ export default function NotaListaPage() {
   } | null>(null);
 
   const handleEditNota = (notaId: string) => {
-    router.push(`/notas?id=${notaId}`);
+    router.push(`${RoutesEnum.NOTA_CADASTRO}?id=${notaId}`);
   };
 
   const handleDeleteNota = (notaId: string, alunoNome: string) => {
@@ -68,7 +69,7 @@ export default function NotaListaPage() {
   };
 
   const handleNewNota = () => {
-    router.push("/notas");
+    router.push(RoutesEnum.NOTA_CADASTRO);
   };
 
   return (

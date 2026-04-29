@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useGruposDisciplina } from "@/hooks/useGruposDisciplina";
 import { useGrupoDisciplinaMutations } from "@/app/(private)/grupo-disciplina/useGrupoDisciplinaMutations";
 import { GrupoDisciplinaListaResponse } from "@/services/domains/grupo-disciplina/response";
@@ -41,7 +42,7 @@ export default function ListaGrupoDisciplinaPage() {
   } | null>(null);
 
   const handleEditGrupoDisciplina = (grupoDisciplinaId: string) => {
-    router.push(`/grupo-disciplina?id=${grupoDisciplinaId}`);
+    router.push(`${RoutesEnum.GRUPO_DISCIPLINA_CADASTRO}?id=${grupoDisciplinaId}`);
   };
 
   const handleDeleteGrupoDisciplina = (grupoDisciplinaId: string, grupoDisciplinaNome: string) => {
@@ -68,7 +69,7 @@ export default function ListaGrupoDisciplinaPage() {
   };
 
   const handleNewGrupoDisciplina = () => {
-    router.push("/grupo-disciplina");
+    router.push(RoutesEnum.GRUPO_DISCIPLINA_CADASTRO);
   };
 
   return (

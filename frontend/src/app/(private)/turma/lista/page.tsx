@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useTurmaMutations } from "@/app/(private)/turma/useTurmaMutations";
 import { TurmaListaResponse } from "@/services/domains/turma/response";
@@ -41,7 +42,7 @@ export default function ListaTurmaPage() {
   } | null>(null);
 
   const handleEditTurma = (turmaId: string) => {
-    router.push(`/turma?id=${turmaId}`);
+    router.push(`${RoutesEnum.TURMA_CADASTRO}?id=${turmaId}`);
   };
 
   const handleDeleteTurma = (turmaId: string, turmaNome: string) => {
@@ -68,7 +69,7 @@ export default function ListaTurmaPage() {
   };
 
   const handleNewTurma = () => {
-    router.push("/turma");
+    router.push(RoutesEnum.TURMA_CADASTRO);
   };
 
   return (

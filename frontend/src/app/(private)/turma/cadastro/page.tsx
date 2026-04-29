@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToTurmaPostRequest,
   mapFormDataToTurmaPutRequest,
@@ -49,8 +50,8 @@ import { turmaApi } from "@/services/api";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Controller } from "react-hook-form";
-import { turmaDefaultValues, TurmaFormData, turmaSchema } from "./schema";
-import * as S from "./styles";
+import { turmaDefaultValues, TurmaFormData, turmaSchema } from "../schema";
+import * as S from "../styles";
 
 function TurmaPageContent() {
   const router = useRouter();
@@ -114,7 +115,7 @@ function TurmaPageContent() {
       if (isEditMode && turmaId) {
         const turmaData = mapFormDataToTurmaPutRequest(data, turmaId);
         await updateTurma.mutateAsync(turmaData);
-        router.push("/turma/lista");
+        router.push(RoutesEnum.TURMA_LISTA);
       } else {
         const turmaData = mapFormDataToTurmaPostRequest(data);
         await createTurma.mutateAsync(turmaData);
@@ -136,7 +137,7 @@ function TurmaPageContent() {
         const turmaData = mapFormDataToTurmaPostRequest(data);
         await createTurma.mutateAsync(turmaData);
         // Idealmente redireciona com o ID da turma criada
-        router.push("/turma/lista");
+        router.push(RoutesEnum.TURMA_LISTA);
       }
     } catch (error) {
       console.error("Erro ao salvar turma:", error);
@@ -152,7 +153,7 @@ function TurmaPageContent() {
       } else {
         const turmaData = mapFormDataToTurmaPostRequest(data);
         await createTurma.mutateAsync(turmaData);
-        router.push("/turma/lista");
+        router.push(RoutesEnum.TURMA_LISTA);
       }
     } catch (error) {
       console.error("Erro ao salvar turma:", error);
@@ -160,7 +161,7 @@ function TurmaPageContent() {
   }
 
   function handleCancel() {
-    router.push("/turma/lista");
+    router.push(RoutesEnum.TURMA_LISTA);
   }
 
   const seriesOptions: KeyValue[] = series.map((s) => ({
@@ -432,7 +433,7 @@ function TurmaPageContent() {
                                   variant="outlined"
                                   size="small"
                                   startIcon={<AddIcon />}
-                                  onClick={() => router.push("/grade-curricular")}
+                                  onClick={() => router.push(RoutesEnum.GRADE_CURRICULAR_CADASTRO)}
                                 >
                                   Cadastrar Grade Curricular
                                 </Button>

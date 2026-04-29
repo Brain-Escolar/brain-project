@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToAlunoPostRequest,
   mapFormDataToAlunoPutRequest,
@@ -47,7 +48,7 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { useFieldArray } from "react-hook-form";
 import type { Control } from "react-hook-form";
-import { alunoDefaultValues, AlunoFormData, alunoSchema } from "./schema";
+import { alunoDefaultValues, AlunoFormData, alunoSchema } from "../schema";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 
 const MAX_RESPONSAVEIS = 5;
@@ -760,14 +761,14 @@ function AlunoPageContent() {
       } else {
         await createAluno.mutateAsync(mapFormDataToAlunoPostRequest(data));
       }
-      router.push("/aluno/lista");
+      router.push(RoutesEnum.ALUNO_LISTA);
     } catch (error) {
       console.error("Erro ao salvar aluno:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/aluno/lista");
+    router.push(RoutesEnum.ALUNO_LISTA);
   }
 
   function handleAddResponsavel() {

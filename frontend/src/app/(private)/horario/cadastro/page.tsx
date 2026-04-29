@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToHorarioPostRequest,
   mapFormDataToHorarioPutRequest,
@@ -18,7 +19,7 @@ import { Alert, Box, CircularProgress, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { Suspense, useEffect } from "react";
-import { horarioDefaultValues, HorarioFormData, horarioSchema } from "./schema";
+import { horarioDefaultValues, HorarioFormData, horarioSchema } from "../schema";
 
 function HorarioPageContent() {
   const router = useRouter();
@@ -54,14 +55,14 @@ function HorarioPageContent() {
         await createHorario.mutateAsync(horarioData);
       }
 
-      router.push("/horario/lista");
+      router.push(RoutesEnum.HORARIO_LISTA);
     } catch (error) {
       console.error("Erro ao salvar horário:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/horario/lista");
+    router.push(RoutesEnum.HORARIO_LISTA);
   }
 
   const QUANTITY_COLLUMNS_DEFAULT = 2;

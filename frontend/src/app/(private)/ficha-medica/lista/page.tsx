@@ -44,7 +44,7 @@ export default function ListaFichaMedicaPage() {
   } | null>(null);
 
   const handleEditFichaMedica = (fichaMedicaId: string) => {
-    router.push(`${RoutesEnum.FICHA_MEDICA}/${fichaMedicaId}`);
+    router.push(`${RoutesEnum.FICHA_MEDICA_CADASTRO}/${fichaMedicaId}`);
   };
 
   const handleDeleteFichaMedica = (fichaMedicaId: string, nome: string) => {

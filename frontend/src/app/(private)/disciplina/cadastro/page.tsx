@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToDisciplinaPostRequest,
   mapFormDataToDisciplinaPutRequest,
@@ -21,7 +22,7 @@ import { Alert, Box, CircularProgress, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { Suspense, useEffect, useMemo } from "react";
-import { disciplinaDefaultValues, DisciplinaFormData, disciplinaSchema } from "./schema";
+import { disciplinaDefaultValues, DisciplinaFormData, disciplinaSchema } from "../schema";
 
 function DisciplinaPageContent() {
   const router = useRouter();
@@ -65,14 +66,14 @@ function DisciplinaPageContent() {
         await createDisciplina.mutateAsync(disciplinaData);
       }
 
-      router.push("/disciplina/lista");
+      router.push(RoutesEnum.DISCIPLINA_LISTA);
     } catch (error) {
       console.error("Erro ao salvar disciplina:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/disciplina/lista");
+    router.push(RoutesEnum.DISCIPLINA_LISTA);
   }
 
   const QUANTITY_COLLUMNS_DEFAULT = 3;

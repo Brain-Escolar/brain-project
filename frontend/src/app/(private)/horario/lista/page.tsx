@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useHorarios } from "@/hooks/useHorarios";
 import { useHorarioMutations } from "@/app/(private)/horario/useHorarioMutations";
 import { HorarioListaResponse } from "@/services/domains/horario/response";
@@ -42,7 +43,7 @@ export default function ListaHorarioPage() {
   } | null>(null);
 
   const handleEditHorario = (horarioId: string) => {
-    router.push(`/horario?id=${horarioId}`);
+    router.push(`${RoutesEnum.HORARIO_CADASTRO}?id=${horarioId}`);
   };
 
   const handleDeleteHorario = (horarioId: string, horarioNome: string) => {
@@ -68,7 +69,7 @@ export default function ListaHorarioPage() {
   };
 
   const handleNewHorario = () => {
-    router.push("/horario");
+    router.push(RoutesEnum.HORARIO_CADASTRO);
   };
 
   return (

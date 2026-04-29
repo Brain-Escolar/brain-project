@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import PageTitle from "@/components/pageTitle/pageTitle";
@@ -89,7 +90,7 @@ function DefinirHorariosPageContent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.turmas.all });
       toast.success("Horários definidos com sucesso!");
-      router.push("/turma/lista");
+      router.push(RoutesEnum.TURMA_LISTA);
     },
     onError: (error) => {
       console.error("Erro ao definir horários:", error);
@@ -152,7 +153,7 @@ function DefinirHorariosPageContent() {
   }
 
   function handleCancel() {
-    router.push("/turma/lista");
+    router.push(RoutesEnum.TURMA_LISTA);
   }
 
   const totalAssigned = Object.keys(assignments).length;

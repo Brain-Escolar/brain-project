@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToNotaPostRequest,
   mapFormDataToNotaPutRequest,
@@ -22,7 +23,7 @@ import { Alert, Box, CircularProgress, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { Suspense, useEffect, useMemo } from "react";
-import { notaDefaultValues, NotaFormData, notaSchema } from "./schema";
+import { notaDefaultValues, NotaFormData, notaSchema } from "../schema";
 
 function NotaPageContent() {
   const router = useRouter();
@@ -62,14 +63,14 @@ function NotaPageContent() {
         await createNota.mutateAsync(notaData);
       }
 
-      router.push("/notas/lista");
+      router.push(RoutesEnum.NOTA_LISTA);
     } catch (error) {
       console.error("Erro ao salvar nota:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/notas/lista");
+    router.push(RoutesEnum.NOTA_LISTA);
   }
 
   const QUANTITY_COLLUMNS_DEFAULT = 2;

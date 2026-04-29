@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import PageTitle from "@/components/pageTitle/pageTitle";
 import {
   Container,
@@ -32,7 +33,7 @@ export default function PlanejamentoAnualListaPage() {
   const planejamentos = response?.content || [];
 
   function handleNovo() {
-    router.push("/planejamento-anual");
+    router.push(RoutesEnum.PLANEJAMENTO_ANUAL_CADASTRO);
   }
 
   function handleDownload(url: string) {

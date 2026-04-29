@@ -41,7 +41,7 @@ export default function ListaAlertaPage() {
   } | null>(null);
 
   const handleEditAlerta = (alertaId: string) => {
-    router.push(`${RoutesEnum.ALERTA}?id=${alertaId}`);
+    router.push(`${RoutesEnum.ALERTA_CADASTRO}?id=${alertaId}`);
   };
 
   const handleDeleteAlerta = (alertaId: string, alertaTitulo: string) => {
@@ -68,7 +68,7 @@ export default function ListaAlertaPage() {
   };
 
   const handleNewAlerta = () => {
-    router.push(RoutesEnum.ALERTA);
+    router.push(RoutesEnum.ALERTA_CADASTRO);
   };
 
   // Função para formatar a data do array [ano, mês, dia] para dd/mm/aaaa

@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useSeries } from "@/hooks/useSeries";
 import { useSerieMutations } from "@/app/(private)/serie/useSerieMutations";
 import { SerieListaResponse } from "@/services/domains/serie/response";
@@ -41,7 +42,7 @@ export default function ListaSeriePage() {
   } | null>(null);
 
   const handleEditSerie = (serieId: string) => {
-    router.push(`/serie?id=${serieId}`);
+    router.push(`${RoutesEnum.SERIE_CADASTRO}?id=${serieId}`);
   };
 
   const handleDeleteSerie = (serieId: string, serieNome: string) => {
@@ -68,7 +69,7 @@ export default function ListaSeriePage() {
   };
 
   const handleNewSerie = () => {
-    router.push("/serie");
+    router.push(RoutesEnum.SERIE_CADASTRO);
   };
 
   return (

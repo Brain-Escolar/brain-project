@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useAvaliacaoMutations } from "@/app/(private)/avaliacao/useAvaliacaoMutations";
 import PageTitle from "@/components/pageTitle/pageTitle";
 import { useAvaliacoes } from "@/hooks/useAvaliacoes";
@@ -41,7 +42,7 @@ export default function AvaliacaoListaPage() {
   } | null>(null);
 
   const handleEditAvaliacao = (avaliacaoId: string) => {
-    router.push(`/avaliacao?id=${avaliacaoId}`);
+    router.push(`${RoutesEnum.AVALIACAO_CADASTRO}?id=${avaliacaoId}`);
   };
 
   const handleDeleteAvaliacao = (avaliacaoId: string, avaliacaoNome: string) => {
@@ -68,7 +69,7 @@ export default function AvaliacaoListaPage() {
   };
 
   const handleNewAvaliacao = () => {
-    router.push("/avaliacao");
+    router.push(RoutesEnum.AVALIACAO_CADASTRO);
   };
 
   return (

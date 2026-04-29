@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
 import PageTitle from "@/components/pageTitle/pageTitle";
@@ -49,7 +50,7 @@ function VincularAlunosPageContent() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.turmas.all });
       toast.success("Alunos vinculados com sucesso!");
-      router.push("/turma/lista");
+      router.push(RoutesEnum.TURMA_LISTA);
     },
     onError: (error) => {
       console.error("Erro ao vincular alunos:", error);
@@ -87,7 +88,7 @@ function VincularAlunosPageContent() {
   }
 
   function handleCancel() {
-    router.push("/turma/lista");
+    router.push(RoutesEnum.TURMA_LISTA);
   }
 
   if (!turmaId) {
@@ -157,7 +158,7 @@ function VincularAlunosPageContent() {
                         variant="outlined"
                         size="small"
                         startIcon={<AddIcon />}
-                        onClick={() => router.push("/aluno")}
+                        onClick={() => router.push(RoutesEnum.ALUNO_CADASTRO)}
                       >
                         Cadastrar Aluno
                       </Button>

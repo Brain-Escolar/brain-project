@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useAulasLista } from "@/hooks/useAulasLista";
 import { useAulaMutations } from "@/app/(private)/aula/useAulaMutations";
 import { AulaListaResponse } from "@/services/domains/aula/response";
@@ -42,7 +43,7 @@ export default function ListaAulaPage() {
   } | null>(null);
 
   const handleEditAula = (aulaId: string) => {
-    router.push(`/aula?id=${aulaId}`);
+    router.push(`${RoutesEnum.AULA_CADASTRO}?id=${aulaId}`);
   };
 
   const handleDeleteAula = (aulaId: string, disciplina: string) => {
@@ -68,7 +69,7 @@ export default function ListaAulaPage() {
   };
 
   const handleNewAula = () => {
-    router.push("/aula");
+    router.push(RoutesEnum.AULA_CADASTRO);
   };
 
   // Função para traduzir dia da semana

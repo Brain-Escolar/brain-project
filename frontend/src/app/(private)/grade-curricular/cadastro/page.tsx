@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToGradeCurricularPostRequest,
   mapFormDataToGradeCurricularPutRequest,
@@ -36,8 +37,8 @@ import {
   gradeCurricularDefaultValues,
   GradeCurricularFormData,
   gradeCurricularSchema,
-} from "./schema";
-import * as S from "./styles";
+} from "../schema";
+import * as S from "../styles";
 
 function GradeCurricularPageContent() {
   const router = useRouter();
@@ -84,14 +85,14 @@ function GradeCurricularPageContent() {
         const gradeData = mapFormDataToGradeCurricularPostRequest(data);
         await createGradeCurricular.mutateAsync(gradeData);
       }
-      router.push("/grade-curricular/lista");
+      router.push(RoutesEnum.GRADE_CURRICULAR_LISTA);
     } catch (error) {
       console.error("Erro ao salvar grade curricular:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/grade-curricular/lista");
+    router.push(RoutesEnum.GRADE_CURRICULAR_LISTA);
   }
 
   const filteredDisciplinas = useMemo(() => {
@@ -202,7 +203,7 @@ function GradeCurricularPageContent() {
                                   variant="outlined"
                                   size="small"
                                   startIcon={<AddIcon />}
-                                  onClick={() => router.push("/disciplina")}
+                                  onClick={() => router.push(RoutesEnum.DISCIPLINA_CADASTRO)}
                                 >
                                   Cadastrar Disciplina
                                 </Button>

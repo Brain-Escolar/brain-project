@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToUnidadePostRequest,
   mapFormDataToUnidadePutRequest,
@@ -17,7 +18,7 @@ import { Alert, Box, CircularProgress, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { Suspense, useEffect } from "react";
-import { unidadeDefaultValues, UnidadeFormData, unidadeSchema } from "./schema";
+import { unidadeDefaultValues, UnidadeFormData, unidadeSchema } from "../schema";
 
 function UnidadePageContent() {
   const router = useRouter();
@@ -53,14 +54,14 @@ function UnidadePageContent() {
         await createUnidade.mutateAsync(unidadeData);
       }
 
-      router.push("/unidade/lista");
+      router.push(RoutesEnum.UNIDADE_LISTA);
     } catch (error) {
       console.error("Erro ao salvar unidade:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/unidade/lista");
+    router.push(RoutesEnum.UNIDADE_LISTA);
   }
 
   const QUANTITY_COLLUMNS_DEFAULT = 3;

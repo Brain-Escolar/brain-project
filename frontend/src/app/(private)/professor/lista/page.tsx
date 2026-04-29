@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useProfessores } from "@/hooks/useProfessores";
 import { useProfessorMutations } from "@/app/(private)/professor/useProfessorMutations";
 import { useState } from "react";
@@ -40,7 +41,7 @@ export default function ProfessorPage() {
   } | null>(null);
 
   const handleEditProfessor = (professorId: string) => {
-    router.push(`/professor?id=${professorId}`);
+    router.push(`${RoutesEnum.PROFESSOR_CADASTRO}?id=${professorId}`);
   };
 
   const handleDeleteProfessor = (professorId: string, professorNome: string) => {
@@ -67,7 +68,7 @@ export default function ProfessorPage() {
   };
 
   const handleNewProfessor = () => {
-    router.push("/professor");
+    router.push(RoutesEnum.PROFESSOR_CADASTRO);
   };
 
   return (

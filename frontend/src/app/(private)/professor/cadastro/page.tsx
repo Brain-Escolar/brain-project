@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToProfessorPostRequest,
   mapFormDataToProfessorPutRequest,
@@ -50,7 +51,7 @@ import {
   professorDefaultValues,
   ProfessorFormData,
   professorSchema,
-} from "./schema";
+} from "../schema";
 
 // ─── Opções de select ────────────────────────────────────────────────────────
 
@@ -326,14 +327,14 @@ function ProfessorPageContent() {
         const professorData = mapFormDataToProfessorPostRequest(data);
         await createProfessor.mutateAsync(professorData);
       }
-      router.push("/professor/lista");
+      router.push(RoutesEnum.PROFESSOR_LISTA);
     } catch (error) {
       console.error("Erro ao salvar professor:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/professor/lista");
+    router.push(RoutesEnum.PROFESSOR_LISTA);
   }
 
   const isSaving = createProfessor.isPending || updateProfessor.isPending;

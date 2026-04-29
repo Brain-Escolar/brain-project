@@ -42,7 +42,7 @@ export default function ListaTarefaPage() {
   } | null>(null);
 
   const handleEditTarefa = (tarefaId: string) => {
-    router.push(`${RoutesEnum.TAREFA}?id=${tarefaId}`);
+    router.push(`${RoutesEnum.TAREFA_CADASTRO}?id=${tarefaId}`);
   };
 
   const handleDeleteTarefa = (tarefaId: string, tarefaTitulo: string) => {
@@ -69,7 +69,7 @@ export default function ListaTarefaPage() {
   };
 
   const handleNewTarefa = () => {
-    router.push(RoutesEnum.TAREFA);
+    router.push(RoutesEnum.TAREFA_CADASTRO);
   };
 
   // Função para formatar a data do array [ano, mês, dia] para dd/mm/aaaa

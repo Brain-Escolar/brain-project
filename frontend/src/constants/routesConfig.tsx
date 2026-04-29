@@ -74,7 +74,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.PROFESSOR,
     icon: <PersonIcon fontSize="small" />,
-    router: RoutesEnum.PROFESSOR,
+    router: RoutesEnum.PROFESSOR_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -89,7 +89,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.ALUNO,
     icon: <PersonIcon fontSize="small" />,
-    router: RoutesEnum.HOME_ESTUDANTE,
+    router: RoutesEnum.ALUNO_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -104,7 +104,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.TURMA,
     icon: <GroupIcon fontSize="small" />,
-    router: RoutesEnum.TURMA,
+    router: RoutesEnum.TURMA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -133,7 +133,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.GRADE_CURRICULAR,
     icon: <MenuBookIcon fontSize="small" />,
-    router: RoutesEnum.GRADE_CURRICULAR,
+    router: RoutesEnum.GRADE_CURRICULAR_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -148,7 +148,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.GRUPO_DISCIPLINA,
     icon: <CategoryIcon fontSize="small" />,
-    router: RoutesEnum.GRUPO_DISCIPLINA,
+    router: RoutesEnum.GRUPO_DISCIPLINA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -163,7 +163,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.DISCIPLINA,
     icon: <MenuBookIcon fontSize="small" />,
-    router: RoutesEnum.DISCIPLINA,
+    router: RoutesEnum.DISCIPLINA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -178,7 +178,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.SERIE,
     icon: <SchoolIcon fontSize="small" />,
-    router: RoutesEnum.SERIE,
+    router: RoutesEnum.SERIE_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -193,14 +193,14 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.AULAS,
     icon: <ClassIcon fontSize="small" />,
-    router: RoutesEnum.AULAS_DETALHE,
+    router: RoutesEnum.AULA_CADASTROS_DETALHE,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
   {
     text: RouteLabelsEnum.AULA,
     icon: <ClassIcon fontSize="small" />,
-    router: RoutesEnum.AULA,
+    router: RoutesEnum.AULA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
   },
@@ -215,7 +215,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.HORARIO,
     icon: <ScheduleIcon fontSize="small" />,
-    router: RoutesEnum.HORARIO,
+    router: RoutesEnum.HORARIO_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -230,7 +230,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.AVALIACAO,
     icon: <AssessmentIcon fontSize="small" />,
-    router: RoutesEnum.AVALIACAO,
+    router: RoutesEnum.AVALIACAO_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -245,7 +245,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.NOTA,
     icon: <GradeIcon fontSize="small" />,
-    router: RoutesEnum.NOTA,
+    router: RoutesEnum.NOTA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -260,7 +260,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.TAREFA,
     icon: <AssignmentIcon fontSize="small" />,
-    router: RoutesEnum.TAREFA,
+    router: RoutesEnum.TAREFA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -275,7 +275,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.ALERTA,
     icon: <AnnouncementIcon fontSize="small" />,
-    router: RoutesEnum.ALERTA,
+    router: RoutesEnum.ALERTA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -290,7 +290,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.FICHA_MEDICA,
     icon: <LocalHospitalIcon fontSize="small" />,
-    router: RoutesEnum.FICHA_MEDICA,
+    router: RoutesEnum.FICHA_MEDICA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -305,7 +305,7 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.PLANEJAMENTO_ANUAL,
     icon: <AssignmentIcon fontSize="small" />,
-    router: RoutesEnum.PLANEJAMENTO_ANUAL,
+    router: RoutesEnum.PLANEJAMENTO_ANUAL_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
@@ -392,14 +392,14 @@ export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.AULAS,
     icon: <ClassIcon fontSize="small" />,
-    router: RoutesEnum.AULAS,
+    router: RoutesEnum.AULA_CADASTROS,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
   },
   {
     text: RouteLabelsEnum.UNIDADE,
     icon: <ClassIcon fontSize="small" />,
-    router: RoutesEnum.UNIDADE,
+    router: RoutesEnum.UNIDADE_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
     moduleMenu: RoutesModuleEnum.CADASTROS,

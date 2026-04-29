@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToGrupoDisciplinaPostRequest,
   mapFormDataToGrupoDisciplinaPutRequest,
@@ -21,7 +22,7 @@ import {
   grupoDisciplinaDefaultValues,
   GrupoDisciplinaFormData,
   grupoDisciplinaSchema,
-} from "./schema";
+} from "../schema";
 
 function GrupoDisciplinaPageContent() {
   const router = useRouter();
@@ -61,14 +62,14 @@ function GrupoDisciplinaPageContent() {
         await createGrupoDisciplina.mutateAsync(grupoDisciplinaData);
       }
 
-      router.push("/grupo-disciplina/lista");
+      router.push(RoutesEnum.GRUPO_DISCIPLINA_LISTA);
     } catch (error) {
       console.error("Erro ao salvar grupo de disciplina:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/grupo-disciplina/lista");
+    router.push(RoutesEnum.GRUPO_DISCIPLINA_LISTA);
   }
 
   const QUANTITY_COLLUMNS_DEFAULT = 2;

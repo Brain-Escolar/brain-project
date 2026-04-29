@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useGradesCurriculares } from "@/hooks/useGradesCurriculares";
 import { useGradeCurricularMutations } from "@/app/(private)/grade-curricular/useGradeCurricularMutations";
 import { GradeCurricularListaResponse } from "@/services/domains/grade-curricular/response";
@@ -41,7 +42,7 @@ export default function ListaGradeCurricularPage() {
   } | null>(null);
 
   const handleEditGrade = (gradeId: string) => {
-    router.push(`/grade-curricular?id=${gradeId}`);
+    router.push(`${RoutesEnum.GRADE_CURRICULAR_CADASTRO}?id=${gradeId}`);
   };
 
   const handleDeleteGrade = (gradeId: string, gradeNome: string) => {
@@ -67,7 +68,7 @@ export default function ListaGradeCurricularPage() {
   };
 
   const handleNewGrade = () => {
-    router.push("/grade-curricular");
+    router.push(RoutesEnum.GRADE_CURRICULAR_CADASTRO);
   };
 
   return (

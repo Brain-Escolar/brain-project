@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import {
   mapFormDataToAvaliacaoPostRequest,
   mapFormDataToAvaliacaoPutRequest,
@@ -19,7 +20,7 @@ import { KeyValue } from "@/services/models/keyValue";
 import { Alert, Box, CircularProgress, Container, FormControlLabel, Checkbox } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useMemo } from "react";
-import { avaliacaoDefaultValues, AvaliacaoFormData, avaliacaoSchema } from "./schema";
+import { avaliacaoDefaultValues, AvaliacaoFormData, avaliacaoSchema } from "../schema";
 import { Controller } from "react-hook-form";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 
@@ -60,14 +61,14 @@ function AvaliacaoPageContent() {
         await createAvaliacao.mutateAsync(avaliacaoData);
       }
 
-      router.push("/avaliacao/lista");
+      router.push(RoutesEnum.AVALIACAO_LISTA);
     } catch (error) {
       console.error("Erro ao salvar avaliação:", error);
     }
   }
 
   function handleCancel() {
-    router.push("/avaliacao/lista");
+    router.push(RoutesEnum.AVALIACAO_LISTA);
   }
 
   const QUANTITY_COLLUMNS_DEFAULT = 2;

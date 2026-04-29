@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import PageTitle from "@/components/pageTitle/pageTitle";
 import { useUnidades } from "@/hooks/useUnidades";
 import { useUnidadeMutations } from "@/app/(private)/unidade/useUnidadeMutations";
@@ -39,7 +40,7 @@ export default function ListaUnidadePage() {
   } | null>(null);
 
   const handleEditUnidade = (unidadeId: string) => {
-    router.push(`/unidade?id=${unidadeId}`);
+    router.push(`${RoutesEnum.UNIDADE_CADASTRO}?id=${unidadeId}`);
   };
 
   const handleDeleteUnidade = (unidadeId: string, unidadeNome: string) => {
@@ -65,7 +66,7 @@ export default function ListaUnidadePage() {
   };
 
   const handleNewUnidade = () => {
-    router.push("/unidade");
+    router.push(RoutesEnum.UNIDADE_CADASTRO);
   };
 
   return (

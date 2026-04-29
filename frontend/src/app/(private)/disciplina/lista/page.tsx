@@ -1,4 +1,5 @@
 "use client";
+import { RoutesEnum } from "@/enums";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { useDisciplinaMutations } from "@/app/(private)/disciplina/useDisciplinaMutations";
 import { DisciplinaListaResponse } from "@/services/domains/disciplina/response";
@@ -41,7 +42,7 @@ export default function DisciplinaPage() {
   } | null>(null);
 
   const handleEditDisciplina = (disciplinaId: string) => {
-    router.push(`/disciplina?id=${disciplinaId}`);
+    router.push(`${RoutesEnum.DISCIPLINA_CADASTRO}?id=${disciplinaId}`);
   };
 
   const handleDeleteDisciplina = (disciplinaId: string, disciplinaNome: string) => {
@@ -68,7 +69,7 @@ export default function DisciplinaPage() {
   };
 
   const handleNewDisciplina = () => {
-    router.push("/disciplina");
+    router.push(RoutesEnum.DISCIPLINA_CADASTRO);
   };
 
   return (
