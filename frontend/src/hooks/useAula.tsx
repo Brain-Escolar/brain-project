@@ -32,7 +32,7 @@ export function useAula({ idAula }: UseAulaProps): UseAulaReturn {
     isSuccess,
     isFetching,
   } = useQuery({
-    queryKey: QUERY_KEYS.aulas.detail(idAula),
+    queryKey: QUERY_KEYS.aulas.alunos(idAula),
     queryFn: async () => {
       const response = await aulaApi.listaAlunosByIdAula(idAula);
       return response || []; // Garante que sempre retorna um array

@@ -39,3 +39,16 @@ export interface AulaAnotacaoResponse {
   data: string;
   descricao: string;
 }
+
+export interface AulaInfoResponse {
+  id: number;
+  unidade: string;
+  serie: string;
+  turma: string;
+  disciplina: string;
+  professor: string;
+  diaDaSemana: string;
+  sala: string;
+  horarioInicio: string;
+  horarioFim: string;
+}

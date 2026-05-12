@@ -11,6 +11,9 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.aulas.lists(), { filters }] as const,
     details: () => [...QUERY_KEYS.aulas.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.aulas.details(), id] as const,
+    infos: () => [...QUERY_KEYS.aulas.all, "info"] as const,
+    info: (id: string | number) => [...QUERY_KEYS.aulas.infos(), id] as const,
+    alunos: (id: string | number) => [...QUERY_KEYS.aulas.all, "alunos", id] as const,
   },
   tarefas: {
     all: ["tarefas"] as const,

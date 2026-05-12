@@ -2,11 +2,11 @@
 
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { aulaApi } from "@/services/api";
-import { AulaDetalheResponse } from "@/services/domains/aula/response";
+import { AulaInfoResponse } from "@/services/domains/aula/response";
 import { useQuery } from "@tanstack/react-query";
 
 interface UseAulaDetalheReturn {
-  aula: AulaDetalheResponse | null;
+  aula: AulaInfoResponse | null;
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -15,7 +15,7 @@ interface UseAulaDetalheReturn {
 }
 
 /**
- * Hook para buscar uma aula específica por ID usando React Query
+ * Hook para buscar as informações de uma aula específica por ID usando React Query
  * @param id - ID da aula a ser buscada
  * @returns {UseAulaDetalheReturn} Estado da aula e funções de controle
  */
@@ -28,15 +28,15 @@ export function useAulaDetalhe(id: string | null): UseAulaDetalheReturn {
     isSuccess,
     isFetching,
   } = useQuery({
-    queryKey: QUERY_KEYS.aulas.detail(id || ""),
+    queryKey: QUERY_KEYS.aulas.info(id || ""),
     queryFn: async () => {
       if (!id) return null;
-      const response = await aulaApi.getAulaById(id);
+      const response = await aulaApi.getAulaInfo(id);
       return response;
     },
-    enabled: !!id, // Só executa a query se o ID existir
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     retry: 2,
     refetchOnWindowFocus: false,
     meta: {
