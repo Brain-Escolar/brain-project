@@ -58,6 +58,12 @@ export interface AlunoDetalheResponse {
   matriculado?: boolean;
 }
 
+export interface AnotacaoAlunoDisciplinaResponse {
+  tipoAnotacao: string;
+  data: string;
+  observacao: string;
+}
+
 export interface FichaMedicaAlunoResponse {
   id: number;
   nome: string;

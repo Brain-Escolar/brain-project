@@ -65,6 +65,8 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.alunos.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.alunos.details(), id] as const,
     fichaMedica: (id: string | number) => [...QUERY_KEYS.alunos.all, "ficha-medica", id] as const,
+    anotacoesDisciplina: (alunoId: string | number, disciplinaId: string | number) =>
+      [...QUERY_KEYS.alunos.all, "anotacoes-disciplina", alunoId, disciplinaId] as const,
   },
   series: {
     all: ["series"] as const,
@@ -94,6 +96,8 @@ export const QUERY_KEYS = {
     lists: () => [...QUERY_KEYS.notas.all, "list"] as const,
     details: () => [...QUERY_KEYS.notas.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.notas.details(), id] as const,
+    porAlunoDisciplina: (alunoId: string | number, disciplinaId: string | number) =>
+      [...QUERY_KEYS.notas.all, "aluno-disciplina", alunoId, disciplinaId] as const,
   },
   turmas: {
     all: ["turmas"] as const,

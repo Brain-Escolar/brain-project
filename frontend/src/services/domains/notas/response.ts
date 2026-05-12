@@ -13,3 +13,14 @@ export interface NotaDetalheResponse {
   pontuacao: number;
   periodoReferencia: string;
 }
+
+export interface NotaDisciplinaItemResponse {
+  nomeAvaliacao: string;
+  dataAplicacao: string;
+  pontuacao: number;
+}
+
+export interface NotasAlunoDisciplinaResponse {
+  nomeCompleto: string;
+  notas: NotaDisciplinaItemResponse[];
+}

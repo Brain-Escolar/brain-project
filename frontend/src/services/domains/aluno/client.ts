@@ -1,5 +1,5 @@
 import { httpClient } from "@/services/http";
-import { AlunoDetalheResponse, AlunoListaResponse, FichaMedicaAlunoResponse } from "./response";
+import { AlunoDetalheResponse, AlunoListaResponse, AnotacaoAlunoDisciplinaResponse, FichaMedicaAlunoResponse } from "./response";
 import { IBrainResult } from "@/services/commoResponse";
 import {
   AlunoPostRequest,
@@ -51,5 +51,12 @@ export class AlunoApi {
 
   getFichaMedicaByAluno(alunoId: string): Promise<FichaMedicaAlunoResponse> {
     return httpClient.get(`${BASE_ROUTE}/${alunoId}/ficha-medica`);
+  }
+
+  getAnotacoesPorDisciplina(
+    alunoId: string,
+    disciplinaId: string,
+  ): Promise<AnotacaoAlunoDisciplinaResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/${alunoId}/anotacoes/${disciplinaId}`);
   }
 }

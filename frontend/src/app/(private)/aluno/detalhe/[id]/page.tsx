@@ -3,6 +3,10 @@
 import PageTitle from "@/components/pageTitle/pageTitle";
 import { useAluno } from "@/hooks/useAluno";
 import { useAlunoFichaMedica } from "@/hooks/useAlunoFichaMedica";
+import { useAlunoAnotacoesDisciplina } from "@/hooks/useAlunoAnotacoesDisciplina";
+import { useNotasAlunoDisciplina } from "@/hooks/useNotasAlunoDisciplina";
+import { useAlunoMatriculaMutations } from "@/hooks/useAlunoMatriculaMutations";
+import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { useAuth } from "@/hooks/useAuth";
 import { RoutesEnum } from "@/enums/RoutesEnum";
 import { UserRoleEnum } from "@/enums/UserRoleEnum";
@@ -17,10 +21,20 @@ import {
   CircularProgress,
   Container,
   Divider,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
   Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   Typography,
 } from "@mui/material";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import * as S from "./styles";
 
@@ -41,6 +55,13 @@ export default function AlunoDetalhePage() {
   const alunoId = params.id as string;
   const { aluno, loading, error } = useAluno(alunoId);
   const { fichaMedica, loading: loadingFicha } = useAlunoFichaMedica(alunoId);
+  const { disciplinas } = useDisciplinas();
+  const { matricular, desmatricular } = useAlunoMatriculaMutations(alunoId);
+
+  const [selectedDisciplinaId, setSelectedDisciplinaId] = useState<string | null>(null);
+
+  const { notasAluno, loading: loadingNotas } = useNotasAlunoDisciplina(alunoId, selectedDisciplinaId);
+  const { anotacoes, loading: loadingAnotacoes } = useAlunoAnotacoesDisciplina(alunoId, selectedDisciplinaId);
 
   const isAdmin = user?.role === UserRoleEnum.ADMIN;
 
@@ -49,6 +70,9 @@ export default function AlunoDetalhePage() {
   const handleEdit = () => {
     router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${alunoId}`);
   };
+
+  const handleMatricular = () => matricular.mutate();
+  const handleDesmatricular = () => desmatricular.mutate();
 
   const formatDate = (date?: string | null) => {
     if (!date) return "—";
@@ -77,14 +101,37 @@ export default function AlunoDetalhePage() {
           description="Informações completas do aluno"
         />
         {isAdmin && !loading && aluno && (
-          <Button
-            variant="outlined"
-            startIcon={<EditIcon />}
-            onClick={handleEdit}
-            size="small"
-          >
-            Editar
-          </Button>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              variant="outlined"
+              startIcon={<EditIcon />}
+              onClick={handleEdit}
+              size="small"
+            >
+              Editar
+            </Button>
+            {aluno.matriculado ? (
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={handleDesmatricular}
+                disabled={desmatricular.isPending}
+              >
+                {desmatricular.isPending ? "Desmatriculando..." : "Desmatricular"}
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                onClick={handleMatricular}
+                disabled={matricular.isPending}
+              >
+                {matricular.isPending ? "Matriculando..." : "Matricular"}
+              </Button>
+            )}
+          </Box>
         )}
       </Box>
 
@@ -233,6 +280,129 @@ export default function AlunoDetalhePage() {
                 <Typography variant="body2" color="text.secondary">
                   Nenhuma ficha médica cadastrada para este aluno.
                 </Typography>
+              )}
+            </S.SectionBody>
+          </S.SectionCard>
+
+          {/* Seletor de Disciplina */}
+          <S.SectionCard>
+            <S.SectionHeader>
+              <h4>Notas e Anotações por Disciplina</h4>
+            </S.SectionHeader>
+            <S.SectionBody>
+              <FormControl size="small" sx={{ minWidth: 240, mb: 3 }}>
+                <InputLabel id="disciplina-select-label">Disciplina</InputLabel>
+                <Select
+                  labelId="disciplina-select-label"
+                  label="Disciplina"
+                  value={selectedDisciplinaId ?? ""}
+                  onChange={(e) => setSelectedDisciplinaId(e.target.value || null)}
+                >
+                  <MenuItem value="">
+                    <em>Selecione uma disciplina</em>
+                  </MenuItem>
+                  {disciplinas.map((d) => (
+                    <MenuItem key={d.id} value={String(d.id)}>
+                      {d.nome}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {!selectedDisciplinaId && (
+                <Typography variant="body2" color="text.secondary">
+                  Selecione uma disciplina para visualizar notas e anotações.
+                </Typography>
+              )}
+
+              {selectedDisciplinaId && (
+                <>
+                  {/* Notas */}
+                  <Typography
+                    variant="caption"
+                    fontWeight={600}
+                    color="text.secondary"
+                    sx={{ textTransform: "uppercase", letterSpacing: 0.5, display: "block", mb: 1 }}
+                  >
+                    Notas
+                  </Typography>
+                  {loadingNotas ? (
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : notasAluno && notasAluno.notas.length > 0 ? (
+                    <Table size="small" sx={{ mb: 3 }}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Avaliação</TableCell>
+                          <TableCell>Data</TableCell>
+                          <TableCell align="right">Pontuação</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {notasAluno.notas.map((nota, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell>{nota.nomeAvaliacao}</TableCell>
+                            <TableCell>
+                              {nota.dataAplicacao
+                                ? new Date(nota.dataAplicacao).toLocaleDateString("pt-BR")
+                                : "—"}
+                            </TableCell>
+                            <TableCell align="right">{nota.pontuacao}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                      Nenhuma nota registrada para esta disciplina.
+                    </Typography>
+                  )}
+
+                  <Divider sx={{ my: 2 }} />
+
+                  {/* Anotações */}
+                  <Typography
+                    variant="caption"
+                    fontWeight={600}
+                    color="text.secondary"
+                    sx={{ textTransform: "uppercase", letterSpacing: 0.5, display: "block", mb: 1 }}
+                  >
+                    Anotações
+                  </Typography>
+                  {loadingAnotacoes ? (
+                    <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : anotacoes.length > 0 ? (
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Tipo</TableCell>
+                          <TableCell>Data</TableCell>
+                          <TableCell>Observação</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {anotacoes.map((anotacao, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell>{anotacao.tipoAnotacao}</TableCell>
+                            <TableCell>
+                              {anotacao.data
+                                ? new Date(anotacao.data).toLocaleDateString("pt-BR")
+                                : "—"}
+                            </TableCell>
+                            <TableCell>{anotacao.observacao || "—"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Nenhuma anotação registrada para esta disciplina.
+                    </Typography>
+                  )}
+                </>
               )}
             </S.SectionBody>
           </S.SectionCard>

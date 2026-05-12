@@ -1,7 +1,7 @@
 import { IBrainResult } from "@/services/commoResponse";
 import { httpClient } from "@/services/http";
 import { NotaPostRequest, NotaPutRequest } from "./request";
-import { NotaDetalheResponse, NotaListaResponse } from "./response";
+import { NotaDetalheResponse, NotaListaResponse, NotasAlunoDisciplinaResponse } from "./response";
 
 const BASE_ROUTE = "notas";
 
@@ -24,5 +24,12 @@ export class NotaApi {
 
   deleteNota(id: string): Promise<IBrainResult<void>> {
     return httpClient.delete(`${BASE_ROUTE}/${id}`);
+  }
+
+  getNotasPorAlunoDisciplina(
+    alunoId: string,
+    disciplinaId: string,
+  ): Promise<NotasAlunoDisciplinaResponse> {
+    return httpClient.get(`${BASE_ROUTE}/aluno/${alunoId}/disciplina/${disciplinaId}`);
   }
 }
