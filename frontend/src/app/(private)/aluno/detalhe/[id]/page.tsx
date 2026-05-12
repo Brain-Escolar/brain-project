@@ -59,19 +59,6 @@ export default function AlunoDetalhePage() {
     }
   };
 
-  const enderecoCompleto = aluno?.endereco
-    ? [
-      aluno.endereco.logradouro,
-      aluno.endereco.numero,
-      aluno.endereco.complemento,
-      aluno.endereco.bairro,
-      aluno.endereco.cidade,
-      aluno.endereco.uf,
-    ]
-      .filter(Boolean)
-      .join(", ")
-    : null;
-
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Navegação */}
