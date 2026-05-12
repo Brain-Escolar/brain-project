@@ -2,21 +2,17 @@
 import AulaDetailView from "@/components/aulaDetailView";
 import ConteudosTarefas from "@/components/aulaDetailView/conteudosTarefas/conteudosTarefas";
 import ListaPresenca from "@/components/aulaDetailView/listaPresenca/listaPresenca";
-import LayoutColumns from "@/components/layoutColumns/layoutColumns";
+import ContainerSection from "@/components/containerSection/containerSection";
+import PageTitle from "@/components/pageTitle/pageTitle";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import PlaceIcon from "@mui/icons-material/Place";
-import TagIcon from "@mui/icons-material/Tag";
 import StarIcon from "@mui/icons-material/Star";
-import PersonIcon from "@mui/icons-material/Person";
-import SchoolIcon from "@mui/icons-material/School";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { Box, Container, IconButton, Skeleton, Tab, Tabs, Typography } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import SectionVisaoGeral from "./sectionVisaoGeral/sectionVisaoGeral";
 import { useAulaDetalhe } from "@/hooks/useAulaDetalhe";
 import { mockAulaDetail } from "../../../../../mocks/aulaDetail";
+import * as S from "./styles";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -35,7 +31,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`simple-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ py: 2 }}>{children}</Box>}
     </div>
   );
 }
@@ -58,7 +54,6 @@ export default function AulaDetailPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Breadcrumb */}
       <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
         <IconButton onClick={handleGoBack} size="small">
           <ArrowBackIcon fontSize="small" />
@@ -68,90 +63,16 @@ export default function AulaDetailPage() {
         </Typography>
       </Box>
 
-      {/* Header: Titulo + Info da aula */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          mb: 3,
-          flexWrap: "wrap",
-          gap: 2,
-        }}
-      >
-        <Box>
-          {loading ? (
-            <Skeleton variant="text" width={300} height={40} />
-          ) : (
-            <Typography variant="h5" fontWeight="bold">
-              {aula ? `${aula.disciplina} - ${aula.serie} ${aula.turma}` : "—"}
-            </Typography>
-          )}
-        </Box>
-
-        <Box sx={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <AccessTimeIcon fontSize="small" color="action" />
-            {loading ? (
-              <Skeleton variant="text" width={100} />
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                {aula ? `${aula.horarioInicio} - ${aula.horarioFim}` : "—"}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <PlaceIcon fontSize="small" color="action" />
-            {loading ? (
-              <Skeleton variant="text" width={80} />
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                {aula?.sala ?? "—"}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <TagIcon fontSize="small" color="action" />
-            {loading ? (
-              <Skeleton variant="text" width={80} />
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                {aula?.unidade ?? "—"}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <PersonIcon fontSize="small" color="action" />
-            {loading ? (
-              <Skeleton variant="text" width={120} />
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                {aula?.professor ?? "—"}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <CalendarTodayIcon fontSize="small" color="action" />
-            {loading ? (
-              <Skeleton variant="text" width={80} />
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                {aula?.diaDaSemana ?? "—"}
-              </Typography>
-            )}
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <SchoolIcon fontSize="small" color="action" />
-            {loading ? (
-              <Skeleton variant="text" width={80} />
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                {aula?.serie ?? "—"}
-              </Typography>
-            )}
-          </Box>
-        </Box>
-      </Box>
+      <PageTitle
+        title={
+          loading
+            ? "Carregando..."
+            : aula
+              ? `${aula.disciplina} — ${aula.serie} ${aula.turma}`
+              : "Detalhe da Aula"
+        }
+        description="Gerencie a presença, conteúdos e registros disciplinares desta aula."
+      />
 
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
@@ -159,19 +80,20 @@ export default function AulaDetailPage() {
         </Typography>
       )}
 
-      <LayoutColumns sizeLeft="70%" sizeRight="30%">
-        <Box>
-          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 1 }}>
+      <S.PageLayout>
+        {/* Coluna Principal */}
+        <ContainerSection title="Atividades da Aula">
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
               <Tab
                 icon={<StarIcon fontSize="small" />}
                 iconPosition="start"
-                label="Lista de Presenca"
+                label="Lista de Presença"
               />
               <Tab
                 icon={<StarIcon fontSize="small" />}
                 iconPosition="start"
-                label="Conteudo e Tarefas"
+                label="Conteúdo e Tarefas"
               />
               <Tab
                 icon={<StarIcon fontSize="small" />}
@@ -190,11 +112,71 @@ export default function AulaDetailPage() {
           <TabPanel value={activeTab} index={2}>
             <AulaDetailView type="registros" data={mockAulaDetail.registros} />
           </TabPanel>
-        </Box>
+        </ContainerSection>
 
-        {/* Visao geral - Secao lateral */}
-        <SectionVisaoGeral existeAulaNoDia={!!aula} />
-      </LayoutColumns>
+        {/* Sidebar */}
+        <S.SidebarCard>
+          <S.SidebarHeader>
+            <h4>Informações da Aula</h4>
+          </S.SidebarHeader>
+
+          <S.ResumoItem>
+            <span className="resumo-label">Horário</span>
+            <span className="resumo-value">
+              {loading ? (
+                <Skeleton variant="text" width={100} />
+              ) : aula ? (
+                `${aula.horarioInicio} - ${aula.horarioFim}`
+              ) : (
+                "—"
+              )}
+            </span>
+          </S.ResumoItem>
+
+          <S.ResumoItem>
+            <span className="resumo-label">Sala</span>
+            <span className="resumo-value">
+              {loading ? <Skeleton variant="text" width={80} /> : (aula?.sala ?? "—")}
+            </span>
+          </S.ResumoItem>
+
+          <S.ResumoItem>
+            <span className="resumo-label">Unidade</span>
+            <span className="resumo-value">
+              {loading ? <Skeleton variant="text" width={100} /> : (aula?.unidade ?? "—")}
+            </span>
+          </S.ResumoItem>
+
+          <S.ResumoItem>
+            <span className="resumo-label">Professor</span>
+            <span className="resumo-value">
+              {loading ? <Skeleton variant="text" width={120} /> : (aula?.professor ?? "—")}
+            </span>
+          </S.ResumoItem>
+
+          <S.ResumoItem>
+            <span className="resumo-label">Dia da Semana</span>
+            <span className="resumo-value">
+              {loading ? <Skeleton variant="text" width={80} /> : (aula?.diaDaSemana ?? "—")}
+            </span>
+          </S.ResumoItem>
+
+          <S.ResumoItem>
+            <span className="resumo-label">Série / Turma</span>
+            <span className="resumo-value">
+              {loading ? (
+                <Skeleton variant="text" width={80} />
+              ) : aula ? (
+                `${aula.serie} ${aula.turma}`
+              ) : (
+                "—"
+              )}
+            </span>
+          </S.ResumoItem>
+
+          <SectionVisaoGeral existeAulaNoDia={!!aula} />
+        </S.SidebarCard>
+      </S.PageLayout>
     </Container>
   );
 }
