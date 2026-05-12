@@ -14,7 +14,7 @@ import { BrainTextFieldControlled } from "@/components/brainForms/brainTextField
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
 import { useBrainForm } from "@/hooks/useBrainForm";
-import { useAulaDetalhe } from "@/hooks/useAulaDetalhe";
+import { useAulaById } from "@/hooks/useAulaById";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useProfessores } from "@/hooks/useProfessores";
@@ -30,7 +30,7 @@ function AulaPageContent() {
   const router = useRouter();
   const aulaId = useBrainSearchParams("id");
 
-  const { aula, loading: loadingAula, error: errorAula } = useAulaDetalhe(aulaId);
+  const { aula, loading: loadingAula, error: errorAula } = useAulaById(aulaId);
   const { createAula, updateAula } = useAulaMutations();
 
   // Buscar dados para os dropdowns
