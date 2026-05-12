@@ -55,4 +55,15 @@ export interface AlunoDetalheResponse {
   genero?: string;
   corRaca?: string;
   cidadeNaturalidade?: string;
+  matriculado?: boolean;
+}
+
+export interface FichaMedicaAlunoResponse {
+  id: number;
+  nome: string;
+  tipoSanguineo: string;
+  necessidadesEspeciais?: string;
+  doencasRespiratorias?: string;
+  alergiasAlimentares?: string;
+  alergiasMedicamentosas?: string;
 }

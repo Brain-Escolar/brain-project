@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import { toast } from "react-toastify";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
+import Link from "next/link";
+import { RoutesEnum } from "@/enums/RoutesEnum";
 
 interface IListaPresencaProps {
   idAula?: string;
@@ -149,7 +151,14 @@ function ListaPresenca({ idAula }: IListaPresencaProps) {
                     </Box>
                   </TableCell>
                   <TableCell sx={{ py: 1 }}>
-                    <Typography variant="body2">{aluno.nome}</Typography>
+                    <Typography
+                      variant="body2"
+                      component={Link}
+                      href={`${RoutesEnum.ALUNO_DETALHE}/${aluno.id}`}
+                      sx={{ color: "primary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+                    >
+                      {aluno.nome}
+                    </Typography>
                   </TableCell>
                   <TableCell align="center" sx={{ py: 1 }}>
                     <Typography variant="body2">{aluno.faltas}</Typography>

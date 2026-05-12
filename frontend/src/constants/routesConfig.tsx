@@ -94,6 +94,13 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ADMIN],
   },
   {
+    text: RouteLabelsEnum.ALUNO,
+    icon: <PersonIcon fontSize="small" />,
+    router: RoutesEnum.ALUNO_DETALHE,
+    isShowMenu: false,
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR],
+  },
+  {
     text: RouteLabelsEnum.TURMAS,
     icon: <GroupIcon fontSize="small" />,
     router: RoutesEnum.TURMA_LISTA,
