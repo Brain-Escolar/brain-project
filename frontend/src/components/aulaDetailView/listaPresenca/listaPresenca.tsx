@@ -23,9 +23,9 @@ interface IListaPresencaProps {
 
 function ListaPresenca({ idAula }: IListaPresencaProps) {
   const { alunos, loading, error } = useAula({ idAula: idAula || "" });
-  const [alunosPresentes, setAlunosPresentes] = useState<string[]>([]);
+  const [alunosPresentes, setAlunosPresentes] = useState<number[]>([]);
 
-  const handleCheckboxChange = (alunoId: string) => {
+  const handleCheckboxChange = (alunoId: number) => {
     setAlunosPresentes((prev) => {
       if (prev.includes(alunoId)) {
         return prev.filter((id) => id !== alunoId);
@@ -72,7 +72,7 @@ function ListaPresenca({ idAula }: IListaPresencaProps) {
     );
   }
 
-  const isSelected = (id: string) => alunosPresentes.indexOf(id) !== -1;
+  const isSelected = (id: number) => alunosPresentes.indexOf(id) !== -1;
   if (!idAula) return null;
   if (alunos.length === 0) {
     return <BrainResultNotFound message="Nenhum aluno encontrado para esta aula." />;

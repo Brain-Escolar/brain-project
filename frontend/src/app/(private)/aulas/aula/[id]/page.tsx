@@ -1,7 +1,7 @@
 "use client";
-import AulaDetailView from "@/components/aulaDetailView";
 import ConteudosTarefas from "@/components/aulaDetailView/conteudosTarefas/conteudosTarefas";
 import ListaPresenca from "@/components/aulaDetailView/listaPresenca/listaPresenca";
+import RegistrosDisciplinares from "@/components/aulaDetailView/registrosDisciplinares/registrosDisciplinares";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -11,7 +11,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import SectionVisaoGeral from "./sectionVisaoGeral/sectionVisaoGeral";
 import { useAulaDetalhe } from "@/hooks/useAulaDetalhe";
-import { mockAulaDetail } from "../../../../../mocks/aulaDetail";
+import { useProximaAula } from "@/hooks/useProximaAula";
 import * as S from "./styles";
 
 interface TabPanelProps {
@@ -43,6 +43,7 @@ export default function AulaDetailPage() {
 
   const aulaId = params.id as string;
   const { aula, loading, error } = useAulaDetalhe(aulaId);
+  const { proximaAula, loading: loadingProxima } = useProximaAula(aulaId);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -107,10 +108,10 @@ export default function AulaDetailPage() {
             <ListaPresenca idAula={aulaId} />
           </TabPanel>
           <TabPanel value={activeTab} index={1}>
-            <ConteudosTarefas />
+            <ConteudosTarefas aulaId={aulaId} />
           </TabPanel>
           <TabPanel value={activeTab} index={2}>
-            <AulaDetailView type="registros" data={mockAulaDetail.registros} />
+            <RegistrosDisciplinares aulaId={aulaId} />
           </TabPanel>
         </ContainerSection>
 
@@ -168,6 +169,19 @@ export default function AulaDetailPage() {
                 <Skeleton variant="text" width={80} />
               ) : aula ? (
                 `${aula.serie} ${aula.turma}`
+              ) : (
+                "—"
+              )}
+            </span>
+          </S.ResumoItem>
+
+          <S.ResumoItem>
+            <span className="resumo-label">Próxima Aula</span>
+            <span className="resumo-value">
+              {loadingProxima ? (
+                <Skeleton variant="text" width={120} />
+              ) : proximaAula ? (
+                `${proximaAula.data} · ${String(proximaAula.horarioInicio.hour).padStart(2, "0")}:${String(proximaAula.horarioInicio.minute).padStart(2, "0")} - ${String(proximaAula.horarioFim.hour).padStart(2, "0")}:${String(proximaAula.horarioFim.minute).padStart(2, "0")}`
               ) : (
                 "—"
               )}

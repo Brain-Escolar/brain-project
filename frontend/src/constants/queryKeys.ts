@@ -14,6 +14,14 @@ export const QUERY_KEYS = {
     infos: () => [...QUERY_KEYS.aulas.all, "info"] as const,
     info: (id: string | number) => [...QUERY_KEYS.aulas.infos(), id] as const,
     alunos: (id: string | number) => [...QUERY_KEYS.aulas.all, "alunos", id] as const,
+    proximaAula: (id: string | number, data: string) =>
+      [...QUERY_KEYS.aulas.all, "proxima-aula", id, data] as const,
+    anotacoes: (id: string | number, data: string) =>
+      [...QUERY_KEYS.aulas.all, "anotacoes", id, data] as const,
+    tarefas: (id: string | number, data: string) =>
+      [...QUERY_KEYS.aulas.all, "tarefas", id, data] as const,
+    tarefasDatas: (id: string | number) =>
+      [...QUERY_KEYS.aulas.all, "tarefas-datas", id] as const,
   },
   tarefas: {
     all: ["tarefas"] as const,

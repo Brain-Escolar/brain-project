@@ -26,18 +26,35 @@ export interface AulaDetalheResponse {
 }
 
 export interface AulaAlunoResponse {
-  id: string;
+  id: number;
   nome: string;
   registros: number;
   faltas: number;
 }
 
 export interface AulaAnotacaoResponse {
-  id: number;
-  alunoId: number;
-  alunoNome: string;
+  anotacaoId: number;
+  nomeAluno: string;
+  anotacao: string;
+  observacao: string;
+}
+
+export interface ProximaAulaResponse {
+  aulaId: number;
   data: string;
-  descricao: string;
+  horarioInicio: { hour: number; minute: number; second: number; nano: number };
+  horarioFim: { hour: number; minute: number; second: number; nano: number };
+}
+
+export interface TarefaAulaResponse {
+  id: number;
+  titulo: string;
+  conteudo: string;
+  documentoUrl: string;
+  professor: string;
+  turmaId: number;
+  turma: string;
+  prazo: string;
 }
 
 export interface AulaInfoResponse {

@@ -1,34 +1,41 @@
-import React from "react";
-import { Box, Typography, Paper, Button, Stack, CircularProgress, Alert } from "@mui/material";
-import { useTarefas } from "@/hooks/useTarefas";
-import { formatDateFromArray } from "@/utils/utils";
+import React, { useState } from "react";
+import { Box, Typography, Paper, Stack, CircularProgress, Alert, Chip } from "@mui/material";
 import { InsertInvitation } from "@mui/icons-material";
+import { format } from "date-fns";
+import { useTarefasAula } from "@/hooks/useTarefasAula";
+import { useTarefasDatas } from "@/hooks/useTarefasDatas";
+import DateSelector from "@/components/dateSelector";
 
-function ConteudosTarefas() {
-  const { tarefas, loading, error } = useTarefas();
+interface ConteudosTarefasProps {
+  aulaId: string;
+}
+
+function ConteudosTarefas({ aulaId }: ConteudosTarefasProps) {
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const dataFormatada = format(selectedDate, "yyyy-MM-dd");
+
+  const { tarefas, loading, error } = useTarefasAula(aulaId, dataFormatada);
+  const { datas: datasDisponiveis } = useTarefasDatas(aulaId);
+
+  const hasTasksOnDate = datasDisponiveis.includes(dataFormatada);
 
   return (
     <Box>
-      {/* Conteúdo do dia */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Conteúdo do dia
-        </Typography>
-        <Paper sx={{ bgcolor: "grey.50" }}>
-          <Typography variant="body1" color="text.secondary">
-            It is a long established fact that a reader will be distracted
+      {/* Seletor de data */}
+      <Box sx={{ mb: 3 }}>
+        <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
+        {datasDisponiveis.length > 0 && !hasTasksOnDate && (
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+            Nenhuma tarefa nesta data. Datas com tarefas: {datasDisponiveis.join(", ")}
           </Typography>
-        </Paper>
+        )}
       </Box>
 
-      {/* Novas tarefas */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-          <Typography variant="h6">Novas tarefas</Typography>
-          <Button variant="contained" color="primary" size="small">
-            + SALVAR
-          </Button>
-        </Box>
+      {/* Tarefas */}
+      <Box>
+        <Typography variant="h6" gutterBottom>
+          Tarefas
+        </Typography>
 
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -49,9 +56,12 @@ function ConteudosTarefas() {
                 key={tarefa.id}
                 sx={{ border: "1px solid", borderColor: "grey.200", px: 2, py: 1 }}
               >
-                <Typography variant="h6" gutterBottom fontWeight={"bold"}>
-                  {tarefa.titulo}
-                </Typography>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+                  <Typography variant="h6" fontWeight="bold">
+                    {tarefa.titulo}
+                  </Typography>
+                  <Chip label={tarefa.turma} size="small" variant="outlined" />
+                </Box>
 
                 {tarefa.documentoUrl && (
                   <Box
@@ -82,10 +92,7 @@ function ConteudosTarefas() {
                     </Box>
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="body2" fontWeight="medium">
-                        document_file_name.pdf
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        100kb • Complete
+                        {tarefa.documentoUrl}
                       </Typography>
                     </Box>
                   </Box>
@@ -98,7 +105,10 @@ function ConteudosTarefas() {
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <InsertInvitation fontSize="small" />
                   <Typography variant="caption" color="text.secondary">
-                    Prazo: {formatDateFromArray(tarefa.prazo)}
+                    Prazo: {tarefa.prazo}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    · Prof. {tarefa.professor}
                   </Typography>
                 </Box>
               </Paper>
@@ -106,7 +116,7 @@ function ConteudosTarefas() {
             {tarefas.length === 0 && (
               <Paper sx={{ p: 3, textAlign: "center" }}>
                 <Typography variant="body2" color="text.secondary">
-                  Nenhuma tarefa encontrada
+                  Nenhuma tarefa encontrada para esta data
                 </Typography>
               </Paper>
             )}

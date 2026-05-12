@@ -6,6 +6,8 @@ import {
   AulaListaResponse,
   AulaResponse,
   AulaAnotacaoResponse,
+  ProximaAulaResponse,
+  TarefaAulaResponse,
 } from "./response";
 import { IBrainResult } from "@/services/commoResponse";
 import { AulaPostRequest, AulaPutRequest } from "./request";
@@ -47,5 +49,21 @@ export class AulaApi {
 
   recuperarAnotacoes(aulaId: string, data: string): Promise<AulaAnotacaoResponse[]> {
     return httpClient.post(`${BASE_ROUTE}/${aulaId}/anotacoes`, { data });
+  }
+
+  getProximaAula(
+    aulaId: string,
+    data: string,
+    horario: { hour: number; minute: number; second: number; nano: number },
+  ): Promise<ProximaAulaResponse> {
+    return httpClient.post(`${BASE_ROUTE}/${aulaId}/proxima-aula`, { data, horario });
+  }
+
+  getTarefasByAula(aulaId: string, data: string): Promise<TarefaAulaResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/${aulaId}/tarefas?data=${data}`);
+  }
+
+  getTarefasDatas(aulaId: string): Promise<string[]> {
+    return httpClient.get(`${BASE_ROUTE}/${aulaId}/tarefas/datas`);
   }
 }
