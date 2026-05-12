@@ -1,5 +1,6 @@
 "use client";
 
+import ContainerSection from "@/components/containerSection/containerSection";
 import PageTitle from "@/components/pageTitle/pageTitle";
 import { useAluno } from "@/hooks/useAluno";
 import { useAlunoFichaMedica } from "@/hooks/useAlunoFichaMedica";
@@ -27,16 +28,37 @@ import {
   MenuItem,
   Select,
   Skeleton,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
+  Tabs,
   Typography,
 } from "@mui/material";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import * as S from "./styles";
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel({ children, value, index }: TabPanelProps) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`aluno-tab-${index}`}
+      aria-labelledby={`aluno-tab-${index}`}
+    >
+      {value === index && <Box sx={{ py: 2 }}>{children}</Box>}
+    </div>
+  );
+}
 
 function InfoField({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -44,6 +66,37 @@ function InfoField({ label, value }: { label: string; value?: string | null }) {
       <div className="field-label">{label}</div>
       <div className="field-value">{value || "—"}</div>
     </S.FieldItem>
+  );
+}
+
+function DisciplinaSelector({
+  disciplinas,
+  value,
+  onChange,
+}: {
+  disciplinas: { id: number; nome: string }[];
+  value: string | null;
+  onChange: (v: string | null) => void;
+}) {
+  return (
+    <FormControl size="small" sx={{ minWidth: 240, mb: 3 }}>
+      <InputLabel id="disciplina-label">Disciplina</InputLabel>
+      <Select
+        labelId="disciplina-label"
+        label="Disciplina"
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value || null)}
+      >
+        <MenuItem value="">
+          <em>Selecione uma disciplina</em>
+        </MenuItem>
+        {disciplinas.map((d) => (
+          <MenuItem key={d.id} value={String(d.id)}>
+            {d.nome}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 }
 
@@ -58,19 +111,17 @@ export default function AlunoDetalhePage() {
   const { disciplinas } = useDisciplinas();
   const { matricular, desmatricular } = useAlunoMatriculaMutations(alunoId);
 
-  const [selectedDisciplinaId, setSelectedDisciplinaId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
+  const [notasDisciplinaId, setNotasDisciplinaId] = useState<string | null>(null);
+  const [anotacoesDisciplinaId, setAnotacoesDisciplinaId] = useState<string | null>(null);
 
-  const { notasAluno, loading: loadingNotas } = useNotasAlunoDisciplina(alunoId, selectedDisciplinaId);
-  const { anotacoes, loading: loadingAnotacoes } = useAlunoAnotacoesDisciplina(alunoId, selectedDisciplinaId);
+  const { notasAluno, loading: loadingNotas } = useNotasAlunoDisciplina(alunoId, notasDisciplinaId);
+  const { anotacoes, loading: loadingAnotacoes } = useAlunoAnotacoesDisciplina(alunoId, anotacoesDisciplinaId);
 
   const isAdmin = user?.role === UserRoleEnum.ADMIN;
 
   const handleGoBack = () => router.back();
-
-  const handleEdit = () => {
-    router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${alunoId}`);
-  };
-
+  const handleEdit = () => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${alunoId}`);
   const handleMatricular = () => matricular.mutate();
   const handleDesmatricular = () => desmatricular.mutate();
 
@@ -102,12 +153,7 @@ export default function AlunoDetalhePage() {
         />
         {isAdmin && !loading && aluno && (
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="outlined"
-              startIcon={<EditIcon />}
-              onClick={handleEdit}
-              size="small"
-            >
+            <Button variant="outlined" startIcon={<EditIcon />} onClick={handleEdit} size="small">
               Editar
             </Button>
             {aluno.matriculado ? (
@@ -142,84 +188,25 @@ export default function AlunoDetalhePage() {
       )}
 
       <S.PageLayout>
-        {/* ─── Sidebar / Perfil ─── */}
-        <S.ProfileCard>
-          <S.ProfileHeader>
-            <S.AvatarWrapper>
-              <PersonIcon />
-            </S.AvatarWrapper>
+        {/* ─── Conteúdo principal com abas ─── */}
+        <ContainerSection title="Informações do Aluno">
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <Tabs value={activeTab} onChange={(_e, v) => setActiveTab(v)} variant="fullWidth">
+              <Tab label="Dados Pessoais" id="aluno-tab-0" />
+              <Tab label="Ficha Médica" id="aluno-tab-1" />
+              <Tab label="Notas" id="aluno-tab-2" />
+              <Tab label="Anotações" id="aluno-tab-3" />
+            </Tabs>
+          </Box>
 
-            <S.ProfileInfo>
-              {loading ? (
-                <>
-                  <Skeleton variant="text" width={140} />
-                  <Skeleton variant="text" width={100} />
-                </>
-              ) : (
-                <>
-                  <div className="nome">{aluno?.nomeSocial || aluno?.nome || "—"}</div>
-                  <div className="matricula">RA: {aluno?.matricula ?? "—"}</div>
-                </>
-              )}
-            </S.ProfileInfo>
-
+          {/* Aba: Dados Pessoais */}
+          <TabPanel value={activeTab} index={0}>
             {loading ? (
-              <Skeleton variant="rounded" width={90} height={24} />
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress />
+              </Box>
             ) : (
-              <Chip
-                label={aluno?.matriculado ? "Matriculado" : "Não matriculado"}
-                color={aluno?.matriculado ? "success" : "default"}
-                size="small"
-              />
-            )}
-          </S.ProfileHeader>
-
-          <S.ProfileItem>
-            <span className="label">CPF</span>
-            <span className="value">
-              {loading ? <Skeleton variant="text" width={90} /> : (aluno?.cpf ?? "—")}
-            </span>
-          </S.ProfileItem>
-
-          <S.ProfileItem>
-            <span className="label">RG</span>
-            <span className="value">
-              {loading ? <Skeleton variant="text" width={80} /> : (aluno?.rg ?? "—")}
-            </span>
-          </S.ProfileItem>
-
-          <S.ProfileItem>
-            <span className="label">E-mail</span>
-            <span className="value">
-              {loading ? <Skeleton variant="text" width={120} /> : (aluno?.email ?? "—")}
-            </span>
-          </S.ProfileItem>
-
-          <S.ProfileItem>
-            <span className="label">Nascimento</span>
-            <span className="value">
-              {loading ? (
-                <Skeleton variant="text" width={90} />
-              ) : (
-                formatDate(aluno?.dataDeNascimento)
-              )}
-            </span>
-          </S.ProfileItem>
-        </S.ProfileCard>
-
-        {/* ─── Conteúdo principal ─── */}
-        <Box>
-          {/* Dados do Aluno */}
-          <S.SectionCard>
-            <S.SectionHeader>
-              <h4>Dados do Aluno</h4>
-            </S.SectionHeader>
-            <S.SectionBody>
-              {loading ? (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                  <CircularProgress />
-                </Box>
-              ) : (
+              <>
                 <S.FieldGrid>
                   <InfoField label="Nome completo" value={aluno?.nome} />
                   <InfoField label="Nome social" value={aluno?.nomeSocial} />
@@ -231,182 +218,209 @@ export default function AlunoDetalhePage() {
                   <InfoField label="E-mail" value={aluno?.email} />
                   <InfoField label="Cidade/Naturalidade" value={aluno?.cidadeNaturalidade} />
                 </S.FieldGrid>
-              )}
 
-              {!loading && aluno?.endereco && (
-                <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography
-                    variant="caption"
-                    fontWeight={600}
-                    color="text.secondary"
-                    sx={{ textTransform: "uppercase", letterSpacing: 0.5, display: "block", mb: 2 }}
-                  >
-                    Endereço
-                  </Typography>
-                  <S.FieldGrid>
-                    <InfoField label="CEP" value={aluno.endereco.cep} />
-                    <InfoField label="Logradouro" value={aluno.endereco.logradouro} />
-                    <InfoField label="Número" value={aluno.endereco.numero} />
-                    <InfoField label="Complemento" value={aluno.endereco.complemento} />
-                    <InfoField label="Bairro" value={aluno.endereco.bairro} />
-                    <InfoField label="Cidade" value={aluno.endereco.cidade} />
-                    <InfoField label="UF" value={aluno.endereco.uf} />
-                  </S.FieldGrid>
-                </>
-              )}
-            </S.SectionBody>
-          </S.SectionCard>
+                {aluno?.endereco && (
+                  <>
+                    <Divider sx={{ my: 3 }} />
+                    <Typography
+                      variant="caption"
+                      fontWeight={600}
+                      color="text.secondary"
+                      sx={{ textTransform: "uppercase", letterSpacing: 0.5, display: "block", mb: 2 }}
+                    >
+                      Endereço
+                    </Typography>
+                    <S.FieldGrid>
+                      <InfoField label="CEP" value={aluno.endereco.cep} />
+                      <InfoField label="Logradouro" value={aluno.endereco.logradouro} />
+                      <InfoField label="Número" value={aluno.endereco.numero} />
+                      <InfoField label="Complemento" value={aluno.endereco.complemento} />
+                      <InfoField label="Bairro" value={aluno.endereco.bairro} />
+                      <InfoField label="Cidade" value={aluno.endereco.cidade} />
+                      <InfoField label="UF" value={aluno.endereco.uf} />
+                    </S.FieldGrid>
+                  </>
+                )}
+              </>
+            )}
+          </TabPanel>
 
-          {/* Ficha Médica */}
-          <S.SectionCard>
-            <S.SectionHeader>
-              <h4>Ficha Médica</h4>
-            </S.SectionHeader>
-            <S.SectionBody>
-              {loadingFicha ? (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                  <CircularProgress />
-                </Box>
-              ) : fichaMedica ? (
-                <S.FieldGrid>
-                  <InfoField label="Tipo sanguíneo" value={fichaMedica.tipoSanguineo} />
-                  <InfoField label="Necessidades especiais" value={fichaMedica.necessidadesEspeciais} />
-                  <InfoField label="Doenças respiratórias" value={fichaMedica.doencasRespiratorias} />
-                  <InfoField label="Alergias alimentares" value={fichaMedica.alergiasAlimentares} />
-                  <InfoField label="Alergias medicamentosas" value={fichaMedica.alergiasMedicamentosas} />
-                </S.FieldGrid>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Nenhuma ficha médica cadastrada para este aluno.
-                </Typography>
-              )}
-            </S.SectionBody>
-          </S.SectionCard>
+          {/* Aba: Ficha Médica */}
+          <TabPanel value={activeTab} index={1}>
+            {loadingFicha ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : fichaMedica ? (
+              <S.FieldGrid>
+                <InfoField label="Tipo sanguíneo" value={fichaMedica.tipoSanguineo} />
+                <InfoField label="Necessidades especiais" value={fichaMedica.necessidadesEspeciais} />
+                <InfoField label="Doenças respiratórias" value={fichaMedica.doencasRespiratorias} />
+                <InfoField label="Alergias alimentares" value={fichaMedica.alergiasAlimentares} />
+                <InfoField label="Alergias medicamentosas" value={fichaMedica.alergiasMedicamentosas} />
+              </S.FieldGrid>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Nenhuma ficha médica cadastrada para este aluno.
+              </Typography>
+            )}
+          </TabPanel>
 
-          {/* Seletor de Disciplina */}
-          <S.SectionCard>
-            <S.SectionHeader>
-              <h4>Notas e Anotações por Disciplina</h4>
-            </S.SectionHeader>
-            <S.SectionBody>
-              <FormControl size="small" sx={{ minWidth: 240, mb: 3 }}>
-                <InputLabel id="disciplina-select-label">Disciplina</InputLabel>
-                <Select
-                  labelId="disciplina-select-label"
-                  label="Disciplina"
-                  value={selectedDisciplinaId ?? ""}
-                  onChange={(e) => setSelectedDisciplinaId(e.target.value || null)}
-                >
-                  <MenuItem value="">
-                    <em>Selecione uma disciplina</em>
-                  </MenuItem>
-                  {disciplinas.map((d) => (
-                    <MenuItem key={d.id} value={String(d.id)}>
-                      {d.nome}
-                    </MenuItem>
+          {/* Aba: Notas */}
+          <TabPanel value={activeTab} index={2}>
+            <DisciplinaSelector
+              disciplinas={disciplinas}
+              value={notasDisciplinaId}
+              onChange={setNotasDisciplinaId}
+            />
+            {!notasDisciplinaId ? (
+              <Typography variant="body2" color="text.secondary">
+                Selecione uma disciplina para visualizar as notas.
+              </Typography>
+            ) : loadingNotas ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : notasAluno && notasAluno.notas.length > 0 ? (
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Avaliação</TableCell>
+                    <TableCell>Data</TableCell>
+                    <TableCell align="right">Pontuação</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {notasAluno.notas.map((nota, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{nota.nomeAvaliacao}</TableCell>
+                      <TableCell>
+                        {nota.dataAplicacao
+                          ? new Date(nota.dataAplicacao).toLocaleDateString("pt-BR")
+                          : "—"}
+                      </TableCell>
+                      <TableCell align="right">{nota.pontuacao}</TableCell>
+                    </TableRow>
                   ))}
-                </Select>
-              </FormControl>
+                </TableBody>
+              </Table>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Nenhuma nota registrada para esta disciplina.
+              </Typography>
+            )}
+          </TabPanel>
 
-              {!selectedDisciplinaId && (
-                <Typography variant="body2" color="text.secondary">
-                  Selecione uma disciplina para visualizar notas e anotações.
-                </Typography>
-              )}
+          {/* Aba: Anotações */}
+          <TabPanel value={activeTab} index={3}>
+            <DisciplinaSelector
+              disciplinas={disciplinas}
+              value={anotacoesDisciplinaId}
+              onChange={setAnotacoesDisciplinaId}
+            />
+            {!anotacoesDisciplinaId ? (
+              <Typography variant="body2" color="text.secondary">
+                Selecione uma disciplina para visualizar as anotações.
+              </Typography>
+            ) : loadingAnotacoes ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : anotacoes.length > 0 ? (
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Tipo</TableCell>
+                    <TableCell>Data</TableCell>
+                    <TableCell>Observação</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {anotacoes.map((anotacao, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{anotacao.tipoAnotacao}</TableCell>
+                      <TableCell>
+                        {anotacao.data
+                          ? new Date(anotacao.data).toLocaleDateString("pt-BR")
+                          : "—"}
+                      </TableCell>
+                      <TableCell>{anotacao.observacao || "—"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                Nenhuma anotação registrada para esta disciplina.
+              </Typography>
+            )}
+          </TabPanel>
+        </ContainerSection>
 
-              {selectedDisciplinaId && (
+        {/* ─── Sidebar: Perfil ─── */}
+        <S.SidebarCard>
+          <S.SidebarHeader>
+            <S.AvatarWrapper>
+              <PersonIcon />
+            </S.AvatarWrapper>
+
+            <S.SidebarProfileInfo>
+              {loading ? (
                 <>
-                  {/* Notas */}
-                  <Typography
-                    variant="caption"
-                    fontWeight={600}
-                    color="text.secondary"
-                    sx={{ textTransform: "uppercase", letterSpacing: 0.5, display: "block", mb: 1 }}
-                  >
-                    Notas
-                  </Typography>
-                  {loadingNotas ? (
-                    <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : notasAluno && notasAluno.notas.length > 0 ? (
-                    <Table size="small" sx={{ mb: 3 }}>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Avaliação</TableCell>
-                          <TableCell>Data</TableCell>
-                          <TableCell align="right">Pontuação</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {notasAluno.notas.map((nota, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell>{nota.nomeAvaliacao}</TableCell>
-                            <TableCell>
-                              {nota.dataAplicacao
-                                ? new Date(nota.dataAplicacao).toLocaleDateString("pt-BR")
-                                : "—"}
-                            </TableCell>
-                            <TableCell align="right">{nota.pontuacao}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                      Nenhuma nota registrada para esta disciplina.
-                    </Typography>
-                  )}
-
-                  <Divider sx={{ my: 2 }} />
-
-                  {/* Anotações */}
-                  <Typography
-                    variant="caption"
-                    fontWeight={600}
-                    color="text.secondary"
-                    sx={{ textTransform: "uppercase", letterSpacing: 0.5, display: "block", mb: 1 }}
-                  >
-                    Anotações
-                  </Typography>
-                  {loadingAnotacoes ? (
-                    <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                      <CircularProgress size={24} />
-                    </Box>
-                  ) : anotacoes.length > 0 ? (
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Tipo</TableCell>
-                          <TableCell>Data</TableCell>
-                          <TableCell>Observação</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {anotacoes.map((anotacao, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell>{anotacao.tipoAnotacao}</TableCell>
-                            <TableCell>
-                              {anotacao.data
-                                ? new Date(anotacao.data).toLocaleDateString("pt-BR")
-                                : "—"}
-                            </TableCell>
-                            <TableCell>{anotacao.observacao || "—"}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      Nenhuma anotação registrada para esta disciplina.
-                    </Typography>
-                  )}
+                  <Skeleton variant="text" width={140} />
+                  <Skeleton variant="text" width={100} />
+                </>
+              ) : (
+                <>
+                  <div className="nome">{aluno?.nomeSocial || aluno?.nome || "—"}</div>
+                  <div className="matricula">RA: {aluno?.matricula ?? "—"}</div>
                 </>
               )}
-            </S.SectionBody>
-          </S.SectionCard>
-        </Box>
+            </S.SidebarProfileInfo>
+
+            {loading ? (
+              <Skeleton variant="rounded" width={90} height={24} />
+            ) : (
+              <Chip
+                label={aluno?.matriculado ? "Matriculado" : "Não matriculado"}
+                color={aluno?.matriculado ? "success" : "default"}
+                size="small"
+              />
+            )}
+          </S.SidebarHeader>
+
+          <S.SidebarItem>
+            <span className="label">CPF</span>
+            <span className="value">
+              {loading ? <Skeleton variant="text" width={90} /> : (aluno?.cpf ?? "—")}
+            </span>
+          </S.SidebarItem>
+
+          <S.SidebarItem>
+            <span className="label">RG</span>
+            <span className="value">
+              {loading ? <Skeleton variant="text" width={80} /> : (aluno?.rg ?? "—")}
+            </span>
+          </S.SidebarItem>
+
+          <S.SidebarItem>
+            <span className="label">E-mail</span>
+            <span className="value">
+              {loading ? <Skeleton variant="text" width={120} /> : (aluno?.email ?? "—")}
+            </span>
+          </S.SidebarItem>
+
+          <S.SidebarItem>
+            <span className="label">Nascimento</span>
+            <span className="value">
+              {loading ? (
+                <Skeleton variant="text" width={90} />
+              ) : (
+                formatDate(aluno?.dataDeNascimento)
+              )}
+            </span>
+          </S.SidebarItem>
+        </S.SidebarCard>
       </S.PageLayout>
     </Container>
   );
