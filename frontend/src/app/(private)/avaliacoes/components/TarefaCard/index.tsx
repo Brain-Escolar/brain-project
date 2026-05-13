@@ -2,7 +2,6 @@
 
 import { TarefaResponse } from "@/services/domains/tarefa/response";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
 import * as S from "./styles";
 
