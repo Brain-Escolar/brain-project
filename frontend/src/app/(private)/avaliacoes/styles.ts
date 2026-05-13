@@ -146,3 +146,12 @@ export const EvaluationsList = styled.div`
   flex-direction: column;
   gap: 16px;
 `;
+
+export const ClickableCard = styled.div`
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+`;

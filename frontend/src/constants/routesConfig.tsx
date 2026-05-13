@@ -358,7 +358,14 @@ export const ROUTES: RouteConfig[] = [
     icon: <AssessmentIcon fontSize="small" />,
     router: RoutesEnum.AVALIACOES,
     isShowMenu: true,
-    roles: [UserRoleEnum.PROFESSOR],
+    roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
+  },
+  {
+    text: RouteLabelsEnum.AVALIACAO,
+    icon: <AssessmentIcon fontSize="small" />,
+    router: RoutesEnum.AVALIACAO_DETALHE,
+    isShowMenu: false,
+    roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
   },
   {
     text: RouteLabelsEnum.COMUNICADOS,
