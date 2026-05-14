@@ -116,7 +116,7 @@ export const ROLE_ROUTES: Record<UserRoleEnum, string[]> = {
     "/minhas-aulas",
     "/comunicados",
     "/tarefa",
-    "/planejamento-anual",
+    "/planejamento-anual", "/aluno", "/boletim", "/calendario", "/minhas-aulas", "/perfil",
   ],
 };
 

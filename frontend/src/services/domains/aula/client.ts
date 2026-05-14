@@ -1,7 +1,6 @@
 import { httpClient } from "@/services/http";
 import {
   AulaAlunoResponse,
-  AulaDetalheResponse,
   AulaInfoResponse,
   AulaListaResponse,
   AulaResponse,
@@ -23,7 +22,7 @@ export class AulaApi {
     return httpClient.get(`${BASE_ROUTE}`);
   }
 
-  getAulaById(id: string): Promise<AulaDetalheResponse> {
+  getAulaById(id: string): Promise<AulaInfoResponse> {
     return httpClient.get(`${BASE_ROUTE}/${id}`);
   }
 

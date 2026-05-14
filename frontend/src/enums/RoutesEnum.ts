@@ -12,6 +12,7 @@ export enum RoutesEnum {
   ALUNO_LISTA = "/aluno/lista",
   ALUNO_CADASTRO = "/aluno/cadastro",
   ALUNO_DETALHE = "/aluno/detalhe",
+  ALUNO_AULA = "/aluno/aula",
 
   // Turma routes
   TURMA_LISTA = "/turma/lista",

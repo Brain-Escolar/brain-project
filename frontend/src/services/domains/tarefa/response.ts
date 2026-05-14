@@ -4,5 +4,5 @@ export interface TarefaResponse {
   conteudo: string;
   documentoUrl?: string;
   professor: string;
-  prazo: number[];
+  prazo: string; // "YYYY-MM-DD" — serialized by ListagemTarefaDto via LocalDate.toString()
 }

@@ -1,5 +1,5 @@
 import { useTarefas } from "@/hooks/useTarefas";
-import { formatDateFromArray } from "@/utils/utils";
+import { formatDateString } from "@/utils/utils";
 import {
   Box,
   Card,
@@ -82,7 +82,7 @@ function SectionVisaoGeral({ existeAulaNoDia }: ISectionVisaoGeralProps) {
                       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                         <AccessTimeIcon sx={{ fontSize: 14, color: "text.secondary" }} />
                         <Typography variant="caption" color="text.secondary">
-                          Envio: {formatDateFromArray(tarefa.prazo)}
+                          Envio: {formatDateString(tarefa.prazo)}
                         </Typography>
                       </Box>
                     </CardContent>

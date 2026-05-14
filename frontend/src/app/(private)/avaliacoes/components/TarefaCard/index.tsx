@@ -9,10 +9,10 @@ interface TarefaCardProps {
   tarefa: TarefaResponse;
 }
 
-function formatDate(dateArray: number[]): string {
-  if (!dateArray || dateArray.length < 3) return "-";
-  const [year, month, day] = dateArray;
-  return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`;
+function formatDate(prazo: string): string {
+  if (!prazo) return "-";
+  const [year, month, day] = prazo.split("-");
+  return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
 }
 
 export default function TarefaCard({ tarefa }: TarefaCardProps) {

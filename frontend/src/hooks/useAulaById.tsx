@@ -2,11 +2,11 @@
 
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { aulaApi } from "@/services/api";
-import { AulaDetalheResponse } from "@/services/domains/aula/response";
+import { AulaInfoResponse } from "@/services/domains/aula/response";
 import { useQuery } from "@tanstack/react-query";
 
 interface UseAulaByIdReturn {
-  aula: AulaDetalheResponse | null;
+  aula: AulaInfoResponse | null;
   loading: boolean;
   error: string | null;
 }

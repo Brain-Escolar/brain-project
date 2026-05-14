@@ -11,6 +11,12 @@ export function isNullUndefined<T>(value: T | null | undefined): value is null |
  * @param dateArray Array no formato [ano, mês, dia]
  * @returns String formatada no padrão DD/MM/AAAA
  */
+export function formatDateString(date: string): string {
+  if (!date) return "Data não informada";
+  const [year, month, day] = date.split("-");
+  return `${day}/${month}/${year}`;
+}
+
 export function formatDateFromArray(dateArray: number[]): string {
   if (!dateArray || dateArray.length < 3) {
     return "Data não informada";

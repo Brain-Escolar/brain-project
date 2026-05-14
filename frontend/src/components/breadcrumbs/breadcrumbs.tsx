@@ -30,9 +30,9 @@ function Breadcrumbs({ currentLabel }: BreadcrumbsProps) {
           return (
             <S.Item key={`${item.label}-${index}`}>
               {item.href && !isLast ? (
-                <Link href={item.href} passHref legacyBehavior>
-                  <S.CrumbLink>{item.label}</S.CrumbLink>
-                </Link>
+                <S.CrumbLink as={Link} href={item.href}>
+                  {item.label}
+                </S.CrumbLink>
               ) : (
                 <S.CrumbText $current={isLast} aria-current={isLast ? "page" : undefined}>
                   {item.label}

@@ -1,6 +1,6 @@
 import { AulaFormData } from "@/app/(private)/aula/schema";
 import { AulaPostRequest, AulaPutRequest, DiaSemana } from "@/services/domains/aula/request";
-import { AulaDetalheResponse } from "@/services/domains/aula/response";
+import { AulaInfoResponse } from "@/services/domains/aula/response";
 
 export function mapFormDataToAulaPostRequest(formData: AulaFormData): AulaPostRequest {
   return {
@@ -28,13 +28,13 @@ export function mapFormDataToAulaPutRequest(formData: AulaFormData, id: string):
 /**
  * Mapeia os dados da aula da API para o formato do formulário
  */
-export function mapAulaResponseToFormData(aula: AulaDetalheResponse): AulaFormData {
+export function mapAulaResponseToFormData(aula: AulaInfoResponse): AulaFormData {
   return {
-    disciplinaId: aula.disciplinaId || 0,
-    turmaId: aula.turmaId || 0,
-    professorId: aula.professorId || 0,
-    diaSemana: (aula.diaSemana as AulaFormData["diaSemana"]) || "MONDAY",
+    disciplinaId: 0,
+    turmaId: 0,
+    professorId: 0,
+    diaSemana: (aula.diaDaSemana as AulaFormData["diaSemana"]) || "MONDAY",
     sala: aula.sala || "",
-    horarioId: aula.horarioId || 0,
+    horarioId: 0,
   };
 }

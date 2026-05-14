@@ -7,7 +7,9 @@ import { useAulasAluno } from "@/hooks/useAulasAluno";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
 import LoadingComponent from "@/components/loadingComponent/loadingComponent";
 import { formatDateForAPI } from "@/utils/utilsDate";
+import { RoutesEnum } from "@/enums";
 import { Box, Button, ButtonGroup, styled } from "@mui/material";
+import { useRouter } from "next/navigation";
 
 const Header = styled(Box)`
   display: flex;
@@ -27,6 +29,7 @@ const AulasContainer = styled(Box)`
 const formatarHora = (horario: string): string => horario.substring(0, 5);
 
 export default function SectionAulasAluno() {
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
 
   const { aulas, loading, error, refetch, isFetching } = useAulasAluno({
@@ -91,15 +94,16 @@ export default function SectionAulasAluno() {
         <BrainResultNotFound message="Nenhuma aula encontrada para esse dia" />
       ) : (
         <AulasContainer>
-          {aulas.map((aula, index) => (
+          {aulas.map((aula) => (
             <CardClass
-              key={`${aula.disciplina}-${aula.turma}-${index}`}
+              key={aula.id}
               title={`${aula.disciplina} — ${aula.serie} ${aula.turma}`}
               image={"https://placehold.co/100.png"}
               hour={`${formatarHora(aula.horarioInicio)} - ${formatarHora(aula.horarioFim)}`}
               classroom={`Sala ${aula.sala}`}
               campus={aula.unidade}
               quantityStudents={aula.quantidadeAlunos}
+              onClick={() => router.push(`${RoutesEnum.ALUNO_AULA}/${aula.id}`)}
             />
           ))}
         </AulasContainer>

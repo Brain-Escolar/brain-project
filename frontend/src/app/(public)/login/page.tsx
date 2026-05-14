@@ -66,7 +66,7 @@ function LoginContent() {
             redirectPath = "/";
             break;
           case "ADMIN":
-            redirectPath = "/admin";
+            redirectPath = "/aluno";
             break;
         }
 

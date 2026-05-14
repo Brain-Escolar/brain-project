@@ -15,16 +15,6 @@ export interface AulaListaResponse {
   horario: string;
 }
 
-export interface AulaDetalheResponse {
-  id: number;
-  disciplinaId: number;
-  turmaId: number;
-  professorId: number;
-  diaSemana: string;
-  sala: string;
-  horarioId: number;
-}
-
 export interface AulaAlunoResponse {
   id: number;
   nome: string;

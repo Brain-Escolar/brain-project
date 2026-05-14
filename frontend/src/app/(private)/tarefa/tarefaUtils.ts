@@ -26,14 +26,12 @@ export function mapFormDataToTarefaPutRequest(
 }
 
 /**
- * Converte um array de números [ano, mês, dia] para o formato dd/mm/yyyy
+ * Converte uma string ISO "YYYY-MM-DD" para o formato do formulário "DD/MM/YYYY"
  */
-function convertArrayToDateString(dateArray: number[]): string {
-  if (!dateArray || dateArray.length < 3) return "";
-  const [year, month, day] = dateArray;
-  const dayStr = String(day).padStart(2, "0");
-  const monthStr = String(month).padStart(2, "0");
-  return `${dayStr}/${monthStr}/${year}`;
+function convertIsoToFormDate(prazo: string): string {
+  if (!prazo) return "";
+  const [year, month, day] = prazo.split("-");
+  return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
 }
 
 /**
@@ -44,6 +42,6 @@ export function mapTarefaResponseToFormData(tarefa: TarefaResponse): TarefaFormD
     titulo: tarefa.titulo || "",
     conteudo: tarefa.conteudo || "",
     documentoUrl: tarefa.documentoUrl || "",
-    prazo: tarefa.prazo ? convertArrayToDateString(tarefa.prazo) : "",
+    prazo: tarefa.prazo ? convertIsoToFormDate(tarefa.prazo) : "",
   };
 }

@@ -73,19 +73,16 @@ export default function ListaTarefaPage() {
   };
 
   // Função para formatar a data do array [ano, mês, dia] para dd/mm/aaaa
-  const formatDate = (dateArray: number[]): string => {
-    if (!dateArray || dateArray.length < 3) return "-";
-    const [year, month, day] = dateArray;
-    const dayStr = String(day).padStart(2, "0");
-    const monthStr = String(month).padStart(2, "0");
-    return `${dayStr}/${monthStr}/${year}`;
+  const formatDate = (prazo: string): string => {
+    if (!prazo) return "-";
+    const [year, month, day] = prazo.split("-");
+    return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
   };
 
   // Função para verificar se o prazo está vencido
-  const isPrazoVencido = (dateArray: number[]): boolean => {
-    if (!dateArray || dateArray.length < 3) return false;
-    const [year, month, day] = dateArray;
-    const prazoDate = new Date(year, month - 1, day);
+  const isPrazoVencido = (prazo: string): boolean => {
+    if (!prazo) return false;
+    const prazoDate = new Date(prazo);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return prazoDate < today;
