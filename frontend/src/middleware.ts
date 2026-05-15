@@ -15,7 +15,6 @@ const publicRoutes = [
   { path: "/login/google/autorizado", whenAuthenticated: "next" },
   { path: "/usuario/verificar-conta", whenAuthenticated: "next" },
   { path: "/register", whenAuthenticated: "redirect" },
-  { path: "/teste-ssr", whenAuthenticated: "next" },
   { path: "/princing", whenAuthenticated: "next" },
 ] as const;
 
