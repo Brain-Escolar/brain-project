@@ -18,6 +18,7 @@ import { NotaApi } from "./domains/notas";
 import { PlanejamentoAnualAPI } from "./domains/planejamento-anual";
 import { GradeCurricularApi } from "./domains/grade-curricular";
 import { EstudanteApi } from "./domains/estudante";
+import { ComunicadoApi } from "./domains/comunicado";
 
 export const alunoApi = new AlunoApi();
 export const estudanteApi = new EstudanteApi();
@@ -39,3 +40,4 @@ export const avaliacaoApi = new AvaliacaoApi();
 export const notaApi = new NotaApi();
 export const planejamentoAnualApi = new PlanejamentoAnualAPI();
 export const gradeCurricularApi = new GradeCurricularApi();
+export const comunicadoApi = new ComunicadoApi();
