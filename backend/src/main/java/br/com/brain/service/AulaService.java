@@ -19,6 +19,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -150,6 +152,18 @@ public class AulaService {
         LocalDate dataInicio = LocalDate.of(ano, 1, 1);
         LocalDate dataFim = LocalDate.of(ano, 12, 31);
         return repository.findByProfessorIdAndVigenciaBetween(id, dataInicio, dataFim);
+    }
+
+    public List<ListagemAulaDto> recuperarAulasSemanalProfessor(Long professorId) {
+        var diasUteis = List.of(
+                DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+                DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
+        var sort = Sort.by(Sort.Direction.ASC, "diaSemana")
+                .and(Sort.by(Sort.Direction.ASC, "horario.horarioInicio"));
+        return repository.findByProfessorIdAndDiaSemanaIn(professorId, diasUteis, sort)
+                .stream()
+                .map(ListagemAulaDto::new)
+                .toList();
     }
 
     public List<Turma> recuperarTurmasPorDisciplina(Long id) {

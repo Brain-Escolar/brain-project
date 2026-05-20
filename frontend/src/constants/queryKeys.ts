@@ -138,5 +138,9 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.comunicados.all, "detail"] as const,
     detail: (id: number) => [...QUERY_KEYS.comunicados.details(), id] as const,
   },
+  planejamento: {
+    all: ["planejamento"] as const,
+    list: () => [...QUERY_KEYS.planejamento.all, "list"] as const,
+  },
   // Outros recursos podem ser adicionados aqui futuramente
 } as const;

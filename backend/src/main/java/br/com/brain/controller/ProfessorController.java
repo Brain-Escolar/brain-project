@@ -94,6 +94,14 @@ public class ProfessorController {
         return ResponseEntity.ok(aulas);
     }
 
+    @GetMapping("/aulas/semana")
+    public ResponseEntity<List<ListagemAulaDto>> recuperarAulasSemana(
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var professor = service.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
+        var aulas = aulaService.recuperarAulasSemanalProfessor(professor.getId());
+        return ResponseEntity.ok(aulas);
+    }
+
     @GetMapping("/planejamento")
     public ResponseEntity<Page<ListagemEventoDto>> planejamento(@AuthenticationPrincipal DadosAutenticacao usuario,
             @PageableDefault(size = 10) Pageable paginacao) {

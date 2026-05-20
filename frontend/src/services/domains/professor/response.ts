@@ -11,6 +11,19 @@ export interface ProfessorAulaResponse {
   unidade: string;
 }
 
+export interface ProfessorAulaSemanalResponse {
+  id: number;
+  disciplina: string;
+  serie: string;
+  turma: string;
+  sala: string;
+  professor: string;
+  diaDaSemana: string; // "MONDAY" | "TUESDAY" | ...
+  horarioInicio: string; // "HH:MM:SS"
+  horarioFim: string;
+  unidade: string;
+}
+
 export interface ProfessorPlanejamentoResponse {
   titulo: string;
   descricao: string;

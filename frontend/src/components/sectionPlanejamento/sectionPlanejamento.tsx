@@ -1,46 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { professorApi } from "@/services/api";
-import { ProfessorPlanejamentoResponse } from "@/services/domains/professor/response";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import * as S from "./styles";
 
+const formatarData = (dataISO: string): string => {
+  try {
+    return new Date(dataISO).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return dataISO;
+  }
+};
+
 export default function SectionPlanejamento() {
-  const [planejamentos, setPlanejamentos] = useState<ProfessorPlanejamentoResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Função para formatar data ISO para formato brasileiro
-  const formatarData = (dataISO: string): string => {
-    try {
-      const data = new Date(dataISO);
-      return data.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch (error) {
-      console.error("Erro ao formatar data:", error);
-      return dataISO; // Retorna a data original em caso de erro
-    }
-  };
-
-  useEffect(() => {
-    const loadPlanejamentos = async () => {
-      try {
-        setIsLoading(true);
-        const response = await professorApi.getPlanejamento();
-        setPlanejamentos(response);
-      } catch (error) {
-        console.error("Erro ao carregar planejamentos:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadPlanejamentos();
-  }, []);
+  const { data: planejamentos = [], isLoading } = useQuery({
+    queryKey: QUERY_KEYS.planejamento.list(),
+    queryFn: () => professorApi.getPlanejamento(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 2,
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <S.Container>

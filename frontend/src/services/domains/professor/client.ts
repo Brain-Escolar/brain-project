@@ -9,6 +9,7 @@ import {
 } from "./request";
 import {
   ProfessorAulaResponse,
+  ProfessorAulaSemanalResponse,
   ProfessorDetalheResponse,
   ProfessorListaResponse,
   ProfessorPlanejamentoResponse,
@@ -21,6 +22,10 @@ const BASE_ROUTE = "professor";
 export class ProfessorApi {
   getAulasProfessor(request: ProfessorAulaRequest): Promise<IBrainResult<ProfessorAulaResponse>> {
     return httpClient.post(`${BASE_ROUTE}/aulas`, request);
+  }
+
+  getAulasSemanalProfessor(): Promise<ProfessorAulaSemanalResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/aulas/semana`);
   }
   getPlanejamento(): Promise<ProfessorPlanejamentoResponse[]> {
     return httpClient.get(`${BASE_ROUTE}/planejamento`);

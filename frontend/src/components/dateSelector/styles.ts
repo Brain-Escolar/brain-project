@@ -7,9 +7,6 @@ export const Container = styled.div`
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  margin-bottom: 16px;
-  padding: 8px;
-  border-radius: 8px;
 `;
 
 export const DateText = styled.span`
