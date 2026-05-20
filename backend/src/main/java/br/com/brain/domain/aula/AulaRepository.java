@@ -41,4 +41,6 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
     List<Aula> findByDisciplinaId(Long disciplinaId);
 
     List<Aula> findByProfessorIdAndDiaSemanaIn(Long professorId, List<DayOfWeek> dias, Sort sort);
+
+    List<Aula> findByTurmaIdAndDiaSemanaIn(Long turmaId, List<DayOfWeek> dias, Sort sort);
 }

@@ -10,6 +10,10 @@ export class EstudanteApi {
     return httpClient.post(`${BASE_ROUTE}/aulas`, request);
   }
 
+  getAulasSemanalAluno(): Promise<EstudanteAulaResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/aulas/semana`);
+  }
+
   getAnotacoesSemana(): Promise<EstudanteAnotacaoResponse[]> {
     return httpClient.get(`${BASE_ROUTE}/anotacoes/semana`);
   }

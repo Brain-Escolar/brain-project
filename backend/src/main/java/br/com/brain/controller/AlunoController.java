@@ -114,6 +114,14 @@ public class AlunoController {
         return ResponseEntity.ok(aulas);
     }
 
+    @GetMapping("/aulas/semana")
+    public ResponseEntity<List<ListagemAulaAlunoDto>> recuperarAulasSemana(
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var aluno = service.recuperarAlunoPorDadosPessoais(usuario.getDadosPessoais().getId());
+        var aulas = aulaService.recuperarAulasSemanalAluno(aluno.getTurma().getId());
+        return ResponseEntity.ok(aulas);
+    }
+
     @GetMapping("/anotacoes/semana")
     public ResponseEntity<List<ListagemAnotacaoSemanaDto>> recuperarAnotacoesSemana(
             @AuthenticationPrincipal DadosAutenticacao usuario) {

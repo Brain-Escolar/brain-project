@@ -10,7 +10,7 @@ import BrainResultNotFound from "../resultNotFound/resultNotFound";
 import LoadingComponent from "../loadingComponent/loadingComponent";
 import { formatDateForAPI } from "@/utils/utilsDate";
 import { RoutesEnum } from "@/enums";
-import { Box, Button, ButtonGroup, IconButton, styled } from "@mui/material";
+import { Box, Button, ButtonGroup, IconButton, styled, Typography } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -125,6 +125,19 @@ function SemanalContent({
       aulasByDay={aulasByDay}
       weekDays={weekDays}
       onAulaClick={(aula) => onAulaClick(aula.id)}
+      renderCard={(aula) => (
+        <>
+          <Typography sx={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>
+            {aula.disciplina}
+          </Typography>
+          <Typography sx={{ fontSize: 12, color: "#555", mt: 0.3 }}>
+            {aula.serie} {aula.turma}
+          </Typography>
+          <Typography sx={{ fontSize: 11, color: "#777", mt: 0.2 }}>
+            Sala {aula.sala}
+          </Typography>
+        </>
+      )}
     />
   );
 }

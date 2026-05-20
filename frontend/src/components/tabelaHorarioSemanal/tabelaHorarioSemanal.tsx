@@ -1,6 +1,5 @@
 "use client";
 
-import { ProfessorAulaSemanalResponse } from "@/services/domains/professor";
 import { Box, styled, Typography } from "@mui/material";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -66,7 +65,7 @@ const TdIntervalo = styled("td")`
   background: #fef9e7;
 `;
 
-const ClassCard = styled(Box)`
+export const ClassCard = styled(Box)`
   background: #e8f4fd;
   border-left: 3px solid #2196f3;
   border-radius: 4px;
@@ -93,6 +92,11 @@ interface TimeSlot {
   isIntervalo?: boolean;
 }
 
+export interface AulaBase {
+  horarioInicio: string;
+  horarioFim: string;
+}
+
 const parseTimeToMinutes = (time: string): number => {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
@@ -104,7 +108,7 @@ const formatHour = (minutes: number): string => {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
 
-function buildTimeSlots(aulasByDay: ProfessorAulaSemanalResponse[][]): TimeSlot[] {
+function buildTimeSlots<T extends AulaBase>(aulasByDay: T[][]): TimeSlot[] {
   const slotMap = new Map<string, TimeSlot>();
 
   for (const aulas of aulasByDay) {
@@ -130,8 +134,7 @@ function buildTimeSlots(aulasByDay: ProfessorAulaSemanalResponse[][]): TimeSlot[
     if (i > 0) {
       const prev = sorted[i - 1];
       const curr = sorted[i];
-      const gap = curr.inicioMin - prev.fimMin;
-      if (gap > 5) {
+      if (curr.inicioMin - prev.fimMin > 5) {
         withIntervalos.push({
           key: `intervalo-${prev.fimMin}-${curr.inicioMin}`,
           inicioMin: prev.fimMin,
@@ -147,29 +150,27 @@ function buildTimeSlots(aulasByDay: ProfessorAulaSemanalResponse[][]): TimeSlot[
   return withIntervalos;
 }
 
-interface TabelaHorarioSemanalProps {
-  aulasByDay: ProfessorAulaSemanalResponse[][];
+interface TabelaHorarioSemanalProps<T extends AulaBase> {
+  aulasByDay: T[][];
   weekDays: Date[];
-  onAulaClick?: (aula: ProfessorAulaSemanalResponse) => void;
+  renderCard: (aula: T) => React.ReactNode;
+  onAulaClick?: (aula: T) => void;
 }
 
-export default function TabelaHorarioSemanal({
+export default function TabelaHorarioSemanal<T extends AulaBase>({
   aulasByDay,
   weekDays,
+  renderCard,
   onAulaClick,
-}: TabelaHorarioSemanalProps) {
+}: TabelaHorarioSemanalProps<T>) {
   const timeSlots = buildTimeSlots(aulasByDay);
 
-  const findAula = (
-    dayIndex: number,
-    slot: TimeSlot,
-  ): ProfessorAulaSemanalResponse | undefined => {
-    return aulasByDay[dayIndex]?.find(
+  const findAula = (dayIndex: number, slot: TimeSlot): T | undefined =>
+    aulasByDay[dayIndex]?.find(
       (a) =>
         parseTimeToMinutes(a.horarioInicio) === slot.inicioMin &&
         parseTimeToMinutes(a.horarioFim) === slot.fimMin,
     );
-  };
 
   if (timeSlots.filter((s) => !s.isIntervalo).length === 0) {
     return (
@@ -220,17 +221,7 @@ export default function TabelaHorarioSemanal({
                     <Td key={dayIndex}>
                       {aula ? (
                         <ClassCard onClick={() => onAulaClick?.(aula)}>
-                          <Typography
-                            sx={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}
-                          >
-                            {aula.disciplina}
-                          </Typography>
-                          <Typography sx={{ fontSize: 12, color: "#555", mt: 0.3 }}>
-                            {aula.serie} {aula.turma}
-                          </Typography>
-                          <Typography sx={{ fontSize: 11, color: "#777", mt: 0.2 }}>
-                            Sala {aula.sala}
-                          </Typography>
+                          {renderCard(aula)}
                         </ClassCard>
                       ) : (
                         <EmptyCell>—</EmptyCell>

@@ -154,6 +154,19 @@ public class AulaService {
         return repository.findByProfessorIdAndVigenciaBetween(id, dataInicio, dataFim);
     }
 
+    public List<ListagemAulaAlunoDto> recuperarAulasSemanalAluno(Long turmaId) {
+        var diasUteis = List.of(
+                DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+                DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
+        var sort = Sort.by(Sort.Direction.ASC, "diaSemana")
+                .and(Sort.by(Sort.Direction.ASC, "horario.horarioInicio"));
+        long quantidadeAlunos = alunoRepository.countByTurmaIdAndMatriculadoTrue(turmaId);
+        return repository.findByTurmaIdAndDiaSemanaIn(turmaId, diasUteis, sort)
+                .stream()
+                .map(aula -> new ListagemAulaAlunoDto(aula, quantidadeAlunos))
+                .toList();
+    }
+
     public List<ListagemAulaDto> recuperarAulasSemanalProfessor(Long professorId) {
         var diasUteis = List.of(
                 DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,

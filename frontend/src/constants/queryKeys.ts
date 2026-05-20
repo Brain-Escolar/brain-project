@@ -121,6 +121,7 @@ export const QUERY_KEYS = {
     aulas: {
       all: ["estudante", "aulas"] as const,
       lists: (data?: string) => [...QUERY_KEYS.estudante.aulas.all, "list", data] as const,
+      semana: () => [...QUERY_KEYS.estudante.aulas.all, "semana"] as const,
     },
     anotacoes: {
       all: ["estudante", "anotacoes"] as const,
