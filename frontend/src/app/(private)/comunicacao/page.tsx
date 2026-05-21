@@ -38,7 +38,11 @@ import { useConversaMutations } from "@/hooks/useConversaMutations";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import { ConversaResponse } from "@/services/domains/conversa/response";
-import { DESTINATARIOS_DISPONIVEIS, PERFIL_DISPLAY_NAME, PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
+import {
+  DESTINATARIOS_DISPONIVEIS,
+  PERFIL_DISPLAY_NAME,
+  PerfilNomeEnum,
+} from "@/enums/PerfilNomeEnum";
 import { z } from "zod";
 
 const novaConversaSchema = z.object({
@@ -81,16 +85,18 @@ export default function ComunicacaoPage() {
 
   const { conversas, isLoading } = useConversasRemetente(page);
   const { mensagens, isLoading: loadingMensagens } = useMensagens(selectedConversa?.id ?? null);
-  const { criarConversa, enviarMensagem, fecharConversa, marcarTodasComoLida } = useConversaMutations();
+  const { criarConversa, enviarMensagem, fecharConversa, marcarTodasComoLida } =
+    useConversaMutations();
 
   const { control, handleSubmit, reset } = useBrainForm<NovaConversaForm>({
     schema: novaConversaSchema,
     defaultValues: { titulo: "", primeiraMensagem: "" },
   });
 
-  const conversasFiltradas = conversas.filter((c) =>
-    c.titulo.toLowerCase().includes(search.toLowerCase()) ||
-    PERFIL_DISPLAY_NAME[c.destinatarioPerfilNome]?.toLowerCase().includes(search.toLowerCase()),
+  const conversasFiltradas = conversas.filter(
+    (c) =>
+      c.titulo.toLowerCase().includes(search.toLowerCase()) ||
+      PERFIL_DISPLAY_NAME[c.destinatarioPerfilNome]?.toLowerCase().includes(search.toLowerCase()),
   );
 
   useEffect(() => {
@@ -98,10 +104,10 @@ export default function ComunicacaoPage() {
   }, [mensagens]);
 
   useEffect(() => {
-    if (selectedConversa && mensagens.length > 0 && !loadingMensagens) {
+    if (selectedConversa?.id && mensagens.length > 0 && !loadingMensagens) {
       marcarTodasComoLida.mutate(selectedConversa.id);
     }
-  }, [selectedConversa?.id, loadingMensagens]);
+  }, [selectedConversa, mensagens.length, loadingMensagens, marcarTodasComoLida]);
 
   function handleOpenNovaConversa() {
     reset({ titulo: "", primeiraMensagem: "" });
@@ -161,7 +167,13 @@ export default function ComunicacaoPage() {
         {/* Painel esquerdo — lista de conversas */}
         <Paper
           variant="outlined"
-          sx={{ width: 360, flexShrink: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}
+          sx={{
+            width: 360,
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
         >
           <Box sx={{ p: 2 }}>
             <TextField
@@ -204,7 +216,8 @@ export default function ComunicacaoPage() {
                     px: 2,
                     py: 1.5,
                     cursor: "pointer",
-                    bgcolor: selectedConversa?.id === conversa.id ? "action.selected" : "transparent",
+                    bgcolor:
+                      selectedConversa?.id === conversa.id ? "action.selected" : "transparent",
                     "&:hover": { bgcolor: "action.hover" },
                     display: "flex",
                     gap: 1.5,
@@ -215,7 +228,13 @@ export default function ComunicacaoPage() {
                     {getDestinatarioIcon(conversa.destinatarioPerfilNome)}
                   </Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
                       <Typography
                         variant="body2"
                         fontWeight={conversa.mensagensNaoLidas > 0 ? 700 : 600}
@@ -224,7 +243,15 @@ export default function ComunicacaoPage() {
                       >
                         {conversa.titulo}
                       </Typography>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, ml: 1, flexShrink: 0 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.75,
+                          ml: 1,
+                          flexShrink: 0,
+                        }}
+                      >
                         {conversa.mensagensNaoLidas > 0 && (
                           <Box
                             sx={{
@@ -250,13 +277,18 @@ export default function ComunicacaoPage() {
                       </Box>
                     </Box>
                     <Typography variant="caption" color="text.secondary">
-                      {PERFIL_DISPLAY_NAME[conversa.destinatarioPerfilNome] ?? conversa.destinatarioPerfilNome}
+                      {PERFIL_DISPLAY_NAME[conversa.destinatarioPerfilNome] ??
+                        conversa.destinatarioPerfilNome}
                     </Typography>
                     <Box sx={{ mt: 0.5 }}>
                       <Chip
                         size="small"
                         label={conversa.status === "ABERTA" ? "Aberto" : "Encerrado"}
-                        icon={conversa.status === "FECHADA" ? <LockIcon sx={{ fontSize: "12px !important" }} /> : undefined}
+                        icon={
+                          conversa.status === "FECHADA" ? (
+                            <LockIcon sx={{ fontSize: "12px !important" }} />
+                          ) : undefined
+                        }
                         color={conversa.status === "ABERTA" ? "success" : "default"}
                         variant="outlined"
                         sx={{ height: 20, fontSize: "0.65rem" }}
@@ -316,7 +348,8 @@ export default function ComunicacaoPage() {
                     {selectedConversa.titulo}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    {PERFIL_DISPLAY_NAME[selectedConversa.destinatarioPerfilNome] ?? selectedConversa.destinatarioPerfilNome}
+                    {PERFIL_DISPLAY_NAME[selectedConversa.destinatarioPerfilNome] ??
+                      selectedConversa.destinatarioPerfilNome}
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={1} alignItems="center">
@@ -332,9 +365,15 @@ export default function ComunicacaoPage() {
                       variant="outlined"
                       color="error"
                       startIcon={<LockIcon />}
-                      onClick={() => fecharConversa.mutateAsync(selectedConversa.id).then(() =>
-                        setSelectedConversa((prev) => prev ? { ...prev, status: "FECHADA" } : null)
-                      )}
+                      onClick={() =>
+                        fecharConversa
+                          .mutateAsync(selectedConversa.id)
+                          .then(() =>
+                            setSelectedConversa((prev) =>
+                              prev ? { ...prev, status: "FECHADA" } : null,
+                            ),
+                          )
+                      }
                     >
                       Encerrar
                     </Button>
@@ -355,7 +394,10 @@ export default function ComunicacaoPage() {
                       return (
                         <Box
                           key={msg.id}
-                          sx={{ display: "flex", justifyContent: isOwn ? "flex-end" : "flex-start" }}
+                          sx={{
+                            display: "flex",
+                            justifyContent: isOwn ? "flex-end" : "flex-start",
+                          }}
                         >
                           <Box
                             sx={{
@@ -368,18 +410,29 @@ export default function ComunicacaoPage() {
                             }}
                           >
                             {!isOwn && (
-                              <Typography variant="caption" fontWeight={600} display="block" sx={{ mb: 0.5, color: "text.secondary" }}>
+                              <Typography
+                                variant="caption"
+                                fontWeight={600}
+                                display="block"
+                                sx={{ mb: 0.5, color: "text.secondary" }}
+                              >
                                 {msg.remetenteNome}
                               </Typography>
                             )}
-                            <Typography variant="body2" sx={{ color: isOwn ? "#fff" : "text.primary" }}>
+                            <Typography
+                              variant="body2"
+                              sx={{ color: isOwn ? "#fff" : "text.primary" }}
+                            >
                               {msg.conteudo}
                             </Typography>
                             <Typography
                               variant="caption"
                               display="block"
                               textAlign="right"
-                              sx={{ mt: 0.5, color: isOwn ? "rgba(255,255,255,0.7)" : "text.secondary" }}
+                              sx={{
+                                mt: 0.5,
+                                color: isOwn ? "rgba(255,255,255,0.7)" : "text.secondary",
+                              }}
                             >
                               {formatDateTime(msg.criadoEm)}
                             </Typography>
@@ -458,12 +511,7 @@ export default function ComunicacaoPage() {
           <DialogTitle>Nova Mensagem</DialogTitle>
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
-              <BrainTextFieldControlled
-                name="titulo"
-                control={control}
-                label="Assunto"
-                required
-              />
+              <BrainTextFieldControlled name="titulo" control={control} label="Assunto" required />
               <FormControl fullWidth error={!!destinatarioError}>
                 <InputLabel>Destinatário</InputLabel>
                 <Select
