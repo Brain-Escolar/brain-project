@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import {
   Avatar,
+  Button,
   Divider,
   IconButton,
   ListItemIcon,
@@ -18,9 +19,15 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
+import AddIcon from "@mui/icons-material/Add";
 import { useTheme } from "next-themes";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { RoutesEnum, UserRoleEnum } from "@/enums";
+import { alunoApi } from "@/services/api";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { CursoPretendidoModal } from "./CursoPretendidoModal";
 
 export interface UserMenuProps {
   user: {
@@ -50,6 +57,16 @@ export function UserMenu({
   const { resolvedTheme, setTheme } = useTheme();
 
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
+  const [modalOpen, setModalOpen] = React.useState(false);
+
+  const isEstudante = user.role === UserRoleEnum.ESTUDANTE;
+
+  const { data: perfil } = useQuery({
+    queryKey: QUERY_KEYS.alunos.perfil(),
+    queryFn: () => alunoApi.getPerfil(),
+    enabled: isEstudante,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const isDarkMode = resolvedTheme === "dark";
   const themeMenuItem = isDarkMode
@@ -75,6 +92,14 @@ export function UserMenu({
 
   const handleLogout = () => {
     signOut();
+  };
+
+  const handleOpenModal = () => {
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
   };
 
   return (
@@ -126,6 +151,50 @@ export function UserMenu({
         </Box>
 
         <Divider sx={{ borderColor: dividerColor }} />
+
+        {/* Seção de curso pretendido (somente ESTUDANTE) */}
+        {isEstudante && [
+          <Box key="curso-pretendido" sx={{ px: 2, py: 1.25 }}>
+            {perfil?.cursoPretendido ? (
+                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+                  <SchoolOutlinedIcon
+                    fontSize="small"
+                    sx={{ color: "primary.main", mt: 0.25, flexShrink: 0 }}
+                  />
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: mutedTextColor, fontWeight: 600, letterSpacing: 0.5 }}
+                    >
+                      CURSO PRETENDIDO
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: textColor }}>
+                      {perfil.cursoPretendido}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "primary.main", cursor: "pointer", "&:hover": { textDecoration: "underline" } }}
+                      onClick={handleOpenModal}
+                    >
+                      Alterar curso
+                    </Typography>
+                  </Box>
+                </Box>
+              ) : (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={handleOpenModal}
+                  fullWidth
+                  sx={{ textTransform: "none", borderRadius: 1.5 }}
+                >
+                  Escolher curso pretendido
+                </Button>
+              )}
+          </Box>,
+          <Divider key="curso-pretendido-divider" sx={{ borderColor: dividerColor }} />,
+        ]}
 
         <MenuItem
           onClick={() => handleNavigate(RoutesEnum.PERFIL)}
@@ -186,6 +255,14 @@ export function UserMenu({
           />
         </MenuItem>
       </Menu>
+
+      {isEstudante && (
+        <CursoPretendidoModal
+          open={modalOpen}
+          cursoPretendidoAtual={perfil?.cursoPretendido}
+          onClose={handleCloseModal}
+        />
+      )}
     </>
   );
 }

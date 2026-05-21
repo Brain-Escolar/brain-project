@@ -10,8 +10,11 @@ import br.com.brain.domain.serie.Serie;
 import br.com.brain.domain.turma.Turma;
 import br.com.brain.domain.unidade.Unidade;
 
+import br.com.brain.enums.CursoPretendido;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -62,6 +65,9 @@ public class Aluno extends EntidadeBase {
     private DadosPessoais dadosPessoais;
 
     private Boolean matriculado = false;
+
+    @Enumerated(EnumType.STRING)
+    private CursoPretendido cursoPretendido;
 
     @NotAudited
     @OneToMany(mappedBy = "aluno", fetch = FetchType.LAZY)

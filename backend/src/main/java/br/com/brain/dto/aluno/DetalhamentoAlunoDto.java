@@ -16,7 +16,8 @@ public record DetalhamentoAlunoDto(
         String cidadeNaturalidade,
         String email,
         Endereco endereco,
-        Boolean matriculado) {
+        Boolean matriculado,
+        String cursoPretendido) {
 
     public DetalhamentoAlunoDto(Aluno aluno) {
         this(
@@ -30,6 +31,7 @@ public record DetalhamentoAlunoDto(
                 aluno.getDadosPessoais().getCidadeNaturalidade(),
                 aluno.getDadosPessoais().getEmail(),
                 aluno.getDadosPessoais().getEndereco(),
-                aluno.getMatriculado());
+                aluno.getMatriculado(),
+                aluno.getCursoPretendido() != null ? aluno.getCursoPretendido().getDescricao() : null);
     }
 }

@@ -56,6 +56,12 @@ export interface AlunoDetalheResponse {
   corRaca?: string;
   cidadeNaturalidade?: string;
   matriculado?: boolean;
+  cursoPretendido?: string;
+}
+
+export interface CursoPretendidoResponse {
+  nome: string;
+  descricao: string;
 }
 
 export interface AnotacaoAlunoDisciplinaResponse {

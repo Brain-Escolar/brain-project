@@ -3,7 +3,9 @@ package br.com.brain.controller;
 import br.com.brain.domain.autenticacao.DadosAutenticacao;
 import br.com.brain.dto.DataDto;
 import br.com.brain.dto.aluno.AtualizacaoAlunoDto;
+import br.com.brain.dto.aluno.AtualizacaoCursoPretendidoDto;
 import br.com.brain.dto.aluno.CadastroAlunoDto;
+import br.com.brain.dto.aluno.CursoPretendidoDto;
 import br.com.brain.dto.aluno.DetalhamentoAlunoDto;
 import br.com.brain.dto.aluno.ListagemAlunoDto;
 import br.com.brain.dto.anotacao.AnotacaoAlunoDisciplinaDto;
@@ -127,6 +129,26 @@ public class AlunoController {
             @AuthenticationPrincipal DadosAutenticacao usuario) {
         var aluno = service.recuperarAlunoPorDadosPessoais(usuario.getDadosPessoais().getId());
         return ResponseEntity.ok(anotacaoService.recuperarAnotacoesSemana(aluno.getId()));
+    }
+
+    @GetMapping("/cursos-pretendidos")
+    public ResponseEntity<List<CursoPretendidoDto>> listarCursosPretendidos() {
+        return ResponseEntity.ok(service.listarCursosPretendidos());
+    }
+
+    @PatchMapping("/curso-pretendido")
+    public ResponseEntity<DetalhamentoAlunoDto> atualizarCursoPretendido(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @RequestBody @Valid AtualizacaoCursoPretendidoDto dados) {
+        var aluno = service.atualizarCursoPretendido(usuario.getDadosPessoais().getId(), dados.cursoPretendido());
+        return ResponseEntity.ok(new DetalhamentoAlunoDto(aluno));
+    }
+
+    @GetMapping("/perfil")
+    public ResponseEntity<DetalhamentoAlunoDto> buscarPerfil(
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var aluno = service.recuperarAlunoPorDadosPessoais(usuario.getDadosPessoais().getId());
+        return ResponseEntity.ok(new DetalhamentoAlunoDto(aluno));
     }
 
     @GetMapping("/tarefas")

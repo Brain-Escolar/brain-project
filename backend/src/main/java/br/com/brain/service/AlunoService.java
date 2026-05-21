@@ -9,7 +9,9 @@ import br.com.brain.domain.turma.Turma;
 import br.com.brain.domain.unidade.Unidade;
 import br.com.brain.dto.aluno.AtualizacaoAlunoDto;
 import br.com.brain.dto.aluno.CadastroAlunoDto;
+import br.com.brain.dto.aluno.CursoPretendidoDto;
 import br.com.brain.dto.aluno.ListagemAlunoDto;
+import br.com.brain.enums.CursoPretendido;
 import br.com.brain.dto.aula.ListagemAulaDto;
 import br.com.brain.dto.responsavel.CadastroResponsavelDto;
 import br.com.brain.dto.serie.SerieUnidadeTurmaDto;
@@ -19,6 +21,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -171,5 +174,18 @@ public class AlunoService {
     public Aluno recuperarAlunoPorDadosPessoais(Long dadosPessoaisId) {
         return repository.findByDadosPessoaisId(dadosPessoaisId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", dadosPessoaisId));
+    }
+
+    public List<CursoPretendidoDto> listarCursosPretendidos() {
+        return Arrays.stream(CursoPretendido.values())
+                .map(CursoPretendidoDto::new)
+                .toList();
+    }
+
+    @Transactional
+    public Aluno atualizarCursoPretendido(Long dadosPessoaisId, CursoPretendido cursoPretendido) {
+        var aluno = recuperarAlunoPorDadosPessoais(dadosPessoaisId);
+        aluno.setCursoPretendido(cursoPretendido);
+        return repository.save(aluno);
     }
 }
