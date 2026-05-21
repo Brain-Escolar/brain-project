@@ -25,7 +25,8 @@ function LoginContent() {
     setTheme("light");
   }, [setTheme]);
 
-  async function onSubmitLogin() {
+  async function onSubmitLogin(e: React.FormEvent) {
+    e.preventDefault();
     try {
       setIsLoading(true);
       const response = await loginApi.login({
@@ -105,37 +106,39 @@ function LoginContent() {
             Brain
           </Typography>
 
-          <TextField
-            fullWidth
-            label="Email"
-            type="email"
-            margin="normal"
-            variant="outlined"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading || googleLoading}
-          />
-          <TextField
-            fullWidth
-            label="Password"
-            type="password"
-            margin="normal"
-            variant="outlined"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading || googleLoading}
-          />
+          <form onSubmit={onSubmitLogin}>
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              margin="normal"
+              variant="outlined"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading || googleLoading}
+            />
+            <TextField
+              fullWidth
+              label="Password"
+              type="password"
+              margin="normal"
+              variant="outlined"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading || googleLoading}
+            />
 
-          <Button
-            onClick={onSubmitLogin}
-            variant="contained"
-            fullWidth
-            size="large"
-            sx={{ mt: 2, borderRadius: "8px" }}
-            disabled={isLoading || googleLoading}
-          >
-            Login
-          </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              size="large"
+              sx={{ mt: 2, borderRadius: "8px" }}
+              disabled={isLoading || googleLoading}
+            >
+              Login
+            </Button>
+          </form>
 
           <Divider sx={{ my: 2 }}>ou</Divider>
 
