@@ -82,6 +82,7 @@ export enum RoutesEnum {
   BOLETIM = "/boletim",
   AVALIACOES = "/avaliacoes",
   COMUNICADOS = "/comunicados",
+  COMUNICACAO = "/comunicacao",
   PERFIL = "/perfil",
 
   // Admin routes

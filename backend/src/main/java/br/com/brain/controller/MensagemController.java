@@ -40,6 +40,14 @@ public class MensagemController {
         return ResponseEntity.ok(service.listar(conversaId, pageable));
     }
 
+    @PostMapping("/lidas")
+    public ResponseEntity<Void> marcarTodasComoLida(
+            @PathVariable Long conversaId,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        service.marcarTodasComoLida(conversaId, usuario.getDadosPessoais().getId());
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{mensagemId}/lida")
     public ResponseEntity<Void> marcarComoLida(
             @PathVariable Long conversaId,

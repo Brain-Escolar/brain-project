@@ -7,6 +7,7 @@ import br.com.brain.domain.mensagem.Mensagem;
 import br.com.brain.domain.mensagem.MensagemRepository;
 import br.com.brain.domain.perfil.PerfilRepository;
 import br.com.brain.dto.conversa.CadastroConversaDto;
+import br.com.brain.dto.conversa.ConversaNaoLidaContagem;
 import br.com.brain.dto.conversa.ListagemConversaDto;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.enums.StatusConversa;
@@ -16,6 +17,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +46,7 @@ public class ConversaService {
         }
 
         var conversa = new Conversa();
+        conversa.setTitulo(dados.titulo());
         conversa.setRemetente(remetente);
         conversa.setRemetentePerfil(remetentePerfil);
         conversa.setDestinatario(destinatario);
@@ -64,19 +70,32 @@ public class ConversaService {
         if (!possuiPerfil) {
             throw ErrosSistema.OperacaoInvalidaException.com("Usuário não possui o perfil " + perfilNome);
         }
-        return conversaRepository.findByDestinatarioNome(perfilNome, pageable)
-                .map(ListagemConversaDto::new);
+        var pagina = conversaRepository.findByDestinatarioNome(perfilNome, pageable);
+        var naoLidas = buscarNaoLidasEmLote(pagina.getContent().stream().map(Conversa::getId).toList(), dadosPessoaisId);
+        return pagina.map(c -> new ListagemConversaDto(c, naoLidas.getOrDefault(c.getId(), 0L)));
     }
 
     public Page<ListagemConversaDto> listarPorRemetente(Long dadosPessoaisId, Pageable pageable) {
-        return conversaRepository.findByRemetenteId(dadosPessoaisId, pageable)
-                .map(ListagemConversaDto::new);
+        var pagina = conversaRepository.findByRemetenteId(dadosPessoaisId, pageable);
+        var naoLidas = buscarNaoLidasEmLote(pagina.getContent().stream().map(Conversa::getId).toList(), dadosPessoaisId);
+        return pagina.map(c -> new ListagemConversaDto(c, naoLidas.getOrDefault(c.getId(), 0L)));
     }
 
-    public ListagemConversaDto detalhar(Long id) {
+    private Map<Long, Long> buscarNaoLidasEmLote(List<Long> conversaIds, Long dadosPessoaisId) {
+        if (conversaIds.isEmpty()) return Map.of();
+        return mensagemRepository.countNaoLidasGroupedByConversaId(conversaIds, dadosPessoaisId)
+                .stream()
+                .collect(Collectors.toMap(ConversaNaoLidaContagem::conversaId, ConversaNaoLidaContagem::total));
+    }
+
+    public long contarNaoLidas(Long dadosPessoaisId) {
+        return mensagemRepository.countConversasComRespostaNaoLida(dadosPessoaisId);
+    }
+
+    public ListagemConversaDto detalhar(Long id, Long dadosPessoaisId) {
         var conversa = conversaRepository.findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Conversa", id));
-        return new ListagemConversaDto(conversa);
+        return new ListagemConversaDto(conversa, mensagemRepository.countNaoLidasByConversaId(id, dadosPessoaisId));
     }
 
     @Transactional

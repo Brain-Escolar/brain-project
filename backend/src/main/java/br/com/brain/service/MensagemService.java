@@ -55,6 +55,24 @@ public class MensagemService {
     }
 
     @Transactional
+    public void marcarTodasComoLida(Long conversaId, Long dadosPessoaisId) {
+        var naoLidas = mensagemRepository.findNaoLidasByConversaId(conversaId, dadosPessoaisId);
+        if (naoLidas.isEmpty()) return;
+
+        var dadosPessoais = dadosPessoaisRepository.findById(dadosPessoaisId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("DadosPessoais", dadosPessoaisId));
+
+        var agora = Instant.now();
+        for (var mensagem : naoLidas) {
+            var lida = new MensagemLida();
+            lida.setMensagem(mensagem);
+            lida.setDadosPessoais(dadosPessoais);
+            lida.setLidaEm(agora);
+            mensagemLidaRepository.save(lida);
+        }
+    }
+
+    @Transactional
     public void marcarComoLida(Long mensagemId, Long dadosPessoaisId) {
         if (mensagemLidaRepository.existsByMensagemIdAndDadosPessoaisId(mensagemId, dadosPessoaisId)) {
             return;

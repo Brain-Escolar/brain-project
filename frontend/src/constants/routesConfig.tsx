@@ -5,6 +5,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import AnnouncementIcon from "@mui/icons-material/Announcement";
+import ForumIcon from "@mui/icons-material/Forum";
 import SchoolIcon from "@mui/icons-material/School";
 import ClassIcon from "@mui/icons-material/Class";
 import ScheduleIcon from "@mui/icons-material/Schedule";
@@ -24,6 +25,7 @@ export interface RouteConfig {
   isShowMenu: boolean;
   roles: UserRoleEnum[];
   moduleMenu?: RoutesModuleEnum | null;
+  showBadge?: boolean;
 }
 
 export interface MenuModule {
@@ -315,6 +317,15 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.PLANEJAMENTO_ANUAL_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
+  },
+  // ========== COMUNICAÇÃO ==========
+  {
+    text: RouteLabelsEnum.COMUNICACAO,
+    icon: <ForumIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICACAO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ESTUDANTE, UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
+    showBadge: true,
   },
   // ========== USO OPERACIONAL - ESTUDANTE ==========
   {

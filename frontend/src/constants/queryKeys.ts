@@ -143,5 +143,11 @@ export const QUERY_KEYS = {
     all: ["planejamento"] as const,
     list: () => [...QUERY_KEYS.planejamento.all, "list"] as const,
   },
-  // Outros recursos podem ser adicionados aqui futuramente
+  conversas: {
+    all: ["conversas"] as const,
+    remetente: (page?: number) => [...["conversas"], "remetente", page] as const,
+    destinatario: (perfilNome?: string, page?: number) => [...["conversas"], "destinatario", perfilNome, page] as const,
+    detail: (id: number) => [...["conversas"], "detail", id] as const,
+    mensagens: (conversaId: number, page?: number) => [...["conversas"], "mensagens", conversaId, page] as const,
+  },
 } as const;

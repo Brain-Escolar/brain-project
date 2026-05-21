@@ -29,7 +29,7 @@ public class ConversaController {
             UriComponentsBuilder uriBuilder) {
         var conversa = service.abrir(dados, usuario.getDadosPessoais().getId());
         var uri = uriBuilder.path("/conversas/{id}").buildAndExpand(conversa.getId()).toUri();
-        return ResponseEntity.created(uri).body(new ListagemConversaDto(conversa));
+        return ResponseEntity.created(uri).body(new ListagemConversaDto(conversa, 0));
     }
 
     @GetMapping("/destinatario")
@@ -48,14 +48,23 @@ public class ConversaController {
         return ResponseEntity.ok(service.listarPorRemetente(usuario.getDadosPessoais().getId(), pageable));
     }
 
+    @GetMapping("/nao-lidas/contagem")
+    public ResponseEntity<Long> contarNaoLidas(@AuthenticationPrincipal DadosAutenticacao usuario) {
+        return ResponseEntity.ok(service.contarNaoLidas(usuario.getDadosPessoais().getId()));
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<ListagemConversaDto> detalhar(@PathVariable Long id) {
-        return ResponseEntity.ok(service.detalhar(id));
+    public ResponseEntity<ListagemConversaDto> detalhar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        return ResponseEntity.ok(service.detalhar(id, usuario.getDadosPessoais().getId()));
     }
 
     @PatchMapping("/{id}/fechar")
-    public ResponseEntity<ListagemConversaDto> fechar(@PathVariable Long id) {
+    public ResponseEntity<ListagemConversaDto> fechar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
         var conversa = service.fechar(id);
-        return ResponseEntity.ok(new ListagemConversaDto(conversa));
+        return ResponseEntity.ok(new ListagemConversaDto(conversa, 0));
     }
 }

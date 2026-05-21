@@ -19,6 +19,7 @@ import { PlanejamentoAnualAPI } from "./domains/planejamento-anual";
 import { GradeCurricularApi } from "./domains/grade-curricular";
 import { EstudanteApi } from "./domains/estudante";
 import { ComunicadoApi } from "./domains/comunicado";
+import { ConversaApi } from "./domains/conversa/client";
 
 export const alunoApi = new AlunoApi();
 export const estudanteApi = new EstudanteApi();
@@ -41,3 +42,4 @@ export const notaApi = new NotaApi();
 export const planejamentoAnualApi = new PlanejamentoAnualAPI();
 export const gradeCurricularApi = new GradeCurricularApi();
 export const comunicadoApi = new ComunicadoApi();
+export const conversaApi = new ConversaApi();

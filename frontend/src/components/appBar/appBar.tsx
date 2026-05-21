@@ -3,11 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AppBar as MuiAppBar, Container, IconButton, Toolbar, Typography } from "@mui/material";
+import { AppBar as MuiAppBar, Badge, Container, IconButton, Toolbar, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useDrawer } from "@/contexts/DrawerContext";
+import { useUnreadConversas } from "@/hooks/useConversas";
 import { NotificationMenu } from "@/components/appBar/notificationMenu";
 import { useTheme } from "next-themes";
 import { UserMenu } from "@/components/appBar/userMenu";
@@ -40,6 +41,8 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
     () => (user ? getMenuModules(user.role) : []),
     [user],
   );
+
+  const unreadConversas = useUnreadConversas();
 
   if (!user) {
     return null;
@@ -114,25 +117,28 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
             {/* Rotas diretas (sem módulo) */}
             {directRoutes.map((route) => {
               const isActive = pathname === route.router;
+              const badgeCount = route.showBadge ? unreadConversas : 0;
               return (
                 <Link key={route.router} href={route.router} style={{ textDecoration: "none" }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.75,
-                      color: isActive ? appBarText : appBarTextMuted,
-                      "&:hover": { color: appBarText },
-                    }}
-                  >
-                    {React.cloneElement(route.icon, { sx: { fontSize: 20, color: "inherit" } })}
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: isActive ? 600 : 400, color: "inherit", fontSize: "14px" }}
+                  <Badge badgeContent={badgeCount} color="error" max={99}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.75,
+                        color: isActive ? appBarText : appBarTextMuted,
+                        "&:hover": { color: appBarText },
+                      }}
                     >
-                      {route.text}
-                    </Typography>
-                  </Box>
+                      {React.cloneElement(route.icon, { sx: { fontSize: 20, color: "inherit" } })}
+                      <Typography
+                        variant="caption"
+                        sx={{ fontWeight: isActive ? 600 : 400, color: "inherit", fontSize: "14px" }}
+                      >
+                        {route.text}
+                      </Typography>
+                    </Box>
+                  </Badge>
                 </Link>
               );
             })}

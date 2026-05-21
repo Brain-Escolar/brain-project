@@ -37,6 +37,9 @@ public class Conversa extends EntidadeBase {
     @JoinColumn(name = "perfil_destinatario_id", nullable = false)
     private Perfil destinatario;
 
+    @Column(nullable = false)
+    private String titulo;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusConversa status = StatusConversa.ABERTA;
