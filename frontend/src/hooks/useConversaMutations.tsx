@@ -1,7 +1,6 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversaApi } from "@/services/api";
-import { QUERY_KEYS } from "@/constants/queryKeys";
 import { ConversaCreateRequest, MensagemCreateRequest } from "@/services/domains/conversa/response";
 import { toast } from "react-toastify";
 
