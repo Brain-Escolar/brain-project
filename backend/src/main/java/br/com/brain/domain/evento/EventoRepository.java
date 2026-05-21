@@ -32,4 +32,9 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
            countQuery = "SELECT COUNT(*) FROM eventos",
            nativeQuery = true)
     Page<Evento> findAllOrderByClosestDate(Pageable pageable);
+
+    @Query(value = "SELECT * FROM eventos WHERE professor_id = :professorId AND data_evento >= CURRENT_DATE ORDER BY data_evento ASC",
+           countQuery = "SELECT COUNT(*) FROM eventos WHERE professor_id = :professorId AND data_evento >= CURRENT_DATE",
+           nativeQuery = true)
+    Page<Evento> findFutureByProfessorId(@Param("professorId") Long professorId, Pageable pageable);
 }

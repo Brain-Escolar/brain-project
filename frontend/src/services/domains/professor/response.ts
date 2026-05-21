@@ -24,11 +24,20 @@ export interface ProfessorAulaSemanalResponse {
   unidade: string;
 }
 
+export type TipoEvento =
+  | "PROVA"
+  | "ENTREGA_PROVA"
+  | "ENTREGA_NOTAS"
+  | "REUNIAO"
+  | "FERIADO"
+  | "OUTRO";
+
 export interface ProfessorPlanejamentoResponse {
+  id: number;
   titulo: string;
   descricao: string;
-  dataInicio: string;
-  dataFim: string;
+  dataEvento: string; // "yyyy-MM-dd"
+  tipo: TipoEvento;
 }
 
 interface ProfessorEnderecoResponse {

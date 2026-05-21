@@ -27,7 +27,7 @@ export class ProfessorApi {
   getAulasSemanalProfessor(): Promise<ProfessorAulaSemanalResponse[]> {
     return httpClient.get(`${BASE_ROUTE}/aulas/semana`);
   }
-  getPlanejamento(): Promise<ProfessorPlanejamentoResponse[]> {
+  getPlanejamento(): Promise<IBrainResult<ProfessorPlanejamentoResponse>> {
     return httpClient.get(`${BASE_ROUTE}/planejamento`);
   }
   criarProfessor(request: ProfessorPostRequest): Promise<IBrainResult<void>> {

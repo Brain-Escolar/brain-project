@@ -58,7 +58,7 @@ public class EventoService {
     }
 
     public Page<ListagemEventoDto> listarEventosProfessor(Long professorId, Pageable pageable) {
-        return repository.findAllByProfessorId(professorId, pageable).map(ListagemEventoDto::new);
+        return repository.findFutureByProfessorId(professorId, pageable).map(ListagemEventoDto::new);
     }
 
     public Page<ListagemEventoDto> listar(Long turmaId, Long serieId, Long unidadeId, Long professorId,
