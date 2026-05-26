@@ -53,7 +53,19 @@ export function useConversaMutations() {
 
   const fecharConversa = useMutation({
     mutationFn: (id: number) => conversaApi.fechar(id),
-    onSuccess: () => {
+    onSuccess: (conversaFechada) => {
+      queryClient.setQueryData(
+        QUERY_KEYS.conversas.remetente(0),
+        (old: IBrainResult<ConversaResponse> | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            content: old.content.map((c) =>
+              c.id === conversaFechada.id ? conversaFechada : c,
+            ),
+          };
+        },
+      );
       queryClient.invalidateQueries({ queryKey: ["conversas"] });
       toast.success("Conversa encerrada.");
     },
