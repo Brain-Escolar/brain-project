@@ -9,6 +9,8 @@ import StarIcon from "@mui/icons-material/Star";
 import { Box, Container, IconButton, Skeleton, Tab, Tabs, Typography } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
+import { format } from "date-fns";
 import SectionVisaoGeral from "./sectionVisaoGeral/sectionVisaoGeral";
 import { useAulaDetalhe } from "@/hooks/useAulaDetalhe";
 import { useProximaAula } from "@/hooks/useProximaAula";
@@ -42,6 +44,8 @@ export default function AulaDetailPage() {
   const [activeTab, setActiveTab] = useState(0);
 
   const aulaId = params.id as string;
+  const dataParam = useBrainSearchParams("data");
+  const dataOcorrencia = dataParam ?? format(new Date(), "yyyy-MM-dd");
   const { aula, loading, error } = useAulaDetalhe(aulaId);
   const { proximaAula, loading: loadingProxima } = useProximaAula(aulaId);
 
@@ -105,7 +109,7 @@ export default function AulaDetailPage() {
           </Box>
 
           <TabPanel value={activeTab} index={0}>
-            <ListaPresenca idAula={aulaId} />
+            <ListaPresenca idAula={aulaId} data={dataOcorrencia} />
           </TabPanel>
           <TabPanel value={activeTab} index={1}>
             <ConteudosTarefas aulaId={aulaId} />

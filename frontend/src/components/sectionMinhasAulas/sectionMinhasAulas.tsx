@@ -152,7 +152,7 @@ export default function SectionMinhasAulas() {
   });
 
   const handleAulaClick = (id: number) => {
-    router.push(`${RoutesEnum.AULAS_DETALHE}/${id}`);
+    router.push(`${RoutesEnum.AULAS_DETALHE}/${id}?data=${formatDateForAPI(selectedDate)}`);
   };
 
   return (

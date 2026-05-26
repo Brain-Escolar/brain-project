@@ -1,4 +1,5 @@
 import { useAula } from "@/hooks/useAula";
+import { useSalvarChamada } from "@/hooks/useChamada";
 import { useState } from "react";
 import {
   Box,
@@ -21,10 +22,12 @@ import { RoutesEnum } from "@/enums/RoutesEnum";
 
 interface IListaPresencaProps {
   idAula?: string;
+  data: string;
 }
 
-function ListaPresenca({ idAula }: IListaPresencaProps) {
+function ListaPresenca({ idAula, data }: IListaPresencaProps) {
   const { alunos, loading, error } = useAula({ idAula: idAula || "" });
+  const { salvarChamada, salvando } = useSalvarChamada(idAula || "", data);
   const [alunosPresentes, setAlunosPresentes] = useState<number[]>([]);
 
   const handleCheckboxChange = (alunoId: number) => {
@@ -45,15 +48,20 @@ function ListaPresenca({ idAula }: IListaPresencaProps) {
     }
   };
 
-  const handleSalvarPresenca = () => {
+  const handleSalvarPresenca = async () => {
     if (!idAula) return;
-    if (alunosPresentes.length === 0) {
-      toast.error("Selecione pelo menos um aluno para marcar presenca.");
-      return;
+    try {
+      await salvarChamada(
+        alunos.map((aluno) => ({
+          alunoId: aluno.id,
+          presente: alunosPresentes.includes(aluno.id),
+        })),
+      );
+      toast.success("Chamada registrada com sucesso!");
+      setAlunosPresentes([]);
+    } catch {
+      toast.error("Erro ao registrar chamada. Tente novamente.");
     }
-    toast.success("Presenca salva com sucesso!");
-    setAlunosPresentes([]);
-    // TODO: Integrar com API para salvar presenca
   };
 
   if (loading && idAula) {
@@ -174,8 +182,12 @@ function ListaPresenca({ idAula }: IListaPresencaProps) {
       </TableContainer>
 
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-        <Button variant="contained" onClick={handleSalvarPresenca}>
-          SALVAR
+        <Button
+          variant="contained"
+          onClick={handleSalvarPresenca}
+          disabled={salvando || alunos.length === 0}
+        >
+          {salvando ? <CircularProgress size={20} color="inherit" /> : "SALVAR"}
         </Button>
       </Box>
     </Box>

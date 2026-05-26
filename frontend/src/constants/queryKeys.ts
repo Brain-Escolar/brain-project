@@ -145,6 +145,11 @@ export const QUERY_KEYS = {
     all: ["planejamento"] as const,
     list: () => [...QUERY_KEYS.planejamento.all, "list"] as const,
   },
+  chamadas: {
+    all: ["chamadas"] as const,
+    porAulaData: (aulaId: string | number, data: string) =>
+      [...["chamadas"], "aula", aulaId, data] as const,
+  },
   conversas: {
     all: ["conversas"] as const,
     remetente: (page?: number) => [...["conversas"], "remetente", page] as const,
