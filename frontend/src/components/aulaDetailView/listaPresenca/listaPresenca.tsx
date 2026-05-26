@@ -169,7 +169,7 @@ function ListaPresenca({ idAula, data }: IListaPresencaProps) {
                     </Typography>
                   </TableCell>
                   <TableCell align="center" sx={{ py: 1 }}>
-                    <Typography variant="body2">{aluno.faltas}</Typography>
+                    <Typography variant="body2">{aluno.registros}</Typography>
                   </TableCell>
                   <TableCell align="center" sx={{ py: 1 }}>
                     <Typography variant="body2">{aluno.faltas}</Typography>
