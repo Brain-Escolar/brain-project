@@ -1,7 +1,9 @@
 "use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { conversaApi } from "@/services/api";
-import { ConversaCreateRequest, MensagemCreateRequest } from "@/services/domains/conversa/response";
+import { ConversaCreateRequest, ConversaResponse, MensagemCreateRequest } from "@/services/domains/conversa/response";
+import { IBrainResult } from "@/services/commoResponse";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "react-toastify";
 
 export function useConversaMutations() {
@@ -9,7 +11,18 @@ export function useConversaMutations() {
 
   const criarConversa = useMutation({
     mutationFn: (data: ConversaCreateRequest) => conversaApi.criar(data),
-    onSuccess: () => {
+    onSuccess: (novaConversa) => {
+      queryClient.setQueryData(
+        QUERY_KEYS.conversas.remetente(0),
+        (old: IBrainResult<ConversaResponse> | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            content: [novaConversa, ...old.content],
+            totalElements: (old.totalElements ?? 0) + 1,
+          };
+        },
+      );
       queryClient.invalidateQueries({ queryKey: ["conversas"] });
       toast.success("Mensagem enviada com sucesso!");
     },

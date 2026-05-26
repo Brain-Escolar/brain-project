@@ -125,12 +125,13 @@ export default function ComunicacaoPage() {
       setDestinatarioError("Selecione o destinatário");
       return;
     }
-    await criarConversa.mutateAsync({
+    const novaConversa = await criarConversa.mutateAsync({
       titulo: data.titulo,
       destinatarioPerfilNome: destinatario as PerfilNomeEnum,
       primeiraMensagem: data.primeiraMensagem,
     });
     setNovaConversaOpen(false);
+    setSelectedConversa(novaConversa);
   });
 
   async function handleEnviarMensagem() {
