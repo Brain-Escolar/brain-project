@@ -7,7 +7,7 @@ export function mapFormDataToTarefaPostRequest(formData: TarefaFormData): Tarefa
   return {
     titulo: formData.titulo,
     conteudo: formData.conteudo || undefined,
-    documentoUrl: formData.documentoUrl || undefined,
+    turmaId: 0,
     prazo: convertDateStringToISO(formData.prazo),
   };
 }
@@ -20,7 +20,6 @@ export function mapFormDataToTarefaPutRequest(
     id,
     titulo: formData.titulo,
     conteudo: formData.conteudo || undefined,
-    documentoUrl: formData.documentoUrl || undefined,
     prazo: convertDateStringToISO(formData.prazo),
   };
 }
@@ -41,7 +40,6 @@ export function mapTarefaResponseToFormData(tarefa: TarefaResponse): TarefaFormD
   return {
     titulo: tarefa.titulo || "",
     conteudo: tarefa.conteudo || "",
-    documentoUrl: tarefa.documentoUrl || "",
     prazo: tarefa.prazo ? convertIsoToFormDate(tarefa.prazo) : "",
   };
 }

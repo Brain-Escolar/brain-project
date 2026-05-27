@@ -199,8 +199,8 @@ export default function TarefasPorAulaPage() {
               open={datePickerOpen}
               onClose={() => setDatePickerOpen(false)}
               value={selectedDate}
-              onChange={(v) => { if (v) setSelectedDate(v); }}
-              shouldDisableDate={(d) => !availableDates.has(d.format(DATE_FORMAT))}
+              onChange={(v) => { if (v) setSelectedDate(v as Dayjs); }}
+              shouldDisableDate={(d) => !availableDates.has((d as Dayjs).format(DATE_FORMAT))}
               slotProps={{
                 textField: { size: "small", sx: { width: 0, p: 0, opacity: 0 } },
               }}

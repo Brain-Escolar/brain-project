@@ -103,14 +103,6 @@ function TarefaPageContent() {
               />
 
               <BrainDateTextControlled name="prazo" control={control} label="Prazo" required />
-
-              <BrainTextFieldControlled
-                name="documentoUrl"
-                control={control}
-                label="URL do Documento"
-                placeholder="https://exemplo.com/documento"
-                type="url"
-              />
             </ContainerSection>
 
             {/* Seção Conteúdo */}

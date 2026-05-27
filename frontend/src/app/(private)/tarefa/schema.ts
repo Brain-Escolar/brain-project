@@ -7,7 +7,6 @@ export const tarefaSchema = z.object({
     .min(3, "Título deve ter pelo menos 3 caracteres")
     .max(200, "Título muito longo"),
   conteudo: z.string().optional(),
-  documentoUrl: z.string().url("URL inválida").optional().or(z.literal("")),
   prazo: z
     .string()
     .min(1, "Prazo é obrigatório")
@@ -19,6 +18,5 @@ export type TarefaFormData = z.infer<typeof tarefaSchema>;
 export const tarefaDefaultValues: TarefaFormData = {
   titulo: "",
   conteudo: "",
-  documentoUrl: "",
   prazo: "",
 };
