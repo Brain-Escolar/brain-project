@@ -3,6 +3,7 @@ package br.com.brain.controller;
 import br.com.brain.dto.anotacao.AnotacaoAulaDto;
 import br.com.brain.dto.anotacao.AtualizacaoAnotacaoDto;
 import br.com.brain.dto.anotacao.CadastroAnotacaoDto;
+import br.com.brain.dto.anotacao.CadastroAnotacaoLoteDto;
 import br.com.brain.dto.anotacao.ListagemAnotacaoDto;
 import br.com.brain.service.AnotacaoService;
 import jakarta.validation.Valid;
@@ -38,6 +39,14 @@ public class AnotacaoController {
         var anotacao = service.cadastrarAnotacao(dados);
         var uri = uriBuilder.path("/anotacao/{id}").buildAndExpand(anotacao.getId()).toUri();
         return ResponseEntity.created(uri).body(new ListagemAnotacaoDto(anotacao));
+    }
+
+    @PostMapping("/lote")
+    public ResponseEntity<List<ListagemAnotacaoDto>> cadastrarLote(
+            @RequestBody @Valid CadastroAnotacaoLoteDto dados) {
+        var anotacoes = service.cadastrarAnotacaoLote(dados);
+        var dtos = anotacoes.stream().map(ListagemAnotacaoDto::new).toList();
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping

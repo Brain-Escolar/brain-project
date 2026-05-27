@@ -8,6 +8,7 @@ import br.com.brain.dto.aluno.AlunosAulaDto;
 import br.com.brain.dto.anotacao.AnotacaoAulaDto;
 import br.com.brain.dto.anotacao.AtualizacaoAnotacaoDto;
 import br.com.brain.dto.anotacao.CadastroAnotacaoDto;
+import br.com.brain.dto.anotacao.CadastroAnotacaoLoteDto;
 import br.com.brain.dto.anotacao.AnotacaoAlunoDisciplinaDto;
 import br.com.brain.dto.anotacao.ListagemAnotacaoDto;
 import br.com.brain.dto.anotacao.ListagemAnotacaoSemanaDto;
@@ -50,6 +51,21 @@ public class AnotacaoService {
         repository.save(anotacao);
 
         return anotacao;
+    }
+
+    @Transactional
+    public List<Anotacao> cadastrarAnotacaoLote(CadastroAnotacaoLoteDto dados) {
+        Aula aula = em.getReference(Aula.class, dados.aulaId());
+        return dados.alunoIds().stream().map(alunoId -> {
+            Aluno aluno = em.getReference(Aluno.class, alunoId);
+            var anotacao = new Anotacao();
+            anotacao.setAluno(aluno);
+            anotacao.setAula(aula);
+            anotacao.setTipoAnotacao(dados.tipoAnotacao());
+            anotacao.setDataAnotacao(dados.data());
+            anotacao.setObservacao(dados.observacao());
+            return repository.save(anotacao);
+        }).toList();
     }
 
     public Page<ListagemAnotacaoDto> listar(Pageable paginacao) {
