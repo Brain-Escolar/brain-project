@@ -1,5 +1,7 @@
 package br.com.brain.service;
 
+import br.com.brain.domain.arquivo.Arquivo;
+import br.com.brain.domain.arquivo.ArquivoRepository;
 import br.com.brain.domain.aula.AulaRepository;
 import br.com.brain.domain.professor.Professor;
 import br.com.brain.domain.tarefa.Tarefa;
@@ -10,17 +12,21 @@ import br.com.brain.dto.tarefa.CadastroTarefaDto;
 import br.com.brain.dto.tarefa.ListagemTarefaDto;
 import br.com.brain.dto.tarefa.ListagemTarefaAlunoDto;
 import br.com.brain.exception.ErrosSistema;
+import br.com.brain.service.aws.S3Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +34,14 @@ public class TarefaService {
 
     private final TarefaRepository repository;
     private final AulaRepository aulaRepository;
+    private final ArquivoRepository arquivoRepository;
+    private final S3Service s3Service;
 
     @PersistenceContext
     private EntityManager em;
 
     @Transactional
-    public Tarefa cadastrarTarefa(CadastroTarefaDto dados, Professor professor) {
-
+    public ListagemTarefaDto cadastrarTarefa(CadastroTarefaDto dados, MultipartFile arquivo, Professor professor) {
         var turma = em.getReference(Turma.class, dados.turmaId());
 
         var tarefa = new Tarefa();
@@ -42,76 +49,83 @@ public class TarefaService {
         tarefa.setTurma(turma);
         tarefa.setConteudo(dados.conteudo());
         tarefa.setDataCriacao(LocalDate.now());
-        tarefa.setDocumentoUrl(dados.documentoUrl());
         tarefa.setPrazo(dados.prazo());
         tarefa.setTitulo(dados.titulo());
 
-        repository.save(tarefa);
+        if (arquivo != null && !arquivo.isEmpty()) {
+            String key = "tarefas/" + UUID.randomUUID() + "-" + arquivo.getOriginalFilename();
+            s3Service.upload(key, arquivo);
+            var arquivoEntity = new Arquivo();
+            arquivoEntity.setS3Key(key);
+            arquivoEntity.setNomeOriginal(arquivo.getOriginalFilename());
+            arquivoEntity.setContentType(arquivo.getContentType());
+            arquivoEntity.setTamanho(arquivo.getSize());
+            arquivoRepository.save(arquivoEntity);
+            tarefa.setArquivo(arquivoEntity);
+        }
 
-        return tarefa;
+        repository.save(tarefa);
+        return toDto(tarefa);
+    }
+
+    public ListagemTarefaDto toDto(Tarefa tarefa) {
+        String downloadUrl = null;
+        if (tarefa.getArquivo() != null) {
+            downloadUrl = s3Service.generatePresignedDownloadUrl(
+                    tarefa.getArquivo().getS3Key(), Duration.ofMinutes(5));
+        }
+        return new ListagemTarefaDto(tarefa, downloadUrl);
     }
 
     public Page<ListagemTarefaDto> listar(Pageable paginacao) {
-        return repository.findAll(paginacao).map(ListagemTarefaDto::new);
+        return repository.findAll(paginacao).map(this::toDto);
     }
 
     @Transactional
-    public Tarefa atualizar(AtualizacaoTarefaDto dados, Long id) {
+    public ListagemTarefaDto atualizar(AtualizacaoTarefaDto dados, Long id) {
         var tarefa = repository
                 .findById(id)
-                .orElseThrow(
-                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Tarefa", id));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Tarefa", id));
 
-        if (dados.titulo() != null) {
+        if (dados.titulo() != null)
             tarefa.setTitulo(dados.titulo());
-        }
-        if (dados.conteudo() != null) {
+        if (dados.conteudo() != null)
             tarefa.setConteudo(dados.conteudo());
-        }
-        if (dados.documentoUrl() != null) {
-            tarefa.setDocumentoUrl(dados.documentoUrl());
-        }
-        if (dados.professorId() != null) {
-            var professor = em.getReference(Professor.class, dados.professorId());
-            tarefa.setProfessor(professor);
-        }
-        if (dados.turmaId() != null) {
-            var turma = em.getReference(Turma.class, dados.turmaId());
-            tarefa.setTurma(turma);
-        }
-        if (dados.prazo() != null) {
+        if (dados.professorId() != null)
+            tarefa.setProfessor(em.getReference(Professor.class, dados.professorId()));
+        if (dados.turmaId() != null)
+            tarefa.setTurma(em.getReference(Turma.class, dados.turmaId()));
+        if (dados.prazo() != null)
             tarefa.setPrazo(dados.prazo());
-        }
-        repository.save(tarefa);
 
-        return tarefa;
+        repository.save(tarefa);
+        return toDto(tarefa);
     }
 
     @Transactional
     public void excluir(Long id) {
         var tarefa = repository
                 .findById(id)
-                .orElseThrow(
-                        () -> ErrosSistema.RecursoNaoEncontradoException.para("Tarefa", id));
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Tarefa", id));
         repository.delete(tarefa);
     }
 
-    public Tarefa detalhar(Long id) {
-        return repository
+    public ListagemTarefaDto detalhar(Long id) {
+        var tarefa = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Tarefa", id));
+        return toDto(tarefa);
     }
 
     public Page<ListagemTarefaDto> recuperarTarefasProfessor(Long id, Pageable paginacao) {
-        var hoje = LocalDate.now();
-        return repository.findByProfessorIdAndPrazoAfter(id, hoje, paginacao).map(ListagemTarefaDto::new);
+        return repository.findByProfessorIdAndPrazoAfter(id, LocalDate.now(), paginacao).map(this::toDto);
     }
 
     public List<ListagemTarefaDto> listarTarefasPorAula(Long aulaId, LocalDate data) {
         var aula = aulaRepository.findById(aulaId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
         return repository.findByTurmaIdAndPrazo(aula.getTurma().getId(), data)
-                .stream().map(ListagemTarefaDto::new).toList();
+                .stream().map(this::toDto).toList();
     }
 
     public List<String> listarDatasComTarefas(Long aulaId) {
@@ -122,8 +136,14 @@ public class TarefaService {
     }
 
     public Page<ListagemTarefaAlunoDto> recuperarTarefasAluno(Long turmaId, Pageable paginacao) {
-        var hoje = LocalDate.now();
-        return repository.findByTurmaIdAndPrazoGreaterThanEqual(turmaId, hoje, paginacao)
-                .map(ListagemTarefaAlunoDto::new);
+        return repository.findByTurmaIdAndPrazoGreaterThanEqual(turmaId, LocalDate.now(), paginacao)
+                .map(t -> {
+                    String downloadUrl = null;
+                    if (t.getArquivo() != null) {
+                        downloadUrl = s3Service.generatePresignedDownloadUrl(
+                                t.getArquivo().getS3Key(), Duration.ofMinutes(5));
+                    }
+                    return new ListagemTarefaAlunoDto(t, downloadUrl);
+                });
     }
 }

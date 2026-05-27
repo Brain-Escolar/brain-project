@@ -1,0 +1,5 @@
+ALTER TABLE tarefas DROP COLUMN IF EXISTS documento_url;
+ALTER TABLE tarefas ADD COLUMN IF NOT EXISTS arquivo_id BIGINT REFERENCES arquivos(id);
+
+ALTER TABLE tarefas_AUD DROP COLUMN IF EXISTS documento_url;
+ALTER TABLE tarefas_AUD ADD COLUMN IF NOT EXISTS arquivo_id BIGINT;

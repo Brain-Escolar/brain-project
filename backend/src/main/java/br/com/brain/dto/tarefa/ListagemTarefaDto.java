@@ -12,12 +12,12 @@ public record ListagemTarefaDto(
         String turma,
         String prazo) {
 
-    public ListagemTarefaDto(Tarefa tarefa) {
+    public ListagemTarefaDto(Tarefa tarefa, String downloadUrl) {
         this(
                 tarefa.getId(),
                 tarefa.getTitulo(),
                 tarefa.getConteudo(),
-                tarefa.getDocumentoUrl(),
+                downloadUrl,
                 tarefa.getProfessor().getDadosPessoais().getNome(),
                 tarefa.getTurma().getId(),
                 tarefa.getTurma().getNome(),

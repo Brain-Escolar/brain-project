@@ -12,9 +12,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
@@ -25,40 +27,39 @@ public class TarefaController {
     private final TarefaService service;
     private final ProfessorService professorService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ListagemTarefaDto> cadastrar(
-            @RequestBody @Valid CadastroTarefaDto dados, UriComponentsBuilder uriBuilder,
+            @RequestPart("dados") @Valid CadastroTarefaDto dados,
+            @RequestPart(value = "arquivo", required = false) MultipartFile arquivo,
+            UriComponentsBuilder uriBuilder,
             @AuthenticationPrincipal DadosAutenticacao usuario) {
         var professor = professorService.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
-        var tarefa = service.cadastrarTarefa(dados, professor);
-        var uri = uriBuilder.path("/tarefa/{id}").buildAndExpand(tarefa.getId()).toUri();
-        return ResponseEntity.created(uri).body(new ListagemTarefaDto(tarefa));
+        var dto = service.cadastrarTarefa(dados, arquivo, professor);
+        var uri = uriBuilder.path("/tarefa/{id}").buildAndExpand(dto.id()).toUri();
+        return ResponseEntity.created(uri).body(dto);
     }
 
     @GetMapping
     public ResponseEntity<Page<ListagemTarefaDto>> listar(
             @PageableDefault(size = 10, sort = { "prazo" }) Pageable paginacao) {
-        var page = service.listar(paginacao);
-        return ResponseEntity.ok(page);
+        return ResponseEntity.ok(service.listar(paginacao));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ListagemTarefaDto> atualizar(@PathVariable("id") Long id,
+    public ResponseEntity<ListagemTarefaDto> atualizar(@PathVariable Long id,
             @RequestBody @Valid AtualizacaoTarefaDto dados) {
-        var tarefa = service.atualizar(dados, id);
-        return ResponseEntity.ok(new ListagemTarefaDto(tarefa));
+        return ResponseEntity.ok(service.atualizar(dados, id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ListagemTarefaDto> excluir(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
         service.excluir(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ListagemTarefaDto> detalhar(@PathVariable("id") Long id) {
-        var tarefa = service.detalhar(id);
-        return ResponseEntity.ok(new ListagemTarefaDto(tarefa));
+    public ResponseEntity<ListagemTarefaDto> detalhar(@PathVariable Long id) {
+        return ResponseEntity.ok(service.detalhar(id));
     }
 
     @GetMapping("/professor")
@@ -66,8 +67,6 @@ public class TarefaController {
             @PageableDefault(size = 10, sort = { "dataCriacao" }, direction = Direction.DESC) Pageable paginacao,
             @AuthenticationPrincipal DadosAutenticacao usuario) {
         var professor = professorService.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
-        var page = service.recuperarTarefasProfessor(professor.getId(), paginacao);
-        return ResponseEntity.ok(page);
+        return ResponseEntity.ok(service.recuperarTarefasProfessor(professor.getId(), paginacao));
     }
-
 }

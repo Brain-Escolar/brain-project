@@ -112,7 +112,7 @@ export default function AulaDetailPage() {
             <ListaPresenca idAula={aulaId} data={dataOcorrencia} />
           </TabPanel>
           <TabPanel value={activeTab} index={1}>
-            <ConteudosTarefas aulaId={aulaId} />
+            <ConteudosTarefas aulaId={aulaId} turmaId={aula?.turmaId} />
           </TabPanel>
           <TabPanel value={activeTab} index={2}>
             <RegistrosDisciplinares aulaId={aulaId} data={dataOcorrencia} />

@@ -13,12 +13,12 @@ public record ListagemTarefaAlunoDto(
         String unidade,
         String prazo) {
 
-    public ListagemTarefaAlunoDto(Tarefa tarefa) {
+    public ListagemTarefaAlunoDto(Tarefa tarefa, String downloadUrl) {
         this(
                 tarefa.getId(),
                 tarefa.getTitulo(),
                 tarefa.getConteudo(),
-                tarefa.getDocumentoUrl(),
+                downloadUrl,
                 tarefa.getProfessor().getDadosPessoais().getNome(),
                 tarefa.getTurma().getNome(),
                 tarefa.getTurma().getSerie().getNome(),

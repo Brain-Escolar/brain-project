@@ -51,6 +51,7 @@ export interface AulaInfoResponse {
   id: number;
   unidade: string;
   serie: string;
+  turmaId: number;
   turma: string;
   disciplina: string;
   professor: string;

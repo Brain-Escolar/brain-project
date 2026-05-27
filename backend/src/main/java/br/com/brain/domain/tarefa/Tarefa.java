@@ -1,5 +1,6 @@
 package br.com.brain.domain.tarefa;
 
+import br.com.brain.domain.arquivo.Arquivo;
 import br.com.brain.domain.professor.Professor;
 import br.com.brain.domain.turma.Turma;
 import br.com.brain.domain.EntidadeBase;
@@ -30,7 +31,10 @@ public class Tarefa extends EntidadeBase {
 
     private String titulo;
     private String conteudo;
-    private String documentoUrl;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "arquivo_id", referencedColumnName = "id")
+    private Arquivo arquivo;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "professor_id", referencedColumnName = "id")

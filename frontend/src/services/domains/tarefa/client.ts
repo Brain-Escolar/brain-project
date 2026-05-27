@@ -10,8 +10,16 @@ export class TarefaApi {
     return httpClient.get(`${BASE_ROUTE}`);
   }
 
-  criarTarefa(data: TarefaPostRequest): Promise<TarefaResponse> {
-    return httpClient.post(`${BASE_ROUTE}`, data);
+  criarTarefa(dados: TarefaPostRequest, arquivo?: File): Promise<TarefaResponse> {
+    const formData = new FormData();
+    formData.append(
+      "dados",
+      new Blob([JSON.stringify(dados)], { type: "application/json" }),
+    );
+    if (arquivo) {
+      formData.append("arquivo", arquivo);
+    }
+    return httpClient.post(`${BASE_ROUTE}`, formData);
   }
 
   atualizarTarefa(data: TarefaPutRequest): Promise<TarefaResponse> {
