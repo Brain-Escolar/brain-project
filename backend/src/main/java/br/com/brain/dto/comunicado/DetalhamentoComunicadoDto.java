@@ -1,16 +1,27 @@
 package br.com.brain.dto.comunicado;
 
+import br.com.brain.domain.comunicado.Comunicado;
+import br.com.brain.enums.ComunicadoCategoriaEnum;
+
 import java.time.LocalDate;
 
-import br.com.brain.domain.comunicado.Comunicado;
-
-public record DetalhamentoComunicadoDto(Long id, String titulo, String conteudo, LocalDate data) {
+public record DetalhamentoComunicadoDto(
+        Long id,
+        String titulo,
+        String conteudo,
+        LocalDate data,
+        ComunicadoCategoriaEnum categoria,
+        String imagemUrl,
+        String anexoUrl) {
 
     public DetalhamentoComunicadoDto(Comunicado comunicado) {
         this(
                 comunicado.getId(),
                 comunicado.getTitulo(),
                 comunicado.getConteudo(),
-                comunicado.getData());
+                comunicado.getData(),
+                comunicado.getCategoria(),
+                comunicado.getImagemUrl(),
+                comunicado.getAnexoUrl());
     }
 }

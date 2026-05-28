@@ -46,6 +46,13 @@ public class SecurityConfigurations {
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 
+                            // Comunicado
+                            req.requestMatchers(HttpMethod.GET, "/comunicado/**")
+                                    .hasAnyRole("ESTUDANTE", "PROFESSOR", "SECRETARIO", "ADMIN");
+                            req.requestMatchers(HttpMethod.POST, "/comunicado/**").hasRole("SECRETARIO");
+                            req.requestMatchers(HttpMethod.PUT, "/comunicado/**").hasRole("SECRETARIO");
+                            req.requestMatchers(HttpMethod.DELETE, "/comunicado/**").hasRole("SECRETARIO");
+
                             // Aluno
                             req.requestMatchers(HttpMethod.POST, "/aluno/**").hasRole("SECRETARIO");
                             req.requestMatchers(HttpMethod.GET, "/aluno/**")

@@ -30,6 +30,9 @@ public class ComunicadoService {
         comunicado.setTitulo(dados.titulo());
         comunicado.setConteudo(dados.conteudo());
         comunicado.setData(dados.data());
+        comunicado.setCategoria(dados.categoria());
+        comunicado.setImagemUrl(dados.imagemUrl());
+        comunicado.setAnexoUrl(dados.anexoUrl());
 
         repository.save(comunicado);
 
@@ -53,6 +56,15 @@ public class ComunicadoService {
         }
         if (dados.data() != null) {
             comunicado.setData(dados.data());
+        }
+        if (dados.categoria() != null) {
+            comunicado.setCategoria(dados.categoria());
+        }
+        if (dados.imagemUrl() != null) {
+            comunicado.setImagemUrl(dados.imagemUrl());
+        }
+        if (dados.anexoUrl() != null) {
+            comunicado.setAnexoUrl(dados.anexoUrl());
         }
 
         repository.save(comunicado);

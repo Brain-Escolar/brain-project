@@ -1,8 +1,11 @@
 package br.com.brain.domain.comunicado;
 
 import br.com.brain.domain.EntidadeBase;
+import br.com.brain.enums.ComunicadoCategoriaEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,6 +37,16 @@ public class Comunicado extends EntidadeBase {
 
     @Column(name = "data_publicacao")
     private LocalDate data;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private ComunicadoCategoriaEnum categoria;
+
+    @Column(name = "imagem_url", nullable = true)
+    private String imagemUrl;
+
+    @Column(name = "anexo_url", nullable = true)
+    private String anexoUrl;
 
     @NotAudited
     @OneToMany(mappedBy = "comunicadoId", fetch = FetchType.LAZY)
