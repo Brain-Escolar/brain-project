@@ -329,6 +329,13 @@ export const ROUTES: RouteConfig[] = [
   },
   // ========== USO OPERACIONAL - ESTUDANTE ==========
   {
+    text: RouteLabelsEnum.QUADRO_DE_AVISOS,
+    icon: <AnnouncementIcon fontSize="small" />,
+    router: RoutesEnum.QUADRO_DE_AVISOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ESTUDANTE],
+  },
+  {
     text: RouteLabelsEnum.ALUNO_AULA,
     icon: <MenuBookIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_AULA,
