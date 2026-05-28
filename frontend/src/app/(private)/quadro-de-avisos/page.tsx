@@ -28,7 +28,7 @@ interface Comunicado {
   titulo: string;
   descricao: string;
   data: string;
-  categoria: "Evento" | "Administrativo" | "Calendário" | "Atualização RH";
+  categoria: "Evento" | "Administrativo" | "Calendário" | "Atualização RH" | "Tarefa";
   anexoUrl?: string;
   imagemUrl?: string;
 }
@@ -101,6 +101,22 @@ const COMUNICADOS_MOCK: Comunicado[] = [
     categoria: "Administrativo",
     anexoUrl: "/docs/manutencao.pdf",
   },
+  {
+    id: "8",
+    titulo: "Entrega do trabalho de Matemática",
+    descricao:
+      "Entregar o trabalho sobre funções de segundo grau até a data indicada. O trabalho deve conter introdução, desenvolvimento e conclusão, com no mínimo 5 páginas.",
+    data: "20/01/25",
+    categoria: "Tarefa",
+  },
+  {
+    id: "9",
+    titulo: "Redação — tema: Meio Ambiente",
+    descricao:
+      "Produzir uma redação dissertativa-argumentativa sobre os impactos das mudanças climáticas na sociedade contemporânea. Mínimo de 25 linhas.",
+    data: "18/01/25",
+    categoria: "Tarefa",
+  },
 ];
 
 // ─── Category config ──────────────────────────────────────────────────────────
@@ -113,6 +129,7 @@ const CATEGORIAS_CONFIG: Record<
   Administrativo: { cor: "#ef5350", label: "Administrativo" },
   Calendário: { cor: "#ab47bc", label: "Calendário" },
   "Atualização RH": { cor: "#43a047", label: "Atualização RH" },
+  Tarefa: { cor: "#f57c00", label: "Tarefa" },
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
