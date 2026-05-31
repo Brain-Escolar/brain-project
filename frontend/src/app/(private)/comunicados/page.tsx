@@ -19,7 +19,6 @@ import DownloadIcon from "@mui/icons-material/Download";
 import SearchIcon from "@mui/icons-material/Search";
 import DescriptionIcon from "@mui/icons-material/Description";
 import CloseIcon from "@mui/icons-material/Close";
-import ImageIcon from "@mui/icons-material/Image";
 import PageTitle from "@/components/pageTitle/pageTitle";
 import { useComunicados } from "@/hooks/useComunicados";
 import { ComunicadoCategoria } from "@/services/domains/comunicado/response";
@@ -233,16 +232,12 @@ export default function ComunicadosPage() {
                         >
                           {/* Optional image banner */}
                           {aviso.imagemUrl && (
-                            <Box
-                              sx={{
-                                height: 180,
-                                bgcolor: "grey.400",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <ImageIcon sx={{ fontSize: 64, color: "grey.100", opacity: 0.7 }} />
+                            <Box sx={{ height: 180, overflow: "hidden" }}>
+                              <img
+                                src={aviso.imagemUrl}
+                                alt={aviso.titulo}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              />
                             </Box>
                           )}
 

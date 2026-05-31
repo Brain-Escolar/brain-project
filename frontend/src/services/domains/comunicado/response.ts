@@ -19,7 +19,6 @@ export interface ComunicadoCreateRequest {
   conteudo: string;
   data: string; // YYYY-MM-DD
   categoria?: ComunicadoCategoria;
-  imagemUrl?: string;
   anexoUrl?: string;
 }
 
