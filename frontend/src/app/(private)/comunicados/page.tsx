@@ -20,6 +20,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import DescriptionIcon from "@mui/icons-material/Description";
 import CloseIcon from "@mui/icons-material/Close";
 import PageTitle from "@/components/pageTitle/pageTitle";
+import { RichTextContent } from "@/components/richTextEditor/RichTextContent";
 import { useComunicados } from "@/hooks/useComunicados";
 import { ComunicadoCategoria } from "@/services/domains/comunicado/response";
 
@@ -61,6 +62,7 @@ function formatDate(iso: string): string {
   const [year, month, day] = iso.split("-");
   return `${day}/${month}/${year.slice(2)}`;
 }
+
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -271,19 +273,9 @@ export default function ComunicadosPage() {
 
                           {/* Card body */}
                           <Box sx={{ px: 3, py: 2 }}>
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{
-                                mb: 2,
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                              }}
-                            >
-                              {aviso.descricao}
-                            </Typography>
+                            <Box sx={{ mb: 2 }}>
+                              <RichTextContent html={aviso.descricao} />
+                            </Box>
 
                             <Box
                               sx={{

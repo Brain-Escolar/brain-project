@@ -12,7 +12,8 @@ export function useComunicadoMutations() {
   const queryClient = useQueryClient();
 
   const createComunicado = useMutation({
-    mutationFn: (data: ComunicadoCreateRequest) => comunicadoApi.criarComunicado(data),
+    mutationFn: ({ data, imagem }: { data: ComunicadoCreateRequest; imagem?: File }) =>
+      comunicadoApi.criarComunicado(data, imagem),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.comunicados.all });
       toast.success("Comunicado criado com sucesso!");
