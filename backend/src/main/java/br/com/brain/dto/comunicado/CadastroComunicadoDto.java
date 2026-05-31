@@ -11,6 +11,5 @@ public record CadastroComunicadoDto(
         @NotBlank String conteudo,
         @NotNull LocalDate data,
         ComunicadoCategoriaEnum categoria,
-        String imagemUrl,
         String anexoUrl) {
 }

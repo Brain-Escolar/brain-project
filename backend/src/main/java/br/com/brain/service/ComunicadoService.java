@@ -7,6 +7,7 @@ import br.com.brain.dto.comunicado.AtualizacaoComunicadoDto;
 import br.com.brain.dto.comunicado.CadastroComunicadoDto;
 import br.com.brain.dto.comunicado.ListagemComunicadoDto;
 import br.com.brain.exception.ErrosSistema;
+import br.com.brain.service.aws.S3Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -14,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.Duration;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,20 +26,26 @@ public class ComunicadoService {
 
     private final ComunicadoRepository repository;
     private final AlertaService alertaService;
+    private final S3Service s3Service;
 
     @PersistenceContext
     private EntityManager em;
 
     @Transactional
-    public Comunicado cadastrarComunicado(CadastroComunicadoDto dados) {
+    public Comunicado cadastrarComunicado(CadastroComunicadoDto dados, MultipartFile imagem) {
 
         var comunicado = new Comunicado();
         comunicado.setTitulo(dados.titulo());
         comunicado.setConteudo(dados.conteudo());
         comunicado.setData(dados.data());
         comunicado.setCategoria(dados.categoria());
-        comunicado.setImagemUrl(dados.imagemUrl());
         comunicado.setAnexoUrl(dados.anexoUrl());
+
+        if (imagem != null && !imagem.isEmpty()) {
+            String key = "comunicados/" + UUID.randomUUID() + "-" + imagem.getOriginalFilename();
+            s3Service.upload(key, imagem);
+            comunicado.setImagemUrl(key);
+        }
 
         repository.save(comunicado);
 
@@ -44,7 +55,12 @@ public class ComunicadoService {
     }
 
     public Page<ListagemComunicadoDto> listar(Pageable paginacao) {
-        return repository.findAll(paginacao).map(ListagemComunicadoDto::new);
+        return repository.findAll(paginacao).map(c -> {
+            String imagemUrl = c.getImagemUrl() != null
+                    ? s3Service.generatePresignedDownloadUrl(c.getImagemUrl(), Duration.ofHours(1))
+                    : null;
+            return new ListagemComunicadoDto(c, imagemUrl);
+        });
     }
 
     @Transactional

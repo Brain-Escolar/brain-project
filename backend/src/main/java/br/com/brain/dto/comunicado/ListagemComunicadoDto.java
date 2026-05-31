@@ -24,4 +24,15 @@ public record ListagemComunicadoDto(
                 comunicado.getImagemUrl(),
                 comunicado.getAnexoUrl());
     }
+
+    public ListagemComunicadoDto(Comunicado comunicado, String imagemUrl) {
+        this(
+                comunicado.getId(),
+                comunicado.getTitulo(),
+                comunicado.getConteudo(),
+                comunicado.getData(),
+                comunicado.getCategoria(),
+                imagemUrl,
+                comunicado.getAnexoUrl());
+    }
 }

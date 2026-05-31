@@ -9,8 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
@@ -20,10 +22,12 @@ public class ComunicadoController {
 
     private final ComunicadoService service;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ListagemComunicadoDto> cadastrar(
-            @RequestBody @Valid CadastroComunicadoDto dados, UriComponentsBuilder uriBuilder) {
-        var comunicado = service.cadastrarComunicado(dados);
+            @RequestPart("dados") @Valid CadastroComunicadoDto dados,
+            @RequestPart(value = "imagem", required = false) MultipartFile imagem,
+            UriComponentsBuilder uriBuilder) {
+        var comunicado = service.cadastrarComunicado(dados, imagem);
         var uri = uriBuilder.path("/comunicado/{id}").buildAndExpand(comunicado.getId()).toUri();
         return ResponseEntity.created(uri).body(new ListagemComunicadoDto(comunicado));
     }
