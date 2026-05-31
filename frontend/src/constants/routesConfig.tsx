@@ -1,5 +1,6 @@
-import DashboardIcon from "@mui/icons-material/Dashboard";
+import CampaignIcon from "@mui/icons-material/Campaign";
 import CalendarIcon from "@mui/icons-material/CalendarToday";
+import DashboardIcon from "@mui/icons-material/Dashboard";
 import GroupIcon from "@mui/icons-material/Group";
 import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -329,13 +330,6 @@ export const ROUTES: RouteConfig[] = [
   },
   // ========== USO OPERACIONAL - ESTUDANTE ==========
   {
-    text: RouteLabelsEnum.QUADRO_DE_AVISOS,
-    icon: <AnnouncementIcon fontSize="small" />,
-    router: RoutesEnum.QUADRO_DE_AVISOS,
-    isShowMenu: true,
-    roles: [UserRoleEnum.ESTUDANTE],
-  },
-  {
     text: RouteLabelsEnum.ALUNO_AULA,
     icon: <MenuBookIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_AULA,
@@ -350,6 +344,13 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ESTUDANTE],
   },
   {
+    text: RouteLabelsEnum.BOLETIM,
+    icon: <GradeIcon fontSize="small" />,
+    router: RoutesEnum.BOLETIM,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ESTUDANTE],
+  },
+  {
     text: RouteLabelsEnum.CALENDARIO,
     icon: <CalendarIcon fontSize="small" />,
     router: RoutesEnum.CALENDARIO,
@@ -357,9 +358,9 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ESTUDANTE],
   },
   {
-    text: RouteLabelsEnum.BOLETIM,
-    icon: <GradeIcon fontSize="small" />,
-    router: RoutesEnum.BOLETIM,
+    text: RouteLabelsEnum.QUADRO_DE_AVISOS,
+    icon: <CampaignIcon fontSize="small" />,
+    router: RoutesEnum.QUADRO_DE_AVISOS,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
   },

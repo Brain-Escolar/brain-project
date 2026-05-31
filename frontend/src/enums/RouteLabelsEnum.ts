@@ -1,7 +1,7 @@
 export enum RouteLabelsEnum {
   // Home labels
   HOME_DASHBOARD = "Home Dashboard",
-  HOME_ESTUDANTE = "Home Estudante",
+  HOME_ESTUDANTE = "Página do aluno",
   HOME_ADMIN = "Home Admin",
 
   // Professor labels
@@ -74,7 +74,7 @@ export enum RouteLabelsEnum {
   BOLETIM = "Boletim",
   AVALIACOES = "Avaliações e tarefas",
   COMUNICADOS = "Comunicados",
-  COMUNICACAO = "Comunicação",
+  COMUNICACAO = "Fale conosco",
   QUADRO_DE_AVISOS = "Quadro de Avisos",
   PERFIL = "Perfil",
 

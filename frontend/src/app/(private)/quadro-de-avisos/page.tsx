@@ -22,7 +22,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import ImageIcon from "@mui/icons-material/Image";
 import PageTitle from "@/components/pageTitle/pageTitle";
 import { useComunicados } from "@/hooks/useComunicados";
-import { useTarefas } from "@/hooks/useTarefas";
 import { ComunicadoCategoria } from "@/services/domains/comunicado/response";
 
 // ─── Category config ──────────────────────────────────────────────────────────
@@ -32,7 +31,6 @@ const CATEGORIAS_CONFIG = {
   Administrativo: { cor: "#ef5350", label: "Administrativo" },
   Calendário: { cor: "#ab47bc", label: "Calendário" },
   "Atualização RH": { cor: "#43a047", label: "Atualização RH" },
-  Tarefa: { cor: "#f57c00", label: "Tarefa" },
 } as const;
 
 type CategoriaKey = keyof typeof CATEGORIAS_CONFIG;
@@ -71,32 +69,19 @@ export default function QuadroDeAvisosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("");
 
-  const { comunicados, loading: loadingComunicados, error: errorComunicados } = useComunicados(0, 100);
-  const { tarefas, loading: loadingTarefas, error: errorTarefas } = useTarefas();
+  const { comunicados, loading, error } = useComunicados(0, 100);
 
-  const loading = loadingComunicados || loadingTarefas;
-  const hasError = !!errorComunicados && !!errorTarefas;
-
-  // Merge comunicados + tarefas into unified list, sorted by date desc
+  // Map comunicados into unified list, sorted by date desc
   const allAvisos = useMemo<AvisoItem[]>(() => {
-    const mapped: AvisoItem[] = [
-      ...comunicados.map((c) => ({
-        id: `c-${c.id}`,
-        titulo: c.titulo,
-        descricao: c.conteudo,
-        data: c.data ? formatDate(c.data) : "",
-        categoria: (c.categoria ? CATEGORIA_ENUM_MAP[c.categoria] : "Administrativo") as CategoriaKey,
-        imagemUrl: c.imagemUrl,
-        anexoUrl: c.anexoUrl,
-      })),
-      ...tarefas.map((t) => ({
-        id: `t-${t.id}`,
-        titulo: t.titulo,
-        descricao: t.conteudo ?? "",
-        data: t.prazo ? formatDate(t.prazo) : "",
-        categoria: "Tarefa" as CategoriaKey,
-      })),
-    ];
+    const mapped: AvisoItem[] = comunicados.map((c) => ({
+      id: `c-${c.id}`,
+      titulo: c.titulo,
+      descricao: c.conteudo,
+      data: c.data ? formatDate(c.data) : "",
+      categoria: (c.categoria ? CATEGORIA_ENUM_MAP[c.categoria] : "Administrativo") as CategoriaKey,
+      imagemUrl: c.imagemUrl,
+      anexoUrl: c.anexoUrl,
+    }));
 
     return mapped.sort((a, b) => {
       // Sort descending by raw date string (YYYY-MM-DD stored in source before formatting)
@@ -104,7 +89,7 @@ export default function QuadroDeAvisosPage() {
       const dateB = b.data.split("/").reverse().join("");
       return dateB.localeCompare(dateA);
     });
-  }, [comunicados, tarefas]);
+  }, [comunicados]);
 
   const avisosFiltrados = useMemo(() => {
     return allAvisos.filter((aviso) => {
@@ -149,14 +134,14 @@ export default function QuadroDeAvisosPage() {
         )}
 
         {/* Error state */}
-        {!loading && hasError && (
+        {!loading && error && (
           <Typography color="error" textAlign="center" sx={{ py: 8 }}>
             Erro ao carregar os avisos. Tente recarregar a página.
           </Typography>
         )}
 
         {/* Main content */}
-        {!loading && !hasError && (
+        {!loading && !error && (
           <>
             {/* Search + filter row */}
             <Box
