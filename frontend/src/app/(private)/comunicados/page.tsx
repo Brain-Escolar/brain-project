@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import Image from "next/image";
 import {
   Box,
   Button,
@@ -63,12 +64,20 @@ function formatDate(iso: string): string {
   return `${day}/${month}/${year.slice(2)}`;
 }
 
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ComunicadosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("");
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  function toggleExpand(id: string) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
+      return next;
+    });
+  }
 
   const { comunicados, loading, error } = useComunicados(0, 100);
 
@@ -234,11 +243,13 @@ export default function ComunicadosPage() {
                         >
                           {/* Optional image banner */}
                           {aviso.imagemUrl && (
-                            <Box sx={{ height: 180, overflow: "hidden" }}>
-                              <img
+                            <Box sx={{ position: "relative", height: 180, overflow: "hidden" }}>
+                              <Image
                                 src={aviso.imagemUrl}
                                 alt={aviso.titulo}
-                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                fill
+                                style={{ objectFit: "cover" }}
+                                sizes="(max-width: 1200px) 100vw, 800px"
                               />
                             </Box>
                           )}
@@ -273,15 +284,24 @@ export default function ComunicadosPage() {
 
                           {/* Card body */}
                           <Box sx={{ px: 3, py: 2 }}>
-                            <Box sx={{ mb: 2 }}>
-                              <RichTextContent html={aviso.descricao} />
-                            </Box>
+                            <RichTextContent
+                              html={aviso.descricao}
+                              sx={expandedIds.has(aviso.id) ? { WebkitLineClamp: "unset", display: "block" } : {}}
+                            />
+                            <Button
+                              size="small"
+                              onClick={() => toggleExpand(aviso.id)}
+                              sx={{ textTransform: "none", px: 0, mt: 0.5, minWidth: 0, color: "text.secondary", fontSize: "0.75rem" }}
+                            >
+                              {expandedIds.has(aviso.id) ? "Ver menos" : "Ver mais"}
+                            </Button>
 
                             <Box
                               sx={{
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "space-between",
+                                mt: 1,
                               }}
                             >
                               <Typography variant="caption" color="text.secondary">

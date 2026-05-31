@@ -297,6 +297,21 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ADMIN],
   },
   {
+    text: RouteLabelsEnum.COMUNICADOS,
+    icon: <CampaignIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICADOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ADMIN],
+    moduleMenu: RoutesModuleEnum.CADASTROS,
+  },
+  {
+    text: RouteLabelsEnum.COMUNICADO_CADASTRO,
+    icon: <CampaignIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICADOS_CADASTRO,
+    isShowMenu: false,
+    roles: [UserRoleEnum.ADMIN],
+  },
+  {
     text: RouteLabelsEnum.FICHA_MEDICA_LISTA,
     icon: <LocalHospitalIcon fontSize="small" />,
     router: RoutesEnum.FICHA_MEDICA_LISTA,

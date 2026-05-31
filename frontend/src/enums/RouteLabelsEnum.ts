@@ -74,6 +74,7 @@ export enum RouteLabelsEnum {
   BOLETIM = "Boletim",
   AVALIACOES = "Avaliações e tarefas",
   COMUNICADOS = "Comunicados",
+  COMUNICADO_CADASTRO = "Cadastro de Comunicado",
   COMUNICACAO = "Fale conosco",
   PERFIL = "Perfil",
 

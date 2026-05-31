@@ -121,6 +121,13 @@ export function middleware(request: NextRequest) {
       return response;
     }
 
+    // Bloqueia rotas de cadastro para ESTUDANTE
+    // if (tokenData.role === UserRoleEnum.ESTUDANTE && path.includes("/cadastro")) {
+    //   const redirectUrl = request.nextUrl.clone();
+    //   redirectUrl.pathname = getDefaultRoute(tokenData.role);
+    //   return NextResponse.redirect(redirectUrl);
+    // }
+
     // Verifica se o usuário tem permissão para acessar a rota
     if (!canAccessRoute(tokenData.role, path)) {
       // Redireciona para a rota padrão do role apenas se não tiver permissão
