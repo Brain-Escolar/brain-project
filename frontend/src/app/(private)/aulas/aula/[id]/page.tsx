@@ -3,10 +3,10 @@ import ConteudosTarefas from "@/components/aulaDetailView/conteudosTarefas/conte
 import ListaPresenca from "@/components/aulaDetailView/listaPresenca/listaPresenca";
 import RegistrosDisciplinares from "@/components/aulaDetailView/registrosDisciplinares/registrosDisciplinares";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StarIcon from "@mui/icons-material/Star";
-import { Box, Container, IconButton, Skeleton, Tab, Tabs, Typography } from "@mui/material";
+import { Box, IconButton, Skeleton, Tab, Tabs, Typography } from "@mui/material";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
@@ -58,7 +58,16 @@ export default function AulaDetailPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={
+        loading
+          ? "Carregando..."
+          : aula
+            ? `${aula.disciplina} — ${aula.serie} ${aula.turma}`
+            : "Detalhe da Aula"
+      }
+      description="Gerencie a presença, conteúdos e registros disciplinares desta aula."
+    >
       <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
         <IconButton onClick={handleGoBack} size="small">
           <ArrowBackIcon fontSize="small" />
@@ -67,17 +76,6 @@ export default function AulaDetailPage() {
           Pagina inicial
         </Typography>
       </Box>
-
-      <PageTitle
-        title={
-          loading
-            ? "Carregando..."
-            : aula
-              ? `${aula.disciplina} — ${aula.serie} ${aula.turma}`
-              : "Detalhe da Aula"
-        }
-        description="Gerencie a presença, conteúdos e registros disciplinares desta aula."
-      />
 
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
@@ -195,6 +193,6 @@ export default function AulaDetailPage() {
           <SectionVisaoGeral existeAulaNoDia={!!aula} />
         </S.SidebarCard>
       </S.PageLayout>
-    </Container>
+    </PageScaffold>
   );
 }

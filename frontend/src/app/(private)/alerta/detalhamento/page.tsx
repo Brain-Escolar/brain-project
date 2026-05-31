@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useAlertas } from "@/hooks/useAlertas";
 import { useAlertaMutations } from "@/app/(private)/alerta/useAlertaMutations";
 import { AlertaResponse } from "@/services/domains/alerta";
 import {
-  Container,
   Box,
   Card,
   CardContent,
@@ -347,37 +346,32 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <PageScaffold>
         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", py: 8 }}>
           <CircularProgress />
         </Box>
-      </Container>
+      </PageScaffold>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <PageScaffold>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
           <Button onClick={() => refetch()} sx={{ ml: 2 }}>
             Tentar novamente
           </Button>
         </Alert>
-      </Container>
+      </PageScaffold>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2, flexWrap: "wrap" }}>
-        <Box>
-          <PageTitle
-            title="Notificações"
-            description={`Você tem ${unreadCount} notificação${unreadCount !== 1 ? "ões" : ""} não lida${unreadCount !== 1 ? "s" : ""}`}
-          />
-        </Box>
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+    <PageScaffold
+      title="Notificações"
+      description={`Você tem ${unreadCount} notificação${unreadCount !== 1 ? "ões" : ""} não lida${unreadCount !== 1 ? "s" : ""}`}
+      actions={<Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           <Button
             variant="outlined"
             size="medium"
@@ -443,8 +437,8 @@ export default function NotificationsPage() {
           >
             Marcar todas como lidas
           </Button>
-        </Box>
-      </Box>
+        </Box>}
+    >
 
       <Box sx={{ mb: 3 }}>
         <ToggleButtonGroup
@@ -606,6 +600,6 @@ export default function NotificationsPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

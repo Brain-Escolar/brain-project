@@ -12,12 +12,12 @@ import { BrainDropdownControlled } from "@/components/brainForms/brainDropdownCo
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useAvaliacao } from "@/hooks/useAvaliacao";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { KeyValue } from "@/services/models/keyValue";
-import { Alert, Box, CircularProgress, Container, FormControlLabel, Checkbox } from "@mui/material";
+import { Alert, Box, CircularProgress, FormControlLabel, Checkbox } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useMemo } from "react";
 import { avaliacaoDefaultValues, AvaliacaoFormData, avaliacaoSchema } from "../schema";
@@ -81,7 +81,10 @@ function AvaliacaoPageContent() {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Avaliação" : "Cadastro de Avaliação"}
+      description="Preencha os dados abaixo para completar o cadastro no sistema"
+    >
       {(loadingAvaliacao && isEditMode) || loadingDisciplinas ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -92,10 +95,6 @@ function AvaliacaoPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={isEditMode ? "Editar Avaliação" : "Cadastro de Avaliação"}
-            description="Preencha os dados abaixo para completar o cadastro no sistema"
-          />
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
@@ -181,7 +180,7 @@ function AvaliacaoPageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -189,11 +188,11 @@ export default function AvaliacaoPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <AvaliacaoPageContent />

@@ -4,7 +4,6 @@ import { RoutesEnum } from "@/enums";
 import { useFichaMedicaMutations } from "@/app/(private)/ficha-medica/useFichaMedicaMutations";
 import { useState } from "react";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -28,7 +27,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Add, LocalHospital, Download } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { fichaMedicaApi } from "@/services/api";
 
 export default function ListaFichaMedicaPage() {
@@ -114,22 +113,15 @@ export default function ListaFichaMedicaPage() {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle
-            title={"Lista de Fichas Médicas"}
-            description="Gerencie as fichas médicas cadastradas no sistema"
-          />
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewFichaMedica}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Lista de Fichas Médicas"
+      description="Gerencie as fichas médicas cadastradas no sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewFichaMedica} sx={{ height: "fit-content" }}>
           Nova Ficha Médica
         </Button>
+      }
+    >
       </Box>
 
       {loading && (
@@ -317,6 +309,6 @@ export default function ListaFichaMedicaPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

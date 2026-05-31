@@ -18,7 +18,7 @@ import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFo
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import { RichTextEditor } from "@/components/richTextEditor/RichTextEditor";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { RoutesEnum } from "@/enums";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useComunicado } from "@/hooks/useComunicado";
@@ -28,7 +28,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Container,
   FormHelperText,
   Typography,
 } from "@mui/material";
@@ -112,7 +111,10 @@ function ComunicadoPageContent() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Comunicado" : "Cadastro de Comunicado"}
+      description="Preencha os dados abaixo para completar o cadastro no sistema"
+    >
       {loadingComunicado && isEditMode ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -123,10 +125,6 @@ function ComunicadoPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={isEditMode ? "Editar Comunicado" : "Cadastro de Comunicado"}
-            description="Preencha os dados abaixo para completar o cadastro no sistema"
-          />
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
@@ -281,7 +279,7 @@ function ComunicadoPageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -289,11 +287,11 @@ export default function ComunicadoCadastroPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <ComunicadoPageContent />

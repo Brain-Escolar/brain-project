@@ -4,7 +4,6 @@ import { useProfessores } from "@/hooks/useProfessores";
 import { useProfessorMutations } from "@/app/(private)/professor/useProfessorMutations";
 import { useState } from "react";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -26,7 +25,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 
 export default function ProfessorPage() {
   const router = useRouter();
@@ -72,24 +71,15 @@ export default function ProfessorPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle
-            title={"Lista de Professores"}
-            description="Gerencie os professores cadastrados no sistema"
-          />
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewProfessor}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Lista de Professores"
+      description="Gerencie os professores cadastrados no sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewProfessor} sx={{ height: "fit-content" }}>
           Novo Professor
         </Button>
-      </Box>
-
+      }
+    >
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -203,6 +193,6 @@ export default function ProfessorPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

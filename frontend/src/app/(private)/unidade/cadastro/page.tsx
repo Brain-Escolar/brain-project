@@ -11,10 +11,10 @@ import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useUnidade } from "@/hooks/useUnidade";
-import { Alert, Box, CircularProgress, Container } from "@mui/material";
+import { Alert, Box, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { Suspense, useEffect } from "react";
@@ -67,7 +67,10 @@ function UnidadePageContent() {
   const QUANTITY_COLLUMNS_DEFAULT = 3;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Unidade" : "Cadastro de Unidade"}
+      description="Preencha os dados abaixo para completar o cadastro no sistema"
+    >
       {loadingUnidade && isEditMode ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -78,10 +81,6 @@ function UnidadePageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={isEditMode ? "Editar Unidade" : "Cadastro de Unidade"}
-            description="Preencha os dados abaixo para completar o cadastro no sistema"
-          />
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
@@ -113,7 +112,7 @@ function UnidadePageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -121,11 +120,11 @@ export default function UnidadePage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <UnidadePageContent />

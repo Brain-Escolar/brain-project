@@ -5,7 +5,6 @@ import { useNotaMutations } from "@/app/(private)/notas/useNotaMutations";
 import { NotaListaResponse } from "@/services/domains/notas/response";
 import { useState } from "react";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -27,7 +26,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 
 export default function NotaListaPage() {
   const router = useRouter();
@@ -73,23 +72,15 @@ export default function NotaListaPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle title="Notas" />
-          <Typography variant="body2" color="text.secondary">
-            Gerencie as notas dos alunos
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewNota}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Notas"
+      description="Gerencie as notas dos alunos"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewNota} sx={{ height: "fit-content" }}>
           Nova Nota
         </Button>
-      </Box>
+      }
+    >
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -183,6 +174,6 @@ export default function NotaListaPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

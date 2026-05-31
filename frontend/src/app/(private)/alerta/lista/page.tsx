@@ -4,7 +4,6 @@ import { RoutesEnum } from "@/enums";
 import { useAlertaMutations } from "@/app/(private)/alerta/useAlertaMutations";
 import { useState } from "react";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -26,7 +25,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Add, Campaign } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 
 export default function ListaAlertaPage() {
   const router = useRouter();
@@ -81,23 +80,15 @@ export default function ListaAlertaPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle
-            title={"Lista de Alertas"}
-            description="Gerencie os alertas cadastrados no sistema"
-          />
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewAlerta}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Lista de Alertas"
+      description="Gerencie os alertas cadastrados no sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewAlerta} sx={{ height: "fit-content" }}>
           Novo Alerta
         </Button>
-      </Box>
+      }
+    >
 
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -225,6 +216,6 @@ export default function ListaAlertaPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

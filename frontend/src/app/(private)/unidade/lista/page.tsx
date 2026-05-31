@@ -1,12 +1,11 @@
 "use client";
 import { RoutesEnum } from "@/enums";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useUnidades } from "@/hooks/useUnidades";
 import { useUnidadeMutations } from "@/app/(private)/unidade/useUnidadeMutations";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
-  Container,
   Box,
   Button,
   Paper,
@@ -70,23 +69,15 @@ export default function ListaUnidadePage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle
-            title="Lista de Unidades"
-            description="Gerencie as unidades cadastradas no sistema"
-          />
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewUnidade}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Lista de Unidades"
+      description="Gerencie as unidades cadastradas no sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewUnidade} sx={{ height: "fit-content" }}>
           Nova Unidade
         </Button>
-      </Box>
+      }
+    >
 
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -192,6 +183,6 @@ export default function ListaUnidadePage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

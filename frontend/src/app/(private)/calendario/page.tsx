@@ -1,8 +1,7 @@
 "use client";
 import LayoutColumns from "@/components/layoutColumns/layoutColumns";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import {
-  Container,
   Typography,
   Box,
   Button,
@@ -98,25 +97,7 @@ export default function Calendario() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   return (
-    <Container
-      maxWidth="lg"
-      sx={{
-        py: { xs: 2, md: 4 },
-        px: { xs: 1, md: 3 },
-      }}
-    >
-      <PageTitle title="Calendário" />
-      <Typography
-        variant="body1"
-        color="text.secondary"
-        gutterBottom
-        sx={{
-          mb: { xs: 2, md: 4 },
-          fontSize: { xs: "0.875rem", md: "1rem" },
-        }}
-      >
-        Gerencie seu calendário e seus compromissos
-      </Typography>
+    <PageScaffold title="Calendário" description="Gerencie seu calendário e seus compromissos">
 
       {isMobile ? (
         // Layout mobile - coluna única
@@ -508,6 +489,6 @@ export default function Calendario() {
           </Box>
         </LayoutColumns>
       )}
-    </Container>
+    </PageScaffold>
   );
 }

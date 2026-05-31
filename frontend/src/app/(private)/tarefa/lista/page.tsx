@@ -4,7 +4,6 @@ import { RoutesEnum } from "@/enums";
 import { useTarefaMutations } from "@/app/(private)/tarefa/useTarefaMutations";
 import { useState } from "react";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -27,7 +26,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Add, Description } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 
 export default function ListaTarefaPage() {
   const router = useRouter();
@@ -89,23 +88,15 @@ export default function ListaTarefaPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle
-            title={"Lista de Tarefas"}
-            description="Gerencie as tarefas cadastradas no sistema"
-          />
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewTarefa}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Lista de Tarefas"
+      description="Gerencie as tarefas cadastradas no sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewTarefa} sx={{ height: "fit-content" }}>
           Nova Tarefa
         </Button>
-      </Box>
+      }
+    >
 
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -260,6 +251,6 @@ export default function ListaTarefaPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

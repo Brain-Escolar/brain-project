@@ -12,14 +12,14 @@ import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFo
 import { BrainDropdownControlled } from "@/components/brainForms/brainDropdownControlled";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useAulaById } from "@/hooks/useAulaById";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { useTurmas } from "@/hooks/useTurmas";
 import { useProfessores } from "@/hooks/useProfessores";
 import { useHorariosDropdown } from "@/hooks/useHorarios";
-import { Alert, Box, CircularProgress, Container } from "@mui/material";
+import { Alert, Box, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useMemo } from "react";
 import { aulaDefaultValues, AulaFormData, aulaSchema } from "../schema";
@@ -127,7 +127,10 @@ function AulaPageContent() {
   const isLoading = loadingDisciplinas || loadingTurmas || loadingProfessores || loadingHorarios;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Aula" : "Cadastro de Aula"}
+      description="Preencha os dados abaixo para completar o cadastro no sistema"
+    >
       {loadingAula && isEditMode ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -138,10 +141,6 @@ function AulaPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={isEditMode ? "Editar Aula" : "Cadastro de Aula"}
-            description="Preencha os dados abaixo para completar o cadastro no sistema"
-          />
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
@@ -224,7 +223,7 @@ function AulaPageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -232,11 +231,11 @@ export default function AulaPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <AulaPageContent />

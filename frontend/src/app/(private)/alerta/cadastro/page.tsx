@@ -12,10 +12,10 @@ import { BrainDateTextControlled } from "@/components/brainForms/brainDateTextCo
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useAlerta } from "@/hooks/useAlerta";
-import { Alert, Box, CircularProgress, Container } from "@mui/material";
+import { Alert, Box, CircularProgress } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { alertaDefaultValues, AlertaFormData, alertaSchema } from "../schema";
@@ -69,7 +69,10 @@ function AlertaPageContent() {
   const QUANTITY_COLLUMNS_DEFAULT = 3;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Alerta" : "Cadastro de Alerta"}
+      description="Preencha os dados abaixo para completar o cadastro no sistema"
+    >
       {loadingAlerta && isEditMode ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -80,10 +83,6 @@ function AlertaPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={isEditMode ? "Editar Alerta" : "Cadastro de Alerta"}
-            description="Preencha os dados abaixo para completar o cadastro no sistema"
-          />
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
@@ -139,7 +138,7 @@ function AlertaPageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -147,11 +146,11 @@ export default function AlertaPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <AlertaPageContent />

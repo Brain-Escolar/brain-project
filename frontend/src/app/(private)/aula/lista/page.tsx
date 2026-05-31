@@ -5,7 +5,6 @@ import { useAulaMutations } from "@/app/(private)/aula/useAulaMutations";
 import { AulaListaResponse } from "@/services/domains/aula/response";
 import { useState } from "react";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -28,7 +27,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 
 export default function ListaAulaPage() {
   const router = useRouter();
@@ -87,23 +86,15 @@ export default function ListaAulaPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle
-            title={"Lista de Aulas"}
-            description="Gerencie as aulas cadastradas no sistema"
-          />
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewAula}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Lista de Aulas"
+      description="Gerencie as aulas cadastradas no sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewAula} sx={{ height: "fit-content" }}>
           Nova Aula
         </Button>
-      </Box>
+      }
+    >
 
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -222,6 +213,6 @@ export default function ListaAulaPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

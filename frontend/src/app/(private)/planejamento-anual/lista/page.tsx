@@ -1,8 +1,7 @@
 "use client";
 import { RoutesEnum } from "@/enums";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -49,16 +48,15 @@ export default function PlanejamentoAnualListaPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <PageTitle
-          title="Planejamentos Anuais"
-          description="Visualize e gerencie os planejamentos anuais da escola"
-        />
+    <PageScaffold
+      title="Planejamentos Anuais"
+      description="Visualize e gerencie os planejamentos anuais da escola"
+      actions={
         <Button variant="contained" startIcon={<Add />} onClick={handleNovo}>
           Novo Planejamento
         </Button>
-      </Box>
+      }
+    >
 
       {isLoading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
@@ -103,6 +101,6 @@ export default function PlanejamentoAnualListaPage() {
           </Typography>
         </Paper>
       )}
-    </Container>
+    </PageScaffold>
   );
 }

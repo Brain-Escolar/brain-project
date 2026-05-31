@@ -12,7 +12,7 @@ import { BrainDropdownControlled } from "@/components/brainForms/brainDropdownCo
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useGradesCurriculares } from "@/hooks/useGradesCurriculares";
 import { useGradeCurricular } from "@/hooks/useGradeCurricular";
@@ -25,7 +25,6 @@ import {
   Box,
   CircularProgress,
   Button,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -200,7 +199,22 @@ function TurmaPageContent() {
   const unidadeName = unidadesOptions.find((u) => u.key === watchUnidadeId)?.value || "—";
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Turma" : "Cadastro de Turma"}
+      description="Registro uma nova turma vinculando-a a uma grade curricular e suas regras acadêmicas."
+      actions={
+        !isEditMode ? (
+          <Button
+            variant="outlined"
+            startIcon={<ContentCopyIcon />}
+            onClick={() => setImportDialogOpen(true)}
+            sx={{ mt: 1, whiteSpace: "nowrap" }}
+          >
+            Importar Modelo
+          </Button>
+        ) : undefined
+      }
+    >
       {loadingTurma && isEditMode ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -211,22 +225,6 @@ function TurmaPageContent() {
         </Alert>
       ) : (
         <>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
-            <PageTitle
-              title={isEditMode ? "Editar Turma" : "Cadastro de Turma"}
-              description="Registro uma nova turma vinculando-a a uma grade curricular e suas regras acadêmicas."
-            />
-            {!isEditMode && (
-              <Button
-                variant="outlined"
-                startIcon={<ContentCopyIcon />}
-                onClick={() => setImportDialogOpen(true)}
-                sx={{ mt: 1, whiteSpace: "nowrap" }}
-              >
-                Importar Modelo
-              </Button>
-            )}
-          </Box>
 
           {/* Dialog Importar Modelo */}
           <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} maxWidth="sm" fullWidth>
@@ -608,7 +606,7 @@ function TurmaPageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -616,11 +614,11 @@ export default function TurmaPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <TurmaPageContent />

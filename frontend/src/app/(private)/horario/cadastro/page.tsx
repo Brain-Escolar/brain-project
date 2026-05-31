@@ -12,10 +12,10 @@ import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFo
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import { BrainTextHorarioControlled } from "@/components/brainForms/brainTextHorarioControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useHorario } from "@/hooks/useHorario";
-import { Alert, Box, CircularProgress, Container } from "@mui/material";
+import { Alert, Box, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { Suspense, useEffect } from "react";
@@ -68,7 +68,10 @@ function HorarioPageContent() {
   const QUANTITY_COLLUMNS_DEFAULT = 2;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Horário" : "Cadastro de Horário"}
+      description="Preencha os dados abaixo para completar o cadastro no sistema"
+    >
       {loadingHorario && isEditMode ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -79,10 +82,6 @@ function HorarioPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={isEditMode ? "Editar Horário" : "Cadastro de Horário"}
-            description="Preencha os dados abaixo para completar o cadastro no sistema"
-          />
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
@@ -132,7 +131,7 @@ function HorarioPageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -140,11 +139,11 @@ export default function HorarioPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <HorarioPageContent />

@@ -2,7 +2,7 @@
 import { RoutesEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useTurma } from "@/hooks/useTurma";
 import {
@@ -11,7 +11,6 @@ import {
   Checkbox,
   Button,
   CircularProgress,
-  Container,
   InputAdornment,
   TextField,
   Typography,
@@ -93,16 +92,19 @@ function VincularAlunosPageContent() {
 
   if (!turmaId) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <PageScaffold>
         <Alert severity="warning">
           Nenhuma turma selecionada. Volte para a lista de turmas e selecione uma turma.
         </Alert>
-      </Container>
+      </PageScaffold>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={`Vincular Alunos — ${turma?.nome || ""}`}
+      description="Selecione os alunos que devem ser vinculados a esta turma."
+    >
       {(loadingTurma || loadingAlunos) ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -113,10 +115,6 @@ function VincularAlunosPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={`Vincular Alunos — ${turma?.nome || ""}`}
-            description="Selecione os alunos que devem ser vinculados a esta turma."
-          />
 
           <S.PageLayout>
             {/* Coluna principal */}
@@ -278,7 +276,7 @@ function VincularAlunosPageContent() {
           </Box>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -286,11 +284,11 @@ export default function VincularAlunosPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <VincularAlunosPageContent />

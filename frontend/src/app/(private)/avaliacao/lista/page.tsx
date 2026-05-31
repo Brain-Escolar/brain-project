@@ -1,7 +1,7 @@
 "use client";
 import { RoutesEnum } from "@/enums";
 import { useAvaliacaoMutations } from "@/app/(private)/avaliacao/useAvaliacaoMutations";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useAvaliacoes } from "@/hooks/useAvaliacoes";
 import { AvaliacaoListaResponse } from "@/services/domains/avaliacao/response";
 import { Add, Delete, Edit } from "@mui/icons-material";
@@ -10,7 +10,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -73,23 +72,15 @@ export default function AvaliacaoListaPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle title="Avaliações" />
-          <Typography variant="body2" color="text.secondary">
-            Gerencie as avaliações do sistema
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewAvaliacao}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Avaliações"
+      description="Gerencie as avaliações do sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewAvaliacao} sx={{ height: "fit-content" }}>
           Nova Avaliação
         </Button>
-      </Box>
+      }
+    >
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -197,6 +188,6 @@ export default function AvaliacaoListaPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

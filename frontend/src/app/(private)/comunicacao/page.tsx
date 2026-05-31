@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import {
-  Container,
   Box,
   Typography,
   TextField,
@@ -31,7 +30,7 @@ import BusinessIcon from "@mui/icons-material/Business";
 import PeopleIcon from "@mui/icons-material/People";
 import SendIcon from "@mui/icons-material/Send";
 import LockIcon from "@mui/icons-material/Lock";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useConversasRemetente } from "@/hooks/useConversas";
 import { useMensagens } from "@/hooks/useMensagens";
 import { useConversaMutations } from "@/hooks/useConversaMutations";
@@ -151,18 +150,15 @@ export default function ComunicacaoPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-        <Box>
-          <PageTitle title="Comunicação com a Escola" />
-          <Typography variant="body2" color="text.secondary">
-            Entre em contato com os departamentos da escola
-          </Typography>
-        </Box>
+    <PageScaffold
+      title="Comunicação com a Escola"
+      description="Entre em contato com os departamentos da escola"
+      actions={
         <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenNovaConversa}>
           Nova Mensagem
         </Button>
-      </Box>
+      }
+    >
 
       <Box sx={{ display: "flex", gap: 2, mt: 3, height: "calc(100vh - 220px)", minHeight: 500 }}>
         {/* Painel esquerdo — lista de conversas */}
@@ -554,6 +550,6 @@ export default function ComunicacaoPage() {
           </DialogActions>
         </form>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

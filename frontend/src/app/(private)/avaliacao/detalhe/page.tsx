@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Container,
   IconButton,
   LinearProgress,
   Link,
@@ -24,6 +23,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useAvaliacaoDetalheMutations } from "./useAvaliacaoDetalheMutations";
 import { MetaItem, MetaRow, PageHeader, ProgressWrapper, TitleRow } from "./styles";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 
 interface NotaState {
   nota: string;
@@ -106,7 +106,7 @@ function AvaliacaoDetalheContent() {
   const progressValue = data.totalAlunos > 0 ? (notasLancadasCount / data.totalAlunos) * 100 : 0;
 
   return (
-    <Container maxWidth="lg">
+    <PageScaffold>
       <PageHeader>
         {/* Breadcrumb */}
         <Link
@@ -230,7 +230,7 @@ function AvaliacaoDetalheContent() {
           </TableBody>
         </Table>
       </TableContainer>
-    </Container>
+    </PageScaffold>
   );
 }
 

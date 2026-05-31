@@ -1,7 +1,7 @@
 "use client";
 
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useAluno } from "@/hooks/useAluno";
 import { useAlunoFichaMedica } from "@/hooks/useAlunoFichaMedica";
 import { useAlunoAnotacoesDisciplina } from "@/hooks/useAlunoAnotacoesDisciplina";
@@ -20,7 +20,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Container,
   Divider,
   FormControl,
   IconButton,
@@ -135,23 +134,11 @@ export default function AlunoDetalhePage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Navegação */}
-      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-        <IconButton onClick={handleGoBack} size="small">
-          <ArrowBackIcon fontSize="small" />
-        </IconButton>
-        <Typography variant="body2" color="text.secondary">
-          Voltar
-        </Typography>
-      </Box>
-
-      <Box sx={{ mb: 3, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <PageTitle
-          title={loading ? "Carregando..." : aluno?.nome ?? "Detalhe do Aluno"}
-          description="Informações completas do aluno"
-        />
-        {isAdmin && !loading && aluno && (
+    <PageScaffold
+      title={loading ? "Carregando..." : aluno?.nome ?? "Detalhe do Aluno"}
+      description="Informações completas do aluno"
+      actions={
+        isAdmin && !loading && aluno ? (
           <Box sx={{ display: "flex", gap: 1 }}>
             <Button variant="outlined" startIcon={<EditIcon />} onClick={handleEdit} size="small">
               Editar
@@ -178,7 +165,17 @@ export default function AlunoDetalhePage() {
               </Button>
             )}
           </Box>
-        )}
+        ) : undefined
+      }
+    >
+      {/* Navegação */}
+      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+        <IconButton onClick={handleGoBack} size="small">
+          <ArrowBackIcon fontSize="small" />
+        </IconButton>
+        <Typography variant="body2" color="text.secondary">
+          Voltar
+        </Typography>
       </Box>
 
       {error && (
@@ -422,6 +419,6 @@ export default function AlunoDetalhePage() {
           </S.SidebarItem>
         </S.SidebarCard>
       </S.PageLayout>
-    </Container>
+    </PageScaffold>
   );
 }

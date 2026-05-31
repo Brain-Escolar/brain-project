@@ -2,7 +2,7 @@
 import { RoutesEnum } from "@/enums";
 import BrainButtonPrimary from "@/components/brainButtons/brainButtonPrimary/brainButtonPrimary";
 import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary/brainButtonSecondary";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useTurma } from "@/hooks/useTurma";
 import { useHorarios } from "@/hooks/useHorarios";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
@@ -12,7 +12,6 @@ import {
   Alert,
   Box,
   CircularProgress,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -169,16 +168,19 @@ function DefinirHorariosPageContent() {
 
   if (!turmaId) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <PageScaffold>
         <Alert severity="warning">
           Nenhuma turma selecionada. Volte para a lista de turmas e selecione uma turma.
         </Alert>
-      </Container>
+      </PageScaffold>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <PageScaffold
+      title={`Definir Horários — ${turma?.nome || ""}`}
+      description="Clique nas células para atribuir disciplinas e professores aos horários."
+    >
       {loadingTurma || loadingHorarios ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -189,9 +191,6 @@ function DefinirHorariosPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={`Definir Horários — ${turma?.nome || ""}`}
-            description="Clique nas células para atribuir disciplinas e professores aos horários."
           />
 
           <S.PageLayout>
@@ -361,7 +360,7 @@ function DefinirHorariosPageContent() {
           </Dialog>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -369,11 +368,11 @@ export default function DefinirHorariosPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="xl" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <DefinirHorariosPageContent />

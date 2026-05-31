@@ -5,7 +5,6 @@ import { useSerieMutations } from "@/app/(private)/serie/useSerieMutations";
 import { SerieListaResponse } from "@/services/domains/serie/response";
 import { useState } from "react";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -27,7 +26,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 
 export default function ListaSeriePage() {
   const router = useRouter();
@@ -73,23 +72,15 @@ export default function ListaSeriePage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle
-            title={"Lista de Séries"}
-            description="Gerencie as séries cadastradas no sistema"
-          />
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewSerie}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Lista de Séries"
+      description="Gerencie as séries cadastradas no sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewSerie} sx={{ height: "fit-content" }}>
           Nova Série
         </Button>
-      </Box>
+      }
+    >
 
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -183,6 +174,6 @@ export default function ListaSeriePage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

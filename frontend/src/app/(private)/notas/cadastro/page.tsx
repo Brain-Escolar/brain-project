@@ -13,13 +13,13 @@ import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFo
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import { BrainDateTextControlled } from "@/components/brainForms/brainDateTextControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useNota } from "@/hooks/useNota";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useAvaliacoes } from "@/hooks/useAvaliacoes";
 import { KeyValue } from "@/services/models/keyValue";
-import { Alert, Box, CircularProgress, Container } from "@mui/material";
+import { Alert, Box, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { Suspense, useEffect, useMemo } from "react";
@@ -88,7 +88,10 @@ function NotaPageContent() {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Nota" : "Cadastro de Nota"}
+      description="Preencha os dados abaixo para completar o cadastro no sistema"
+    >
       {(loadingNota && isEditMode) || loadingAlunos || loadingAvaliacoes ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -99,10 +102,6 @@ function NotaPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={isEditMode ? "Editar Nota" : "Cadastro de Nota"}
-            description="Preencha os dados abaixo para completar o cadastro no sistema"
-          />
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
@@ -160,7 +159,7 @@ function NotaPageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -168,11 +167,11 @@ export default function NotaPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <NotaPageContent />

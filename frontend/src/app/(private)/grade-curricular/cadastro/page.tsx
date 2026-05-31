@@ -11,7 +11,7 @@ import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useGradeCurricular } from "@/hooks/useGradeCurricular";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
@@ -21,7 +21,6 @@ import {
   Checkbox,
   Button,
   CircularProgress,
-  Container,
   InputAdornment,
   TextField,
   Typography,
@@ -109,7 +108,10 @@ function GradeCurricularPageContent() {
   }, [disciplinas, watchDisciplinaIds]);
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Grade Curricular" : "Cadastro de Grade Curricular"}
+      description="Defina as disciplinas que compõem a grade curricular e suas cargas horárias."
+    >
       {loadingGrade && isEditMode ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -120,14 +122,6 @@ function GradeCurricularPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={
-              isEditMode
-                ? "Editar Grade Curricular"
-                : "Cadastro de Grade Curricular"
-            }
-            description="Defina as disciplinas que compõem a grade curricular e suas cargas horárias."
-          />
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
@@ -336,7 +330,7 @@ function GradeCurricularPageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -344,11 +338,11 @@ export default function GradeCurricularPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <GradeCurricularPageContent />

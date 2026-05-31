@@ -7,11 +7,10 @@ import BrainButtonSecondary from "@/components/brainButtons/brainButtonSecondary
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import {
   Box,
-  Container,
   Button,
   Typography,
   Paper,
@@ -93,11 +92,10 @@ export default function PlanejamentoAnualCadastroPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <PageTitle
-        title="Cadastro de Planejamento Anual"
-        description="Faça upload do arquivo com o planejamento anual da escola"
-      />
+    <PageScaffold
+      title="Cadastro de Planejamento Anual"
+      description="Faça upload do arquivo com o planejamento anual da escola"
+    >
       <BrainFormProvider
         methodsHookForm={methodsHookForm}
         onSubmit={handleSubmit(onFormSubmit)}
@@ -217,6 +215,6 @@ export default function PlanejamentoAnualCadastroPage() {
           </BrainButtonPrimary>
         </Box>
       </BrainFormProvider>
-    </Container>
+    </PageScaffold>
   );
 }

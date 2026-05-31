@@ -5,7 +5,6 @@ import { useTurmaMutations } from "@/app/(private)/turma/useTurmaMutations";
 import { TurmaListaResponse } from "@/services/domains/turma/response";
 import { useState } from "react";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -27,7 +26,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 
 export default function ListaTurmaPage() {
   const router = useRouter();
@@ -73,24 +72,15 @@ export default function ListaTurmaPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle
-            title={"Lista de Turmas"}
-            description="Gerencie as turmas cadastradas no sistema"
-          />
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewTurma}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Lista de Turmas"
+      description="Gerencie as turmas cadastradas no sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewTurma} sx={{ height: "fit-content" }}>
           Nova Turma
         </Button>
-      </Box>
-
+      }
+    >
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />
@@ -183,6 +173,6 @@ export default function ListaTurmaPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

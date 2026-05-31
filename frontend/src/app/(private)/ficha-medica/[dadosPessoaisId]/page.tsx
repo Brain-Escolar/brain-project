@@ -8,11 +8,10 @@ import { BrainDropdownControlled } from "@/components/brainForms/brainDropdownCo
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import {
   Box,
-  Container,
   Button,
   Typography,
   List,
@@ -122,11 +121,10 @@ function FichaMedicaPageContent({ params }: PageProps) {
   const QUANTITY_COLLUMNS_DEFAULT = 2;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <PageTitle
-        title="Cadastro de Ficha Médica"
-        description="Preencha os dados abaixo para completar o cadastro no sistema"
-      />
+    <PageScaffold
+      title="Cadastro de Ficha Médica"
+      description="Preencha os dados abaixo para completar o cadastro no sistema"
+    >
       <BrainFormProvider methodsHookForm={methodsHookForm} onSubmit={handleSubmit(onFormSubmit)}>
         {/* Seção Identificação */}
         <ContainerSection
@@ -296,7 +294,7 @@ function FichaMedicaPageContent({ params }: PageProps) {
           </BrainButtonPrimary>
         </Box>
       </BrainFormProvider>
-    </Container>
+    </PageScaffold>
   );
 }
 

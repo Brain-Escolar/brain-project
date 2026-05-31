@@ -1,7 +1,7 @@
 "use client";
 import EvaluationCard from "@/components/evaluationCard/evaluationCard";
 import LoadingComponent from "@/components/loadingComponent/loadingComponent";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
 import { RoutesEnum } from "@/enums";
 import { useAvaliacoes } from "@/hooks/useAvaliacoes";
@@ -9,7 +9,7 @@ import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { useSeries } from "@/hooks/useSeries";
 import { useTarefasProfessor } from "@/hooks/useTarefasProfessor";
 import AddIcon from "@mui/icons-material/Add";
-import { Button, Container } from "@mui/material";
+import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import TarefaCard from "./components/TarefaCard";
@@ -46,13 +46,7 @@ export default function AvaliacoesPage() {
   });
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <S.Header>
-        <PageTitle
-          title="Avaliações e tarefas"
-          description="Gerencie avaliações e notas dos alunos"
-        />
-      </S.Header>
+    <PageScaffold title="Avaliações e tarefas" description="Gerencie avaliações e notas dos alunos">
 
       <S.TabsContainer>
         <S.Tab active={activeTab === "avaliacoes"} onClick={() => setActiveTab("avaliacoes")}>
@@ -173,6 +167,6 @@ export default function AvaliacoesPage() {
       </S.ContentContainer>
 
       <ModalCriarTarefa open={modalOpen} onClose={() => setModalOpen(false)} />
-    </Container>
+    </PageScaffold>
   );
 }

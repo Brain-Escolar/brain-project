@@ -5,7 +5,6 @@ import { useHorarioMutations } from "@/app/(private)/horario/useHorarioMutations
 import { HorarioListaResponse } from "@/services/domains/horario/response";
 import { useState } from "react";
 import {
-  Container,
   Paper,
   Table,
   TableBody,
@@ -28,7 +27,7 @@ import {
 } from "@mui/material";
 import { Edit, Delete, Add, Schedule } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 
 export default function ListaHorarioPage() {
   const router = useRouter();
@@ -73,23 +72,15 @@ export default function ListaHorarioPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Box>
-          <PageTitle
-            title={"Lista de Horários"}
-            description="Gerencie os horários cadastrados no sistema"
-          />
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleNewHorario}
-          sx={{ height: "fit-content" }}
-        >
+    <PageScaffold
+      title="Lista de Horários"
+      description="Gerencie os horários cadastrados no sistema"
+      actions={
+        <Button variant="contained" startIcon={<Add />} onClick={handleNewHorario} sx={{ height: "fit-content" }}>
           Novo Horário
         </Button>
-      </Box>
+      }
+    >
 
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -212,6 +203,6 @@ export default function ListaHorarioPage() {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </PageScaffold>
   );
 }

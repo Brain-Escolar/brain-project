@@ -19,7 +19,7 @@ import { BrainTextFieldControlled } from "@/components/brainForms/brainTextField
 import { BrainTextPhoneControlled } from "@/components/brainForms/brainTextPhoneControlled";
 import { BrainTextRGControlled } from "@/components/brainForms/brainTextRGControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
@@ -36,7 +36,6 @@ import {
   Button,
   Checkbox,
   CircularProgress,
-  Container,
   FormControlLabel,
   FormHelperText,
   IconButton,
@@ -340,7 +339,10 @@ function ProfessorPageContent() {
   const isSaving = createProfessor.isPending || updateProfessor.isPending;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <PageScaffold
+      title={isEditMode ? "Editar Professor" : "Cadastro de Professor"}
+      description="Preencha todos os dados necessários para o registro"
+    >
       {loadingProfessor && isEditMode ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
           <CircularProgress />
@@ -351,10 +353,6 @@ function ProfessorPageContent() {
         </Alert>
       ) : (
         <>
-          <PageTitle
-            title={isEditMode ? "Editar Professor" : "Cadastro de Professor"}
-            description="Preencha todos os dados necessários para o registro"
-          />
 
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
@@ -775,7 +773,7 @@ function ProfessorPageContent() {
           </BrainFormProvider>
         </>
       )}
-    </Container>
+    </PageScaffold>
   );
 }
 
@@ -783,11 +781,11 @@ export default function ProfessorPage() {
   return (
     <Suspense
       fallback={
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <PageScaffold>
           <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
             <CircularProgress />
           </Box>
-        </Container>
+        </PageScaffold>
       }
     >
       <ProfessorPageContent />
