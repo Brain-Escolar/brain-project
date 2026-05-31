@@ -20,7 +20,7 @@ import DownloadIcon from "@mui/icons-material/Download";
 import SearchIcon from "@mui/icons-material/Search";
 import DescriptionIcon from "@mui/icons-material/Description";
 import CloseIcon from "@mui/icons-material/Close";
-import PageTitle from "@/components/pageTitle/pageTitle";
+import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { RichTextContent } from "@/components/richTextEditor/RichTextContent";
 import { useComunicados } from "@/hooks/useComunicados";
 import { ComunicadoCategoria } from "@/services/domains/comunicado/response";
@@ -121,19 +121,10 @@ export default function ComunicadosPage() {
   const hasActiveFilter = !!searchTerm || !!categoriaFiltro;
 
   return (
-    <Box sx={{ minHeight: "calc(100vh - 64px)", bgcolor: "#F7F8FA" }}>
-      {/* ── Page header ─────────────────────────────────────────────────── */}
-      <Box sx={{ bgcolor: "#F7F8FA", px: { xs: 3, md: 4 }, pt: 4 }}>
-        <Box sx={{ maxWidth: 1504, mx: "auto" }}>
-          <PageTitle
-            title="Comunicados"
-            description="Acompanhe atualizações e comunicados importantes da escola"
-          />
-        </Box>
-      </Box>
-
-      {/* ── Content ─────────────────────────────────────────────────────── */}
-      <Box sx={{ maxWidth: 1504, mx: "auto", p: { xs: 2, md: 4 } }}>
+    <PageScaffold
+      title="Comunicados"
+      description="Acompanhe atualizações e comunicados importantes da escola"
+    >
 
         {/* Loading state */}
         {loading && (
@@ -418,7 +409,6 @@ export default function ComunicadosPage() {
             </Grid>
           </>
         )}
-      </Box>
-    </Box>
+    </PageScaffold>
   );
 }

@@ -297,14 +297,6 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ADMIN],
   },
   {
-    text: RouteLabelsEnum.COMUNICADOS,
-    icon: <CampaignIcon fontSize="small" />,
-    router: RoutesEnum.COMUNICADOS,
-    isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
-    moduleMenu: RoutesModuleEnum.CADASTROS,
-  },
-  {
     text: RouteLabelsEnum.COMUNICADO_CADASTRO,
     icon: <CampaignIcon fontSize="small" />,
     router: RoutesEnum.COMUNICADOS_CADASTRO,
