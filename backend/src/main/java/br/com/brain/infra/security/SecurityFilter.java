@@ -1,8 +1,8 @@
 package br.com.brain.infra.security;
 
-import br.com.brain.domain.autenticacao.DadosAutenticacaoRepository;
+import br.com.brain.autenticacao.DadosAutenticacaoRepository;
 import br.com.brain.infra.multitenancy.TenantContext;
-import br.com.brain.service.TokenService;
+import br.com.brain.autenticacao.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

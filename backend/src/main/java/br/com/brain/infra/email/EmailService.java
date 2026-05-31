@@ -10,7 +10,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import br.com.brain.domain.autenticacao.DadosAutenticacao;
+import br.com.brain.autenticacao.DadosAutenticacao;
 
 @Service
 public class EmailService {

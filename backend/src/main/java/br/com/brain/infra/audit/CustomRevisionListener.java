@@ -1,6 +1,6 @@
 package br.com.brain.infra.audit;
 
-import br.com.brain.domain.autenticacao.DadosAutenticacao;
+import br.com.brain.autenticacao.DadosAutenticacao;
 import org.hibernate.envers.RevisionListener;
 import org.springframework.security.core.context.SecurityContextHolder;
 

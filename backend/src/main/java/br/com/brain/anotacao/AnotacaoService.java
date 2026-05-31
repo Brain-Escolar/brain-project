@@ -1,0 +1,143 @@
+package br.com.brain.anotacao;
+import br.com.brain.chamada.ChamadaService;
+
+import br.com.brain.aluno.Aluno;
+import br.com.brain.aula.Aula;
+import br.com.brain.aluno.dto.AlunosAulaDto;
+import br.com.brain.anotacao.dto.AnotacaoAulaDto;
+import br.com.brain.anotacao.dto.AtualizacaoAnotacaoDto;
+import br.com.brain.anotacao.dto.CadastroAnotacaoDto;
+import br.com.brain.anotacao.dto.CadastroAnotacaoLoteDto;
+import br.com.brain.anotacao.dto.AnotacaoAlunoDisciplinaDto;
+import br.com.brain.anotacao.dto.ListagemAnotacaoDto;
+import br.com.brain.anotacao.dto.ListagemAnotacaoSemanaDto;
+import br.com.brain.exception.ErrosSistema;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class AnotacaoService {
+
+    private final AnotacaoRepository repository;
+    private final ChamadaService chamadaService;
+
+    @PersistenceContext
+    private EntityManager em;
+
+    @Transactional
+    public Anotacao cadastrarAnotacao(CadastroAnotacaoDto dados) {
+
+        Aluno aluno = em.getReference(Aluno.class, dados.alunoId());
+        Aula aula = em.getReference(Aula.class, dados.aulaId());
+        var anotacao = new Anotacao();
+        anotacao.setAluno(aluno);
+        anotacao.setAula(aula);
+        anotacao.setTipoAnotacao(dados.tipoAnotacao());
+        anotacao.setDataAnotacao(dados.data());
+        anotacao.setObservacao(dados.observacao());
+
+        repository.save(anotacao);
+
+        return anotacao;
+    }
+
+    @Transactional
+    public List<Anotacao> cadastrarAnotacaoLote(CadastroAnotacaoLoteDto dados) {
+        Aula aula = em.getReference(Aula.class, dados.aulaId());
+        return dados.alunoIds().stream().map(alunoId -> {
+            Aluno aluno = em.getReference(Aluno.class, alunoId);
+            var anotacao = new Anotacao();
+            anotacao.setAluno(aluno);
+            anotacao.setAula(aula);
+            anotacao.setTipoAnotacao(dados.tipoAnotacao());
+            anotacao.setDataAnotacao(dados.data());
+            anotacao.setObservacao(dados.observacao());
+            return repository.save(anotacao);
+        }).toList();
+    }
+
+    public Page<ListagemAnotacaoDto> listar(Pageable paginacao) {
+        return repository.findAll(paginacao).map(ListagemAnotacaoDto::new);
+    }
+
+    @Transactional
+    public Anotacao atualizar(AtualizacaoAnotacaoDto dados, Long id) {
+        var anotacao = repository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Anotacao", id));
+
+        if (dados.alunoId() != null) {
+            Aluno aluno = em.getReference(Aluno.class, dados.alunoId());
+            anotacao.setAluno(aluno);
+        }
+        if (dados.tipoAnotacao() != null) {
+            anotacao.setTipoAnotacao(dados.tipoAnotacao());
+        }
+        if (dados.data() != null) {
+            anotacao.setDataAnotacao(dados.data());
+        }
+        if (dados.aulaId() != null) {
+            Aula aula = em.getReference(Aula.class, dados.aulaId());
+            anotacao.setAula(aula);
+        }
+        if (dados.observacao() != null) {
+            anotacao.setObservacao(dados.observacao());
+        }
+
+        repository.save(anotacao);
+
+        return anotacao;
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        var anotacao = repository.findById(id).get();
+        repository.delete(anotacao);
+    }
+
+    public Anotacao detalhar(Long id) {
+        return repository.findById(id).get();
+    }
+
+    public List<AlunosAulaDto> recuperarAnotacoesPorDisciplina(Long disciplinaId, List<Aluno> alunos) {
+        return alunos.stream()
+                .map(aluno -> {
+                    var anotacoes = repository.findByDisciplinaIdAndAlunoId(disciplinaId, aluno.getId());
+                    var falta = chamadaService.contarFaltasPorAlunoEPorDisciplina(aluno.getId(), disciplinaId);
+                    return new AlunosAulaDto(aluno, anotacoes, falta);
+                })
+                .toList();
+    }
+
+    public List<AnotacaoAulaDto> recuperarAnotacoesPorAula(Long aulaId, LocalDate data) {
+        return repository.findByAulaIdAndDataAnotacao(aulaId, data).stream()
+                .map(anotacao -> new AnotacaoAulaDto(anotacao))
+                .toList();
+    }
+
+    public List<AnotacaoAlunoDisciplinaDto> buscarPorAlunoEDisciplina(Long alunoId, Long disciplinaId) {
+        return repository.findByDisciplinaIdAndAlunoId(disciplinaId, alunoId).stream()
+                .map(AnotacaoAlunoDisciplinaDto::new)
+                .toList();
+    }
+
+    public List<ListagemAnotacaoSemanaDto> recuperarAnotacoesSemana(Long alunoId) {
+        LocalDate hoje = LocalDate.now();
+        LocalDate inicioDaSemana = hoje.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate fimDaSemana = hoje.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        return repository.findByAlunoIdAndDataAnotacaoBetween(alunoId, inicioDaSemana, fimDaSemana)
+                .stream()
+                .map(ListagemAnotacaoSemanaDto::new)
+                .toList();
+    }
+}
