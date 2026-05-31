@@ -2,6 +2,7 @@ package br.com.brain.service;
 
 import br.com.brain.domain.comunicado.Comunicado;
 import br.com.brain.domain.comunicado.ComunicadoRepository;
+import br.com.brain.dto.alerta.CadastroAlertaDto;
 import br.com.brain.dto.comunicado.AtualizacaoComunicadoDto;
 import br.com.brain.dto.comunicado.CadastroComunicadoDto;
 import br.com.brain.dto.comunicado.ListagemComunicadoDto;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class ComunicadoService {
 
     private final ComunicadoRepository repository;
+    private final AlertaService alertaService;
 
     @PersistenceContext
     private EntityManager em;
@@ -35,6 +37,8 @@ public class ComunicadoService {
         comunicado.setAnexoUrl(dados.anexoUrl());
 
         repository.save(comunicado);
+
+        alertaService.cadastrarAlerta(new CadastroAlertaDto(comunicado.getTitulo(), comunicado.getConteudo(), comunicado.getData()));
 
         return comunicado;
     }
