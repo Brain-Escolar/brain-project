@@ -1,3 +1,5 @@
+package br.com.brain.infra.jackson;
+
 // package br.com.brain.infra.jackson;
 
 // import com.fasterxml.jackson.databind.ObjectMapper;

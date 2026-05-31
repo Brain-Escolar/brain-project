@@ -1,0 +1,27 @@
+package br.com.brain.disciplinaGrade.models;
+
+import br.com.brain.disciplina.models.Disciplina;
+import br.com.brain.gradeCurricular.models.GradeCurricular;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.FetchType;
+import java.io.Serializable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
+@Embeddable
+@Getter
+@Setter
+@EqualsAndHashCode
+public class DisciplinaGradeId implements Serializable {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "grade_curricular_id")
+    private GradeCurricular gradeCurricular;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "disciplina_id")
+    private Disciplina disciplina;
+}
