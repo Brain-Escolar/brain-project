@@ -75,7 +75,6 @@ export enum RouteLabelsEnum {
   AVALIACOES = "Avaliações e tarefas",
   COMUNICADOS = "Comunicados",
   COMUNICACAO = "Fale conosco",
-  QUADRO_DE_AVISOS = "Quadro de Avisos",
   PERFIL = "Perfil",
 
   // Admin labels

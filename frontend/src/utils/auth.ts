@@ -92,7 +92,16 @@ export function hasPermission(userRole: UserRoleEnum, requiredRoles: UserRoleEnu
  * Define as rotas permitidas para cada role
  */
 export const ROLE_ROUTES: Record<UserRoleEnum, string[]> = {
-  ESTUDANTE: ["/", "/aluno", "/boletim", "/calendario", "/minhas-aulas", "/perfil", "/comunicacao"],
+  ESTUDANTE: [
+    "/",
+    "/aluno",
+    "/boletim",
+    "/calendario",
+    "/minhas-aulas",
+    "/perfil",
+    "/comunicacao",
+    "/comunicados",
+  ],
   PROFESSOR: [
     "/",
     "/professor",

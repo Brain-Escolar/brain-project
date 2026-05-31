@@ -2,6 +2,7 @@ export enum RoutesEnum {
   // Home routes
   HOME = "/",
   HOME_ESTUDANTE = "/aluno",
+  HOME_ESTUDANTE_INICIO = "/dashAluno/inicio",
   HOME_ADMIN = "/admin",
 
   // Professor routes
@@ -83,7 +84,6 @@ export enum RoutesEnum {
   AVALIACOES = "/avaliacoes",
   COMUNICADOS = "/comunicados",
   COMUNICACAO = "/comunicacao",
-  QUADRO_DE_AVISOS = "/quadro-de-avisos",
   PERFIL = "/perfil",
 
   // Admin routes

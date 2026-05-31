@@ -59,6 +59,13 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ESTUDANTE],
   },
   {
+    text: RouteLabelsEnum.HOME_ESTUDANTE,
+    icon: <DashboardIcon fontSize="small" />,
+    router: RoutesEnum.HOME_ESTUDANTE_INICIO,
+    isShowMenu: false,
+    roles: [UserRoleEnum.ESTUDANTE],
+  },
+  {
     text: RouteLabelsEnum.HOME_ADMIN,
     icon: <DashboardIcon fontSize="small" />,
     router: RoutesEnum.HOME_ADMIN,
@@ -358,9 +365,9 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ESTUDANTE],
   },
   {
-    text: RouteLabelsEnum.QUADRO_DE_AVISOS,
+    text: RouteLabelsEnum.COMUNICADOS,
     icon: <CampaignIcon fontSize="small" />,
-    router: RoutesEnum.QUADRO_DE_AVISOS,
+    router: RoutesEnum.COMUNICADOS,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
   },
@@ -395,7 +402,7 @@ export const ROUTES: RouteConfig[] = [
   },
   {
     text: RouteLabelsEnum.COMUNICADOS,
-    icon: <AnnouncementIcon fontSize="small" />,
+    icon: <CampaignIcon fontSize="small" />,
     router: RoutesEnum.COMUNICADOS,
     isShowMenu: true,
     roles: [UserRoleEnum.PROFESSOR],
@@ -403,7 +410,7 @@ export const ROUTES: RouteConfig[] = [
   // ========== GERENCIAMENTO - ADMIN ==========
   {
     text: RouteLabelsEnum.COMUNICADOS,
-    icon: <AnnouncementIcon fontSize="small" />,
+    icon: <CampaignIcon fontSize="small" />,
     router: RoutesEnum.COMUNICADOS,
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN],
