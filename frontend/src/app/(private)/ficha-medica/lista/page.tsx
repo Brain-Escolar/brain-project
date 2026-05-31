@@ -122,8 +122,6 @@ export default function ListaFichaMedicaPage() {
         </Button>
       }
     >
-      </Box>
-
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress />

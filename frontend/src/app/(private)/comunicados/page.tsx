@@ -269,6 +269,7 @@ export default function ComunicadosPage() {
                                 color: "#fff",
                                 fontWeight: 500,
                                 flexShrink: 0,
+                                "& .MuiChip-label": { color: "#fff" },
                               }}
                             />
                           </Box>
@@ -335,7 +336,7 @@ export default function ComunicadosPage() {
                     top: 88,
                   }}
                 >
-                  <Typography variant="h6" fontWeight={500} gutterBottom>
+                  <Typography variant="h6" fontWeight={600} gutterBottom>
                     Visão geral
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -375,7 +376,7 @@ export default function ComunicadosPage() {
                           <Typography variant="body2" color="text.primary" sx={{ flex: 1 }}>
                             {config.label}
                           </Typography>
-                          <Typography variant="body2" fontWeight={700} color="text.secondary">
+                          <Typography variant="body2" fontWeight={500} color="text.primary">
                             {count}
                           </Typography>
                         </Box>

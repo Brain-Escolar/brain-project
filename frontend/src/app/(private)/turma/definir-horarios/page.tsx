@@ -191,8 +191,6 @@ function DefinirHorariosPageContent() {
         </Alert>
       ) : (
         <>
-          />
-
           <S.PageLayout>
             {/* Grade de Horários */}
             <S.HorarioGrid>

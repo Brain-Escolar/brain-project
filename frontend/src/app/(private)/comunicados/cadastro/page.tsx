@@ -203,6 +203,7 @@ function ComunicadoPageContent() {
 
               {imagemPreview ? (
                 <Box sx={{ position: "relative", display: "inline-block" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imagemPreview}
                     alt="Pré-visualização"
