@@ -1,6 +1,6 @@
 import { useAula } from "@/hooks/useAula";
-import { useSalvarChamada } from "@/hooks/useChamada";
-import { useState } from "react";
+import { useAtualizarChamada, useChamadaDaAula, useSalvarChamada } from "@/hooks/useChamada";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -27,44 +27,70 @@ interface IListaPresencaProps {
 
 function ListaPresenca({ idAula, data }: IListaPresencaProps) {
   const { alunos, loading, error } = useAula({ idAula: idAula || "" });
+  const { chamadas, carregando: carregandoChamada } = useChamadaDaAula(idAula || "", data);
   const { salvarChamada, salvando } = useSalvarChamada(idAula || "", data);
-  const [alunosPresentes, setAlunosPresentes] = useState<number[]>([]);
+  const { atualizarChamada, atualizando } = useAtualizarChamada(idAula || "", data);
+
+  const chamadaExistente = chamadas.length > 0;
+
+  const [alunosPresentes, setAlunosPresentes] = useState<Set<number>>(new Set());
+  const [presencasOriginais, setPresencasOriginais] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    const ids = chamadas.filter((c) => c.presente).map((c) => c.alunoId);
+    setAlunosPresentes(new Set(ids));
+    setPresencasOriginais(new Set(ids));
+  }, [chamadas]);
+
+  const hasChanges = useMemo(() => {
+    if (!chamadaExistente) return alunosPresentes.size > 0 || alunos.length > 0;
+    if (alunosPresentes.size !== presencasOriginais.size) return true;
+    for (const id of alunosPresentes) {
+      if (!presencasOriginais.has(id)) return true;
+    }
+    return false;
+  }, [alunosPresentes, presencasOriginais, chamadaExistente, alunos.length]);
 
   const handleCheckboxChange = (alunoId: number) => {
     setAlunosPresentes((prev) => {
-      if (prev.includes(alunoId)) {
-        return prev.filter((id) => id !== alunoId);
+      const next = new Set(prev);
+      if (next.has(alunoId)) {
+        next.delete(alunoId);
       } else {
-        return [...prev, alunoId];
+        next.add(alunoId);
       }
+      return next;
     });
   };
 
   const handleSelectAll = () => {
-    if (alunosPresentes.length === alunos.length) {
-      setAlunosPresentes([]);
+    if (alunosPresentes.size === alunos.length) {
+      setAlunosPresentes(new Set());
     } else {
-      setAlunosPresentes(alunos.map((aluno) => aluno.id));
+      setAlunosPresentes(new Set(alunos.map((a) => a.id)));
     }
   };
 
   const handleSalvarPresenca = async () => {
     if (!idAula) return;
+    const presencas = alunos.map((aluno) => ({
+      alunoId: aluno.id,
+      presente: alunosPresentes.has(aluno.id),
+    }));
     try {
-      await salvarChamada(
-        alunos.map((aluno) => ({
-          alunoId: aluno.id,
-          presente: alunosPresentes.includes(aluno.id),
-        })),
-      );
-      toast.success("Chamada registrada com sucesso!");
-      setAlunosPresentes([]);
+      if (chamadaExistente) {
+        await atualizarChamada(presencas);
+        toast.success("Chamada atualizada com sucesso!");
+      } else {
+        await salvarChamada(presencas);
+        toast.success("Chamada registrada com sucesso!");
+      }
     } catch {
-      toast.error("Erro ao registrar chamada. Tente novamente.");
+      toast.error("Erro ao salvar chamada. Tente novamente.");
     }
   };
 
-  if (loading && idAula) {
+  if ((loading || carregandoChamada) && idAula) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
         <CircularProgress />
@@ -82,11 +108,12 @@ function ListaPresenca({ idAula, data }: IListaPresencaProps) {
     );
   }
 
-  const isSelected = (id: number) => alunosPresentes.indexOf(id) !== -1;
   if (!idAula) return null;
   if (alunos.length === 0) {
     return <BrainResultNotFound message="Nenhum aluno encontrado para esta aula." />;
   }
+
+  const isSaving = salvando || atualizando;
 
   return (
     <Box>
@@ -104,10 +131,8 @@ function ListaPresenca({ idAula, data }: IListaPresencaProps) {
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Checkbox
                     size="small"
-                    checked={alunosPresentes.length === alunos.length && alunos.length > 0}
-                    indeterminate={
-                      alunosPresentes.length > 0 && alunosPresentes.length < alunos.length
-                    }
+                    checked={alunosPresentes.size === alunos.length && alunos.length > 0}
+                    indeterminate={alunosPresentes.size > 0 && alunosPresentes.size < alunos.length}
                     onChange={handleSelectAll}
                     sx={{ p: 0 }}
                   />
@@ -135,7 +160,7 @@ function ListaPresenca({ idAula, data }: IListaPresencaProps) {
           </TableHead>
           <TableBody>
             {alunos.map((aluno) => {
-              const selected = isSelected(aluno.id);
+              const selected = alunosPresentes.has(aluno.id);
               return (
                 <TableRow
                   key={aluno.id}
@@ -185,9 +210,9 @@ function ListaPresenca({ idAula, data }: IListaPresencaProps) {
         <Button
           variant="contained"
           onClick={handleSalvarPresenca}
-          disabled={salvando || alunos.length === 0}
+          disabled={isSaving || alunos.length === 0 || !hasChanges}
         >
-          {salvando ? <CircularProgress size={20} color="inherit" /> : "SALVAR"}
+          {isSaving ? <CircularProgress size={20} color="inherit" /> : chamadaExistente ? "ATUALIZAR" : "SALVAR"}
         </Button>
       </Box>
     </Box>

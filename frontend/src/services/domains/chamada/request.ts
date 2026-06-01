@@ -8,3 +8,7 @@ export interface CadastroChamadaRequest {
   data: string; // "YYYY-MM-DD"
   presencas: PresencaAlunoRequest[];
 }
+
+export interface AtualizacaoChamadaLoteRequest {
+  presencas: PresencaAlunoRequest[];
+}

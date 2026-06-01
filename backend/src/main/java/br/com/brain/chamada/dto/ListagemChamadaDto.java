@@ -3,7 +3,7 @@ package br.com.brain.chamada.dto;
 import br.com.brain.chamada.Chamada;
 
 public record ListagemChamadaDto(Long id, String disciplina, String professor, String turma, String horarioInicio,
-        String data, String aluno, Boolean presente) {
+        String data, Long alunoId, String aluno, Boolean presente) {
 
     public ListagemChamadaDto(Chamada chamada) {
         this(
@@ -13,6 +13,7 @@ public record ListagemChamadaDto(Long id, String disciplina, String professor, S
                 chamada.getAula().getTurma().getNome(),
                 chamada.getAula().getHorario().getHorarioInicio().toString(),
                 chamada.getData().toString(),
+                chamada.getAluno().getId(),
                 chamada.getAluno().getDadosPessoais().getNome(),
                 chamada.getPresente());
     }

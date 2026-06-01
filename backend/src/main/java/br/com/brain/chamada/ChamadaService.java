@@ -1,6 +1,7 @@
 package br.com.brain.chamada;
 
 import br.com.brain.chamada.dto.AtualizacaoChamadaDto;
+import br.com.brain.chamada.dto.AtualizacaoChamadaLoteDto;
 import br.com.brain.chamada.dto.CadastroChamadaDto;
 import br.com.brain.chamada.dto.ListagemChamadaDto;
 import br.com.brain.exception.ErrosSistema;
@@ -11,8 +12,10 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,11 +33,11 @@ public class ChamadaService {
     @Transactional
     public List<ListagemChamadaDto> cadastrarChamada(CadastroChamadaDto dados) {
 
-        repository.findByAulaIdAndData(dados.aulaId(), dados.data()).ifPresent(_ -> {
+        if (!repository.findAllByAulaIdAndData(dados.aulaId(), dados.data()).isEmpty()) {
             throw new ErrosSistema.RecursoJaExisteException(
                     "Chamada para a aula " + dados.aulaId() + " na data " + dados.data()
                             + " já foi registrada.");
-        });
+        }
 
         var listagemChamadaDtos = new ArrayList<ListagemChamadaDto>();
 
@@ -97,6 +100,34 @@ public class ChamadaService {
         return repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Chamada", id));
+    }
+
+    public List<ListagemChamadaDto> buscarPorAulaEData(Long aulaId, LocalDate data) {
+        return repository.findAllByAulaIdAndData(aulaId, data)
+                .stream()
+                .map(ListagemChamadaDto::new)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<ListagemChamadaDto> atualizarLote(Long aulaId, LocalDate data, AtualizacaoChamadaLoteDto dados) {
+        var chamadas = repository.findAllByAulaIdAndData(aulaId, data);
+        if (chamadas.isEmpty()) {
+            throw ErrosSistema.RecursoNaoEncontradoException.para("Chamada", aulaId);
+        }
+
+        var chamadaMap = chamadas.stream()
+                .collect(Collectors.toMap(c -> c.getAluno().getId(), c -> c));
+
+        for (var presenca : dados.presencas()) {
+            var chamada = chamadaMap.get(presenca.alunoId());
+            if (chamada != null) {
+                chamada.setPresente(presenca.presente());
+                repository.save(chamada);
+            }
+        }
+
+        return chamadas.stream().map(ListagemChamadaDto::new).collect(Collectors.toList());
     }
 
     public Integer contarFaltasPorAlunoEPorDisciplina(Long alunoId, Long disciplinaId) {

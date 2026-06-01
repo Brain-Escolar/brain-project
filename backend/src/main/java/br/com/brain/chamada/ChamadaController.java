@@ -4,6 +4,7 @@ import br.com.brain.chamada.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -51,5 +52,20 @@ public class ChamadaController {
     public ResponseEntity<ListagemChamadaDto> detalhar(@PathVariable("id") Long id) {
         var chamada = service.detalhar(id);
         return ResponseEntity.ok(new ListagemChamadaDto(chamada));
+    }
+
+    @GetMapping("/aula/{aulaId}/data/{data}")
+    public ResponseEntity<List<ListagemChamadaDto>> buscarPorAulaEData(
+            @PathVariable Long aulaId, @PathVariable LocalDate data) {
+        var chamadas = service.buscarPorAulaEData(aulaId, data);
+        return ResponseEntity.ok(chamadas);
+    }
+
+    @PutMapping("/aula/{aulaId}/data/{data}")
+    public ResponseEntity<List<ListagemChamadaDto>> atualizarLote(
+            @PathVariable Long aulaId, @PathVariable LocalDate data,
+            @RequestBody @Valid AtualizacaoChamadaLoteDto dados) {
+        var chamadas = service.atualizarLote(aulaId, data, dados);
+        return ResponseEntity.ok(chamadas);
     }
 }
