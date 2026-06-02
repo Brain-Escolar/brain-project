@@ -46,9 +46,8 @@ public class TarefaService {
         tarefa.setProfessor(professor);
         tarefa.setTurma(turma);
         tarefa.setConteudo(dados.conteudo());
-        tarefa.setDataCriacao(LocalDate.now());
+        tarefa.setDataCriacao(dados.dataCriacao() != null ? dados.dataCriacao() : LocalDate.now());
         tarefa.setPrazo(dados.prazo());
-        tarefa.setTitulo(dados.titulo());
 
         if (arquivo != null && !arquivo.isEmpty()) {
             String key = "tarefas/" + UUID.randomUUID() + "-" + arquivo.getOriginalFilename();
@@ -80,13 +79,11 @@ public class TarefaService {
     }
 
     @Transactional
-    public ListagemTarefaDto atualizar(AtualizacaoTarefaDto dados, Long id) {
+    public ListagemTarefaDto atualizar(AtualizacaoTarefaDto dados, Long id, MultipartFile arquivo) {
         var tarefa = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Tarefa", id));
 
-        if (dados.titulo() != null)
-            tarefa.setTitulo(dados.titulo());
         if (dados.conteudo() != null)
             tarefa.setConteudo(dados.conteudo());
         if (dados.professorId() != null)
@@ -95,6 +92,18 @@ public class TarefaService {
             tarefa.setTurma(em.getReference(Turma.class, dados.turmaId()));
         if (dados.prazo() != null)
             tarefa.setPrazo(dados.prazo());
+
+        if (arquivo != null && !arquivo.isEmpty()) {
+            String key = "tarefas/" + UUID.randomUUID() + "-" + arquivo.getOriginalFilename();
+            s3Service.upload(key, arquivo);
+            var arquivoEntity = new Arquivo();
+            arquivoEntity.setS3Key(key);
+            arquivoEntity.setNomeOriginal(arquivo.getOriginalFilename());
+            arquivoEntity.setContentType(arquivo.getContentType());
+            arquivoEntity.setTamanho(arquivo.getSize());
+            arquivoRepository.save(arquivoEntity);
+            tarefa.setArquivo(arquivoEntity);
+        }
 
         repository.save(tarefa);
         return toDto(tarefa);
@@ -124,6 +133,16 @@ public class TarefaService {
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
         return repository.findByTurmaIdAndPrazo(aula.getTurma().getId(), data)
                 .stream().map(this::toDto).toList();
+    }
+
+    public java.util.Optional<ListagemTarefaDto> buscarDiarioPorAulaEData(Long aulaId, LocalDate data) {
+        var aula = aulaRepository.findById(aulaId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
+        return repository
+                .findByTurmaIdAndDataCriacaoOrderByIdDesc(aula.getTurma().getId(), data)
+                .stream()
+                .findFirst()
+                .map(this::toDto);
     }
 
     public List<String> listarDatasComTarefas(Long aulaId) {

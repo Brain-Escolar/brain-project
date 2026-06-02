@@ -29,7 +29,7 @@ public class Tarefa extends EntidadeBase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String titulo;
+    @Column(nullable = false)
     private String conteudo;
 
     @ManyToOne(fetch = FetchType.LAZY)

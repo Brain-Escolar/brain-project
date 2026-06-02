@@ -32,13 +32,12 @@ export interface AulaAnotacaoResponse {
 export interface ProximaAulaResponse {
   aulaId: number;
   data: string;
-  horarioInicio: { hour: number; minute: number; second: number; nano: number };
-  horarioFim: { hour: number; minute: number; second: number; nano: number };
+  horarioInicio: string; // "HH:mm:ss"
+  horarioFim: string;    // "HH:mm:ss"
 }
 
 export interface TarefaAulaResponse {
   id: number;
-  titulo: string;
   conteudo: string;
   documentoUrl: string;
   professor: string;

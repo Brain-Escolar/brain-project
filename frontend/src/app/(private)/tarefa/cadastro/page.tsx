@@ -93,30 +93,23 @@ function TarefaPageContent() {
               description="Dados básicos da tarefa"
               numberOfCollumns={QUANTITY_COLLUMNS_DEFAULT}
             >
-              <BrainTextFieldControlled
-                name="titulo"
-                control={control}
-                label="Título"
-                placeholder="Digite o título da tarefa"
-                required
-              />
-
               <BrainDateTextControlled name="prazo" control={control} label="Prazo" required />
             </ContainerSection>
 
-            {/* Seção Conteúdo */}
+            {/* Seção Descrição */}
             <ContainerSection
-              title="Conteúdo"
-              description="Descrição detalhada da tarefa"
+              title="Descrição"
+              description="Descrição da tarefa para os alunos"
               numberOfCollumns={1}
             >
               <BrainTextFieldControlled
                 name="conteudo"
                 control={control}
-                label="Conteúdo"
-                placeholder="Digite o conteúdo da tarefa (opcional)"
+                label="Descrição"
+                placeholder="Descreva a tarefa para os alunos"
                 multiline
                 rows={6}
+                required
               />
             </ContainerSection>
 

@@ -21,7 +21,6 @@ export interface EstudanteAnotacaoResponse {
 
 export interface EstudanteTarefaResponse {
   id: number;
-  titulo: string;
   conteudo: string;
   documentoUrl?: string;
   professor: string;

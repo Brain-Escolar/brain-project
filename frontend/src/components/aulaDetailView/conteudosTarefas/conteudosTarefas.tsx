@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -13,40 +13,91 @@ import {
   Typography,
 } from "@mui/material";
 import { AttachFile, Close, InsertInvitation } from "@mui/icons-material";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ptBR } from "date-fns/locale";
-import DateSelector from "@/components/dateSelector";
 import { useTarefasAula } from "@/hooks/useTarefasAula";
-import { useTarefasDatas } from "@/hooks/useTarefasDatas";
-import { useCriarTarefa } from "@/hooks/useCriarTarefa";
+import { useCriarDiario } from "@/hooks/useCriarDiario";
+import { useDiarioDaAula } from "@/hooks/useDiarioDaAula";
+import { useProximaAula } from "@/hooks/useProximaAula";
 import { toast } from "react-toastify";
 
 interface ConteudosTarefasProps {
   aulaId: string;
   turmaId?: number;
+  data: string;
 }
 
-function ConteudosTarefas({ aulaId, turmaId }: ConteudosTarefasProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const dataFormatada = format(selectedDate, "yyyy-MM-dd");
-
-  const [titulo, setTitulo] = useState("");
+function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
   const [conteudo, setConteudo] = useState("");
+  const [descricaoTarefa, setDescricaoTarefa] = useState("");
   const [prazo, setPrazo] = useState<Date | null>(null);
   const [arquivo, setArquivo] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { tarefas, loading, error } = useTarefasAula(aulaId, dataFormatada);
-  const { datas: datasDisponiveis } = useTarefasDatas(aulaId);
-  const { criarTarefa, salvando } = useCriarTarefa(aulaId);
+  // Valores originais carregados do banco — para detectar mudanças
+  const [originalConteudo, setOriginalConteudo] = useState("");
+  const [originalDescricaoTarefa, setOriginalDescricaoTarefa] = useState("");
+  const [originalPrazo, setOriginalPrazo] = useState<string | null>(null);
 
-  const hasTasksOnDate = datasDisponiveis.includes(dataFormatada);
+  const { tarefas, loading: loadingTarefas, error: errorTarefas } = useTarefasAula(aulaId, data);
+  const { diario, carregando: carregandoDiario } = useDiarioDaAula(aulaId, data);
+  const { criarDiario, salvando } = useCriarDiario(aulaId);
+  const { proximaAula, loading: loadingProxima } = useProximaAula(aulaId, data);
 
-  const handleSalvar = async () => {
-    if (!titulo.trim()) {
-      toast.error("Informe o título da tarefa.");
+  const diarioExiste = !!(diario.conteudo || diario.tarefa);
+
+  // Ref para inicializar campos de texto apenas uma vez por aula/data
+  const initialized = useRef(false);
+  useEffect(() => {
+    initialized.current = false;
+  }, [aulaId, data]);
+
+  // Inicializa os campos quando o diário carrega.
+  // Também re-executa quando proximaAula?.data muda, para garantir que o prazo
+  // padrão seja aplicado mesmo que a query de próxima aula resolva depois do diário.
+  useEffect(() => {
+    if (carregandoDiario || loadingProxima) return;
+
+    const prazoDb = diario.tarefa?.prazo ?? null;
+
+    if (!initialized.current) {
+      const c = diario.conteudo?.conteudo ?? "";
+      const d = diario.tarefa?.conteudo ?? "";
+      setConteudo(c);
+      setDescricaoTarefa(d);
+      setOriginalConteudo(c);
+      setOriginalDescricaoTarefa(d);
+      setOriginalPrazo(prazoDb);
+      if (prazoDb) setPrazo(parseISO(prazoDb));
+      initialized.current = true;
+    }
+
+    // Aplica prazo padrão da próxima aula quando não há prazo salvo no banco
+    if (!prazoDb && proximaAula?.data) {
+      setPrazo(parseISO(proximaAula.data));
+    }
+  }, [carregandoDiario, loadingProxima, proximaAula?.data]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hasChanges = useMemo(() => {
+    if (!diarioExiste) return true;
+    const prazoStr = prazo ? format(prazo, "yyyy-MM-dd") : null;
+    return (
+      conteudo.trim() !== originalConteudo.trim() ||
+      descricaoTarefa.trim() !== originalDescricaoTarefa.trim() ||
+      prazoStr !== originalPrazo ||
+      arquivo !== null
+    );
+  }, [conteudo, descricaoTarefa, prazo, arquivo, originalConteudo, originalDescricaoTarefa, originalPrazo, diarioExiste]);
+
+  const handleSalvarDiario = async () => {
+    if (!conteudo.trim()) {
+      toast.error("Informe o conteúdo da aula.");
+      return;
+    }
+    if (!descricaoTarefa.trim()) {
+      toast.error("Informe a descrição da tarefa.");
       return;
     }
     if (!prazo) {
@@ -58,62 +109,160 @@ function ConteudosTarefas({ aulaId, turmaId }: ConteudosTarefasProps) {
       return;
     }
 
+    const prazoFormatado = format(prazo, "yyyy-MM-dd");
+
     try {
-      await criarTarefa({
-        dados: {
-          titulo: titulo.trim(),
-          conteudo: conteudo.trim() || undefined,
-          turmaId,
-          prazo: format(prazo, "yyyy-MM-dd"),
-        },
+      await criarDiario({
+        conteudo: conteudo.trim(),
+        descricaoTarefa: descricaoTarefa.trim(),
+        prazo: prazoFormatado,
+        aulaId: Number(aulaId),
+        turmaId,
+        data,
         arquivo: arquivo ?? undefined,
+        conteudoId: diario.conteudo?.id,
+        tarefaId: diario.tarefa?.id,
       });
-      toast.success("Tarefa criada com sucesso!");
-      setTitulo("");
-      setConteudo("");
-      setPrazo(null);
+      toast.success(diarioExiste ? "Diário atualizado com sucesso!" : "Diário registrado com sucesso!");
       setArquivo(null);
+      // Atualiza os originais para refletir o novo estado salvo
+      setOriginalConteudo(conteudo.trim());
+      setOriginalDescricaoTarefa(descricaoTarefa.trim());
+      setOriginalPrazo(prazoFormatado);
     } catch {
-      toast.error("Erro ao criar tarefa. Tente novamente.");
+      toast.error("Erro ao salvar diário. Tente novamente.");
     }
   };
+
+  const canSave = !!conteudo.trim() && !!descricaoTarefa.trim() && !!prazo && !!turmaId;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
       <Box>
-        {/* Formulário de nova tarefa */}
-        <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
-            Nova tarefa
-          </Typography>
+        {/* Seção 1: Tarefa do dia */}
+        <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1.5 }}>
+          Tarefa do dia
+        </Typography>
+
+        {loadingTarefas && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+            <CircularProgress size={24} />
+          </Box>
+        )}
+
+        {errorTarefas && <Alert severity="error" sx={{ mb: 2 }}>{errorTarefas}</Alert>}
+
+        {!loadingTarefas && !errorTarefas && (
+          <Stack spacing={1.5} sx={{ mb: 3 }}>
+            {tarefas.length === 0 ? (
+              <Paper variant="outlined" sx={{ p: 2, textAlign: "center" }}>
+                <Typography variant="body2" color="text.secondary">
+                  Nenhuma tarefa para esta data.
+                </Typography>
+              </Paper>
+            ) : (
+              tarefas.map((tarefa) => (
+                <Paper key={tarefa.id} variant="outlined" sx={{ px: 2, py: 1.5 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      mb: tarefa.documentoUrl ? 1 : 0,
+                    }}
+                  >
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      {tarefa.conteudo}
+                    </Typography>
+                    <Chip label={tarefa.turma} size="small" variant="outlined" />
+                  </Box>
+
+                  {tarefa.documentoUrl && (
+                    <Box
+                      component="a"
+                      href={tarefa.documentoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        p: 1,
+                        mb: 1,
+                        bgcolor: "grey.50",
+                        borderRadius: 1,
+                        textDecoration: "none",
+                        "&:hover": { bgcolor: "grey.100" },
+                      }}
+                    >
+                      <AttachFile fontSize="small" color="action" />
+                      <Typography variant="body2" color="primary">
+                        Baixar anexo
+                      </Typography>
+                    </Box>
+                  )}
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <InsertInvitation fontSize="small" color="action" />
+                    <Typography variant="caption" color="text.secondary">
+                      Prazo: {tarefa.prazo}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      · Prof. {tarefa.professor}
+                    </Typography>
+                  </Box>
+                </Paper>
+              ))
+            )}
+          </Stack>
+        )}
+
+        <Divider sx={{ mb: 3 }} />
+
+        {/* Seção 2: Diário */}
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography variant="subtitle2" fontWeight={600}>
+              Diário da aula
+            </Typography>
+            {carregandoDiario && <CircularProgress size={16} />}
+            {!carregandoDiario && diarioExiste && (
+              <Chip label="Já registrado" size="small" color="success" variant="outlined" />
+            )}
+          </Box>
 
           <Stack spacing={2}>
             <TextField
-              label="Título"
-              size="small"
-              fullWidth
-              value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
-            />
-
-            <TextField
-              label="Descrição (opcional)"
+              label="Conteúdo da aula"
               size="small"
               fullWidth
               multiline
               rows={3}
               value={conteudo}
               onChange={(e) => setConteudo(e.target.value)}
+              disabled={carregandoDiario}
+            />
+
+            <TextField
+              label="Descrição da tarefa"
+              size="small"
+              fullWidth
+              multiline
+              rows={2}
+              value={descricaoTarefa}
+              onChange={(e) => setDescricaoTarefa(e.target.value)}
+              disabled={carregandoDiario}
             />
 
             <DatePicker
-              label="Prazo"
+              label="Prazo da tarefa"
               value={prazo}
               onChange={(v) => setPrazo(v as Date | null)}
               slotProps={{ textField: { size: "small", fullWidth: true } }}
+              disabled={carregandoDiario}
             />
 
-            {/* Upload de arquivo */}
+            {/* Anexo: mostra arquivo existente ou input para novo */}
             <Box>
               <input
                 ref={fileInputRef}
@@ -141,12 +290,46 @@ function ConteudosTarefas({ aulaId, turmaId }: ConteudosTarefasProps) {
                     <Close fontSize="small" />
                   </IconButton>
                 </Box>
+              ) : diario.tarefa?.documentoUrl ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Box
+                    component="a"
+                    href={diario.tarefa.documentoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      p: 1,
+                      flex: 1,
+                      bgcolor: "grey.50",
+                      borderRadius: 1,
+                      textDecoration: "none",
+                      "&:hover": { bgcolor: "grey.100" },
+                    }}
+                  >
+                    <AttachFile fontSize="small" color="action" />
+                    <Typography variant="body2" color="primary">
+                      Anexo atual
+                    </Typography>
+                  </Box>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<AttachFile />}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Substituir
+                  </Button>
+                </Box>
               ) : (
                 <Button
                   variant="outlined"
                   size="small"
                   startIcon={<AttachFile />}
                   onClick={() => fileInputRef.current?.click()}
+                  disabled={carregandoDiario}
                 >
                   Anexar arquivo
                 </Button>
@@ -157,105 +340,20 @@ function ConteudosTarefas({ aulaId, turmaId }: ConteudosTarefasProps) {
               <Button
                 variant="contained"
                 size="small"
-                onClick={handleSalvar}
-                disabled={salvando || !titulo.trim() || !prazo || !turmaId}
+                onClick={handleSalvarDiario}
+                disabled={salvando || !canSave || carregandoDiario || !hasChanges}
               >
-                {salvando ? <CircularProgress size={18} color="inherit" /> : "SALVAR"}
+                {salvando ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : diarioExiste ? (
+                  "ATUALIZAR"
+                ) : (
+                  "SALVAR"
+                )}
               </Button>
             </Box>
           </Stack>
         </Paper>
-
-        <Divider sx={{ mb: 3 }} />
-
-        {/* Filtro por data */}
-        <Box sx={{ mb: 3 }}>
-          <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
-          {datasDisponiveis.length > 0 && !hasTasksOnDate && (
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
-              Nenhuma tarefa nesta data. Datas com tarefas: {datasDisponiveis.join(", ")}
-            </Typography>
-          )}
-        </Box>
-
-        {/* Lista de tarefas */}
-        {loading && (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress />
-          </Box>
-        )}
-
-        {error && <Alert severity="error">{error}</Alert>}
-
-        {!loading && !error && (
-          <Stack spacing={2}>
-            {tarefas.map((tarefa) => (
-              <Paper key={tarefa.id} variant="outlined" sx={{ px: 2, py: 1.5 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "flex-start",
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant="subtitle2" fontWeight="bold">
-                    {tarefa.titulo}
-                  </Typography>
-                  <Chip label={tarefa.turma} size="small" variant="outlined" />
-                </Box>
-
-                {tarefa.documentoUrl && (
-                  <Box
-                    component="a"
-                    href={tarefa.documentoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      p: 1,
-                      mb: 1,
-                      bgcolor: "grey.50",
-                      borderRadius: 1,
-                      textDecoration: "none",
-                      "&:hover": { bgcolor: "grey.100" },
-                    }}
-                  >
-                    <AttachFile fontSize="small" color="action" />
-                    <Typography variant="body2" color="primary">
-                      Baixar anexo
-                    </Typography>
-                  </Box>
-                )}
-
-                {tarefa.conteudo && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    {tarefa.conteudo}
-                  </Typography>
-                )}
-
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <InsertInvitation fontSize="small" color="action" />
-                  <Typography variant="caption" color="text.secondary">
-                    Prazo: {tarefa.prazo}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    · Prof. {tarefa.professor}
-                  </Typography>
-                </Box>
-              </Paper>
-            ))}
-            {tarefas.length === 0 && (
-              <Paper variant="outlined" sx={{ p: 3, textAlign: "center" }}>
-                <Typography variant="body2" color="text.secondary">
-                  Nenhuma tarefa para esta data.
-                </Typography>
-              </Paper>
-            )}
-          </Stack>
-        )}
       </Box>
     </LocalizationProvider>
   );

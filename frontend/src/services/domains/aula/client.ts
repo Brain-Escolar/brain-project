@@ -53,7 +53,7 @@ export class AulaApi {
   getProximaAula(
     aulaId: string,
     data: string,
-    horario: { hour: number; minute: number; second: number; nano: number },
+    horario: string,
   ): Promise<ProximaAulaResponse> {
     return httpClient.post(`${BASE_ROUTE}/${aulaId}/proxima-aula`, { data, horario });
   }
@@ -64,5 +64,9 @@ export class AulaApi {
 
   getTarefasDatas(aulaId: string): Promise<string[]> {
     return httpClient.get(`${BASE_ROUTE}/${aulaId}/tarefas/datas`);
+  }
+
+  getTarefaDiario(aulaId: string, data: string): Promise<TarefaAulaResponse> {
+    return httpClient.get(`${BASE_ROUTE}/${aulaId}/tarefa-diario/${data}`);
   }
 }

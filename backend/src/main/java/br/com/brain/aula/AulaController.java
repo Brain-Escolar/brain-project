@@ -97,4 +97,13 @@ public class AulaController {
     public ResponseEntity<List<String>> listarDatasComTarefas(@PathVariable("id") Long aulaId) {
         return ResponseEntity.ok(tarefaService.listarDatasComTarefas(aulaId));
     }
+
+    @GetMapping("{id}/tarefa-diario/{data}")
+    public ResponseEntity<ListagemTarefaDto> buscarTarefaDiario(
+            @PathVariable("id") Long aulaId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        return tarefaService.buscarDiarioPorAulaEData(aulaId, data)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

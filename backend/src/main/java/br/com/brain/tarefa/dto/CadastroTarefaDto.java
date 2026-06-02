@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record CadastroTarefaDto(
-        @NotBlank String titulo,
-        String conteudo,
+        @NotBlank String conteudo,
         @NotNull Long turmaId,
-        @NotNull LocalDate prazo) {
+        @NotNull LocalDate prazo,
+        LocalDate dataCriacao) {
 }

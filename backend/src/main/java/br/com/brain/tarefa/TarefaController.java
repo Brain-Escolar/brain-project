@@ -44,10 +44,12 @@ public class TarefaController {
         return ResponseEntity.ok(service.listar(paginacao));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ListagemTarefaDto> atualizar(@PathVariable Long id,
-            @RequestBody @Valid AtualizacaoTarefaDto dados) {
-        return ResponseEntity.ok(service.atualizar(dados, id));
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ListagemTarefaDto> atualizar(
+            @PathVariable Long id,
+            @RequestPart("dados") @Valid AtualizacaoTarefaDto dados,
+            @RequestPart(value = "arquivo", required = false) MultipartFile arquivo) {
+        return ResponseEntity.ok(service.atualizar(dados, id, arquivo));
     }
 
     @DeleteMapping("/{id}")

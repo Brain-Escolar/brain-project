@@ -37,15 +37,15 @@ export default function ListaTarefaPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [tarefaToDelete, setTarefaToDelete] = useState<{
     id: string;
-    titulo: string;
+    descricao: string;
   } | null>(null);
 
   const handleEditTarefa = (tarefaId: string) => {
     router.push(`${RoutesEnum.TAREFA_CADASTRO}?id=${tarefaId}`);
   };
 
-  const handleDeleteTarefa = (tarefaId: string, tarefaTitulo: string) => {
-    setTarefaToDelete({ id: tarefaId, titulo: tarefaTitulo });
+  const handleDeleteTarefa = (tarefaId: string, descricao: string) => {
+    setTarefaToDelete({ id: tarefaId, descricao });
     setDeleteModalOpen(true);
   };
 
@@ -147,26 +147,19 @@ export default function ListaTarefaPage() {
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
                   <TableCell component="th" scope="row">
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {tarefa.titulo}
-                      </Typography>
-                      {tarefa.conteudo && (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {tarefa.conteudo}
-                        </Typography>
-                      )}
-                    </Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 500,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {tarefa.conteudo}
+                    </Typography>
                   </TableCell>
                   <TableCell>{tarefa.professor || "-"}</TableCell>
                   <TableCell>
@@ -206,7 +199,7 @@ export default function ListaTarefaPage() {
                       </IconButton>
                       <IconButton
                         size="small"
-                        onClick={() => handleDeleteTarefa(tarefa.id.toString(), tarefa.titulo)}
+                        onClick={() => handleDeleteTarefa(tarefa.id.toString(), tarefa.conteudo)}
                         sx={{ color: "error.main" }}
                         title="Excluir"
                       >
@@ -231,7 +224,7 @@ export default function ListaTarefaPage() {
         <DialogTitle id="delete-dialog-title">Confirmar Exclusão</DialogTitle>
         <DialogContent>
           <DialogContentText id="delete-dialog-description">
-            Tem certeza que deseja excluir a tarefa <strong>{tarefaToDelete?.titulo}</strong>?
+            Tem certeza que deseja excluir a tarefa <strong>&quot;{tarefaToDelete?.descricao?.slice(0, 60)}{(tarefaToDelete?.descricao?.length ?? 0) > 60 ? "..." : ""}&quot;</strong>?
             <br />
             Esta ação não pode ser desfeita.
           </DialogContentText>

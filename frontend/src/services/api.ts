@@ -22,6 +22,7 @@ import { ComunicadoApi } from "./domains/comunicado";
 import { ConversaApi } from "./domains/conversa/client";
 import { ChamadaApi } from "./domains/chamada";
 import { AnotacaoApi } from "./domains/anotacao";
+import { ConteudoApi } from "./domains/conteudo";
 
 export const alunoApi = new AlunoApi();
 export const estudanteApi = new EstudanteApi();
@@ -47,3 +48,4 @@ export const comunicadoApi = new ComunicadoApi();
 export const conversaApi = new ConversaApi();
 export const chamadaApi = new ChamadaApi();
 export const anotacaoApi = new AnotacaoApi();
+export const conteudoApi = new ConteudoApi();

@@ -61,15 +61,12 @@ export default function SectionResumoSemana() {
           tarefas.map((tarefa, index) => (
             <S.Card key={index}>
               <S.CardTopRow>
-                <S.CardTitle>{tarefa.titulo}</S.CardTitle>
                 <S.CardBadge>{tarefa.turma}</S.CardBadge>
               </S.CardTopRow>
               <S.CardMeta>
                 {tarefa.serie} - {tarefa.unidade}
               </S.CardMeta>
-              {tarefa.conteudo && (
-                <S.CardDescription>{tarefa.conteudo}</S.CardDescription>
-              )}
+              <S.CardDescription>{tarefa.conteudo}</S.CardDescription>
               <S.CardDeadline>
                 <AccessTimeIcon sx={{ fontSize: 12 }} />
                 Envio: {formatarData(tarefa.prazo)}

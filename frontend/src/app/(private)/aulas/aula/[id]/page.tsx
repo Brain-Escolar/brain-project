@@ -47,7 +47,7 @@ export default function AulaDetailPage() {
   const dataParam = useBrainSearchParams("data");
   const dataOcorrencia = dataParam ?? format(new Date(), "yyyy-MM-dd");
   const { aula, loading, error } = useAulaDetalhe(aulaId);
-  const { proximaAula, loading: loadingProxima } = useProximaAula(aulaId);
+  const { proximaAula, loading: loadingProxima } = useProximaAula(aulaId, dataOcorrencia);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -110,7 +110,7 @@ export default function AulaDetailPage() {
             <ListaPresenca idAula={aulaId} data={dataOcorrencia} />
           </TabPanel>
           <TabPanel value={activeTab} index={1}>
-            <ConteudosTarefas aulaId={aulaId} turmaId={aula?.turmaId} />
+            <ConteudosTarefas aulaId={aulaId} turmaId={aula?.turmaId} data={dataOcorrencia} />
           </TabPanel>
           <TabPanel value={activeTab} index={2}>
             <RegistrosDisciplinares aulaId={aulaId} data={dataOcorrencia} />
@@ -183,7 +183,7 @@ export default function AulaDetailPage() {
               {loadingProxima ? (
                 <Skeleton variant="text" width={120} />
               ) : proximaAula ? (
-                `${proximaAula.data} · ${String(proximaAula.horarioInicio.hour).padStart(2, "0")}:${String(proximaAula.horarioInicio.minute).padStart(2, "0")} - ${String(proximaAula.horarioFim.hour).padStart(2, "0")}:${String(proximaAula.horarioFim.minute).padStart(2, "0")}`
+                `${proximaAula.data} · ${proximaAula.horarioInicio.slice(0, 5)} - ${proximaAula.horarioFim.slice(0, 5)}`
               ) : (
                 "—"
               )}

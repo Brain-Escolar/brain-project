@@ -23,7 +23,13 @@ export class TarefaApi {
   }
 
   atualizarTarefa(data: TarefaPutRequest): Promise<TarefaResponse> {
-    return httpClient.put(`${BASE_ROUTE}/${data.id}`, data);
+    const { id, arquivo, ...dados } = data;
+    const formData = new FormData();
+    formData.append("dados", new Blob([JSON.stringify(dados)], { type: "application/json" }));
+    if (arquivo) {
+      formData.append("arquivo", arquivo);
+    }
+    return httpClient.put(`${BASE_ROUTE}/${id}`, formData);
   }
 
   deleteTarefa(id: string): Promise<void> {

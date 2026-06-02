@@ -22,6 +22,13 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.aulas.all, "tarefas", id, data] as const,
     tarefasDatas: (id: string | number) =>
       [...QUERY_KEYS.aulas.all, "tarefas-datas", id] as const,
+    tarefaDiario: (id: string | number, data: string) =>
+      [...QUERY_KEYS.aulas.all, "tarefa-diario", id, data] as const,
+  },
+  conteudos: {
+    all: ["conteudos"] as const,
+    porAulaData: (aulaId: string | number, data: string) =>
+      [...["conteudos"], "aula", aulaId, data] as const,
   },
   tarefas: {
     all: ["tarefas"] as const,

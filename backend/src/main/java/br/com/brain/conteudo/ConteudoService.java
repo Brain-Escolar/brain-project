@@ -76,4 +76,8 @@ public class ConteudoService {
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Conteudo", id));
     }
+
+    public java.util.Optional<ListagemConteudoDto> buscarPorAulaEData(Long aulaId, java.time.LocalDate data) {
+        return repository.findByAulaIdAndData(aulaId, data).map(ListagemConteudoDto::new);
+    }
 }

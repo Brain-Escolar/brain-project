@@ -4,7 +4,6 @@ import br.com.brain.tarefa.Tarefa;
 
 public record ListagemTarefaDto(
         Long id,
-        String titulo,
         String conteudo,
         String documentoUrl,
         String professor,
@@ -15,7 +14,6 @@ public record ListagemTarefaDto(
     public ListagemTarefaDto(Tarefa tarefa, String downloadUrl) {
         this(
                 tarefa.getId(),
-                tarefa.getTitulo(),
                 tarefa.getConteudo(),
                 downloadUrl,
                 tarefa.getProfessor().getDadosPessoais().getNome(),

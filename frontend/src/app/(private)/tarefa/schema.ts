@@ -1,12 +1,11 @@
 import { z } from "zod";
 
 export const tarefaSchema = z.object({
-  titulo: z
+  conteudo: z
     .string()
-    .min(1, "Título é obrigatório")
-    .min(3, "Título deve ter pelo menos 3 caracteres")
-    .max(200, "Título muito longo"),
-  conteudo: z.string().optional(),
+    .min(1, "Descrição é obrigatória")
+    .min(3, "Descrição deve ter pelo menos 3 caracteres")
+    .max(500, "Descrição muito longa"),
   prazo: z
     .string()
     .min(1, "Prazo é obrigatório")
@@ -16,7 +15,6 @@ export const tarefaSchema = z.object({
 export type TarefaFormData = z.infer<typeof tarefaSchema>;
 
 export const tarefaDefaultValues: TarefaFormData = {
-  titulo: "",
   conteudo: "",
   prazo: "",
 };

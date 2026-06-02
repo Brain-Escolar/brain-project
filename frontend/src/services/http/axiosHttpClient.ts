@@ -111,8 +111,9 @@ export class AxiosHttpClient implements HttpClient {
 
   private handleError(error: unknown): Error {
     if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
       const message = error.response?.data?.message || error.response?.statusText || error.message;
-      return new Error(`HTTP Error: ${message}`);
+      return Object.assign(new Error(`HTTP Error: ${message}`), { status });
     }
 
     return new Error("Unexpected error");

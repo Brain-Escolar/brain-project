@@ -23,7 +23,7 @@ export default function TarefaCard({ tarefa }: TarefaCardProps) {
   return (
     <S.Card>
       <S.CardHeader>
-        <S.CardTitle>{tarefa.titulo}</S.CardTitle>
+        <S.CardTitle>{tarefa.conteudo}</S.CardTitle>
         {tarefa.professor && <S.DisciplinaChip>{tarefa.professor}</S.DisciplinaChip>}
       </S.CardHeader>
 
@@ -34,8 +34,6 @@ export default function TarefaCard({ tarefa }: TarefaCardProps) {
           <S.FileMeta>• Complete</S.FileMeta>
         </S.FileRow>
       )}
-
-      {tarefa.conteudo && <S.Content>{tarefa.conteudo}</S.Content>}
 
       <S.DateRow>
         <S.DateItem>

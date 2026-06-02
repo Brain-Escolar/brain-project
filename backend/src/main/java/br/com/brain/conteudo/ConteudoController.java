@@ -5,9 +5,13 @@ import br.com.brain.conteudo.dto.CadastroConteudoDto;
 import br.com.brain.conteudo.dto.ListagemConteudoDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDate;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -51,5 +55,14 @@ public class ConteudoController {
     public ResponseEntity<ListagemConteudoDto> detalhar(@PathVariable("id") Long id) {
         var conteudo = service.detalhar(id);
         return ResponseEntity.ok(new ListagemConteudoDto(conteudo));
+    }
+
+    @GetMapping("/aula/{aulaId}/data/{data}")
+    public ResponseEntity<ListagemConteudoDto> buscarPorAulaEData(
+            @PathVariable Long aulaId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        return service.buscarPorAulaEData(aulaId, data)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

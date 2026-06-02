@@ -19,4 +19,6 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     List<LocalDate> findDistinctPrazoByTurmaId(@Param("turmaId") Long turmaId);
 
     Page<Tarefa> findByTurmaIdAndPrazoGreaterThanEqual(Long turmaId, LocalDate hoje, Pageable paginacao);
+
+    List<Tarefa> findByTurmaIdAndDataCriacaoOrderByIdDesc(Long turmaId, LocalDate dataCriacao);
 }

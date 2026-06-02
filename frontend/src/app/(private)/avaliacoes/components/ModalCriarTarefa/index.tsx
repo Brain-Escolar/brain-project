@@ -108,20 +108,13 @@ export default function ModalCriarTarefa({ open, onClose }: ModalCriarTarefaProp
       <BrainFormProvider methodsHookForm={methodsHookForm} onSubmit={handleSubmit(onFormSubmit)}>
         <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
           <BrainTextFieldControlled
-            name="titulo"
-            control={control}
-            label="Título"
-            placeholder="Digite o título da tarefa"
-            required
-          />
-
-          <BrainTextFieldControlled
             name="conteudo"
             control={control}
             label="Descrição"
             placeholder="Descreva a tarefa para os alunos"
             multiline
             rows={3}
+            required
           />
 
           <BrainDateTextControlled name="prazo" control={control} label="Prazo" required />
