@@ -6,8 +6,14 @@ import {
   Checkbox,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
@@ -22,9 +28,11 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { DeleteOutline } from "@mui/icons-material";
 import { useAnotacoesAula } from "@/hooks/useAnotacoesAula";
 import { useAula } from "@/hooks/useAula";
 import { useCriarAnotacao } from "@/hooks/useCriarAnotacao";
+import { useExcluirAnotacao } from "@/hooks/useExcluirAnotacao";
 import { TIPOS_ANOTACAO, TipoAnotacao } from "@/services/domains/anotacao";
 import { toast } from "react-toastify";
 
@@ -40,9 +48,24 @@ function RegistrosDisciplinares({ aulaId, data }: RegistrosDisciplinaresProps) {
   const [tipoAnotacao, setTipoAnotacao] = useState<TipoAnotacao | "">("");
   const [observacao, setObservacao] = useState("");
 
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+
   const { anotacoes, loading: loadingAnotacoes, error } = useAnotacoesAula(aulaId, dataFormatada);
   const { alunos } = useAula({ idAula: aulaId });
   const { criarAnotacao, salvando } = useCriarAnotacao(aulaId, dataFormatada);
+  const { excluirAnotacao, excluindo } = useExcluirAnotacao(aulaId, dataFormatada);
+
+  const handleConfirmarExclusao = async () => {
+    if (confirmId === null) return;
+    try {
+      await excluirAnotacao(confirmId);
+      toast.success("Registro removido com sucesso!");
+    } catch {
+      toast.error("Erro ao remover registro. Tente novamente.");
+    } finally {
+      setConfirmId(null);
+    }
+  };
 
   const handleCheckboxChange = (alunoId: number) => {
     setAlunosSelecionados((prev) =>
@@ -217,7 +240,16 @@ function RegistrosDisciplinares({ aulaId, data }: RegistrosDisciplinaresProps) {
                 <Typography variant="body2" fontWeight={600}>
                   {anotacao.nomeAluno}
                 </Typography>
-                <Chip label={anotacao.anotacao} size="small" color="warning" variant="outlined" />
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Chip label={anotacao.anotacao} size="small" color="warning" variant="outlined" />
+                  <IconButton
+                    size="small"
+                    onClick={() => setConfirmId(anotacao.anotacaoId)}
+                    sx={{ color: "error.main" }}
+                  >
+                    <DeleteOutline fontSize="small" />
+                  </IconButton>
+                </Box>
               </Box>
               {anotacao.observacao && (
                 <Typography variant="body2" color="text.secondary">
@@ -235,6 +267,22 @@ function RegistrosDisciplinares({ aulaId, data }: RegistrosDisciplinaresProps) {
           )}
         </Stack>
       )}
+      <Dialog open={confirmId !== null} onClose={() => setConfirmId(null)}>
+        <DialogTitle>Remover registro</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja remover este registro disciplinar? Esta ação não pode ser desfeita.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmId(null)} disabled={excluindo}>
+            Cancelar
+          </Button>
+          <Button color="error" onClick={handleConfirmarExclusao} disabled={excluindo}>
+            {excluindo ? <CircularProgress size={18} color="inherit" /> : "Remover"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
