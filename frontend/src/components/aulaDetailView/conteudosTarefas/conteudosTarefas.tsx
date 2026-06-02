@@ -163,19 +163,9 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
             ) : (
               tarefas.map((tarefa) => (
                 <Paper key={tarefa.id} variant="outlined" sx={{ px: 2, py: 1.5 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      mb: tarefa.documentoUrl ? 1 : 0,
-                    }}
-                  >
-                    <Typography variant="subtitle2" fontWeight="bold">
-                      {tarefa.conteudo}
-                    </Typography>
-                    <Chip label={tarefa.turma} size="small" variant="outlined" />
-                  </Box>
+                  <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: tarefa.documentoUrl ? 1 : 0 }}>
+                    {tarefa.conteudo}
+                  </Typography>
 
                   {tarefa.documentoUrl && (
                     <Box
@@ -206,9 +196,6 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
                     <InsertInvitation fontSize="small" color="action" />
                     <Typography variant="caption" color="text.secondary">
                       Prazo: {tarefa.prazo}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      · Prof. {tarefa.professor}
                     </Typography>
                   </Box>
                 </Paper>

@@ -144,27 +144,6 @@ export default function AulaDetailPage() {
           </S.ResumoItem>
 
           <S.ResumoItem>
-            <span className="resumo-label">Unidade</span>
-            <span className="resumo-value">
-              {loading ? <Skeleton variant="text" width={100} /> : (aula?.unidade ?? "—")}
-            </span>
-          </S.ResumoItem>
-
-          <S.ResumoItem>
-            <span className="resumo-label">Professor</span>
-            <span className="resumo-value">
-              {loading ? <Skeleton variant="text" width={120} /> : (aula?.professor ?? "—")}
-            </span>
-          </S.ResumoItem>
-
-          <S.ResumoItem>
-            <span className="resumo-label">Dia da Semana</span>
-            <span className="resumo-value">
-              {loading ? <Skeleton variant="text" width={80} /> : (aula?.diaDaSemana ?? "—")}
-            </span>
-          </S.ResumoItem>
-
-          <S.ResumoItem>
             <span className="resumo-label">Série / Turma</span>
             <span className="resumo-value">
               {loading ? (
@@ -190,7 +169,7 @@ export default function AulaDetailPage() {
             </span>
           </S.ResumoItem>
 
-          <SectionVisaoGeral existeAulaNoDia={!!aula} />
+          <SectionVisaoGeral aulaId={aulaId} data={dataOcorrencia} />
         </S.SidebarCard>
       </S.PageLayout>
     </PageScaffold>

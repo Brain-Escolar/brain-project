@@ -1,25 +1,36 @@
-import { useTarefas } from "@/hooks/useTarefas";
-import { formatDateString } from "@/utils/utils";
+"use client";
+
+import { useChamadaDaAula } from "@/hooks/useChamada";
+import { useAula } from "@/hooks/useAula";
+import { useAnotacoesAula } from "@/hooks/useAnotacoesAula";
+import { useTarefasAula } from "@/hooks/useTarefasAula";
+import { useDiarioDaAula } from "@/hooks/useDiarioDaAula";
 import {
   Box,
   Card,
   CardContent,
-  CardHeader,
+  Skeleton,
   Stack,
   Typography,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
-import { mockAulaDetail } from "../../../../../../mocks/aulaDetail";
 import * as S from "../styles";
 
 interface ISectionVisaoGeralProps {
-  existeAulaNoDia: boolean;
+  aulaId: string;
+  data: string;
 }
 
-function SectionVisaoGeral({ existeAulaNoDia }: ISectionVisaoGeralProps) {
-  const { tarefas } = useTarefas();
-  const aula = mockAulaDetail;
+function SectionVisaoGeral({ aulaId, data }: ISectionVisaoGeralProps) {
+  const { chamadas, carregando: carregandoChamada } = useChamadaDaAula(aulaId, data);
+  const { alunos, loading: loadingAlunos } = useAula({ idAula: aulaId });
+  const { anotacoes, loading: loadingAnotacoes } = useAnotacoesAula(aulaId, data);
+  const { tarefas, loading: loadingTarefas } = useTarefasAula(aulaId, data);
+  const { diario, carregando: carregandoDiario } = useDiarioDaAula(aulaId, data);
+
+  const totalAlunos = alunos.length;
+  const alunosPresentes = chamadas.filter((c) => c.presente).length;
+  const chamadaFeita = chamadas.length > 0;
 
   return (
     <>
@@ -27,75 +38,92 @@ function SectionVisaoGeral({ existeAulaNoDia }: ISectionVisaoGeralProps) {
         <h4>Visão Geral</h4>
       </S.SidebarHeader>
 
-      {existeAulaNoDia ? (
-        <>
-          <Stack spacing={0}>
-            <S.ResumoItem>
-              <span className="resumo-label">Alunos presentes</span>
-              <span className="resumo-value">
-                {aula.alunosPresentes}/{aula.numeroEstudantes}
-              </span>
-            </S.ResumoItem>
-            <S.ResumoItem>
-              <span className="resumo-label">Novas Tarefas</span>
-              <span className="resumo-value">{aula.novasTarefas}</span>
-            </S.ResumoItem>
-            <S.ResumoItem>
-              <span className="resumo-label">Reg. disciplinares</span>
-              <span className="resumo-value">{aula.registrosDisciplinares}</span>
-            </S.ResumoItem>
-            <S.ResumoItem>
-              <span className="resumo-label">Tarefas para hoje</span>
-              <span className="resumo-value">{tarefas.length}</span>
-            </S.ResumoItem>
-          </Stack>
+      <Stack spacing={0}>
+        <S.ResumoItem>
+          <span className="resumo-label">Alunos presentes</span>
+          <span className="resumo-value">
+            {carregandoChamada || loadingAlunos ? (
+              <Skeleton variant="text" width={50} />
+            ) : chamadaFeita ? (
+              `${alunosPresentes} / ${totalAlunos}`
+            ) : (
+              `— / ${totalAlunos}`
+            )}
+          </span>
+        </S.ResumoItem>
 
-          {tarefas.length > 0 && (
-            <>
-              <S.SidebarHeader>
-                <h4>Tarefas</h4>
-              </S.SidebarHeader>
-              <Stack spacing={2} sx={{ p: 2 }}>
-                {tarefas.map((tarefa, index) => (
-                  <Card key={tarefa.id} variant="outlined" elevation={0}>
-                    <CardHeader
-                      title={`Tarefa ${index + 1}`}
-                      titleTypographyProps={{ variant: "subtitle2", fontWeight: "bold" }}
-                      sx={{ pb: 0 }}
-                    />
-                    <CardContent sx={{ pt: 1 }}>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          mb: 1,
-                        }}
-                      >
-                        It is a long established fact that a reader will be distracted by the
-                        readable content of a page when...
+        <S.ResumoItem>
+          <span className="resumo-label">Reg. disciplinares</span>
+          <span className="resumo-value">
+            {loadingAnotacoes ? (
+              <Skeleton variant="text" width={30} />
+            ) : (
+              anotacoes.length
+            )}
+          </span>
+        </S.ResumoItem>
+
+        <S.ResumoItem>
+          <span className="resumo-label">Tarefas criadas</span>
+          <span className="resumo-value">
+            {carregandoDiario ? (
+              <Skeleton variant="text" width={30} />
+            ) : (
+              diario.tarefa !== null ? 1 : 0
+            )}
+          </span>
+        </S.ResumoItem>
+
+        <S.ResumoItem>
+          <span className="resumo-label">Tarefas para hoje</span>
+          <span className="resumo-value">
+            {loadingTarefas ? (
+              <Skeleton variant="text" width={30} />
+            ) : (
+              tarefas.length
+            )}
+          </span>
+        </S.ResumoItem>
+      </Stack>
+
+      {(loadingTarefas || tarefas.length > 0) && (
+        <>
+          <S.SidebarHeader>
+            <h4>Tarefas</h4>
+          </S.SidebarHeader>
+
+          <Stack spacing={2} sx={{ p: 2 }}>
+            {loadingTarefas ? (
+              <Skeleton variant="rounded" height={80} />
+            ) : (
+              tarefas.map((tarefa) => (
+                <Card key={tarefa.id} variant="outlined" elevation={0}>
+                  <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        mb: 0.5,
+                      }}
+                    >
+                      {tarefa.conteudo}
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <AccessTimeIcon sx={{ fontSize: 13, color: "text.secondary" }} />
+                      <Typography variant="caption" color="text.secondary">
+                        Prazo: {tarefa.prazo}
                       </Typography>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <AccessTimeIcon sx={{ fontSize: 14, color: "text.secondary" }} />
-                        <Typography variant="caption" color="text.secondary">
-                          Envio: {formatDateString(tarefa.prazo)}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Stack>
-            </>
-          )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </Stack>
         </>
-      ) : (
-        <Box sx={{ p: 2 }}>
-          <BrainResultNotFound message="Nenhuma aula encontrada." />
-        </Box>
       )}
     </>
   );
