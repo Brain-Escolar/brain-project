@@ -120,7 +120,7 @@ public class AnotacaoService {
     }
 
     public List<AnotacaoAulaDto> recuperarAnotacoesPorAula(Long aulaId, LocalDate data) {
-        return repository.findByAulaIdAndDataAnotacao(aulaId, data).stream()
+        return repository.findByAulaIdAndDataAnotacaoOrderByAlunoDadosPessoaisNomeAsc(aulaId, data).stream()
                 .map(anotacao -> new AnotacaoAulaDto(anotacao))
                 .toList();
     }

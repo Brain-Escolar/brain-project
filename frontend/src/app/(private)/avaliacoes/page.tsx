@@ -32,27 +32,21 @@ export default function AvaliacoesPage() {
 
   const filteredAvaliacoes = avaliacoes.filter((av) => {
     const term = searchTerm.toLowerCase();
-    return (
-      av.nome.toLowerCase().includes(term) || av.disciplina.toLowerCase().includes(term)
-    );
+    return av.nome.toLowerCase().includes(term) || av.disciplina.toLowerCase().includes(term);
   });
 
   const filteredTarefas = tarefas.filter((t) => {
     const term = searchTerm.toLowerCase();
-    return (
-      t.titulo.toLowerCase().includes(term) ||
-      (t.conteudo?.toLowerCase().includes(term) ?? false)
-    );
+    return t.conteudo.toLowerCase().includes(term) || t.professor.toLowerCase().includes(term);
   });
 
   return (
     <PageScaffold title="Avaliações e tarefas" description="Gerencie avaliações e notas dos alunos">
-
       <S.TabsContainer>
-        <S.Tab active={activeTab === "avaliacoes"} onClick={() => setActiveTab("avaliacoes")}>
+        <S.Tab $active={activeTab === "avaliacoes"} onClick={() => setActiveTab("avaliacoes")}>
           ⭐ AVALIAÇÕES
         </S.Tab>
-        <S.Tab active={activeTab === "tarefas"} onClick={() => setActiveTab("tarefas")}>
+        <S.Tab $active={activeTab === "tarefas"} onClick={() => setActiveTab("tarefas")}>
           ⭐ TAREFAS
         </S.Tab>
       </S.TabsContainer>

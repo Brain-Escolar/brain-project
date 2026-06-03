@@ -14,15 +14,15 @@ export const TabsContainer = styled.div`
   border-bottom: 1px solid ${cssVarColor("border")};
 `;
 
-export const Tab = styled.button<{ active?: boolean }>`
+export const Tab = styled.button<{ $active?: boolean }>`
   background: none;
   border: none;
   padding: 12px 16px;
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
-  color: ${(props) => (props.active ? cssVarColor("primary") : cssVarColor("textSecondary"))};
-  border-bottom: 2px solid ${(props) => (props.active ? cssVarColor("primary") : "transparent")};
+  color: ${(props) => (props.$active ? cssVarColor("primary") : cssVarColor("textSecondary"))};
+  border-bottom: 2px solid ${(props) => (props.$active ? cssVarColor("primary") : "transparent")};
   transition: all 0.2s ease;
 
   &:hover {

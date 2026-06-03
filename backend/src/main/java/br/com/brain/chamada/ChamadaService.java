@@ -33,7 +33,7 @@ public class ChamadaService {
     @Transactional
     public List<ListagemChamadaDto> cadastrarChamada(CadastroChamadaDto dados) {
 
-        if (!repository.findAllByAulaIdAndData(dados.aulaId(), dados.data()).isEmpty()) {
+        if (!repository.findAllByAulaIdAndDataOrderByAlunoDadosPessoaisNomeAsc(dados.aulaId(), dados.data()).isEmpty()) {
             throw new ErrosSistema.RecursoJaExisteException(
                     "Chamada para a aula " + dados.aulaId() + " na data " + dados.data()
                             + " já foi registrada.");
@@ -103,7 +103,7 @@ public class ChamadaService {
     }
 
     public List<ListagemChamadaDto> buscarPorAulaEData(Long aulaId, LocalDate data) {
-        return repository.findAllByAulaIdAndData(aulaId, data)
+        return repository.findAllByAulaIdAndDataOrderByAlunoDadosPessoaisNomeAsc(aulaId, data)
                 .stream()
                 .map(ListagemChamadaDto::new)
                 .collect(Collectors.toList());
@@ -111,7 +111,7 @@ public class ChamadaService {
 
     @Transactional
     public List<ListagemChamadaDto> atualizarLote(Long aulaId, LocalDate data, AtualizacaoChamadaLoteDto dados) {
-        var chamadas = repository.findAllByAulaIdAndData(aulaId, data);
+        var chamadas = repository.findAllByAulaIdAndDataOrderByAlunoDadosPessoaisNomeAsc(aulaId, data);
         if (chamadas.isEmpty()) {
             throw ErrosSistema.RecursoNaoEncontradoException.para("Chamada", aulaId);
         }

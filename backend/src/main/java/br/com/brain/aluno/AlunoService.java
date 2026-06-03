@@ -169,7 +169,7 @@ public class AlunoService {
     }
 
     public List<Aluno> recuperarAlunosPorUnidadeSerieTurma(Long unidadeId, Long serieId, Long turmaId) {
-        return repository.findByUnidadeIdAndSerieIdAndTurmaIdAndMatriculadoTrue(unidadeId, serieId, turmaId);
+        return repository.findByUnidadeIdAndSerieIdAndTurmaIdAndMatriculadoTrueOrderByDadosPessoaisNomeAsc(unidadeId, serieId, turmaId);
     }
 
     public Aluno recuperarAlunoPorDadosPessoais(Long dadosPessoaisId) {

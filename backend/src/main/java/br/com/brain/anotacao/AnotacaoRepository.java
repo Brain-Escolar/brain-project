@@ -11,7 +11,7 @@ public interface AnotacaoRepository extends JpaRepository<Anotacao, Long> {
     List<Anotacao> findByDisciplinaIdAndAlunoId(@Param("disciplinaId") Long disciplinaId,
             @Param("alunoId") Long alunoId);
 
-    List<Anotacao> findByAulaIdAndDataAnotacao(Long aulaId, LocalDate dataAnotacao);
+    List<Anotacao> findByAulaIdAndDataAnotacaoOrderByAlunoDadosPessoaisNomeAsc(Long aulaId, LocalDate dataAnotacao);
 
     List<Anotacao> findByAlunoIdAndDataAnotacaoBetween(Long alunoId, LocalDate dataInicio, LocalDate dataFim);
 }
