@@ -11,7 +11,6 @@ interface ICardClassProps {
   classroom: string;
   hour: string;
   campus: string;
-  quantityStudents: number;
   onClick?: () => void;
 }
 
@@ -19,7 +18,6 @@ function CardClass({
   campus,
   classroom,
   image,
-  quantityStudents,
   hour,
   title,
   onClick,
@@ -44,9 +42,6 @@ function CardClass({
           {classroom}
         </S.AreaClassroom>
         <S.AreaCampus>{campus}</S.AreaCampus>
-        <S.AreaQuantityStudents>
-          {quantityStudents} {quantityStudents === 1 ? "Aluno" : "Alunos"}
-        </S.AreaQuantityStudents>
       </S.AreaInfo>
     </S.Container>
   );

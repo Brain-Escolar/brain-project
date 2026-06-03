@@ -35,11 +35,6 @@ const AulasContainer = styled(Box)`
   width: 100%;
 `;
 
-const formataHora = (horarioInicio: number[], horarioFim: number[]): string => {
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${pad(horarioInicio[0])}:${pad(horarioInicio[1])} - ${pad(horarioFim[0])}:${pad(horarioFim[1])}`;
-};
-
 function WeekRangeLabel({ date }: { date: Date }) {
   const days = getWeekDays(date);
   const start = format(days[0], "d", { locale: ptBR });
@@ -133,9 +128,7 @@ function SemanalContent({
           <Typography sx={{ fontSize: 12, color: "#555", mt: 0.3 }}>
             {aula.serie} {aula.turma}
           </Typography>
-          <Typography sx={{ fontSize: 11, color: "#777", mt: 0.2 }}>
-            Sala {aula.sala}
-          </Typography>
+          <Typography sx={{ fontSize: 11, color: "#777", mt: 0.2 }}>Sala {aula.sala}</Typography>
         </>
       )}
     />
@@ -162,11 +155,7 @@ export default function SectionMinhasAulas() {
           <WeekNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} />
         ) : (
           <Box display="flex" alignItems="center" gap={1}>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setSelectedDate(new Date())}
-            >
+            <Button variant="outlined" size="small" onClick={() => setSelectedDate(new Date())}>
               Hoje
             </Button>
             <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
@@ -195,10 +184,9 @@ export default function SectionMinhasAulas() {
               key={`${aula.disciplina}-${aula.turma}-${index}`}
               title={`${aula.disciplina} - ${aula.serie} ${aula.turma}`}
               image={"https://placehold.co/100.png"}
-              hour={formataHora(aula.horarioInicio, aula.horarioFim)}
-              classroom={`${aula.sala} ${aula.turma}`}
+              hour={`${aula.horarioInicio} - ${aula.horarioFim}`}
+              classroom={`${aula.sala}`}
               campus={aula.unidade}
-              quantityStudents={aula.quantidadeAlunos}
               onClick={() => handleAulaClick(aula.id)}
             />
           ))}
