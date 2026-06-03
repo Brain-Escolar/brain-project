@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 public record CadastroTarefaDto(
         @NotBlank String conteudo,
-        @NotNull Long turmaId,
+        @NotNull Long aulaId,
         @NotNull LocalDate prazo,
         LocalDate dataCriacao) {
 }

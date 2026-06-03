@@ -1,7 +1,7 @@
 import { IBrainResult } from "@/services/commoResponse";
 import { httpClient } from "@/services/http";
 import { TarefaResponse } from "./response";
-import { TarefaPostRequest, TarefaPutRequest } from "./request";
+import { TarefaLotePostRequest, TarefaPostRequest, TarefaPutRequest } from "./request";
 
 const BASE_ROUTE = "tarefa";
 
@@ -44,4 +44,12 @@ export class TarefaApi {
     return httpClient.get(`${BASE_ROUTE}/professor`);
   }
 
+  criarTarefaLote(dados: TarefaLotePostRequest, arquivo?: File): Promise<TarefaResponse[]> {
+    const formData = new FormData();
+    formData.append("dados", new Blob([JSON.stringify(dados)], { type: "application/json" }));
+    if (arquivo) {
+      formData.append("arquivo", arquivo);
+    }
+    return httpClient.post(`${BASE_ROUTE}/lote`, formData);
+  }
 }

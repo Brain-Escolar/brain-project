@@ -13,12 +13,12 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
 
     Page<Tarefa> findByProfessorIdAndPrazoAfter(Long id, LocalDate hoje, Pageable paginacao);
 
-    List<Tarefa> findByTurmaIdAndPrazo(Long turmaId, LocalDate prazo);
+    List<Tarefa> findByAulaIdAndPrazo(Long aulaId, LocalDate prazo);
 
-    @Query("SELECT DISTINCT t.prazo FROM Tarefa t WHERE t.turma.id = :turmaId ORDER BY t.prazo")
-    List<LocalDate> findDistinctPrazoByTurmaId(@Param("turmaId") Long turmaId);
+    @Query("SELECT DISTINCT t.prazo FROM Tarefa t WHERE t.aula.id = :aulaId ORDER BY t.prazo")
+    List<LocalDate> findDistinctPrazoByAulaId(@Param("aulaId") Long aulaId);
 
-    Page<Tarefa> findByTurmaIdAndPrazoGreaterThanEqual(Long turmaId, LocalDate hoje, Pageable paginacao);
+    Page<Tarefa> findByAulaTurmaIdAndPrazoGreaterThanEqual(Long turmaId, LocalDate hoje, Pageable paginacao);
 
-    List<Tarefa> findByTurmaIdAndDataCriacaoOrderByIdDesc(Long turmaId, LocalDate dataCriacao);
+    List<Tarefa> findByAulaIdAndDataCriacaoOrderByIdDesc(Long aulaId, LocalDate dataCriacao);
 }

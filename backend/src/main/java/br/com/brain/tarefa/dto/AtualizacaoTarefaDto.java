@@ -5,6 +5,6 @@ import java.time.LocalDate;
 public record AtualizacaoTarefaDto(
         String conteudo,
         Long professorId,
-        Long turmaId,
+        Long aulaId,
         LocalDate prazo) {
 }

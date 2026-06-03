@@ -7,8 +7,10 @@ public record ListagemTarefaDto(
         String conteudo,
         String documentoUrl,
         String professor,
+        Long aulaId,
         Long turmaId,
         String turma,
+        String disciplina,
         String prazo) {
 
     public ListagemTarefaDto(Tarefa tarefa, String downloadUrl) {
@@ -17,8 +19,10 @@ public record ListagemTarefaDto(
                 tarefa.getConteudo(),
                 downloadUrl,
                 tarefa.getProfessor().getDadosPessoais().getNome(),
-                tarefa.getTurma().getId(),
-                tarefa.getTurma().getNome(),
+                tarefa.getAula().getId(),
+                tarefa.getAula().getTurma().getId(),
+                tarefa.getAula().getTurma().getNome(),
+                tarefa.getAula().getDisciplina().getNome(),
                 tarefa.getPrazo().toString());
     }
 }

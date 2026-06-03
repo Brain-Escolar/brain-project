@@ -13,9 +13,12 @@ export interface ProfessorAulaResponse {
 
 export interface ProfessorAulaSemanalResponse {
   id: number;
-  disciplina: string;
+  serieId: number;
   serie: string;
+  turmaId: number;
   turma: string;
+  disciplinaId: number;
+  disciplina: string;
   sala: string;
   professor: string;
   diaDaSemana: string; // "MONDAY" | "TUESDAY" | ...

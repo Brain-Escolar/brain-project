@@ -3,10 +3,12 @@ package br.com.brain.tarefa;
 import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.tarefa.dto.AtualizacaoTarefaDto;
 import br.com.brain.tarefa.dto.CadastroTarefaDto;
+import br.com.brain.tarefa.dto.CadastroTarefaConteudoLoteDto;
 import br.com.brain.tarefa.dto.ListagemTarefaDto;
 import br.com.brain.professor.ProfessorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -61,6 +63,16 @@ public class TarefaController {
     @GetMapping("/{id}")
     public ResponseEntity<ListagemTarefaDto> detalhar(@PathVariable Long id) {
         return ResponseEntity.ok(service.detalhar(id));
+    }
+
+    @PostMapping(value = "/lote", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<ListagemTarefaDto>> cadastrarLote(
+            @RequestPart("dados") @Valid CadastroTarefaConteudoLoteDto dados,
+            @RequestPart(value = "arquivo", required = false) MultipartFile arquivo,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var professor = professorService.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
+        var criadas = service.cadastrarTarefaLote(dados, arquivo, professor);
+        return ResponseEntity.ok(criadas);
     }
 
     @GetMapping("/professor")

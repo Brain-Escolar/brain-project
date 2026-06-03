@@ -1,8 +1,8 @@
 package br.com.brain.tarefa;
 
 import br.com.brain.arquivo.Arquivo;
+import br.com.brain.aula.Aula;
 import br.com.brain.professor.Professor;
-import br.com.brain.turma.Turma;
 import br.com.brain.shared.EntidadeBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,8 +41,8 @@ public class Tarefa extends EntidadeBase {
     private Professor professor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "turma_id", referencedColumnName = "id")
-    private Turma turma;
+    @JoinColumn(name = "aula_id", referencedColumnName = "id")
+    private Aula aula;
 
     @Column(name = "data_criacao")
     private LocalDate dataCriacao;

@@ -18,9 +18,9 @@ public record ListagemTarefaAlunoDto(
                 tarefa.getConteudo(),
                 downloadUrl,
                 tarefa.getProfessor().getDadosPessoais().getNome(),
-                tarefa.getTurma().getNome(),
-                tarefa.getTurma().getSerie().getNome(),
-                tarefa.getTurma().getUnidade().getNome(),
+                tarefa.getAula().getTurma().getNome(),
+                tarefa.getAula().getTurma().getSerie().getNome(),
+                tarefa.getAula().getTurma().getUnidade().getNome(),
                 tarefa.getPrazo().toString());
     }
 }
