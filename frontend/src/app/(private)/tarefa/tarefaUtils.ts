@@ -6,7 +6,7 @@ import { convertDateStringToISO } from "@/utils/utilsDate";
 export function mapFormDataToTarefaPostRequest(formData: TarefaFormData): TarefaPostRequest {
   return {
     conteudo: formData.conteudo,
-    turmaId: 0,
+    aulaId: 0,
     prazo: convertDateStringToISO(formData.prazo),
   };
 }

@@ -29,7 +29,6 @@ export default async function MinhasAulas() {
               hour={aula.horario}
               classroom={aula.turma}
               campus={""}
-              quantityStudents={0}
             />
           ))}
         </S.AreaClass>

@@ -41,7 +41,12 @@ export function useCriarDiario(aulaId: string) {
         });
       } else {
         await tarefaApi.criarTarefa(
-          { conteudo: input.descricaoTarefa, turmaId: input.turmaId, prazo: input.prazo, dataCriacao: input.data },
+          {
+            conteudo: input.descricaoTarefa,
+            aulaId: input.turmaId,
+            prazo: input.prazo,
+            dataCriacao: input.data,
+          },
           input.arquivo,
         );
       }

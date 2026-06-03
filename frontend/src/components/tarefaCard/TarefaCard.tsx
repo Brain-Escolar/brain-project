@@ -32,7 +32,7 @@ export default function TarefaCard({ tarefa }: TarefaCardProps) {
       {/* Title */}
       <Box sx={{ px: 2.5, pt: 2, pb: tarefa.documentoUrl ? 1.5 : 2 }}>
         <Typography variant="subtitle1" fontWeight={600}>
-          {tarefa.titulo}
+          {tarefa.conteudo}
         </Typography>
       </Box>
 

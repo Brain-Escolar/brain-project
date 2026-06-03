@@ -129,9 +129,7 @@ function SemanalContent({
           <Typography sx={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>
             {aula.disciplina}
           </Typography>
-          <Typography sx={{ fontSize: 12, color: "#555", mt: 0.3 }}>
-            {aula.professor}
-          </Typography>
+          <Typography sx={{ fontSize: 12, color: "#555", mt: 0.3 }}>{aula.professor}</Typography>
         </>
       )}
     />
@@ -157,11 +155,7 @@ export default function SectionAulasAluno() {
           <WeekNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} />
         ) : (
           <Box display="flex" alignItems="center" gap={1}>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setSelectedDate(new Date())}
-            >
+            <Button variant="outlined" size="small" onClick={() => setSelectedDate(new Date())}>
               Hoje
             </Button>
             <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
@@ -193,7 +187,6 @@ export default function SectionAulasAluno() {
               hour={`${formatarHora(aula.horarioInicio)} - ${formatarHora(aula.horarioFim)}`}
               classroom={`Sala ${aula.sala}`}
               campus={aula.unidade}
-              quantityStudents={aula.quantidadeAlunos}
               onClick={() => handleAulaClick(aula)}
             />
           ))}
