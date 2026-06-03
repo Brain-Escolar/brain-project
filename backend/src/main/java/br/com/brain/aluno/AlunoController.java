@@ -1,6 +1,7 @@
 package br.com.brain.aluno;
 
 import br.com.brain.autenticacao.DadosAutenticacao;
+import br.com.brain.exception.ErrosSistema;
 import br.com.brain.shared.DataDto;
 import br.com.brain.aluno.dto.AtualizacaoAlunoDto;
 import br.com.brain.aluno.dto.AtualizacaoCursoPretendidoDto;
@@ -8,6 +9,7 @@ import br.com.brain.aluno.dto.CadastroAlunoDto;
 import br.com.brain.aluno.dto.CursoPretendidoDto;
 import br.com.brain.aluno.dto.DetalhamentoAlunoDto;
 import br.com.brain.aluno.dto.ListagemAlunoDto;
+import org.springframework.http.converter.json.MappingJacksonValue;
 import br.com.brain.anotacao.dto.AnotacaoAlunoDisciplinaDto;
 import br.com.brain.anotacao.dto.ListagemAnotacaoSemanaDto;
 import br.com.brain.aula.dto.ListagemAulaAlunoDto;
@@ -89,9 +91,17 @@ public class AlunoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DetalhamentoAlunoDto> detalhar(@PathVariable("id") Long id) {
+    public ResponseEntity<MappingJacksonValue> detalhar(
+            @PathVariable Long id,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var perfil = usuario.getDadosPessoais().getPerfis().stream()
+                .findFirst()
+                .map(p -> p.getNome())
+                .orElseThrow(() -> ErrosSistema.OperacaoInvalidaException.com("Usuário sem perfil definido."));
         var aluno = service.detalhar(id);
-        return ResponseEntity.ok(new DetalhamentoAlunoDto(aluno));
+        var jackson = new MappingJacksonValue(new DetalhamentoAlunoDto(aluno));
+        jackson.setSerializationView(AlunoViews.paraPerfil(perfil));
+        return ResponseEntity.ok(jackson);
     }
 
     @GetMapping("/{id}/ficha-medica")

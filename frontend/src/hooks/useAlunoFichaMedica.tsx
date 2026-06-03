@@ -11,11 +11,11 @@ interface UseAlunoFichaMedicaReturn {
   error: string | null;
 }
 
-export function useAlunoFichaMedica(alunoId: string | null): UseAlunoFichaMedicaReturn {
+export function useAlunoFichaMedica(alunoId: string | null, enabled = true): UseAlunoFichaMedicaReturn {
   const { data, isLoading, error } = useQuery({
     queryKey: QUERY_KEYS.alunos.fichaMedica(alunoId || ""),
     queryFn: () => alunoApi.getFichaMedicaByAluno(alunoId!),
-    enabled: !!alunoId,
+    enabled: !!alunoId && enabled,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: 2,

@@ -43,20 +43,22 @@ export interface AlunoListaResponse {
 
 export interface AlunoDetalheResponse {
   id: number;
-  cpf: string;
+  cpf?: string;
   matricula: string;
   nome: string;
   nomeSocial: string;
-  email: string;
-  telefones: string[];
-  endereco: AlunoEnderecoResponse;
-  rg: string;
+  email?: string;
+  telefones?: string[];
+  endereco?: AlunoEnderecoResponse;
+  rg?: string;
   dataDeNascimento?: string;
   genero?: string;
   corRaca?: string;
   cidadeNaturalidade?: string;
   matriculado?: boolean;
   cursoPretendido?: string;
+  serieNome?: string;
+  turmaNome?: string;
 }
 
 export interface CursoPretendidoResponse {
