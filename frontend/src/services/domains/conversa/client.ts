@@ -50,4 +50,8 @@ export class ConversaApi {
   contarNaoLidas(): Promise<number> {
     return httpClient.get(`${BASE}/nao-lidas/contagem`);
   }
+
+  listarDestinatariosDisponiveis(): Promise<PerfilNomeEnum[]> {
+    return httpClient.get(`${BASE}/destinatarios-disponiveis`);
+  }
 }

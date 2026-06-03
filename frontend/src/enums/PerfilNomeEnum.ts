@@ -4,6 +4,9 @@ export enum PerfilNomeEnum {
   SECRETARIO = "SECRETARIO",
   COORDENADOR = "COORDENADOR",
   DIRETOR = "DIRETOR",
+  ORIENTADOR = "ORIENTADOR",
+  RECURSOS_HUMANOS = "RECURSOS_HUMANOS",
+  RESPONSAVEL = "RESPONSAVEL",
   ADMIN = "ADMIN",
 }
 
@@ -13,10 +16,8 @@ export const PERFIL_DISPLAY_NAME: Record<string, string> = {
   SECRETARIO: "Secretaria",
   COORDENADOR: "Coordenação Pedagógica",
   DIRETOR: "Diretoria",
+  ORIENTADOR: "Orientação",
+  RECURSOS_HUMANOS: "Recursos Humanos",
+  RESPONSAVEL: "Responsável",
   ADMIN: "Administração",
 };
-
-export const DESTINATARIOS_DISPONIVEIS = [
-  { value: PerfilNomeEnum.SECRETARIO, label: "Secretaria" },
-  { value: PerfilNomeEnum.COORDENADOR, label: "Coordenação Pedagógica" },
-];

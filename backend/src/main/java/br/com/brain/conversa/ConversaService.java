@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,6 +38,12 @@ public class ConversaService {
         var remetentePerfil = remetente.getPerfis().stream()
                 .findFirst()
                 .orElseThrow(() -> ErrosSistema.OperacaoInvalidaException.com("Usuário sem perfil definido."));
+
+        var destinatariosPermitidos = ConversaPermissoes.DESTINATARIOS_PERMITIDOS.get(remetentePerfil.getNome());
+        if (destinatariosPermitidos == null || !destinatariosPermitidos.contains(dados.destinatarioPerfilNome())) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Perfil " + remetentePerfil.getNome() + " não tem permissão para iniciar conversa com " + dados.destinatarioPerfilNome());
+        }
 
         var destinatario = perfilRepository.findByNome(dados.destinatarioPerfilNome());
         if (destinatario == null) {
@@ -84,6 +91,19 @@ public class ConversaService {
         return mensagemRepository.countNaoLidasGroupedByConversaId(conversaIds, dadosPessoaisId)
                 .stream()
                 .collect(Collectors.toMap(ConversaNaoLidaContagem::conversaId, ConversaNaoLidaContagem::total));
+    }
+
+    public List<PerfilNome> listarDestinatariosDisponiveis(Long remetenteId) {
+        var remetente = dadosPessoaisRepository.findById(remetenteId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("DadosPessoais", remetenteId));
+
+        var remetentePerfil = remetente.getPerfis().stream()
+                .findFirst()
+                .orElseThrow(() -> ErrosSistema.OperacaoInvalidaException.com("Usuário sem perfil definido."));
+
+        var permitidos = ConversaPermissoes.DESTINATARIOS_PERMITIDOS.get(remetentePerfil.getNome());
+        if (permitidos == null) return List.of();
+        return permitidos.stream().sorted(Comparator.comparing(Enum::name)).toList();
     }
 
     public long contarNaoLidas(Long dadosPessoaisId) {

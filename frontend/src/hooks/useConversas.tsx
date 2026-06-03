@@ -45,3 +45,12 @@ export function useConversasDestinatario(perfilNome: PerfilNomeEnum, page: numbe
     refetch,
   };
 }
+
+export function useDestinatariosDisponiveis() {
+  const { data, isLoading } = useQuery({
+    queryKey: QUERY_KEYS.conversas.destinatariosDisponiveis(),
+    queryFn: () => conversaApi.listarDestinatariosDisponiveis(),
+  });
+
+  return { destinatarios: data ?? [], isLoading };
+}

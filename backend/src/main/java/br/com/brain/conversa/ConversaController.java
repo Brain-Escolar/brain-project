@@ -14,12 +14,20 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("conversas")
 @RequiredArgsConstructor
 public class ConversaController {
 
     private final ConversaService service;
+
+    @GetMapping("/destinatarios-disponiveis")
+    public ResponseEntity<List<PerfilNome>> listarDestinatariosDisponiveis(
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        return ResponseEntity.ok(service.listarDestinatariosDisponiveis(usuario.getDadosPessoais().getId()));
+    }
 
     @PostMapping
     public ResponseEntity<ListagemConversaDto> abrir(

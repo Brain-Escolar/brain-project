@@ -163,5 +163,6 @@ export const QUERY_KEYS = {
     destinatario: (perfilNome?: string, page?: number) => [...["conversas"], "destinatario", perfilNome, page] as const,
     detail: (id: number) => [...["conversas"], "detail", id] as const,
     mensagens: (conversaId: number, page?: number) => [...["conversas"], "mensagens", conversaId, page] as const,
+    destinatariosDisponiveis: () => [...["conversas"], "destinatarios-disponiveis"] as const,
   },
 } as const;

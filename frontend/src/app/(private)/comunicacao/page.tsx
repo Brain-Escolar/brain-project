@@ -31,14 +31,13 @@ import PeopleIcon from "@mui/icons-material/People";
 import SendIcon from "@mui/icons-material/Send";
 import LockIcon from "@mui/icons-material/Lock";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
-import { useConversasRemetente } from "@/hooks/useConversas";
+import { useConversasRemetente, useDestinatariosDisponiveis } from "@/hooks/useConversas";
 import { useMensagens } from "@/hooks/useMensagens";
 import { useConversaMutations } from "@/hooks/useConversaMutations";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import { ConversaResponse } from "@/services/domains/conversa/response";
 import {
-  DESTINATARIOS_DISPONIVEIS,
   PERFIL_DISPLAY_NAME,
   PerfilNomeEnum,
 } from "@/enums/PerfilNomeEnum";
@@ -83,6 +82,7 @@ export default function ComunicacaoPage() {
   const mensagensEndRef = useRef<HTMLDivElement>(null);
 
   const { conversas, isLoading } = useConversasRemetente(page);
+  const { destinatarios, isLoading: loadingDestinatarios } = useDestinatariosDisponiveis();
   const { mensagens, isLoading: loadingMensagens } = useMensagens(selectedConversa?.id ?? null);
   const { criarConversa, enviarMensagem, fecharConversa, marcarTodasComoLida } =
     useConversaMutations();
@@ -509,7 +509,7 @@ export default function ComunicacaoPage() {
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
               <BrainTextFieldControlled name="titulo" control={control} label="Assunto" required />
-              <FormControl fullWidth error={!!destinatarioError}>
+              <FormControl fullWidth error={!!destinatarioError} disabled={loadingDestinatarios}>
                 <InputLabel>Destinatário</InputLabel>
                 <Select
                   value={destinatario}
@@ -519,9 +519,9 @@ export default function ComunicacaoPage() {
                     setDestinatarioError("");
                   }}
                 >
-                  {DESTINATARIOS_DISPONIVEIS.map((d) => (
-                    <MenuItem key={d.value} value={d.value}>
-                      {d.label}
+                  {destinatarios.map((perfil) => (
+                    <MenuItem key={perfil} value={perfil}>
+                      {PERFIL_DISPLAY_NAME[perfil] ?? perfil}
                     </MenuItem>
                   ))}
                 </Select>
