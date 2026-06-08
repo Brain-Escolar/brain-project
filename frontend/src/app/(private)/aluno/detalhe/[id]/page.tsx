@@ -4,10 +4,11 @@ import ContainerSection from "@/components/containerSection/containerSection";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useAluno } from "@/hooks/useAluno";
 import { useAlunoFichaMedica } from "@/hooks/useAlunoFichaMedica";
-import { useAlunoAnotacoesDisciplina } from "@/hooks/useAlunoAnotacoesDisciplina";
-import { useNotasAlunoDisciplina } from "@/hooks/useNotasAlunoDisciplina";
+import { useAlunoAnotacoesMultiplasDisciplinas, AnotacaoComDisciplina } from "@/hooks/useAlunoAnotacoesMultiplasDisciplinas";
+import { useNotasMultiplasDisciplinas, NotaComDisciplina } from "@/hooks/useNotasMultiplasDisciplinas";
 import { useAlunoMatriculaMutations } from "@/hooks/useAlunoMatriculaMutations";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
+import { useProfessorDisciplinas } from "@/hooks/useProfessorDisciplinas";
 import { useAuth } from "@/hooks/useAuth";
 import { RoutesEnum } from "@/enums/RoutesEnum";
 import { UserRoleEnum } from "@/enums/UserRoleEnum";
@@ -93,11 +94,12 @@ function InfoField({ label, value }: { label: string; value?: string | null }) {
 }
 
 function DisciplinaSelector({
-  disciplinas, value, onChange,
+  disciplinas, value, onChange, emptyLabel = "Selecione uma disciplina",
 }: {
   disciplinas: { id: number; nome: string }[];
   value: string | null;
   onChange: (v: string | null) => void;
+  emptyLabel?: string;
 }) {
   return (
     <FormControl size="small" sx={{ minWidth: 240, mb: 3 }}>
@@ -108,7 +110,7 @@ function DisciplinaSelector({
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value || null)}
       >
-        <MenuItem value=""><em>Selecione uma disciplina</em></MenuItem>
+        <MenuItem value=""><em>{emptyLabel}</em></MenuItem>
         {disciplinas.map((d) => (
           <MenuItem key={d.id} value={String(d.id)}>{d.nome}</MenuItem>
         ))}
@@ -185,33 +187,38 @@ function FichaMedicaPanel({
 }
 
 function NotasPanel({
-  disciplinas, disciplinaId, onDisciplinaChange, notasAluno, loading,
+  disciplinas, disciplinaFiltro, onDisciplinaChange, todasNotas, loading,
 }: {
   disciplinas: { id: number; nome: string }[];
-  disciplinaId: string | null;
+  disciplinaFiltro: string | null;
   onDisciplinaChange: (v: string | null) => void;
-  notasAluno: { notas: { nomeAvaliacao: string; dataAplicacao?: string; pontuacao: number }[] } | null | undefined;
+  todasNotas: NotaComDisciplina[];
   loading: boolean;
 }) {
+  const mostrandoTodas = !disciplinaFiltro;
+  const notasFiltradas = mostrandoTodas
+    ? todasNotas
+    : todasNotas.filter((n) => String(n.disciplinaId) === disciplinaFiltro);
+
   return (
     <>
-      <DisciplinaSelector disciplinas={disciplinas} value={disciplinaId} onChange={onDisciplinaChange} />
-      {!disciplinaId ? (
-        <Typography variant="body2" color="text.secondary">Selecione uma disciplina para visualizar as notas.</Typography>
-      ) : loading ? (
+      <DisciplinaSelector disciplinas={disciplinas} value={disciplinaFiltro} onChange={onDisciplinaChange} emptyLabel="Todos" />
+      {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress size={24} /></Box>
-      ) : notasAluno && notasAluno.notas.length > 0 ? (
+      ) : notasFiltradas.length > 0 ? (
         <Table size="small">
           <TableHead>
             <TableRow>
+              {mostrandoTodas && <TableCell>Disciplina</TableCell>}
               <TableCell>Avaliação</TableCell>
               <TableCell>Data</TableCell>
               <TableCell align="right">Pontuação</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {notasAluno.notas.map((nota, idx) => (
+            {notasFiltradas.map((nota, idx) => (
               <TableRow key={idx}>
+                {mostrandoTodas && <TableCell>{nota.disciplinaNome}</TableCell>}
                 <TableCell>{nota.nomeAvaliacao}</TableCell>
                 <TableCell>{nota.dataAplicacao ? new Date(nota.dataAplicacao).toLocaleDateString("pt-BR") : "—"}</TableCell>
                 <TableCell align="right">{nota.pontuacao}</TableCell>
@@ -220,40 +227,52 @@ function NotasPanel({
           </TableBody>
         </Table>
       ) : (
-        <Typography variant="body2" color="text.secondary">Nenhuma nota registrada para esta disciplina.</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {mostrandoTodas ? "Nenhuma nota registrada." : "Nenhuma nota registrada para esta disciplina."}
+        </Typography>
       )}
     </>
   );
 }
 
 function AnotacoesPanel({
-  disciplinas, disciplinaId, onDisciplinaChange, anotacoes, loading,
+  disciplinas, disciplinaFiltro, onDisciplinaChange, todasAnotacoes, loading,
 }: {
   disciplinas: { id: number; nome: string }[];
-  disciplinaId: string | null;
+  disciplinaFiltro: string | null;
   onDisciplinaChange: (v: string | null) => void;
-  anotacoes: { tipoAnotacao: string; data: string; observacao: string }[];
+  todasAnotacoes: AnotacaoComDisciplina[];
   loading: boolean;
 }) {
+  const mostrandoTodas = !disciplinaFiltro;
+  const anotacoesFiltradas = mostrandoTodas
+    ? todasAnotacoes
+    : todasAnotacoes.filter((a) => String(a.disciplinaId) === disciplinaFiltro);
+
   return (
     <>
-      <DisciplinaSelector disciplinas={disciplinas} value={disciplinaId} onChange={onDisciplinaChange} />
-      {!disciplinaId ? (
-        <Typography variant="body2" color="text.secondary">Selecione uma disciplina para visualizar as anotações.</Typography>
-      ) : loading ? (
+      <DisciplinaSelector
+        disciplinas={disciplinas}
+        value={disciplinaFiltro}
+        onChange={onDisciplinaChange}
+        emptyLabel="Todos"
+      />
+      {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress size={24} /></Box>
-      ) : anotacoes.length > 0 ? (
+      ) : anotacoesFiltradas.length > 0 ? (
         <Table size="small">
           <TableHead>
             <TableRow>
+              {mostrandoTodas && <TableCell>Disciplina</TableCell>}
               <TableCell>Tipo</TableCell>
               <TableCell>Data</TableCell>
               <TableCell>Observação</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {anotacoes.map((anotacao, idx) => (
+            {anotacoesFiltradas.map((anotacao, idx) => (
               <TableRow key={idx}>
+                {mostrandoTodas && <TableCell>{anotacao.disciplinaNome}</TableCell>}
                 <TableCell>{anotacao.tipoAnotacao}</TableCell>
                 <TableCell>{anotacao.data ? new Date(anotacao.data).toLocaleDateString("pt-BR") : "—"}</TableCell>
                 <TableCell>{anotacao.observacao || "—"}</TableCell>
@@ -262,7 +281,9 @@ function AnotacoesPanel({
           </TableBody>
         </Table>
       ) : (
-        <Typography variant="body2" color="text.secondary">Nenhuma anotação registrada para esta disciplina.</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {mostrandoTodas ? "Nenhuma anotação registrada." : "Nenhuma anotação registrada para esta disciplina."}
+        </Typography>
       )}
     </>
   );
@@ -282,15 +303,17 @@ export default function AlunoDetalhePage() {
 
   const { aluno, loading, error } = useAluno(alunoId);
   const { fichaMedica, loading: loadingFicha } = useAlunoFichaMedica(alunoId, !!user && abasDoRole.includes("fichaMedica"));
-  const { disciplinas } = useDisciplinas();
+  const { disciplinas: todasDisciplinas } = useDisciplinas();
+  const { disciplinas: disciplinasProfessor } = useProfessorDisciplinas();
+  const disciplinas = role === UserRoleEnum.PROFESSOR ? disciplinasProfessor : todasDisciplinas;
   const { matricular, desmatricular } = useAlunoMatriculaMutations(alunoId);
 
   const [activeTab, setActiveTab] = useState(0);
   const [notasDisciplinaId, setNotasDisciplinaId] = useState<string | null>(null);
   const [anotacoesDisciplinaId, setAnotacoesDisciplinaId] = useState<string | null>(null);
 
-  const { notasAluno, loading: loadingNotas } = useNotasAlunoDisciplina(alunoId, notasDisciplinaId);
-  const { anotacoes, loading: loadingAnotacoes } = useAlunoAnotacoesDisciplina(alunoId, anotacoesDisciplinaId);
+  const { notas: todasNotas, loading: loadingNotas } = useNotasMultiplasDisciplinas(alunoId, disciplinas);
+  const { anotacoes: todasAnotacoes, loading: loadingAnotacoes } = useAlunoAnotacoesMultiplasDisciplinas(alunoId, disciplinas);
 
   const formatDate = (date?: string | null) => {
     if (!date) return "—";
@@ -300,8 +323,8 @@ export default function AlunoDetalhePage() {
   const PAINEL_MAP: Record<TabKey, React.ReactNode> = {
     dadosPessoais: <DadosPessoaisPanel aluno={aluno} loading={loading} formatDate={formatDate} />,
     fichaMedica: <FichaMedicaPanel fichaMedica={fichaMedica} loading={loadingFicha} />,
-    notas: <NotasPanel disciplinas={disciplinas} disciplinaId={notasDisciplinaId} onDisciplinaChange={setNotasDisciplinaId} notasAluno={notasAluno} loading={loadingNotas} />,
-    anotacoes: <AnotacoesPanel disciplinas={disciplinas} disciplinaId={anotacoesDisciplinaId} onDisciplinaChange={setAnotacoesDisciplinaId} anotacoes={anotacoes} loading={loadingAnotacoes} />,
+    notas: <NotasPanel disciplinas={disciplinas} disciplinaFiltro={notasDisciplinaId} onDisciplinaChange={setNotasDisciplinaId} todasNotas={todasNotas} loading={loadingNotas} />,
+    anotacoes: <AnotacoesPanel disciplinas={disciplinas} disciplinaFiltro={anotacoesDisciplinaId} onDisciplinaChange={setAnotacoesDisciplinaId} todasAnotacoes={todasAnotacoes} loading={loadingAnotacoes} />,
   };
 
   const SIDEBAR_CAMPO_MAP: Record<SidebarKey, SidebarCampo> = {

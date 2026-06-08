@@ -7,7 +7,10 @@ export const planejamentoAnualSchema = z.object({
     .min(2000, "Ano deve ser maior ou igual a 2000")
     .max(2100, "Ano deve ser menor ou igual a 2100"),
   planejamento: z
-    .instanceof(File, { message: "Arquivo é obrigatório" })
+    .custom<File>(
+      (val) => typeof File !== "undefined" && val instanceof File,
+      { message: "Arquivo é obrigatório" },
+    )
     .refine((file) => file.size > 0, "Arquivo é obrigatório")
     .refine(
       (file) =>
