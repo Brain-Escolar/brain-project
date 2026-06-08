@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+
 public interface EventoRepository extends JpaRepository<Evento, Long> {
 
     @Query(value = "SELECT * FROM eventos WHERE turma_id = :turmaId ORDER BY ABS(data_evento - CURRENT_DATE)",
@@ -37,4 +39,9 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
            countQuery = "SELECT COUNT(*) FROM eventos WHERE professor_id = :professorId AND data_evento >= CURRENT_DATE",
            nativeQuery = true)
     Page<Evento> findFutureByProfessorId(@Param("professorId") Long professorId, Pageable pageable);
+
+    @Query(value = "SELECT * FROM eventos WHERE data_evento >= :dataInicio AND data_evento <= :dataFim ORDER BY data_evento ASC",
+           countQuery = "SELECT COUNT(*) FROM eventos WHERE data_evento >= :dataInicio AND data_evento <= :dataFim",
+           nativeQuery = true)
+    Page<Evento> findAllByPeriodo(@Param("dataInicio") LocalDate dataInicio, @Param("dataFim") LocalDate dataFim, Pageable pageable);
 }

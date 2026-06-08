@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 public class EventoService {
@@ -60,7 +62,10 @@ public class EventoService {
     }
 
     public Page<ListagemEventoDto> listar(Long turmaId, Long serieId, Long unidadeId, Long professorId,
-            Pageable pageable) {
+            LocalDate dataInicio, LocalDate dataFim, Pageable pageable) {
+        if (dataInicio != null && dataFim != null) {
+            return repository.findAllByPeriodo(dataInicio, dataFim, pageable).map(ListagemEventoDto::new);
+        }
         if (turmaId != null) {
             return repository.findAllByTurmaId(turmaId, pageable).map(ListagemEventoDto::new);
         }

@@ -13,437 +13,390 @@ import {
   Stack,
   useTheme,
   useMediaQuery,
+  CircularProgress,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import SyncIcon from "@mui/icons-material/Sync";
-import AddIcon from "@mui/icons-material/Add";
+import { useEventos } from "@/hooks/useEventos";
+import { TipoEvento } from "@/services/domains/evento";
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  time: string;
-  type: "Avaliações" | "Provas" | "Reuniões" | "Feriados" | "Prazos";
-  color: string;
-}
+const TIPO_CONFIG: Record<TipoEvento, { label: string; color: string }> = {
+  PROVA: { label: "Provas", color: "#f44336" },
+  ENTREGA_PROVA: { label: "Entregas de Prova", color: "#ff9800" },
+  ENTREGA_NOTAS: { label: "Entrega de Notas", color: "#9c27b0" },
+  REUNIAO: { label: "Reuniões", color: "#2196f3" },
+  FERIADO: { label: "Feriados", color: "#4caf50" },
+  OUTRO: { label: "Outros", color: "#757575" },
+};
 
-const mockEvents: CalendarEvent[] = [
-  { id: "1", title: "Evento", time: "7 - 9", type: "Avaliações", color: "#2196f3" },
-  { id: "2", title: "Evento", time: "7 - 9", type: "Provas", color: "#f44336" },
-  { id: "3", title: "Evento", time: "7 - 9", type: "Avaliações", color: "#2196f3" },
-  { id: "4", title: "Evento", time: "7 - 9", type: "Provas", color: "#f44336" },
-  { id: "5", title: "Evento", time: "7 - 9", type: "Avaliações", color: "#2196f3" },
-  { id: "6", title: "Evento", time: "7 - 9", type: "Provas", color: "#f44336" },
-];
-
-const eventTypes = [
-  { name: "Avaliações", color: "#2196f3", count: 8 },
-  { name: "Provas", color: "#f44336", count: 8 },
-  { name: "Reuniões", color: "#9c27b0", count: 8 },
-  { name: "Feriados", color: "#4caf50", count: 8 },
-  { name: "Prazos", color: "#ff9800", count: 8 },
+const MESES_PT = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
 const daysOfWeek = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
-const monthDays = [
-  { day: 29, isCurrentMonth: false },
-  { day: 30, isCurrentMonth: false },
-  { day: 1, isCurrentMonth: true },
-  { day: 2, isCurrentMonth: true },
-  { day: 3, isCurrentMonth: true },
-  { day: 4, isCurrentMonth: true },
-  { day: 5, isCurrentMonth: true },
-  { day: 6, isCurrentMonth: true },
-  { day: 7, isCurrentMonth: true },
-  { day: 8, isCurrentMonth: true },
-  { day: 9, isCurrentMonth: true, isToday: true },
-  { day: 10, isCurrentMonth: true },
-  { day: 11, isCurrentMonth: true },
-  { day: 12, isCurrentMonth: true },
-  { day: 13, isCurrentMonth: true },
-  { day: 14, isCurrentMonth: true },
-  { day: 15, isCurrentMonth: true },
-  { day: 16, isCurrentMonth: true },
-  { day: 17, isCurrentMonth: true },
-  { day: 18, isCurrentMonth: true },
-  { day: 19, isCurrentMonth: true },
-  { day: 20, isCurrentMonth: true },
-  { day: 21, isCurrentMonth: true },
-  { day: 22, isCurrentMonth: true },
-  { day: 23, isCurrentMonth: true },
-  { day: 24, isCurrentMonth: true },
-  { day: 25, isCurrentMonth: true },
-  { day: 26, isCurrentMonth: true },
-  { day: 27, isCurrentMonth: true },
-  { day: 28, isCurrentMonth: true },
-  { day: 29, isCurrentMonth: true },
-  { day: 30, isCurrentMonth: true },
-  { day: 31, isCurrentMonth: true },
-  { day: 1, isCurrentMonth: false },
-  { day: 2, isCurrentMonth: false },
-];
 
-const getEventsForDay = (day: number): CalendarEvent[] => {
-  if ([3, 9, 10, 1].includes(day)) {
-    return mockEvents.slice(0, 2);
+function formatDate(year: number, month: number, day: number): string {
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+interface CalendarDay {
+  year: number;
+  month: number;
+  day: number;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+}
+
+function buildCalendarDays(year: number, month: number): CalendarDay[] {
+  const today = new Date();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  const days: CalendarDay[] = [];
+
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const d = daysInPrevMonth - i;
+    const m = month === 0 ? 11 : month - 1;
+    const y = month === 0 ? year - 1 : year;
+    days.push({ year: y, month: m, day: d, isCurrentMonth: false, isToday: false });
   }
-  return [];
-};
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    days.push({
+      year, month, day: d, isCurrentMonth: true,
+      isToday: today.getFullYear() === year && today.getMonth() === month && today.getDate() === d,
+    });
+  }
+
+  const remaining = 7 - (days.length % 7);
+  if (remaining < 7) {
+    const nextMonth = month === 11 ? 0 : month + 1;
+    const nextYear = month === 11 ? year + 1 : year;
+    for (let d = 1; d <= remaining; d++) {
+      days.push({ year: nextYear, month: nextMonth, day: d, isCurrentMonth: false, isToday: false });
+    }
+  }
+
+  return days;
+}
 
 export default function Calendario() {
-  const [currentMonth] = useState("Maio 2025");
+  const today = new Date();
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [tiposAtivos, setTiposAtivos] = useState<Set<TipoEvento>>(
+    new Set(Object.keys(TIPO_CONFIG) as TipoEvento[]),
+  );
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  return (
-    <PageScaffold title="Calendário" description="Gerencie seu calendário e seus compromissos">
+  const dataInicio = formatDate(currentYear, currentMonth, 1);
+  const dataFim = formatDate(currentYear, currentMonth, new Date(currentYear, currentMonth + 1, 0).getDate());
 
-      {isMobile ? (
-        // Layout mobile - coluna única
-        <Stack spacing={3}>
-          {/* Calendário */}
-          <Box>
-            {/* Header do calendário - mobile */}
-            <Stack spacing={2} sx={{ mb: 2 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+  const { eventos, loading } = useEventos({ dataInicio, dataFim });
+
+  const calendarDays = useMemo(() => buildCalendarDays(currentYear, currentMonth), [currentYear, currentMonth]);
+
+  const eventosPorDia = useMemo(() => {
+    const map: Record<string, typeof eventos> = {};
+    for (const evento of eventos) {
+      if (!map[evento.dataEvento]) map[evento.dataEvento] = [];
+      map[evento.dataEvento].push(evento);
+    }
+    return map;
+  }, [eventos]);
+
+  const eventosFiltrados = useMemo(
+    () => eventos.filter((e) => tiposAtivos.has(e.tipo)),
+    [eventos, tiposAtivos],
+  );
+
+  const contagemPorTipo = useMemo(() => {
+    const counts: Partial<Record<TipoEvento, number>> = {};
+    for (const evento of eventosFiltrados) {
+      counts[evento.tipo] = (counts[evento.tipo] ?? 0) + 1;
+    }
+    return counts;
+  }, [eventosFiltrados]);
+
+  function navigatePrev() {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear((y) => y - 1);
+    } else {
+      setCurrentMonth((m) => m - 1);
+    }
+  }
+
+  function navigateNext() {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear((y) => y + 1);
+    } else {
+      setCurrentMonth((m) => m + 1);
+    }
+  }
+
+  function goToToday() {
+    setCurrentYear(today.getFullYear());
+    setCurrentMonth(today.getMonth());
+  }
+
+  function toggleTipo(tipo: TipoEvento) {
+    setTiposAtivos((prev) => {
+      const next = new Set(prev);
+      if (next.has(tipo)) next.delete(tipo);
+      else next.add(tipo);
+      return next;
+    });
+  }
+
+  function getEventosDoDia(day: CalendarDay) {
+    const key = formatDate(day.year, day.month, day.day);
+    return (eventosPorDia[key] ?? []).filter((e) => tiposAtivos.has(e.tipo));
+  }
+
+  const tituloMes = `${MESES_PT[currentMonth]} ${currentYear}`;
+
+  const filtrosSidebar = (
+    <Stack spacing={isMobile ? 1 : 2}>
+      {(Object.keys(TIPO_CONFIG) as TipoEvento[]).map((tipo) => {
+        const cfg = TIPO_CONFIG[tipo];
+        const count = contagemPorTipo[tipo] ?? 0;
+        return (
+          <FormControlLabel
+            key={tipo}
+            control={
+              <Checkbox
+                checked={tiposAtivos.has(tipo)}
+                onChange={() => toggleTipo(tipo)}
+                size="small"
+              />
+            }
+            label={
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
-                    HOJE
+                  <Box sx={{ width: isMobile ? 8 : 12, height: isMobile ? 8 : 12, bgcolor: cfg.color, borderRadius: 1 }} />
+                  <Typography variant={isMobile ? "caption" : "body2"} sx={isMobile ? { fontSize: "0.7rem" } : {}}>
+                    {cfg.label}
                   </Typography>
-                  <IconButton size="small" sx={{ padding: "2px" }}>
-                    <ArrowBackIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" sx={{ padding: "2px" }}>
-                    <ArrowForwardIcon fontSize="small" />
-                  </IconButton>
                 </Box>
-                <Typography variant="h6" sx={{ fontSize: "1.1rem" }}>
-                  {currentMonth}
+                <Typography variant="body2" color="text.secondary">
+                  ({count})
                 </Typography>
               </Box>
+            }
+            sx={{ m: 0, width: "100%" }}
+          />
+        );
+      })}
+    </Stack>
+  );
 
-              <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<SyncIcon />}
-                  sx={{
-                    textTransform: "uppercase",
-                    fontSize: "0.7rem",
-                    flex: 1,
-                  }}
-                >
-                  Sincronizar
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<AddIcon />}
-                  sx={{
-                    textTransform: "uppercase",
-                    fontSize: "0.7rem",
-                    flex: 1,
-                  }}
-                >
-                  Adicionar
-                </Button>
-              </Stack>
-            </Stack>
+  const calendarHeader = (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        mb: isMobile ? 1 : 3,
+        flexWrap: "wrap",
+        gap: 1,
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Button
+          variant="text"
+          size="small"
+          onClick={goToToday}
+          sx={{ textTransform: "uppercase", fontSize: isMobile ? "0.7rem" : undefined }}
+        >
+          Hoje
+        </Button>
+        <IconButton size="small" onClick={navigatePrev}>
+          <ArrowBackIcon fontSize={isMobile ? "small" : "medium"} />
+        </IconButton>
+        <IconButton size="small" onClick={navigateNext}>
+          <ArrowForwardIcon fontSize={isMobile ? "small" : "medium"} />
+        </IconButton>
+        <Typography variant={isMobile ? "body1" : "h6"} sx={{ ml: 1 }}>
+          {tituloMes}
+        </Typography>
+        {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
+      </Box>
+    </Box>
+  );
 
-            {/* Grade do calendário - mobile */}
-            <Card>
-              <CardContent sx={{ p: 0 }}>
-                {/* Cabeçalho dos dias da semana */}
-                <Box
+  const calendarGrid = (
+    <Card>
+      <CardContent sx={{ p: 0 }}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(7, 1fr)",
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
+        >
+          {daysOfWeek.map((day, index) => (
+            <Box
+              key={index}
+              sx={{
+                p: isMobile ? 0.5 : 2,
+                textAlign: "center",
+                borderRight: index < 6 ? 1 : 0,
+                borderColor: "divider",
+              }}
+            >
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                fontWeight="bold"
+                sx={isMobile ? { fontSize: "0.6rem" } : {}}
+              >
+                {day}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+          {calendarDays.map((dayInfo, index) => {
+            const dayEvents = getEventosDoDia(dayInfo);
+            return (
+              <Box
+                key={index}
+                sx={{
+                  minHeight: isMobile ? 60 : 120,
+                  p: isMobile ? 0.5 : 1,
+                  borderRight: (index + 1) % 7 !== 0 ? 1 : 0,
+                  borderBottom: index < calendarDays.length - 7 ? 1 : 0,
+                  borderColor: "divider",
+                  bgcolor: !dayInfo.isCurrentMonth ? "grey.50" : "transparent",
+                  position: "relative",
+                }}
+              >
+                <Typography
+                  variant={isMobile ? "caption" : "body2"}
                   sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(7, 1fr)",
-                    borderBottom: 1,
-                    borderColor: "divider",
+                    color: dayInfo.isToday ? "white" : !dayInfo.isCurrentMonth ? "text.disabled" : "text.primary",
+                    fontWeight: dayInfo.isToday ? "bold" : "normal",
+                    bgcolor: dayInfo.isToday ? "primary.main" : "transparent",
+                    width: dayInfo.isToday ? (isMobile ? 16 : 24) : "auto",
+                    height: dayInfo.isToday ? (isMobile ? 16 : 24) : "auto",
+                    borderRadius: dayInfo.isToday ? "50%" : 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: isMobile ? "0.7rem" : undefined,
                   }}
                 >
-                  {daysOfWeek.map((day, index) => (
+                  {dayInfo.day}
+                </Typography>
+
+                {isMobile ? (
+                  dayEvents.length > 0 && (
                     <Box
-                      key={index}
                       sx={{
-                        p: 0.5,
-                        textAlign: "center",
-                        borderRight: index < 6 ? 1 : 0,
-                        borderColor: "divider",
+                        position: "absolute",
+                        bottom: 2,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        display: "flex",
+                        gap: 0.2,
                       }}
                     >
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        fontWeight="bold"
-                        sx={{ fontSize: "0.6rem" }}
-                      >
-                        {day}
-                      </Typography>
+                      {dayEvents.slice(0, 2).map((evento) => (
+                        <Box
+                          key={evento.id}
+                          sx={{
+                            width: 4,
+                            height: 4,
+                            borderRadius: "50%",
+                            bgcolor: TIPO_CONFIG[evento.tipo].color,
+                          }}
+                        />
+                      ))}
+                      {dayEvents.length > 2 && (
+                        <Typography sx={{ fontSize: "6px", color: "text.secondary" }}>
+                          +{dayEvents.length - 2}
+                        </Typography>
+                      )}
                     </Box>
-                  ))}
-                </Box>
-
-                {/* Dias do mês - mobile */}
-                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
-                  {monthDays.map((dayInfo, index) => {
-                    const events = getEventsForDay(dayInfo.day);
-                    return (
+                  )
+                ) : (
+                  <Stack spacing={0.5} sx={{ mt: 1 }}>
+                    {dayEvents.slice(0, 3).map((evento) => (
                       <Box
-                        key={index}
+                        key={evento.id}
                         sx={{
-                          minHeight: 60,
+                          fontSize: "10px",
                           p: 0.5,
-                          borderRight: (index + 1) % 7 !== 0 ? 1 : 0,
-                          borderBottom: index < monthDays.length - 7 ? 1 : 0,
-                          borderColor: "divider",
-                          bgcolor: !dayInfo.isCurrentMonth ? "grey.50" : "transparent",
-                          position: "relative",
+                          borderRadius: 1,
+                          bgcolor: TIPO_CONFIG[evento.tipo].color,
+                          color: "white",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                          overflow: "hidden",
                         }}
                       >
+                        <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "white", flexShrink: 0 }} />
                         <Typography
                           variant="caption"
-                          sx={{
-                            color: dayInfo.isToday
-                              ? "white"
-                              : !dayInfo.isCurrentMonth
-                                ? "text.disabled"
-                                : "text.primary",
-                            fontWeight: dayInfo.isToday ? "bold" : "normal",
-                            bgcolor: dayInfo.isToday ? "primary.main" : "transparent",
-                            width: dayInfo.isToday ? 16 : "auto",
-                            height: dayInfo.isToday ? 16 : "auto",
-                            borderRadius: dayInfo.isToday ? "50%" : 0,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "0.7rem",
-                          }}
+                          sx={{ fontSize: "10px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
                         >
-                          {dayInfo.day}
+                          {evento.titulo}
                         </Typography>
-
-                        {/* Eventos do dia - mobile (apenas indicador) */}
-                        {events.length > 0 && (
-                          <Box
-                            sx={{
-                              position: "absolute",
-                              bottom: 2,
-                              left: "50%",
-                              transform: "translateX(-50%)",
-                              display: "flex",
-                              gap: 0.2,
-                            }}
-                          >
-                            {events.slice(0, 2).map((event) => (
-                              <Box
-                                key={event.id}
-                                sx={{
-                                  width: 4,
-                                  height: 4,
-                                  borderRadius: "50%",
-                                  bgcolor: event.color,
-                                }}
-                              />
-                            ))}
-                            {events.length > 2 && (
-                              <Typography sx={{ fontSize: "6px", color: "text.secondary" }}>
-                                +{events.length - 2}
-                              </Typography>
-                            )}
-                          </Box>
-                        )}
                       </Box>
-                    );
-                  })}
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
+                    ))}
+                    {dayEvents.length > 3 && (
+                      <Typography variant="caption" sx={{ fontSize: "10px", color: "text.secondary", pl: 0.5 }}>
+                        +{dayEvents.length - 3} mais
+                      </Typography>
+                    )}
+                  </Stack>
+                )}
+              </Box>
+            );
+          })}
+        </Box>
+      </CardContent>
+    </Card>
+  );
 
-          {/* Sidebar de eventos - mobile */}
+  return (
+    <PageScaffold title="Calendário" description="Gerencie seu calendário e seus compromissos">
+      {isMobile ? (
+        <Stack spacing={3}>
+          {calendarHeader}
+          {calendarGrid}
           <Box>
             <Typography variant="h6" gutterBottom sx={{ fontSize: "1.1rem" }}>
               Filtros de Eventos
             </Typography>
-
             <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1 }}>
-              {eventTypes.map((eventType) => (
-                <FormControlLabel
-                  key={eventType.name}
-                  control={<Checkbox defaultChecked size="small" />}
-                  label={
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          bgcolor: eventType.color,
-                          borderRadius: 1,
-                        }}
-                      />
-                      <Typography variant="caption" sx={{ fontSize: "0.7rem" }}>
-                        {eventType.name} ({eventType.count})
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{ m: 0 }}
-                />
-              ))}
+              {filtrosSidebar}
             </Box>
           </Box>
         </Stack>
       ) : (
-        // Layout desktop - duas colunas
         <LayoutColumns sizeLeft="70%" sizeRight="30%">
-          {/* Calendário principal */}
           <Box>
-            {/* Header do calendário */}
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  HOJE
-                </Typography>
-                <IconButton size="small">
-                  <ArrowBackIcon />
-                </IconButton>
-                <IconButton size="small">
-                  <ArrowForwardIcon />
-                </IconButton>
-                <Typography variant="h6" sx={{ ml: 2 }}>
-                  {currentMonth}
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<SyncIcon />}
-                  sx={{ textTransform: "uppercase" }}
-                >
-                  Sincronizar
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<AddIcon />}
-                  sx={{ textTransform: "uppercase" }}
-                >
-                  Adicionar Evento
-                </Button>
-              </Box>
-            </Box>
-
-            {/* Grade do calendário */}
-            <Card>
-              <CardContent sx={{ p: 0 }}>
-                {/* Cabeçalho dos dias da semana */}
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(7, 1fr)",
-                    borderBottom: 1,
-                    borderColor: "divider",
-                  }}
-                >
-                  {daysOfWeek.map((day, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        p: 2,
-                        textAlign: "center",
-                        borderRight: index < 6 ? 1 : 0,
-                        borderColor: "divider",
-                      }}
-                    >
-                      <Typography variant="caption" color="text.secondary" fontWeight="bold">
-                        {day}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-
-                {/* Dias do mês */}
-                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
-                  {monthDays.map((dayInfo, index) => {
-                    const events = getEventsForDay(dayInfo.day);
-                    return (
-                      <Box
-                        key={index}
-                        sx={{
-                          minHeight: 120,
-                          p: 1,
-                          borderRight: (index + 1) % 7 !== 0 ? 1 : 0,
-                          borderBottom: index < monthDays.length - 7 ? 1 : 0,
-                          borderColor: "divider",
-                          bgcolor: !dayInfo.isCurrentMonth ? "grey.50" : "transparent",
-                          position: "relative",
-                        }}
-                      >
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: dayInfo.isToday
-                              ? "white"
-                              : !dayInfo.isCurrentMonth
-                                ? "text.disabled"
-                                : "text.primary",
-                            fontWeight: dayInfo.isToday ? "bold" : "normal",
-                            bgcolor: dayInfo.isToday ? "primary.main" : "transparent",
-                            width: dayInfo.isToday ? 24 : "auto",
-                            height: dayInfo.isToday ? 24 : "auto",
-                            borderRadius: dayInfo.isToday ? "50%" : 0,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {dayInfo.day}
-                        </Typography>
-
-                        {/* Eventos do dia */}
-                        <Stack spacing={0.5} sx={{ mt: 1 }}>
-                          {events.map((event) => (
-                            <Box
-                              key={event.id}
-                              sx={{
-                                fontSize: "10px",
-                                p: 0.5,
-                                borderRadius: 1,
-                                bgcolor: event.color,
-                                color: "white",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 0.5,
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  width: 6,
-                                  height: 6,
-                                  borderRadius: "50%",
-                                  bgcolor: "white",
-                                }}
-                              />
-                              <Typography variant="caption" sx={{ fontSize: "10px" }}>
-                                {event.title} {event.time}
-                              </Typography>
-                            </Box>
-                          ))}
-                        </Stack>
-                      </Box>
-                    );
-                  })}
-                </Box>
-              </CardContent>
-            </Card>
+            {calendarHeader}
+            {calendarGrid}
           </Box>
-
-          {/* Sidebar - Eventos */}
           <Box>
             <Typography variant="h6" gutterBottom>
               Eventos
@@ -451,41 +404,7 @@ export default function Calendario() {
             <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
               Filtre os eventos do calendário
             </Typography>
-
-            <Stack spacing={2}>
-              {eventTypes.map((eventType) => (
-                <FormControlLabel
-                  key={eventType.name}
-                  control={<Checkbox defaultChecked size="small" />}
-                  label={
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Box
-                          sx={{
-                            width: 12,
-                            height: 12,
-                            bgcolor: eventType.color,
-                            borderRadius: 1,
-                          }}
-                        />
-                        <Typography variant="body2">{eventType.name}</Typography>
-                      </Box>
-                      <Typography variant="body2" color="text.secondary">
-                        ({eventType.count})
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{ m: 0, width: "100%" }}
-                />
-              ))}
-            </Stack>
+            {filtrosSidebar}
           </Box>
         </LayoutColumns>
       )}

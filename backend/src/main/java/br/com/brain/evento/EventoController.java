@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("evento")
@@ -42,8 +45,10 @@ public class EventoController {
             @RequestParam(required = false) Long serieId,
             @RequestParam(required = false) Long unidadeId,
             @RequestParam(required = false) Long professorId,
-            @PageableDefault(size = 10, sort = {"dataEvento"}) Pageable pageable) {
-        var page = service.listar(turmaId, serieId, unidadeId, professorId, pageable);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
+            @PageableDefault(size = 200) Pageable pageable) {
+        var page = service.listar(turmaId, serieId, unidadeId, professorId, dataInicio, dataFim, pageable);
         return ResponseEntity.ok(page);
     }
 

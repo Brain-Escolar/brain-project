@@ -165,4 +165,9 @@ export const QUERY_KEYS = {
     mensagens: (conversaId: number, page?: number) => [...["conversas"], "mensagens", conversaId, page] as const,
     destinatariosDisponiveis: () => [...["conversas"], "destinatarios-disponiveis"] as const,
   },
+  eventos: {
+    all: ["eventos"] as const,
+    periodo: (dataInicio: string, dataFim: string) =>
+      [...["eventos"], "periodo", dataInicio, dataFim] as const,
+  },
 } as const;
