@@ -1,5 +1,6 @@
 package br.com.brain.alerta;
 
+import br.com.brain.alerta.dto.AlertaUsuarioListagemDto;
 import br.com.brain.alerta.dto.AtualizacaoAlertaDto;
 import br.com.brain.alerta.dto.CadastroAlertaDto;
 import br.com.brain.alerta.dto.ListagemAlertaDto;
@@ -53,6 +54,14 @@ public class AlertaController {
     public ResponseEntity<ListagemAlertaDto> detalhar(@PathVariable("id") Long id) {
         var alerta = service.detalhar(id);
         return ResponseEntity.ok(new ListagemAlertaDto(alerta));
+    }
+
+    @GetMapping("/meus-alertas")
+    public ResponseEntity<Page<AlertaUsuarioListagemDto>> listarMeusAlertas(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @PageableDefault(size = 50) Pageable paginacao) {
+        var page = service.listarMeusAlertas(usuario.getDadosPessoais().getId(), paginacao);
+        return ResponseEntity.ok(page);
     }
 
     @PatchMapping("/{id}/marcar-como-lido")

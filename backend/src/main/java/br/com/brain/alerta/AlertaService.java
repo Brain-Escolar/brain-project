@@ -1,5 +1,6 @@
 package br.com.brain.alerta;
 
+import br.com.brain.alerta.dto.AlertaUsuarioListagemDto;
 import br.com.brain.alerta.dto.AtualizacaoAlertaDto;
 import br.com.brain.alerta.dto.CadastroAlertaDto;
 import br.com.brain.alerta.dto.ListagemAlertaDto;
@@ -74,6 +75,12 @@ public class AlertaService {
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Alerta", id));
     }
 
+    public Page<AlertaUsuarioListagemDto> listarMeusAlertas(Long usuarioId, Pageable pageable) {
+        return alertaUsuarioRepository.findByUsuarioId(usuarioId, pageable)
+                .map(AlertaUsuarioListagemDto::new);
+    }
+
+    @Transactional
     public void marcarComoLido(Long alertaId, Long usuarioId) {
         var alertaUsuario = alertaUsuarioRepository.findByAlertaIdAndUsuarioId(alertaId, usuarioId).orElseThrow(
                 () -> ErrosSistema.RecursoNaoEncontradoException.para("AlertaUsuario", alertaId + " e " + usuarioId));

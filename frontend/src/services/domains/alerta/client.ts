@@ -1,6 +1,6 @@
 import { IBrainResult } from "@/services/commoResponse";
 import { httpClient } from "@/services/http";
-import { AlertaResponse } from "./response";
+import { AlertaResponse, AlertaUsuarioResponse } from "./response";
 import { AlertaPostRequest, AlertaPutRequest } from "./request";
 
 const BASE_ROUTE = "alerta";
@@ -26,7 +26,11 @@ export class AlertaApi {
     return httpClient.get(`${BASE_ROUTE}/${id}`);
   }
 
-  marcarComoLido(id: string): Promise<void> {
+  listarMeusAlertas(): Promise<IBrainResult<AlertaUsuarioResponse>> {
+    return httpClient.get(`${BASE_ROUTE}/meus-alertas`);
+  }
+
+  marcarComoLido(id: number): Promise<void> {
     return httpClient.patch(`${BASE_ROUTE}/${id}/marcar-como-lido`, {});
   }
 }

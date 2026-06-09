@@ -39,6 +39,7 @@ export const QUERY_KEYS = {
   alertas: {
     all: ["alertas"] as const,
     lists: () => [...QUERY_KEYS.alertas.all, "list"] as const,
+    meus: () => [...QUERY_KEYS.alertas.all, "meus"] as const,
     details: () => [...QUERY_KEYS.alertas.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.alertas.details(), id] as const,
   },

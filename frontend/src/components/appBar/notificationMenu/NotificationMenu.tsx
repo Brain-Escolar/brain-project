@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import {
   Badge,
   Box,
@@ -18,23 +17,16 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import InfoIcon from "@mui/icons-material/Info";
 import CheckIcon from "@mui/icons-material/Check";
-import { RoutesEnum } from "@/enums";
-import { useAlertas } from "@/hooks/useAlertas";
+import { useMinhasAlertas } from "@/hooks/useMinhasAlertas";
 import { groupAlertasByDate, formatGroupTimeLabel, GROUP_LABELS, type DateGroupKey } from "./utils";
 
 export function NotificationMenu() {
-  const router = useRouter();
-  const { alertas } = useAlertas();
+  const { alertas, unreadCount, marcarComoLido, marcarTodosComoLido } = useMinhasAlertas();
 
-  const [readNotificationIds, setReadNotificationIds] = React.useState<Set<string>>(
-    () => new Set(),
-  );
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
-  const unreadCount = alertas?.filter((a) => !readNotificationIds.has(a.id.toString())).length ?? 0;
-
   const groupedAlertas = React.useMemo(
-    () => (alertas?.length ? groupAlertasByDate(alertas) : null),
+    () => (alertas.length ? groupAlertasByDate(alertas) : null),
     [alertas],
   );
 
@@ -46,18 +38,8 @@ export function NotificationMenu() {
     setAnchorEl(null);
   };
 
-  const handleMarkAllRead = () => {
-    setReadNotificationIds((prev) => {
-      const next = new Set(prev);
-      alertas?.forEach((a) => next.add(a.id.toString()));
-      return next;
-    });
-  };
-
-  const handleNotificationClick = (id: string) => {
-    setReadNotificationIds((prev) => new Set(prev).add(id));
-    handleClose();
-    router.push(RoutesEnum.ALERTA_DETALHAMENTO);
+  const handleNotificationClick = (id: number) => {
+    marcarComoLido(id);
   };
 
   return (
@@ -130,27 +112,29 @@ export function NotificationMenu() {
             <Typography variant="subtitle1" fontWeight={700}>
               Notificações
             </Typography>
-            <Typography
-              component="button"
-              variant="caption"
-              onClick={handleMarkAllRead}
-              sx={{
-                color: "primary.main",
-                cursor: "pointer",
-                border: "none",
-                background: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: 0.5,
-                fontWeight: 600,
-              }}
-            >
-              <CheckIcon sx={{ fontSize: 16 }} />
-              MARCAR TUDO COMO LIDO
-            </Typography>
+            {unreadCount > 0 && (
+              <Typography
+                component="button"
+                variant="caption"
+                onClick={marcarTodosComoLido}
+                sx={{
+                  color: "primary.main",
+                  cursor: "pointer",
+                  border: "none",
+                  background: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  fontWeight: 600,
+                }}
+              >
+                <CheckIcon sx={{ fontSize: 16 }} />
+                MARCAR TUDO COMO LIDO
+              </Typography>
+            )}
           </Box>
           <Box sx={{ maxHeight: 360, overflow: "auto" }}>
-            {alertas?.length ? (
+            {alertas.length ? (
               <>
                 {(["hoje", "ontem", "antes"] as const).map((groupKey: DateGroupKey) => {
                   const items = groupedAlertas?.[groupKey] ?? [];
@@ -165,11 +149,11 @@ export function NotificationMenu() {
                         {GROUP_LABELS[groupKey]}
                       </Typography>
                       {items.map((alerta) => {
-                        const isUnread = !readNotificationIds.has(alerta.id.toString());
+                        const isUnread = !alerta.lido;
                         return (
                           <ListItemButton
                             key={alerta.id}
-                            onClick={() => handleNotificationClick(alerta.id.toString())}
+                            onClick={() => handleNotificationClick(alerta.id)}
                             sx={{
                               py: 1.5,
                               px: 2,
@@ -195,7 +179,7 @@ export function NotificationMenu() {
                                   fontWeight={isUnread ? 600 : 400}
                                   noWrap
                                 >
-                                  {alerta.titulo || "{Title}"}
+                                  {alerta.titulo}
                                 </Typography>
                               }
                               secondary={
