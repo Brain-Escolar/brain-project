@@ -3,14 +3,42 @@ import { GoogleIcon } from "@/components/GoogleIcon";
 import { useGoogleLogin } from "@/hooks/useGoogleLogin";
 import { loginApi } from "@/services/api";
 import { setAccessToken } from "@/utils/auth";
-import { Button, CircularProgress, Divider, Paper, TextField } from "@mui/material";
-import Image from "next/image";
+import {
+  Button,
+  Checkbox,
+  CircularProgress,
+  Divider,
+  FormControlLabel,
+  InputAdornment,
+  TextField,
+} from "@mui/material";
+import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
+import LockOutlined from "@mui/icons-material/LockOutlined";
+import MailOutlineRounded from "@mui/icons-material/MailOutlineRounded";
 import Cookies from "js-cookie";
 import { useTheme } from "next-themes";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import * as S from "./styles";
+
+/** Painel da marca (esquerda) — wordmark, pitch e mascote Brainy. */
+function BrandAside() {
+  return (
+    <S.Aside>
+      <S.AsideLogo src="/brand/logo/brain-wordmark-branco.svg" alt="Brain" />
+      <S.Pitch>
+        <h2>A gestão escolar inteligente da sua instituição.</h2>
+        <p>
+          Acompanhe desempenho, frequência e comunicação — tudo em um só lugar,
+          todos os dias.
+        </p>
+      </S.Pitch>
+      <S.AsideFoot>© 2026 Brain · Gestão Escolar</S.AsideFoot>
+      <S.Mascot src="/brand/brainy/brainy-front-rgb.png" alt="" aria-hidden />
+    </S.Aside>
+  );
+}
 
 function LoginContent() {
   const { setTheme } = useTheme();
@@ -99,54 +127,84 @@ function LoginContent() {
     await loginWithGoogle();
   }
 
+  const disabled = isLoading || googleLoading;
+
   return (
     <S.LoginWrapper>
-      <Paper elevation={6}>
+      <BrandAside />
+
+      <S.Main>
         <S.FormBox>
-          <Image
-            src="/brand/logo/brain-logo_completo-azul-rgb.png"
-            alt="Brain - Gestão Escolar"
-            width={240}
-            height={113}
-            priority
-            style={{ height: "auto", width: 220, marginBottom: 16 }}
-          />
+          <div>
+            <h1>Bem-vindo de volta</h1>
+            <p className="lede">Entre com sua conta institucional para continuar.</p>
+          </div>
 
           <form onSubmit={onSubmitLogin}>
             <TextField
               fullWidth
-              label="Email"
+              label="E-mail"
               type="email"
               margin="normal"
               variant="outlined"
+              placeholder="seu.email@escola.edu.br"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading || googleLoading}
+              disabled={disabled}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <MailOutlineRounded fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
             <TextField
               fullWidth
-              label="Password"
+              label="Senha"
               type="password"
               margin="normal"
               variant="outlined"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading || googleLoading}
+              disabled={disabled}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LockOutlined fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
+
+            <S.Row>
+              <FormControlLabel
+                control={<Checkbox size="small" defaultChecked disabled={disabled} />}
+                label="Manter conectada"
+                slotProps={{ typography: { fontSize: "0.833rem" } }}
+              />
+              <S.MiniLink type="button">Esqueci a senha</S.MiniLink>
+            </S.Row>
 
             <Button
               type="submit"
               variant="contained"
               fullWidth
               size="large"
-              sx={{ mt: 2, borderRadius: "8px" }}
-              disabled={isLoading || googleLoading}
+              endIcon={!disabled && <ArrowForwardRounded />}
+              sx={{ borderRadius: "10px", py: 1.25 }}
+              disabled={disabled}
             >
-              Login
+              {isLoading ? <CircularProgress size={22} color="inherit" /> : "Entrar"}
             </Button>
           </form>
 
-          <Divider sx={{ my: 2 }}>ou</Divider>
+          <Divider sx={{ fontSize: "0.833rem", color: "text.secondary" }}>ou</Divider>
 
           <Button
             onClick={onGoogleLogin}
@@ -154,24 +212,25 @@ function LoginContent() {
             fullWidth
             size="large"
             sx={{
-              borderRadius: "20px",
-              border: " 1px solid #dadce0",
+              borderRadius: "10px",
+              border: "1px solid #dadce0",
               color: "#3c4043",
               backgroundColor: "transparent",
               textTransform: "none",
-              fontSize: ".8rem",
+              fontSize: ".9rem",
               gap: 1,
               "&:hover": {
                 backgroundColor: "#f7f8f8",
+                border: "1px solid #dadce0",
               },
             }}
-            disabled={isLoading || googleLoading}
+            disabled={disabled}
           >
             <GoogleIcon size={20} />
             Continuar com Google
           </Button>
         </S.FormBox>
-      </Paper>
+      </S.Main>
     </S.LoginWrapper>
   );
 }
@@ -181,11 +240,10 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <S.LoginWrapper>
-          <Paper elevation={6}>
-            <S.FormBox>
-              <CircularProgress />
-            </S.FormBox>
-          </Paper>
+          <BrandAside />
+          <S.Main>
+            <CircularProgress />
+          </S.Main>
         </S.LoginWrapper>
       }
     >
