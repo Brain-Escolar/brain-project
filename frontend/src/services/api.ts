@@ -24,6 +24,7 @@ import { ChamadaApi } from "./domains/chamada";
 import { AnotacaoApi } from "./domains/anotacao";
 import { ConteudoApi } from "./domains/conteudo";
 import { EventoApi } from "./domains/evento";
+import { CalendarGoogleApi } from "./domains/calendar-google";
 
 export const alunoApi = new AlunoApi();
 export const estudanteApi = new EstudanteApi();
@@ -51,3 +52,4 @@ export const chamadaApi = new ChamadaApi();
 export const anotacaoApi = new AnotacaoApi();
 export const conteudoApi = new ConteudoApi();
 export const eventoApi = new EventoApi();
+export const calendarGoogleApi = new CalendarGoogleApi();

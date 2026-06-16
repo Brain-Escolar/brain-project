@@ -18,8 +18,10 @@ import {
 import { useState, useMemo } from "react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import AddIcon from "@mui/icons-material/Add";
 import { useEventos } from "@/hooks/useEventos";
 import { TipoEvento } from "@/services/domains/evento";
+import NovoEventoModal from "./NovoEventoModal";
 
 const TIPO_CONFIG: Record<TipoEvento, { label: string; color: string }> = {
   PROVA: { label: "Provas", color: "#f44336" },
@@ -90,6 +92,8 @@ export default function Calendario() {
   const [tiposAtivos, setTiposAtivos] = useState<Set<TipoEvento>>(
     new Set(Object.keys(TIPO_CONFIG) as TipoEvento[]),
   );
+  const [modalAberto, setModalAberto] = useState(false);
+  const [dataSelecionada, setDataSelecionada] = useState<string | undefined>(undefined);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -158,6 +162,11 @@ export default function Calendario() {
   function getEventosDoDia(day: CalendarDay) {
     const key = formatDate(day.year, day.month, day.day);
     return (eventosPorDia[key] ?? []).filter((e) => tiposAtivos.has(e.tipo));
+  }
+
+  function abrirNovoEvento(data?: string) {
+    setDataSelecionada(data);
+    setModalAberto(true);
   }
 
   const tituloMes = `${MESES_PT[currentMonth]} ${currentYear}`;
@@ -277,6 +286,7 @@ export default function Calendario() {
             return (
               <Box
                 key={index}
+                onClick={() => abrirNovoEvento(formatDate(dayInfo.year, dayInfo.month, dayInfo.day))}
                 sx={{
                   minHeight: isMobile ? 60 : 120,
                   p: isMobile ? 0.5 : 1,
@@ -285,6 +295,9 @@ export default function Calendario() {
                   borderColor: "divider",
                   bgcolor: !dayInfo.isCurrentMonth ? "grey.50" : "transparent",
                   position: "relative",
+                  cursor: "pointer",
+                  transition: "background-color 0.15s",
+                  "&:hover": { bgcolor: "action.hover" },
                 }}
               >
                 <Typography
@@ -377,7 +390,20 @@ export default function Calendario() {
   );
 
   return (
-    <PageScaffold title="Calendário" description="Gerencie seu calendário e seus compromissos">
+    <PageScaffold
+      title="Calendário"
+      description="Gerencie seu calendário e seus compromissos"
+      actions={
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => abrirNovoEvento()}
+          size={isMobile ? "small" : "medium"}
+        >
+          Novo evento
+        </Button>
+      }
+    >
       {isMobile ? (
         <Stack spacing={3}>
           {calendarHeader}
@@ -408,6 +434,12 @@ export default function Calendario() {
           </Box>
         </LayoutColumns>
       )}
+
+      <NovoEventoModal
+        open={modalAberto}
+        onClose={() => setModalAberto(false)}
+        dataInicial={dataSelecionada}
+      />
     </PageScaffold>
   );
 }
