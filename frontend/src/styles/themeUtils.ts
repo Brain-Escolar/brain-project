@@ -38,3 +38,23 @@ export function cssVarColor(color: keyof CSSVarColor): string {
   }
   return "";
 }
+
+/** Raio de borda — ex.: cssVarRadius("md") → var(--radii-md). */
+export function cssVarRadius(radius: keyof ThemeType["radii"]): string {
+  return `var(--radii-${radius})`;
+}
+
+/** Elevação/sombra — ex.: cssVarShadow("level1") → var(--shadows-level1). */
+export function cssVarShadow(level: keyof ThemeType["shadows"]): string {
+  return `var(--shadows-${level})`;
+}
+
+/** Tamanho de fonte — ex.: cssVarFontSize("h1") → var(--fontSizes-h1). */
+export function cssVarFontSize(size: keyof ThemeType["fontSizes"]): string {
+  return `var(--fontSizes-${size})`;
+}
+
+/** Peso de fonte — ex.: cssVarFontWeight("bold") → var(--fontWeights-bold). */
+export function cssVarFontWeight(weight: keyof ThemeType["fontWeights"]): string {
+  return `var(--fontWeights-${weight})`;
+}

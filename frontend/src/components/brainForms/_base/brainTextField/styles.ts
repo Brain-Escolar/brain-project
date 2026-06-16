@@ -1,6 +1,6 @@
 "use client";
 import { TextField } from "@mui/material";
-import { cssVarColor } from "@/styles";
+import { cssVarColor, cssVarRadius } from "@/styles";
 import styled from "styled-components";
 
 export const StyledTextField = styled(TextField)`
@@ -10,7 +10,7 @@ export const StyledTextField = styled(TextField)`
       color: ${cssVarColor("error")};
     }
     & .MuiOutlinedInput-root {
-      border-radius: 8px;
+      border-radius: ${cssVarRadius("sm")};
       background: ${cssVarColor("backgroundSection")};
       transition: all 0.2s ease-in;
       & fieldset {

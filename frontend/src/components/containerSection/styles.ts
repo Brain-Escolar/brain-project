@@ -1,12 +1,12 @@
 "use client";
-import { cssVarColor } from "@/styles";
+import { cssVarColor, cssVarRadius, cssVarShadow, cssVarFontSize } from "@/styles";
 import styled from "styled-components";
 
 export const Container = styled.div`
   background-color: ${cssVarColor("backgroundSection")};
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: ${cssVarRadius("md")};
+  box-shadow: ${cssVarShadow("level1")};
   margin-bottom: 20px;
 `;
 
@@ -18,7 +18,7 @@ export const HeaderContainer = styled.div`
   }
 
   p {
-    font-size: 0.9rem;
+    font-size: ${cssVarFontSize("body2")};
     color: ${cssVarColor("textSecondary")};
   }
 `;

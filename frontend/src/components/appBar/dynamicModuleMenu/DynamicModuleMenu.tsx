@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { ListItemIcon, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -18,6 +18,8 @@ export interface DynamicModuleMenuProps {
   textColor: string;
   mutedTextColor: string;
   borderColor: string;
+  /** Cor de destaque (azul da marca) para hover/ativo do gatilho do menu. */
+  accentColor?: string;
 }
 
 export function DynamicModuleMenu({
@@ -30,14 +32,22 @@ export function DynamicModuleMenu({
   textColor,
   mutedTextColor,
   borderColor,
+  accentColor,
 }: DynamicModuleMenuProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
   const routes = React.useMemo(() => getRoutesByModule(role, moduleId), [role, moduleId]);
 
   if (routes.length === 0) return null;
+
+  const accent = accentColor ?? textColor;
+  const isActive = routes.some(
+    (r) => pathname === r.router || pathname.startsWith(r.router + "/"),
+  );
+  const highlighted = open || isActive;
 
   const menuId = `menu-module-${moduleId}`;
 
@@ -57,9 +67,13 @@ export function DynamicModuleMenu({
           display: "flex",
           alignItems: "center",
           gap: 0.75,
+          py: 0.5,
           cursor: "pointer",
-          color: open ? textColor : mutedTextColor,
-          "&:hover": { color: textColor },
+          borderBottom: "2px solid",
+          borderBottomColor: highlighted ? accent : "transparent",
+          color: highlighted ? accent : mutedTextColor,
+          transition: "color 0.15s ease, border-color 0.15s ease",
+          "&:hover": { color: accent },
           userSelect: "none",
         }}
         aria-haspopup="menu"
@@ -69,7 +83,7 @@ export function DynamicModuleMenu({
         {React.cloneElement(moduleIcon, { sx: { fontSize: 20, color: "inherit" } })}
         <Typography
           variant="caption"
-          sx={{ fontWeight: open ? 600 : 400, color: "inherit", fontSize: "14px" }}
+          sx={{ fontWeight: highlighted ? 600 : 500, color: "inherit", fontSize: "14px" }}
         >
           {moduleText}
         </Typography>
@@ -94,7 +108,7 @@ export function DynamicModuleMenu({
               color: textColor,
               border: "1px solid",
               borderColor,
-              boxShadow: "0 8px 30px rgba(0,0,0,0.18)",
+              boxShadow: "var(--shadows-level3)",
             },
           },
           list: { disablePadding: true },

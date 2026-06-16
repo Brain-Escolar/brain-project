@@ -1,21 +1,18 @@
 import CustomProviderTheme from "@/styles/Providers";
+import BrainMuiThemeProvider from "@/styles/BrainMuiThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import CssBaseline from "@mui/material/CssBaseline";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ToastContainer } from "react-toastify";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const hankenGrotesk = Hanken_Grotesk({
+  variable: "--font-hanken",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -30,18 +27,20 @@ export default function RootLayout({
 }>) {
   return (
     <html suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={hankenGrotesk.variable}>
         <ThemeProvider>
           <AppRouterCacheProvider>
-            <CustomProviderTheme>
-              <AuthProvider>
-                <CssBaseline />
-                <div className="app">
-                  {children}
-                  <ToastContainer />
-                </div>
-              </AuthProvider>
-            </CustomProviderTheme>
+            <BrainMuiThemeProvider>
+              <CustomProviderTheme>
+                <AuthProvider>
+                  <CssBaseline />
+                  <div className="app">
+                    {children}
+                    <ToastContainer />
+                  </div>
+                </AuthProvider>
+              </CustomProviderTheme>
+            </BrainMuiThemeProvider>
           </AppRouterCacheProvider>
         </ThemeProvider>
         <SpeedInsights />

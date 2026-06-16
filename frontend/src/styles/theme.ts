@@ -1,43 +1,113 @@
 import { DefaultTheme } from "styled-components";
 
+/**
+ * Tipografia compartilhada — escala baseada na proporção 1.2.
+ * Os tamanhos e pesos seguem o Design System Brain.
+ */
+const fontSizes = {
+  h1: "2.074rem",
+  h2: "1.728rem",
+  h3: "1.44rem",
+  h4: "1.2rem",
+  body1: "1rem",
+  body2: "0.833rem",
+  small: "0.694rem",
+} as const;
+
+const fontWeights = {
+  regular: "400",
+  medium: "500",
+  semibold: "600",
+  bold: "700",
+} as const;
+
+/** Família tipográfica oficial: Hanken Grotesk (carregada via next/font). */
+const fonts = {
+  body: "var(--font-hanken), 'Hanken Grotesk', sans-serif",
+  heading: "var(--font-hanken), 'Hanken Grotesk', sans-serif",
+} as const;
+
+/**
+ * Cantos arredondados — linguagem visual amigável e moderna.
+ * sm: inputs/badges · md: cards/botões · lg: modais · pill: elementos circulares.
+ */
+const radii = {
+  sm: "8px",
+  md: "12px",
+  lg: "16px",
+  pill: "9999px",
+} as const;
+
+/**
+ * Elevação — hierarquia visual por profundidade.
+ * level1: cards/inputs · level2: menus/sidebars · level3: modais/dialogs.
+ */
+const lightShadows = {
+  level1: "0 1px 2px rgba(20, 20, 20, 0.06), 0 1px 3px rgba(20, 20, 20, 0.08)",
+  level2: "0 2px 4px rgba(20, 20, 20, 0.06), 0 4px 8px rgba(20, 20, 20, 0.08)",
+  level3: "0 4px 8px rgba(20, 20, 20, 0.08), 0 12px 24px rgba(20, 20, 20, 0.12)",
+} as const;
+
+const darkShadows = {
+  level1: "0 1px 2px rgba(0, 0, 0, 0.30), 0 1px 3px rgba(0, 0, 0, 0.40)",
+  level2: "0 2px 4px rgba(0, 0, 0, 0.30), 0 4px 8px rgba(0, 0, 0, 0.45)",
+  level3: "0 4px 8px rgba(0, 0, 0, 0.35), 0 12px 24px rgba(0, 0, 0, 0.55)",
+} as const;
+
 export const lightTheme: DefaultTheme = {
   colors: {
-    background: "#F9FAFB",
-    backgroundHover: "#E5E7EB",
-    text: "#363f4bff",
-    textSecondary: "#71717a",
-    primary: "#3B82F6",
-    secondary: "#6366F1",
-    accent: "#10B981",
-    headerMenu: "#3B82F6",
-    border: "#e4e4e7",
+    // Fundo principal — "Gelo" (#F8FAFC): leveza, clareza e sofisticação.
+    background: "#F8FAFC",
+    backgroundHover: "#EEF2F7",
     backgroundSection: "#FFFFFF",
+    // Tipografia — "Carvão" (#141414): principal cor de leitura.
+    text: "#141414",
+    textSecondary: "#525252",
+    // Azul Brilhante (#1E4BC8) — cor primária da marca Brain.
+    primary: "#1E4BC8",
+    primaryHover: "#1A40AB",
+    // Azul Claro (#6A8CEB) — cor secundária / apoio.
+    secondary: "#6A8CEB",
+    accent: "#6A8CEB",
+    headerMenu: "#1E4BC8",
+    border: "#E2E8F0",
+    // Estados.
     error: "#EF4444",
+    success: "#16A34A",
+    warning: "#F59E0B",
+    info: "#6A8CEB",
   },
-  fonts: {
-    body: "'Inter', sans-serif",
-    heading: "'Poppins', sans-serif",
-  },
+  fonts,
+  fontSizes,
+  fontWeights,
+  radii,
+  shadows: lightShadows,
 } as const;
 
 export const darkTheme: DefaultTheme = {
   colors: {
-    background: "#282828",
-    backgroundHover: "#3A3A3A",
-    text: "#F9FAFB",
-    textSecondary: "#D1D5DB",
-    primary: "#60A5FA",
-    secondary: "#A78BFA",
-    accent: "#34D399",
+    background: "#141A24",
+    backgroundHover: "#243040",
+    backgroundSection: "#1C2430",
+    text: "#F8FAFC",
+    textSecondary: "#A0AEC0",
+    // No escuro o azul claro garante melhor contraste, mantendo a família da marca.
+    primary: "#6A8CEB",
+    primaryHover: "#93AEF2",
+    secondary: "#93AEF2",
+    accent: "#6A8CEB",
     headerMenu: "#0F172A",
-    border: "#374151",
-    backgroundSection: "#FFFFFF",
-    error: "#EF4444",
+    border: "#2D3748",
+    error: "#F87171",
+    success: "#4ADE80",
+    warning: "#FBBF24",
+    info: "#93AEF2",
   },
-  fonts: {
-    body: "'Inter', sans-serif",
-    heading: "'Poppins', sans-serif",
-  },
+  fonts,
+  fontSizes,
+  fontWeights,
+  radii,
+  shadows: darkShadows,
 } as const;
 
 export type ThemeType = typeof lightTheme;

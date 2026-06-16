@@ -1,83 +1,89 @@
 "use client";
-import { cssVarColor } from "@/styles";
+import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius } from "@/styles";
 import { BrainBoxShadow, BrainBoxShadowHover } from "@/utils/utilsCss";
 import styled from "styled-components";
 
-export const Container = styled.div`
+export const Container = styled.div<{ $clickable?: boolean; $highlight?: boolean }>`
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-start;
-  border-radius: 8px;
-  padding: 20px 16px;
-  gap: 12px;
-  border: 1px solid ${cssVarColor("border")};
-  background: ${cssVarColor("backgroundSection")};
-  transition: background 0.2s ease-in;
+  align-items: center;
+  gap: 16px;
+  border-radius: ${cssVarRadius("md")};
+  padding: 16px;
   width: 100%;
+  border: 1px solid
+    ${({ $highlight }) => ($highlight ? cssVarColor("primary") : cssVarColor("border"))};
+  background: ${({ $highlight }) =>
+    $highlight ? cssVarColor("backgroundHover") : cssVarColor("backgroundSection")};
+  cursor: ${({ $clickable }) => ($clickable ? "pointer" : "default")};
+  transition:
+    background 0.2s ease-in,
+    border-color 0.2s ease-in,
+    box-shadow 0.2s ease-in;
   ${BrainBoxShadow}
 
   &:hover {
-    cursor: pointer;
-    ${BrainBoxShadowHover}
+    ${({ $clickable }) => ($clickable ? BrainBoxShadowHover : "")}
   }
 `;
 
 export const AreaImage = styled.div`
   flex-shrink: 0;
-  width: 100%;
-  max-width: 75px;
-  max-height: 75px;
+  width: 64px;
+  height: 64px;
+  border-radius: ${cssVarRadius("sm")};
+  overflow: hidden;
+  background: ${cssVarColor("backgroundHover")};
+
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 8px;
+    display: block;
   }
 `;
+
 export const AreaInfo = styled.div`
-  display: grid;
-  grid-template-areas:
-    "title title"
-    "hours classroom"
-    "campus quantityStudents";
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto auto;
-  gap: 4px;
-  color: ${cssVarColor("textSecondary")};
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
 `;
+
 export const AreaTitle = styled.div`
-  grid-area: title;
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-size: ${cssVarFontSize("h4")};
+  font-weight: ${cssVarFontWeight("semibold")};
+  color: ${cssVarColor("text")};
+  line-height: 1.3;
+`;
+
+export const MetaRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 20px;
   color: ${cssVarColor("textSecondary")};
+  font-size: ${cssVarFontSize("body2")};
 `;
 
-export const AreaHours = styled.div`
-  grid-area: hours;
-  display: flex;
-  flex-direction: row;
+export const MetaItem = styled.span`
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.875rem;
-  line-height: 1.5em;
+  gap: 6px;
+  line-height: 1.5;
+
+  svg {
+    font-size: 18px;
+    color: ${cssVarColor("textSecondary")};
+  }
 `;
 
-export const AreaClassroom = styled.div`
-  grid-area: classroom;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 4px;
-`;
-
-export const AreaCampus = styled.div`
-  grid-area: campus;
-  font-size: 0.875rem;
-  line-height: 1.5em;
-`;
-export const AreaQuantityStudents = styled.div`
-  grid-area: quantityStudents;
-  font-size: 0.875rem;
-  line-height: 1.5em;
+export const Badge = styled.span`
+  align-self: flex-start;
+  flex-shrink: 0;
+  color: ${cssVarColor("primary")};
+  font-size: ${cssVarFontSize("body2")};
+  font-weight: ${cssVarFontWeight("semibold")};
+  white-space: nowrap;
 `;

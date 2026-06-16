@@ -3,7 +3,8 @@ import { GoogleIcon } from "@/components/GoogleIcon";
 import { useGoogleLogin } from "@/hooks/useGoogleLogin";
 import { loginApi } from "@/services/api";
 import { setAccessToken } from "@/utils/auth";
-import { Button, CircularProgress, Divider, Paper, TextField, Typography } from "@mui/material";
+import { Button, CircularProgress, Divider, Paper, TextField } from "@mui/material";
+import Image from "next/image";
 import Cookies from "js-cookie";
 import { useTheme } from "next-themes";
 import { useSearchParams } from "next/navigation";
@@ -102,9 +103,14 @@ function LoginContent() {
     <S.LoginWrapper>
       <Paper elevation={6}>
         <S.FormBox>
-          <Typography variant="h5" component="h1" gutterBottom>
-            Brain
-          </Typography>
+          <Image
+            src="/brand/logo/brain-logo_completo-azul-rgb.png"
+            alt="Brain - Gestão Escolar"
+            width={240}
+            height={113}
+            priority
+            style={{ height: "auto", width: 220, marginBottom: 16 }}
+          />
 
           <form onSubmit={onSubmitLogin}>
             <TextField

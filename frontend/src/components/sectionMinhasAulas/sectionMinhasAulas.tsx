@@ -18,6 +18,23 @@ import TabelaHorarioSemanal from "../tabelaHorarioSemanal/tabelaHorarioSemanal";
 
 type ViewMode = "diario" | "semanal";
 
+/** Formata um horário vindo da API como [hora, minuto] para "HH:MM". */
+function formatHorario(time: number[]): string {
+  const [h = 0, m = 0] = time ?? [];
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function isToday(date: Date): boolean {
+  const now = new Date();
+  return (
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear()
+  );
+}
+
+const toMinutes = (time: number[]): number => (time?.[0] ?? 0) * 60 + (time?.[1] ?? 0);
+
 const Header = styled(Box)`
   display: flex;
   align-items: center;
@@ -148,6 +165,15 @@ export default function SectionMinhasAulas() {
     router.push(`${RoutesEnum.AULAS_DETALHE}/${id}?data=${formatDateForAPI(selectedDate)}`);
   };
 
+  // "Próxima aula": no dia de hoje, a primeira aula que ainda não terminou
+  // (se todas já passaram, destaca a primeira). Em outros dias, sem destaque.
+  let proximaAulaIndex = -1;
+  if (isToday(selectedDate) && aulas.length > 0) {
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    proximaAulaIndex = aulas.findIndex((a) => toMinutes(a.horarioFim) > nowMin);
+    if (proximaAulaIndex === -1) proximaAulaIndex = 0;
+  }
+
   return (
     <Box sx={{ width: "100%" }}>
       <Header>
@@ -184,9 +210,11 @@ export default function SectionMinhasAulas() {
               key={`${aula.disciplina}-${aula.turma}-${index}`}
               title={`${aula.disciplina} - ${aula.serie} ${aula.turma}`}
               image={"https://placehold.co/100.png"}
-              hour={`${aula.horarioInicio} - ${aula.horarioFim}`}
-              classroom={`${aula.sala}`}
-              campus={aula.unidade}
+              hour={`${formatHorario(aula.horarioInicio)} - ${formatHorario(aula.horarioFim)}`}
+              classroom={`Sala ${aula.sala}`}
+              students={aula.quantidadeAlunos}
+              highlight={index === proximaAulaIndex}
+              badgeLabel={index === proximaAulaIndex ? "Próxima aula" : undefined}
               onClick={() => handleAulaClick(aula.id)}
             />
           ))}

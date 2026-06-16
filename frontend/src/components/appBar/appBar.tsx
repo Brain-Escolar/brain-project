@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { AppBar as MuiAppBar, Badge, Container, IconButton, Toolbar, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
@@ -10,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useDrawer } from "@/contexts/DrawerContext";
 import { useUnreadConversas } from "@/hooks/useConversas";
 import { NotificationMenu } from "@/components/appBar/notificationMenu";
-import { useTheme } from "next-themes";
+import { useTheme } from "@mui/material/styles";
 import { UserMenu } from "@/components/appBar/userMenu";
 import { DynamicModuleMenu } from "@/components/appBar/dynamicModuleMenu/DynamicModuleMenu";
 import { getMenuModules, getRoutesWithoutModule } from "@/constants/routesConfig";
@@ -28,9 +29,7 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
   const pathname = usePathname();
   const { user } = useAuth();
   const { drawerOpen } = useDrawer();
-  const { resolvedTheme } = useTheme();
-
-  const isDarkMode = resolvedTheme === "dark";
+  const theme = useTheme();
 
   const directRoutes = React.useMemo(
     () => (user ? getRoutesWithoutModule(user.role) : []),
@@ -48,12 +47,18 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
     return null;
   }
 
-  const appBarBg = isDarkMode ? "#121212" : "#ffffff";
-  const appBarBorder = isDarkMode ? "rgba(255,255,255,0.12)" : "#e6e6e6";
-  const appBarText = isDarkMode ? "rgba(255,255,255,0.87)" : "rgba(0,0,0,0.87)";
-  const appBarTextMuted = isDarkMode ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.76)";
-  const menuBg = isDarkMode ? "#1E1E1E" : "#ffffff";
-  const menuHoverBg = isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)";
+  // Cores derivadas do Design System Brain (tema MUI: claro/escuro automático).
+  const appBarBg = theme.palette.background.paper;
+  const appBarBorder = theme.palette.divider;
+  const appBarText = theme.palette.text.primary;
+  const appBarTextMuted = theme.palette.text.secondary;
+  const accent = theme.palette.primary.main; // Azul Brilhante #1E4BC8
+  const menuBg = theme.palette.background.paper;
+  const menuHoverBg = theme.palette.action.hover;
+  const logoSrc =
+    theme.palette.mode === "dark"
+      ? "/brand/logo/brain-wordmark-branco.svg"
+      : "/brand/logo/brain-wordmark-azul.svg";
 
   return (
     <MuiAppBar
@@ -75,7 +80,7 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
         color: appBarText,
         borderBottom: "1px solid",
         borderBottomColor: appBarBorder,
-        boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+        boxShadow: "var(--shadows-level1)",
         transition: (theme) =>
           theme.transitions.create(["width", "margin"], {
             easing: theme.transitions.easing.sharp,
@@ -95,14 +100,20 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
             <MenuIcon />
           </IconButton>
 
-          <Link href="/" style={{ textDecoration: "none", color: "inherit" }}>
-            <Typography
-              variant="h5"
-              noWrap
-              sx={{ fontWeight: 700, color: "inherit", textDecoration: "none" }}
-            >
-              Brain
-            </Typography>
+          <Link
+            href="/"
+            aria-label="Brain"
+            style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
+          >
+            <Image
+              src={logoSrc}
+              alt="Brain"
+              width={81}
+              height={28}
+              priority
+              unoptimized
+              style={{ height: 28, width: "auto" }}
+            />
           </Link>
 
           <Box
@@ -126,14 +137,18 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
                         display: "flex",
                         alignItems: "center",
                         gap: 0.75,
-                        color: isActive ? appBarText : appBarTextMuted,
-                        "&:hover": { color: appBarText },
+                        py: 0.5,
+                        borderBottom: "2px solid",
+                        borderBottomColor: isActive ? accent : "transparent",
+                        color: isActive ? accent : appBarTextMuted,
+                        transition: "color 0.15s ease, border-color 0.15s ease",
+                        "&:hover": { color: accent },
                       }}
                     >
                       {React.cloneElement(route.icon, { sx: { fontSize: 20, color: "inherit" } })}
                       <Typography
                         variant="caption"
-                        sx={{ fontWeight: isActive ? 600 : 400, color: "inherit", fontSize: "14px" }}
+                        sx={{ fontWeight: isActive ? 600 : 500, color: "inherit", fontSize: "14px" }}
                       >
                         {route.text}
                       </Typography>
@@ -156,6 +171,7 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
                 textColor={appBarText}
                 mutedTextColor={appBarTextMuted}
                 borderColor={appBarBorder}
+                accentColor={accent}
               />
             ))}
           </Box>
