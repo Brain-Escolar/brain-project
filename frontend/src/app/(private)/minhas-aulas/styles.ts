@@ -7,14 +7,6 @@ export const Container = styled.div`
   background: ${cssVarColor("background")};
 `;
 
-export const AreaClass = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: 12px;
-`;
-
 export const AreaAssignments = styled.div`
   display: flex;
   flex-direction: row;

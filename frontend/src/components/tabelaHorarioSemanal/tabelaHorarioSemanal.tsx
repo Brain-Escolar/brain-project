@@ -13,75 +13,79 @@ const TableWrapper = styled(Box)`
 
 const Table = styled("table")`
   width: 100%;
-  border-collapse: collapse;
-  min-width: 700px;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 720px;
 `;
 
 const Th = styled("th")`
-  padding: 12px 8px;
+  padding: 10px 8px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #444;
-  border: 1px solid #e0e0e0;
-  background: #fff;
+  color: var(--colors-textSecondary);
+  border-bottom: 1px solid var(--colors-border);
   white-space: nowrap;
 `;
 
 const ThHorario = styled(Th)`
-  width: 110px;
+  width: 104px;
   min-width: 90px;
+  text-align: left;
+  padding-left: 10px;
 `;
 
 const Td = styled("td")`
-  padding: 6px;
-  border: 1px solid #e0e0e0;
+  padding: 5px;
+  border-bottom: 1px solid var(--colors-borderSubtle);
   vertical-align: top;
-  min-width: 120px;
+  min-width: 118px;
 `;
 
 const TdHorario = styled("td")`
   padding: 8px 10px;
-  border: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--colors-borderSubtle);
   text-align: center;
   font-size: 12px;
-  color: #666;
+  color: var(--colors-textSecondary);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  background: #fafafa;
+  background: var(--colors-surfaceSunken);
 `;
 
 const TrIntervalo = styled("tr")`
-  background: #fef9e7;
+  background: var(--colors-warningSubtle);
 `;
 
 const TdIntervalo = styled("td")`
-  padding: 10px 8px;
-  border: 1px solid #e0e0e0;
+  padding: 7px 4px;
+  border-bottom: 1px solid var(--colors-borderSubtle);
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: #b8860b;
-  letter-spacing: 1px;
-  background: #fef9e7;
+  color: var(--colors-warningText);
+  letter-spacing: 0.08em;
+  background: var(--colors-warningSubtle);
 `;
 
 export const ClassCard = styled(Box)`
-  background: #e8f4fd;
-  border-left: 3px solid #2196f3;
-  border-radius: 4px;
-  padding: 6px 8px;
+  background: var(--colors-primarySubtle);
+  border-left: 3px solid var(--colors-primary);
+  border-radius: var(--radii-sm);
+  padding: 7px 9px;
   cursor: pointer;
+  transition: background 0.14s ease;
 
   &:hover {
-    background: #d0eaf9;
+    background: var(--colors-primarySubtleHover);
   }
 `;
 
 const EmptyCell = styled(Box)`
   text-align: center;
-  color: #bbb;
+  color: var(--colors-textTertiary);
   font-size: 14px;
-  padding: 8px;
+  padding: 8px 0;
 `;
 
 interface TimeSlot {
@@ -174,7 +178,7 @@ export default function TabelaHorarioSemanal<T extends AulaBase>({
 
   if (timeSlots.filter((s) => !s.isIntervalo).length === 0) {
     return (
-      <Box sx={{ textAlign: "center", color: "#999", py: 4 }}>
+      <Box sx={{ textAlign: "center", color: "var(--colors-textSecondary)", py: 4 }}>
         Nenhuma aula encontrada para essa semana
       </Box>
     );
@@ -191,7 +195,13 @@ export default function TabelaHorarioSemanal<T extends AulaBase>({
                 {DIAS[i]}
                 <Typography
                   component="div"
-                  sx={{ fontSize: 11, fontWeight: 400, color: "#999", mt: 0.3 }}
+                  sx={{
+                    fontSize: 11,
+                    fontWeight: 400,
+                    color: "var(--colors-textTertiary)",
+                    fontVariantNumeric: "tabular-nums",
+                    mt: 0.3,
+                  }}
                 >
                   {format(date, "dd/MM", { locale: ptBR })}
                 </Typography>

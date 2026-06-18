@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import CardClass from "@/components/cardClass/cardClass";
+import CardClass, { CardClassPanel } from "@/components/cardClass/cardClass";
+import SegmentedControl from "@/components/segmentedControl/segmentedControl";
 import DateSelector from "@/components/dateSelector";
 import { useAulasAluno } from "@/hooks/useAulasAluno";
 import { useAulasAlunoSemana } from "@/hooks/useAulasAlunoSemana";
@@ -10,7 +11,7 @@ import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
 import LoadingComponent from "@/components/loadingComponent/loadingComponent";
 import { formatDateForAPI } from "@/utils/utilsDate";
 import { RoutesEnum } from "@/enums";
-import { Box, Button, ButtonGroup, IconButton, styled, Typography } from "@mui/material";
+import { Box, Button, IconButton, styled, Typography } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -28,12 +29,6 @@ const Header = styled(Box)`
   flex-wrap: wrap;
   gap: 8px;
   width: 100%;
-`;
-
-const AulasContainer = styled(Box)`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
 `;
 
 const formatarHora = (horario: string): string => horario.substring(0, 5);
@@ -87,22 +82,15 @@ function ViewToggle({
   onViewChange: (v: ViewMode) => void;
 }) {
   return (
-    <ButtonGroup size="small" variant="outlined">
-      <Button
-        variant={viewMode === "diario" ? "contained" : "outlined"}
-        disableElevation
-        onClick={() => onViewChange("diario")}
-      >
-        Diário
-      </Button>
-      <Button
-        variant={viewMode === "semanal" ? "contained" : "outlined"}
-        disableElevation
-        onClick={() => onViewChange("semanal")}
-      >
-        Semanal
-      </Button>
-    </ButtonGroup>
+    <SegmentedControl
+      value={viewMode}
+      onChange={onViewChange}
+      ariaLabel="Modo de visualização"
+      options={[
+        { value: "diario", label: "Diário" },
+        { value: "semanal", label: "Semanal" },
+      ]}
+    />
   );
 }
 
@@ -120,19 +108,23 @@ function SemanalContent({
   if (error) return <p style={{ color: "red" }}>Erro ao carregar as aulas da semana.</p>;
 
   return (
-    <TabelaHorarioSemanal
-      aulasByDay={aulasByDay}
-      weekDays={days}
-      onAulaClick={onAulaClick}
-      renderCard={(aula) => (
-        <>
-          <Typography sx={{ fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>
-            {aula.disciplina}
-          </Typography>
-          <Typography sx={{ fontSize: 12, color: "#555", mt: 0.3 }}>{aula.professor}</Typography>
-        </>
-      )}
-    />
+    <CardClassPanel style={{ padding: 16 }}>
+      <TabelaHorarioSemanal
+        aulasByDay={aulasByDay}
+        weekDays={days}
+        onAulaClick={onAulaClick}
+        renderCard={(aula) => (
+          <>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, lineHeight: 1.25 }}>
+              {aula.disciplina}
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: "var(--colors-textSecondary)", mt: 0.3 }}>
+              {aula.professor}
+            </Typography>
+          </>
+        )}
+      />
+    </CardClassPanel>
   );
 }
 
@@ -178,7 +170,7 @@ export default function SectionAulasAluno() {
       ) : !aulas || aulas.length === 0 ? (
         <BrainResultNotFound message="Nenhuma aula encontrada para esse dia" />
       ) : (
-        <AulasContainer>
+        <CardClassPanel>
           {aulas.map((aula) => (
             <CardClass
               key={aula.id}
@@ -190,7 +182,7 @@ export default function SectionAulasAluno() {
               onClick={() => handleAulaClick(aula)}
             />
           ))}
-        </AulasContainer>
+        </CardClassPanel>
       )}
     </Box>
   );

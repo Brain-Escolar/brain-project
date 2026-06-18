@@ -1,29 +1,46 @@
 "use client";
 import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius } from "@/styles";
-import { BrainBoxShadow, BrainBoxShadowHover } from "@/utils/utilsCss";
+import { BrainBoxShadow } from "@/utils/utilsCss";
 import styled from "styled-components";
+
+/**
+ * Painel que agrupa as linhas de aula (CardClass) num único cartão,
+ * conforme o protótipo do Design System (`.bk-classpanel`).
+ */
+export const Panel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 12px;
+  background: ${cssVarColor("backgroundSection")};
+  border: 1px solid ${cssVarColor("borderSubtle")};
+  border-radius: ${cssVarRadius("xl")};
+  ${BrainBoxShadow}
+`;
 
 export const Container = styled.div<{ $clickable?: boolean; $highlight?: boolean }>`
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 16px;
-  border-radius: ${cssVarRadius("md")};
+  border-radius: ${cssVarRadius("lg")};
   padding: 16px;
   width: 100%;
-  border: 1px solid
-    ${({ $highlight }) => ($highlight ? cssVarColor("primary") : cssVarColor("border"))};
   background: ${({ $highlight }) =>
-    $highlight ? cssVarColor("backgroundHover") : cssVarColor("backgroundSection")};
+    $highlight ? cssVarColor("primarySubtle") : "transparent"};
   cursor: ${({ $clickable }) => ($clickable ? "pointer" : "default")};
-  transition:
-    background 0.2s ease-in,
-    border-color 0.2s ease-in,
-    box-shadow 0.2s ease-in;
-  ${BrainBoxShadow}
+  transition: background 0.14s ease;
 
   &:hover {
-    ${({ $clickable }) => ($clickable ? BrainBoxShadowHover : "")}
+    background: ${({ $clickable, $highlight }) =>
+      !$clickable
+        ? $highlight
+          ? cssVarColor("primarySubtle")
+          : "transparent"
+        : $highlight
+          ? cssVarColor("primarySubtleHover")
+          : cssVarColor("backgroundHover")};
   }
 `;
 
@@ -31,9 +48,9 @@ export const AreaImage = styled.div`
   flex-shrink: 0;
   width: 64px;
   height: 64px;
-  border-radius: ${cssVarRadius("sm")};
+  border-radius: ${cssVarRadius("md")};
   overflow: hidden;
-  background: ${cssVarColor("backgroundHover")};
+  background: ${cssVarColor("borderSubtle")};
 
   img {
     width: 100%;
@@ -46,7 +63,7 @@ export const AreaImage = styled.div`
 export const AreaInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
 `;
@@ -55,14 +72,14 @@ export const AreaTitle = styled.div`
   font-size: ${cssVarFontSize("h4")};
   font-weight: ${cssVarFontWeight("semibold")};
   color: ${cssVarColor("text")};
-  line-height: 1.3;
+  line-height: 1.2;
 `;
 
 export const MetaRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 20px;
+  gap: 6px 22px;
   color: ${cssVarColor("textSecondary")};
   font-size: ${cssVarFontSize("body2")};
 `;
@@ -75,7 +92,7 @@ export const MetaItem = styled.span`
 
   svg {
     font-size: 18px;
-    color: ${cssVarColor("textSecondary")};
+    color: ${cssVarColor("textTertiary")};
   }
 `;
 

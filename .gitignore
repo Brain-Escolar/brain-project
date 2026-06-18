@@ -30,3 +30,4 @@ frontend/.env*
 frontend/out/
 frontend/*.tsbuildinfo
 frontend/next-env.d.ts
+project/*

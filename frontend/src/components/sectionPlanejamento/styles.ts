@@ -6,9 +6,9 @@ import styled from "styled-components";
 export const Container = styled.div`
   display: flex;
   flex-direction: column;
-  border-radius: ${cssVarRadius("lg")};
-  padding: 24px 20px;
-  border: 1px solid ${cssVarColor("border")};
+  border-radius: ${cssVarRadius("xl")};
+  padding: 24px;
+  border: 1px solid ${cssVarColor("borderSubtle")};
   background: ${cssVarColor("backgroundSection")};
   width: 100%;
   ${BrainBoxShadow}
@@ -17,8 +17,8 @@ export const Container = styled.div`
 export const Header = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 20px;
 `;
 
 export const Title = styled.h3`
@@ -57,9 +57,18 @@ export const EventDate = styled.span`
 `;
 
 export const EventTitle = styled.span`
+  flex: 1;
+  min-width: 0;
   font-size: ${cssVarFontSize("body1")};
   color: ${cssVarColor("text")};
   line-height: 1.4;
+`;
+
+export const EventTag = styled.span`
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: ${cssVarFontSize("body2")};
+  color: ${cssVarColor("textSecondary")};
 `;
 
 export const EmptyState = styled.div`

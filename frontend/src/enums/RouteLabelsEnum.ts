@@ -1,6 +1,6 @@
 export enum RouteLabelsEnum {
   // Home labels
-  HOME_DASHBOARD = "Home Dashboard",
+  HOME_DASHBOARD = "Página inicial",
   HOME_ESTUDANTE = "Página do aluno",
   HOME_ADMIN = "Home Admin",
 

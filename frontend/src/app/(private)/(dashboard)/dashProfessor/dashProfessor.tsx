@@ -12,15 +12,15 @@ export default function DashProfessorPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2.25, mb: 3 }}>
         <Image
           src="/brand/brainy/brainy-front-rgb.png"
           alt=""
           aria-hidden
-          width={78}
-          height={52}
+          width={90}
+          height={60}
           priority
-          style={{ height: 52, width: "auto" }}
+          style={{ height: 60, width: "auto" }}
         />
         <PageTitle title={`Bem-vindo, professor ${user?.name ?? ""}!`} />
       </Box>

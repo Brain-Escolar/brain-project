@@ -73,3 +73,6 @@ function CardClass({
 }
 
 export default CardClass;
+
+/** Painel que agrupa uma lista de {@link CardClass} num único cartão. */
+export const CardClassPanel = S.Panel;
