@@ -165,10 +165,10 @@ export default function SectionMinhasAulas() {
   const router = useRouter();
 
   const [selectedDate, setSelectedDate] = useState<Date>(() =>
-    parseDateParam(searchParams.get("data"))
+    parseDateParam(searchParams.get("data")),
   );
   const [viewMode, setViewMode] = useState<ViewMode>(() =>
-    parseViewParam(searchParams.get("view"))
+    parseViewParam(searchParams.get("view")),
   );
 
   function syncURL(date: Date, mode: ViewMode) {
