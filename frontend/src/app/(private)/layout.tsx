@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import AppBar from "@/components/appBar/appBar";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { BreadcrumbProvider } from "@/contexts/BreadcrumbContext";
@@ -27,8 +28,10 @@ export default function PrivateLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <BreadcrumbProvider>
-      <PrivateLayoutContent>{children}</PrivateLayoutContent>
-    </BreadcrumbProvider>
+    <Suspense>
+      <BreadcrumbProvider>
+        <PrivateLayoutContent>{children}</PrivateLayoutContent>
+      </BreadcrumbProvider>
+    </Suspense>
   );
 }
