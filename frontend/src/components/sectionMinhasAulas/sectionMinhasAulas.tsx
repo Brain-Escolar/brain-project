@@ -6,14 +6,14 @@ import SegmentedControl from "@/components/segmentedControl/segmentedControl";
 import DateSelector from "@/components/dateSelector";
 import { useAulas } from "@/hooks/useAulas";
 import { useAulasSemana, getWeekDays } from "@/hooks/useAulasSemana";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import BrainResultNotFound from "../resultNotFound/resultNotFound";
 import LoadingComponent from "../loadingComponent/loadingComponent";
 import { formatDateForAPI } from "@/utils/utilsDate";
 import { RoutesEnum } from "@/enums";
 import { Box, Button, IconButton, styled, Typography } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
-import { format } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import TabelaHorarioSemanal from "../tabelaHorarioSemanal/tabelaHorarioSemanal";
 
@@ -147,10 +147,46 @@ function SemanalContent({
   );
 }
 
+function parseDateParam(param: string | null): Date {
+  if (param) {
+    const parsed = parseISO(param);
+    if (isValid(parsed)) return parsed;
+  }
+  return new Date();
+}
+
+function parseViewParam(param: string | null): ViewMode {
+  if (param === "semanal" || param === "diario") return param;
+  return "diario";
+}
+
 export default function SectionMinhasAulas() {
-  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>("diario");
+  const searchParams = useSearchParams();
   const router = useRouter();
+
+  const [selectedDate, setSelectedDate] = useState<Date>(() =>
+    parseDateParam(searchParams.get("data"))
+  );
+  const [viewMode, setViewMode] = useState<ViewMode>(() =>
+    parseViewParam(searchParams.get("view"))
+  );
+
+  function syncURL(date: Date, mode: ViewMode) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("data", formatDateForAPI(date));
+    params.set("view", mode);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }
+
+  function handleDateChange(date: Date) {
+    setSelectedDate(date);
+    syncURL(date, viewMode);
+  }
+
+  function handleViewModeChange(mode: ViewMode) {
+    setViewMode(mode);
+    syncURL(selectedDate, mode);
+  }
 
   const { aulas, loading, error, refetch, isFetching } = useAulas({
     data: formatDateForAPI(selectedDate),
@@ -173,16 +209,16 @@ export default function SectionMinhasAulas() {
     <Box sx={{ width: "100%" }}>
       <Header>
         {viewMode === "semanal" ? (
-          <WeekNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} />
+          <WeekNavigator selectedDate={selectedDate} onDateChange={handleDateChange} />
         ) : (
           <Box display="flex" alignItems="center" gap={1}>
-            <Button variant="outlined" size="small" onClick={() => setSelectedDate(new Date())}>
+            <Button variant="outlined" size="small" onClick={() => handleDateChange(new Date())}>
               Hoje
             </Button>
-            <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
+            <DateSelector selectedDate={selectedDate} onDateChange={handleDateChange} />
           </Box>
         )}
-        <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+        <ViewToggle viewMode={viewMode} onViewChange={handleViewModeChange} />
       </Header>
 
       {viewMode === "semanal" ? (

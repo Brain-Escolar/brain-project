@@ -51,7 +51,7 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
   const appBarBg = theme.palette.background.paper;
   const appBarBorder = theme.palette.divider;
   const appBarText = theme.palette.text.primary;
-  const appBarTextMuted = theme.palette.text.secondary;
+  const appBarTextMuted = theme.palette.text.menu;
   const accent = theme.palette.primary.main; // Azul Brilhante #1E4BC8
   const menuBg = theme.palette.background.paper;
   const menuHoverBg = theme.palette.action.hover;
@@ -70,11 +70,11 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
           : 0,
         width: enableDrawerOffset
           ? {
-              xs: "100%",
-              md: drawerOpen
-                ? `calc(100% - ${DRAWER_WIDTH}px)`
-                : `calc(100% - ${DRAWER_WIDTH_CLOSED}px)`,
-            }
+            xs: "100%",
+            md: drawerOpen
+              ? `calc(100% - ${DRAWER_WIDTH}px)`
+              : `calc(100% - ${DRAWER_WIDTH_CLOSED}px)`,
+          }
           : "100%",
         bgcolor: appBarBg,
         color: appBarText,
@@ -138,11 +138,9 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
                         alignItems: "center",
                         gap: 0.75,
                         py: 0.5,
-                        borderBottom: "2px solid",
-                        borderBottomColor: isActive ? accent : "transparent",
                         color: isActive ? accent : appBarTextMuted,
-                        transition: "color 0.15s ease, border-color 0.15s ease",
-                        "&:hover": { color: accent },
+                        transition: "color 0.15s ease",
+                        "&:hover": { color: theme.palette.text.primary },
                       }}
                     >
                       {React.cloneElement(route.icon, { sx: { fontSize: 20, color: "inherit" } })}
