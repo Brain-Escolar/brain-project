@@ -50,7 +50,6 @@ export function buildMuiTheme(mode: "light" | "dark") {
       text: {
         primary: isLight ? "#141414" : "#F8FAFC",
         secondary: isLight ? "#525252" : "#A0AEC0",
-        menu: isLight ? "#6b7384" : "#A0AEC0",
       },
       divider: isLight ? "#E2E8F0" : "#2D3748",
     },
