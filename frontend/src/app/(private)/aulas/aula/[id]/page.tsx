@@ -4,10 +4,9 @@ import ListaPresenca from "@/components/aulaDetailView/listaPresenca/listaPresen
 import RegistrosDisciplinares from "@/components/aulaDetailView/registrosDisciplinares/registrosDisciplinares";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StarIcon from "@mui/icons-material/Star";
-import { Box, IconButton, Skeleton, Tab, Tabs, Typography } from "@mui/material";
-import { useParams, useRouter } from "next/navigation";
+import { Box, Skeleton, Tab, Tabs, Typography } from "@mui/material";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { format } from "date-fns";
@@ -40,7 +39,6 @@ function TabPanel(props: TabPanelProps) {
 
 export default function AulaDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
 
   const aulaId = params.id as string;
@@ -51,10 +49,6 @@ export default function AulaDetailPage() {
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
-  };
-
-  const handleGoBack = () => {
-    router.back();
   };
 
   return (
@@ -68,14 +62,6 @@ export default function AulaDetailPage() {
       }
       description="Gerencie a presença, conteúdos e registros disciplinares desta aula."
     >
-      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-        <IconButton onClick={handleGoBack} size="small">
-          <ArrowBackIcon fontSize="small" />
-        </IconButton>
-        <Typography variant="body2" color="text.secondary">
-          Pagina inicial
-        </Typography>
-      </Box>
 
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>

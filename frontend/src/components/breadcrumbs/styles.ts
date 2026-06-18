@@ -7,6 +7,41 @@ export const Nav = styled.nav`
   margin: 0 auto;
 `;
 
+export const Wrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+export const BackButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: transparent;
+  color: #6a7282;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #101828;
+    border-color: #9ca3af;
+  }
+
+  &:active {
+    background: #e5e7eb;
+  }
+
+  svg {
+    font-size: 18px;
+  }
+`;
+
 export const List = styled.ol`
   display: flex;
   align-items: center;
