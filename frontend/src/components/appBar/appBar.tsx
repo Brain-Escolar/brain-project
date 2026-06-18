@@ -4,11 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { AppBar as MuiAppBar, Badge, Container, IconButton, Toolbar, Typography } from "@mui/material";
+import { AppBar as MuiAppBar, Badge, Container, Toolbar, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
-import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "@/hooks/useAuth";
-import { useDrawer } from "@/contexts/DrawerContext";
 import { useUnreadConversas } from "@/hooks/useConversas";
 import { NotificationMenu } from "@/components/appBar/notificationMenu";
 import { useTheme } from "@mui/material/styles";
@@ -16,19 +14,9 @@ import { UserMenu } from "@/components/appBar/userMenu";
 import { DynamicModuleMenu } from "@/components/appBar/dynamicModuleMenu/DynamicModuleMenu";
 import { getMenuModules, getRoutesWithoutModule } from "@/constants/routesConfig";
 
-const DRAWER_WIDTH = 240;
-const DRAWER_WIDTH_CLOSED = 60;
-
-interface AppBarProps {
-  onMobileMenuClick?: () => void;
-  /** Enable left offset + width shrink for the sidebar drawer */
-  enableDrawerOffset?: boolean;
-}
-
-export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }: AppBarProps) {
+export default function AppBar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const { drawerOpen } = useDrawer();
   const theme = useTheme();
 
   const directRoutes = React.useMemo(
@@ -65,41 +53,16 @@ export default function AppBar({ onMobileMenuClick, enableDrawerOffset = false }
       position="fixed"
       color="default"
       sx={{
-        marginLeft: enableDrawerOffset
-          ? { xs: 0, md: drawerOpen ? `${DRAWER_WIDTH}px` : `${DRAWER_WIDTH_CLOSED}px` }
-          : 0,
-        width: enableDrawerOffset
-          ? {
-            xs: "100%",
-            md: drawerOpen
-              ? `calc(100% - ${DRAWER_WIDTH}px)`
-              : `calc(100% - ${DRAWER_WIDTH_CLOSED}px)`,
-          }
-          : "100%",
+        width: "100%",
         bgcolor: appBarBg,
         color: appBarText,
         borderBottom: "1px solid",
         borderBottomColor: appBarBorder,
         boxShadow: "var(--shadows-level1)",
-        transition: (theme) =>
-          theme.transitions.create(["width", "margin"], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
       }}
     >
       <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, sm: 3 } }}>
-        <Toolbar disableGutters sx={{ minHeight: 52 }}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={onMobileMenuClick}
-            sx={{ mr: 2, display: { md: "none" } }}
-          >
-            <MenuIcon />
-          </IconButton>
-
+        <Toolbar disableGutters sx={{ minHeight: "4rem" }}>
           <Link
             href="/"
             aria-label="Brain"

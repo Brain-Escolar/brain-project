@@ -5,7 +5,6 @@ export const Nav = styled.nav`
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 16px 20px 0;
 `;
 
 export const List = styled.ol`

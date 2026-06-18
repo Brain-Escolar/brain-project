@@ -1,11 +1,17 @@
 "use client";
 import styled from "styled-components";
 
-export const Container = styled.div``;
+export const Container = styled.div`
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+`;
 
 export const Content = styled.div`
+  flex: 1;
   width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
+  margin-top: 4rem;
+  overflow-y: auto;
 `;
