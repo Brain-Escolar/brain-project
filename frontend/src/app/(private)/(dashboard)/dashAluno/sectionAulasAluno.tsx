@@ -33,6 +33,20 @@ const Header = styled(Box)`
 
 const formatarHora = (horario: string): string => horario.substring(0, 5);
 
+function isToday(date: Date): boolean {
+  const now = new Date();
+  return (
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear()
+  );
+}
+
+function horarioToMinutes(horario: string): number {
+  const [h = 0, m = 0] = horario.split(":").map(Number);
+  return h * 60 + m;
+}
+
 function WeekRangeLabel({ date }: { date: Date }) {
   const days = getWeekDays(date);
   const start = format(days[0], "d", { locale: ptBR });
@@ -140,6 +154,13 @@ export default function SectionAulasAluno() {
   const handleAulaClick = (aula: EstudanteAulaResponse) =>
     router.push(`${RoutesEnum.ALUNO_AULA}/${aula.id}`);
 
+  let proximaAulaIndex = -1;
+  if (isToday(selectedDate) && aulas && aulas.length > 0) {
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    proximaAulaIndex = aulas.findIndex((a) => horarioToMinutes(a.horarioFim) > nowMin);
+    if (proximaAulaIndex === -1) proximaAulaIndex = 0;
+  }
+
   return (
     <Box sx={{ width: "100%" }}>
       <Header>
@@ -171,7 +192,7 @@ export default function SectionAulasAluno() {
         <BrainResultNotFound message="Nenhuma aula encontrada para esse dia" />
       ) : (
         <CardClassPanel>
-          {aulas.map((aula) => (
+          {aulas.map((aula, index) => (
             <CardClass
               key={aula.id}
               title={`${aula.disciplina} — ${aula.serie} ${aula.turma}`}
@@ -179,6 +200,8 @@ export default function SectionAulasAluno() {
               hour={`${formatarHora(aula.horarioInicio)} - ${formatarHora(aula.horarioFim)}`}
               classroom={`Sala ${aula.sala}`}
               campus={aula.unidade}
+              highlight={index === proximaAulaIndex}
+              badgeLabel={index === proximaAulaIndex ? "Próxima aula" : undefined}
               onClick={() => handleAulaClick(aula)}
             />
           ))}

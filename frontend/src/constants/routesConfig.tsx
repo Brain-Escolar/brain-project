@@ -16,6 +16,12 @@ import CategoryIcon from "@mui/icons-material/Category";
 import FolderIcon from "@mui/icons-material/Folder";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import HomeIcon from "@mui/icons-material/Home";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
+import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -52,8 +58,8 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.PROFESSOR],
   },
   {
-    text: RouteLabelsEnum.HOME_ESTUDANTE,
-    icon: <DashboardIcon fontSize="small" />,
+    text: RouteLabelsEnum.HOME_DASHBOARD,
+    icon: <HomeIcon fontSize="small" />,
     router: RoutesEnum.HOME,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
@@ -339,44 +345,52 @@ export const ROUTES: RouteConfig[] = [
     icon: <ForumIcon fontSize="small" />,
     router: RoutesEnum.COMUNICACAO,
     isShowMenu: true,
-    roles: [UserRoleEnum.ESTUDANTE, UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
     showBadge: true,
   },
   // ========== USO OPERACIONAL - ESTUDANTE ==========
   {
     text: RouteLabelsEnum.ALUNO_AULA,
-    icon: <MenuBookIcon fontSize="small" />,
+    icon: <MenuBookOutlinedIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_AULA,
     isShowMenu: false,
     roles: [UserRoleEnum.ESTUDANTE],
   },
   {
     text: RouteLabelsEnum.MINHAS_AULAS,
-    icon: <MenuBookIcon fontSize="small" />,
+    icon: <MenuBookOutlinedIcon fontSize="small" />,
     router: RoutesEnum.MINHAS_AULAS,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
   },
   {
-    text: RouteLabelsEnum.BOLETIM,
-    icon: <GradeIcon fontSize="small" />,
-    router: RoutesEnum.BOLETIM,
-    isShowMenu: true,
-    roles: [UserRoleEnum.ESTUDANTE],
-  },
-  {
     text: RouteLabelsEnum.CALENDARIO,
-    icon: <CalendarIcon fontSize="small" />,
+    icon: <CalendarTodayOutlinedIcon fontSize="small" />,
     router: RoutesEnum.CALENDARIO,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
   },
   {
+    text: RouteLabelsEnum.BOLETIM,
+    icon: <FactCheckOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.BOLETIM,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ESTUDANTE],
+  },
+  {
     text: RouteLabelsEnum.COMUNICADOS,
-    icon: <CampaignIcon fontSize="small" />,
+    icon: <CampaignOutlinedIcon fontSize="small" />,
     router: RoutesEnum.COMUNICADOS,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
+  },
+  {
+    text: RouteLabelsEnum.COMUNICACAO,
+    icon: <ChatBubbleOutlineOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICACAO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ESTUDANTE],
+    showBadge: true,
   },
   // ========== USO OPERACIONAL - PROFESSOR ==========
   {

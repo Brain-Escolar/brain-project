@@ -74,9 +74,9 @@ export const AsideFoot = styled.div`
 
 export const Mascot = styled.img`
   position: absolute;
-  right: -30px;
-  bottom: 60px;
-  width: 280px;
+  right: -90px;
+  bottom: 30px;
+  width: 500px;
   height: auto;
   pointer-events: none;
   user-select: none;

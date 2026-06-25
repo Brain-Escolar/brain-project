@@ -1,14 +1,15 @@
 "use client";
-import { cssVarColor } from "@/styles";
+import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius } from "@/styles";
 import { BrainBoxShadow } from "@/utils/utilsCss";
 import styled from "styled-components";
 
 export const ResumoContainer = styled.div`
   display: flex;
   flex-direction: column;
-  border-radius: 8px;
-  padding: 20px 16px;
-  border: 1px solid ${cssVarColor("border")};
+  border-radius: ${cssVarRadius("xl")};
+  padding: 24px;
+  border: 1px solid ${cssVarColor("borderSubtle")};
+  background: ${cssVarColor("backgroundSection")};
   min-height: 534px;
   width: 100%;
   gap: 24px;
@@ -18,20 +19,21 @@ export const ResumoContainer = styled.div`
 export const ResumoHeader = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 `;
 
 export const ResumoTitle = styled.h3`
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: ${cssVarFontSize("h3")};
+  font-weight: ${cssVarFontWeight("semibold")};
   color: ${cssVarColor("text")};
 `;
 
 export const ResumoSubtitle = styled.p`
   margin: 0;
-  font-size: 0.875rem;
+  font-size: ${cssVarFontSize("body2")};
   color: ${cssVarColor("textSecondary")};
+  line-height: 1.4;
 `;
 
 export const Section = styled.div`
@@ -48,32 +50,33 @@ export const SectionHeader = styled.div`
 
 export const SectionTitle = styled.h4`
   margin: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: ${cssVarFontSize("body1")};
+  font-weight: ${cssVarFontWeight("semibold")};
   color: ${cssVarColor("text")};
 `;
 
 export const CountBadge = styled.span`
-  background: ${cssVarColor("primary")};
-  color: white;
+  background: ${cssVarColor("primarySubtle")};
+  color: ${cssVarColor("primary")};
   border-radius: 12px;
   padding: 2px 8px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: ${cssVarFontSize("small")};
+  font-weight: ${cssVarFontWeight("medium")};
 `;
 
 export const Card = styled.div`
   padding: 12px;
-  border: 1px solid ${cssVarColor("border")};
-  border-radius: 8px;
+  border: 1px solid ${cssVarColor("borderSubtle")};
+  border-radius: ${cssVarRadius("lg")};
   background: ${cssVarColor("background")};
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background 0.14s ease;
 
   &:hover {
     border-color: ${cssVarColor("primary")};
+    background: ${cssVarColor("primarySubtle")};
   }
 `;
 
@@ -85,8 +88,8 @@ export const CardTopRow = styled.div`
 `;
 
 export const CardTitle = styled.span`
-  font-weight: 600;
-  font-size: 0.875rem;
+  font-weight: ${cssVarFontWeight("semibold")};
+  font-size: ${cssVarFontSize("body2")};
   color: ${cssVarColor("text")};
 `;
 
@@ -95,19 +98,19 @@ export const CardBadge = styled.span`
   color: ${cssVarColor("textSecondary")};
   border-radius: 4px;
   padding: 2px 8px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: ${cssVarFontSize("small")};
+  font-weight: ${cssVarFontWeight("medium")};
   white-space: nowrap;
 `;
 
 export const CardMeta = styled.span`
-  font-size: 0.75rem;
+  font-size: ${cssVarFontSize("small")};
   color: ${cssVarColor("textSecondary")};
 `;
 
 export const CardDescription = styled.p`
   margin: 0;
-  font-size: 0.75rem;
+  font-size: ${cssVarFontSize("small")};
   color: ${cssVarColor("textSecondary")};
   line-height: 1.4;
   overflow: hidden;
@@ -120,6 +123,6 @@ export const CardDeadline = styled.div`
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.75rem;
+  font-size: ${cssVarFontSize("small")};
   color: ${cssVarColor("textSecondary")};
 `;
