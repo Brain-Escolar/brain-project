@@ -3,7 +3,6 @@
 import { useState } from "react";
 import CardClass, { CardClassPanel } from "@/components/cardClass/cardClass";
 import SegmentedControl from "@/components/segmentedControl/segmentedControl";
-import DateSelector from "@/components/dateSelector";
 import { useAulasAluno } from "@/hooks/useAulasAluno";
 import { useAulasAlunoSemana } from "@/hooks/useAulasAlunoSemana";
 import { getWeekDays } from "@/hooks/useAulasSemana";
@@ -21,6 +20,16 @@ import { EstudanteAulaResponse } from "@/services/domains/estudante";
 
 type ViewMode = "diario" | "semanal";
 
+const hojeButtonSx = {
+  color: "#141414",
+  borderColor: "var(--colors-border)",
+  "&:hover": {
+    color: "#141414",
+    borderColor: "var(--colors-border)",
+    backgroundColor: "var(--colors-backgroundHover)",
+  },
+} as const;
+
 const Header = styled(Box)`
   display: flex;
   align-items: center;
@@ -32,6 +41,12 @@ const Header = styled(Box)`
 `;
 
 const formatarHora = (horario: string): string => horario.substring(0, 5);
+
+function formatDailyDateLabel(date: Date): string {
+  const monthDay = format(date, "d 'de' MMMM", { locale: ptBR });
+  if (isToday(date)) return `Hoje · ${monthDay}`;
+  return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
+}
 
 function isToday(date: Date): boolean {
   const now = new Date();
@@ -74,7 +89,7 @@ function WeekNavigator({
 
   return (
     <Box display="flex" alignItems="center" gap={1}>
-      <Button variant="outlined" size="small" onClick={() => onDateChange(new Date())}>
+      <Button variant="outlined" size="small" sx={hojeButtonSx} onClick={() => onDateChange(new Date())}>
         Hoje
       </Button>
       <IconButton onClick={handlePrev} size="small">
@@ -168,10 +183,32 @@ export default function SectionAulasAluno() {
           <WeekNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} />
         ) : (
           <Box display="flex" alignItems="center" gap={1}>
-            <Button variant="outlined" size="small" onClick={() => setSelectedDate(new Date())}>
+            <Button variant="outlined" size="small" sx={hojeButtonSx} onClick={() => setSelectedDate(new Date())}>
               Hoje
             </Button>
-            <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
+            <IconButton
+              onClick={() => {
+                const d = new Date(selectedDate);
+                d.setDate(d.getDate() - 1);
+                setSelectedDate(d);
+              }}
+              size="small"
+            >
+              <ChevronLeft />
+            </IconButton>
+            <IconButton
+              onClick={() => {
+                const d = new Date(selectedDate);
+                d.setDate(d.getDate() + 1);
+                setSelectedDate(d);
+              }}
+              size="small"
+            >
+              <ChevronRight />
+            </IconButton>
+            <Typography sx={{ fontSize: 14, color: "var(--colors-textSecondary)" }}>
+              {formatDailyDateLabel(selectedDate)}
+            </Typography>
           </Box>
         )}
         <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
@@ -196,10 +233,10 @@ export default function SectionAulasAluno() {
             <CardClass
               key={aula.id}
               title={`${aula.disciplina} — ${aula.serie} ${aula.turma}`}
-              image={"https://placehold.co/100.png"}
-              hour={`${formatarHora(aula.horarioInicio)} - ${formatarHora(aula.horarioFim)}`}
+              disciplina={aula.disciplina}
+              hour={`${formatarHora(aula.horarioInicio)} – ${formatarHora(aula.horarioFim)}`}
               classroom={`Sala ${aula.sala}`}
-              campus={aula.unidade}
+              teacher={aula.professor}
               highlight={index === proximaAulaIndex}
               badgeLabel={index === proximaAulaIndex ? "Próxima aula" : undefined}
               onClick={() => handleAulaClick(aula)}

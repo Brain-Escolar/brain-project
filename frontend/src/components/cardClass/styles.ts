@@ -10,9 +10,9 @@ import styled from "styled-components";
 export const Panel = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   width: 100%;
-  padding: 12px;
+  padding: 8px;
   background: ${cssVarColor("backgroundSection")};
   border: 1px solid ${cssVarColor("borderSubtle")};
   border-radius: ${cssVarRadius("xl")};
@@ -46,11 +46,11 @@ export const Container = styled.div<{ $clickable?: boolean; $highlight?: boolean
 
 export const AreaImage = styled.div`
   flex-shrink: 0;
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: ${cssVarRadius("md")};
   overflow: hidden;
-  background: ${cssVarColor("borderSubtle")};
+  background: ${cssVarColor("surfaceSunken")};
 
   img {
     width: 100%;
@@ -58,6 +58,17 @@ export const AreaImage = styled.div`
     object-fit: cover;
     display: block;
   }
+`;
+
+export const AreaIcon = styled.div`
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: ${cssVarRadius("md")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${cssVarColor("surfaceSunken")};
 `;
 
 export const AreaInfo = styled.div`
@@ -69,10 +80,10 @@ export const AreaInfo = styled.div`
 `;
 
 export const AreaTitle = styled.div`
-  font-size: ${cssVarFontSize("h4")};
+  font-size: ${cssVarFontSize("body1")};
   font-weight: ${cssVarFontWeight("semibold")};
   color: ${cssVarColor("text")};
-  line-height: 1.2;
+  line-height: 1.25;
 `;
 
 export const MetaRow = styled.div`
