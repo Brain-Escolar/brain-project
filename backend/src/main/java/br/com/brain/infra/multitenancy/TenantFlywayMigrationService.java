@@ -3,25 +3,25 @@ package br.com.brain.infra.multitenancy;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+
 import javax.sql.DataSource;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TenantFlywayMigrationService {
 
     private static final Logger log = LoggerFactory.getLogger(TenantFlywayMigrationService.class);
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     @EventListener(ApplicationReadyEvent.class)
     public void migrarTodosOsTenants() {

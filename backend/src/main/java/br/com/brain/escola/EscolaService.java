@@ -1,6 +1,6 @@
 package br.com.brain.escola;
 import br.com.brain.usuario.UsuarioService;
-
+import lombok.RequiredArgsConstructor;
 import br.com.brain.autenticacao.DadosAutenticacaoRepository;
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.endereco.Endereco;
@@ -11,7 +11,6 @@ import br.com.brain.enums.PerfilNome;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.infra.multitenancy.TenantContext;
 import br.com.brain.infra.multitenancy.TenantFlywayMigrationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -21,18 +20,15 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class EscolaService {
 
-    @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @Autowired
     private TenantFlywayMigrationService flywayMigrationService;
 
-    @Autowired
     private UsuarioService usuarioService;
 
-    @Autowired
     private DadosAutenticacaoRepository dadosAutenticacaoRepository;
 
     public DetalhamentoEscolaDto cadastrar(CadastroEscolaDto dto) {
