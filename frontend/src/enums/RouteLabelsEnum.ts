@@ -70,6 +70,7 @@ export enum RouteLabelsEnum {
 
   // Common labels
   MINHAS_AULAS = "Minhas aulas",
+  MINHAS_TURMAS = "Minhas turmas",
   CALENDARIO = "Calendário",
   BOLETIM = "Boletim",
   AVALIACOES = "Avaliações e tarefas",

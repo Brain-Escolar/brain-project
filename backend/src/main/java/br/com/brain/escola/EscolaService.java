@@ -23,13 +23,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class EscolaService {
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    private TenantFlywayMigrationService flywayMigrationService;
+    private final TenantFlywayMigrationService flywayMigrationService;
 
-    private UsuarioService usuarioService;
+    private final UsuarioService usuarioService;
 
-    private DadosAutenticacaoRepository dadosAutenticacaoRepository;
+    private final DadosAutenticacaoRepository dadosAutenticacaoRepository;
 
     public DetalhamentoEscolaDto cadastrar(CadastroEscolaDto dto) {
         String schema = gerarNomeSchema(dto.codigo());

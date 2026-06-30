@@ -11,6 +11,8 @@ import br.com.brain.evento.dto.ListagemEventoDto;
 import br.com.brain.professor.dto.AtualizacaoProfessorDto;
 import br.com.brain.professor.dto.CadastroProfessorDto;
 import br.com.brain.professor.dto.DetalhamentoProfessorDto;
+import br.com.brain.professor.dto.DetalhamentoTurmaProfessorDto;
+import br.com.brain.professor.dto.ListagemDisciplinaTurmasProfessorDto;
 import br.com.brain.professor.dto.ListagemProfessorDto;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.aula.AulaService;
@@ -41,6 +43,7 @@ public class ProfessorController {
     private final UsuarioService usuarioService;
     private final AulaService aulaService;
     private final EventoService eventoService;
+    private final MinhasTurmasService minhasTurmasService;
 
     @PostMapping
     public ResponseEntity<DetalhamentoProfessorDto> cadastrar(
@@ -107,6 +110,24 @@ public class ProfessorController {
         var professor = service.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
         var eventos = eventoService.listarEventosProfessor(professor.getId(), paginacao);
         return ResponseEntity.ok(eventos);
+    }
+
+    @GetMapping("/turmas")
+    public ResponseEntity<List<ListagemDisciplinaTurmasProfessorDto>> minhasTurmas(
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var professor = service.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
+        var turmas = minhasTurmasService.listarTurmasAgrupadasPorDisciplina(professor.getId());
+        return ResponseEntity.ok(turmas);
+    }
+
+    @GetMapping("/turmas/{turmaId}/disciplina/{disciplinaId}/alunos")
+    public ResponseEntity<DetalhamentoTurmaProfessorDto> minhaTurmaAlunos(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @PathVariable("turmaId") Long turmaId,
+            @PathVariable("disciplinaId") Long disciplinaId) {
+        var professor = service.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
+        var detalhe = minhasTurmasService.detalharAlunosDaTurma(professor.getId(), turmaId, disciplinaId);
+        return ResponseEntity.ok(detalhe);
     }
 
     @PostMapping("/{professorId}/disponibilidade")

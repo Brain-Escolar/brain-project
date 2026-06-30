@@ -127,3 +127,53 @@ export interface ProfessorMultipleUrisResponse {
   id: number;
   uri: string;
 }
+
+export interface TurmaProfessorResumoResponse {
+  turmaId: number;
+  serieNome: string;
+  nomeTurma: string;
+  totalAlunos: number;
+  mediaTurma: number | null;
+  frequenciaTurma: number | null;
+}
+
+export interface DisciplinaTurmasProfessorResponse {
+  disciplinaId: number;
+  nomeDisciplina: string;
+  turmas: TurmaProfessorResumoResponse[];
+}
+
+export interface NotaTurmaProfessorResponse {
+  nomeAvaliacao: string;
+  dataAplicacao: string;
+  pontuacao: number;
+}
+
+export interface AnotacaoTurmaProfessorResponse {
+  tipoAnotacao: string;
+  data: string;
+  observacao: string;
+}
+
+export interface AlunoTurmaProfessorResponse {
+  id: number;
+  nome: string;
+  matricula: string;
+  notas: NotaTurmaProfessorResponse[];
+  media: number | null;
+  faltas: number;
+  frequencia: number | null;
+  anotacoes: AnotacaoTurmaProfessorResponse[];
+}
+
+export interface DetalheTurmaProfessorResponse {
+  turmaId: number;
+  disciplinaId: number;
+  nomeDisciplina: string;
+  serieNome: string;
+  nomeTurma: string;
+  totalAlunos: number;
+  mediaTurma: number | null;
+  frequenciaTurma: number | null;
+  alunos: AlunoTurmaProfessorResponse[];
+}

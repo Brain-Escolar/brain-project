@@ -79,6 +79,8 @@ export enum RoutesEnum {
 
   // Common routes
   MINHAS_AULAS = "/minhas-aulas",
+  MINHAS_TURMAS = "/minhas-turmas",
+  MINHAS_TURMAS_DETALHE = "/minhas-turmas/detalhe",
   CALENDARIO = "/calendario",
   BOLETIM = "/boletim",
   AVALIACOES = "/avaliacoes",

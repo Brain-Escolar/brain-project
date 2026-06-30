@@ -115,6 +115,12 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.turmas.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.turmas.details(), id] as const,
   },
+  professorTurmas: {
+    all: ["professorTurmas"] as const,
+    lists: () => [...QUERY_KEYS.professorTurmas.all, "list"] as const,
+    detail: (turmaId: string | number, disciplinaId: string | number) =>
+      [...QUERY_KEYS.professorTurmas.all, "detail", turmaId, disciplinaId] as const,
+  },
   horarios: {
     all: ["horarios"] as const,
     lists: () => [...QUERY_KEYS.horarios.all, "list"] as const,

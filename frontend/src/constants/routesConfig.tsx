@@ -9,6 +9,7 @@ import AnnouncementIcon from "@mui/icons-material/Announcement";
 import ForumIcon from "@mui/icons-material/Forum";
 import SchoolIcon from "@mui/icons-material/School";
 import ClassIcon from "@mui/icons-material/Class";
+import GroupsIcon from "@mui/icons-material/Groups";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GradeIcon from "@mui/icons-material/Grade";
@@ -394,10 +395,17 @@ export const ROUTES: RouteConfig[] = [
   },
   // ========== USO OPERACIONAL - PROFESSOR ==========
   {
-    text: RouteLabelsEnum.MINHAS_AULAS,
-    icon: <ClassIcon fontSize="small" />,
-    router: RoutesEnum.MINHAS_AULAS,
+    text: RouteLabelsEnum.MINHAS_TURMAS,
+    icon: <GroupsIcon fontSize="small" />,
+    router: RoutesEnum.MINHAS_TURMAS,
     isShowMenu: true,
+    roles: [UserRoleEnum.PROFESSOR],
+  },
+  {
+    text: RouteLabelsEnum.MINHAS_TURMAS,
+    icon: <GroupsIcon fontSize="small" />,
+    router: RoutesEnum.MINHAS_TURMAS_DETALHE,
+    isShowMenu: false,
     roles: [UserRoleEnum.PROFESSOR],
   },
   {

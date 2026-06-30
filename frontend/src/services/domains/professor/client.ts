@@ -15,6 +15,8 @@ import {
   ProfessorPlanejamentoResponse,
   ProfessorDisponibilidadeResponse,
   ProfessorMultipleUrisResponse,
+  DisciplinaTurmasProfessorResponse,
+  DetalheTurmaProfessorResponse,
 } from "./response";
 
 const BASE_ROUTE = "professor";
@@ -72,5 +74,13 @@ export class ProfessorApi {
 
   excluirDisponibilidade(id: string): Promise<void> {
     return httpClient.delete(`${BASE_ROUTE}/disponibilidade/${id}`);
+  }
+
+  getMinhasTurmas(): Promise<DisciplinaTurmasProfessorResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/turmas`);
+  }
+
+  getTurmaAlunos(turmaId: string, disciplinaId: string): Promise<DetalheTurmaProfessorResponse> {
+    return httpClient.get(`${BASE_ROUTE}/turmas/${turmaId}/disciplina/${disciplinaId}/alunos`);
   }
 }
