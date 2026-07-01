@@ -9,8 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.envers.DefaultRevisionEntity;
 import org.hibernate.envers.RevisionEntity;
+import org.hibernate.envers.RevisionMapping;
 
 @Entity
 @Table(name = "revinfo")
@@ -23,7 +23,7 @@ import org.hibernate.envers.RevisionEntity;
         @AttributeOverride(name = "id", column = @Column(name = "rev")),
         @AttributeOverride(name = "timestamp", column = @Column(name = "revtstmp"))
 })
-public class CustomRevisionEntity extends DefaultRevisionEntity {
+public class CustomRevisionEntity extends RevisionMapping {
 
     @Column(name = "usuario_id")
     private Long usuarioId;
