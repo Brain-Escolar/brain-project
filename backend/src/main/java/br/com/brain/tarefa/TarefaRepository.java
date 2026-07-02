@@ -13,6 +13,8 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
 
     Page<Tarefa> findByProfessorIdAndPrazoAfter(Long id, LocalDate hoje, Pageable paginacao);
 
+    Page<Tarefa> findByProfessorId(Long id, Pageable paginacao);
+
     @Query("""
                 SELECT t FROM Tarefa t
                 WHERE t.aula.turma.id = :turmaId

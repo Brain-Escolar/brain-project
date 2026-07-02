@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { tarefaApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "react-toastify";
-import { TarefaPostRequest, TarefaPutRequest } from "@/services/domains/tarefa/request";
+import { TarefaLotePostRequest, TarefaPostRequest, TarefaPutRequest } from "@/services/domains/tarefa/request";
 
 /**
  * Hook para mutações relacionadas às tarefas
@@ -55,9 +55,23 @@ export function useTarefaMutations() {
     },
   });
 
+  // Mutation para criar tarefas em lote (registro do Diário Semanal do professor)
+  const createTarefaLote = useMutation({
+    mutationFn: ({ dados, arquivo }: { dados: TarefaLotePostRequest; arquivo?: File }) =>
+      tarefaApi.criarTarefaLote(dados, arquivo),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tarefas.all });
+    },
+    onError: (error) => {
+      console.error("Erro ao lançar tarefas em lote:", error);
+      toast.error("Ocorreu um erro ao lançar o diário. Tente novamente.");
+    },
+  });
+
   return {
     createTarefa,
     deleteTarefa,
     updateTarefa,
+    createTarefaLote,
   };
 }

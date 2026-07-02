@@ -2,9 +2,11 @@ package br.com.brain.tarefa.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record CadastroTarefaConteudoLoteDto(
         @NotNull LocalDate semanaInicio,
@@ -12,5 +14,7 @@ public record CadastroTarefaConteudoLoteDto(
         @NotNull Long serieId,
         @NotNull Long disciplinaId,
         @NotBlank String conteudo,
-        @NotBlank String tarefa) {
+        boolean addTarefa,
+        String tarefa,
+        @NotEmpty List<Long> turmaIds) {
 }

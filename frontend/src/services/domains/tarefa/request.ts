@@ -7,11 +7,13 @@ export interface TarefaPostRequest {
 
 export interface TarefaLotePostRequest {
   semanaInicio: string; // ISO date string (segunda-feira da semana)
-  numeroAula: number;   // 1-based
+  numeroAula: number; // 1-based
   serieId: number;
   disciplinaId: number;
   conteudo: string;
-  tarefa: string;
+  addTarefa: boolean;
+  tarefa?: string;
+  turmaIds: number[];
 }
 
 export interface TarefaPutRequest {

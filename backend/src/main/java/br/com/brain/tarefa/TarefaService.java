@@ -12,6 +12,7 @@ import br.com.brain.tarefa.dto.CadastroTarefaDto;
 import br.com.brain.tarefa.dto.CadastroTarefaConteudoLoteDto;
 import br.com.brain.tarefa.dto.ListagemTarefaDto;
 import br.com.brain.tarefa.dto.ListagemTarefaAlunoDto;
+import br.com.brain.tarefa.dto.LoteRegistradoDto;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.infra.aws.S3Service;
 import jakarta.persistence.EntityManager;
@@ -59,19 +60,27 @@ public class TarefaService {
         tarefa.setPrazo(dados.prazo());
 
         if (arquivo != null && !arquivo.isEmpty()) {
-            String key = "tarefas/" + UUID.randomUUID() + "-" + arquivo.getOriginalFilename();
-            s3Service.upload(key, arquivo);
-            var arquivoEntity = new Arquivo();
-            arquivoEntity.setS3Key(key);
-            arquivoEntity.setNomeOriginal(arquivo.getOriginalFilename());
-            arquivoEntity.setContentType(arquivo.getContentType());
-            arquivoEntity.setTamanho(arquivo.getSize());
-            arquivoRepository.save(arquivoEntity);
-            tarefa.setArquivo(arquivoEntity);
+            tarefa.setArquivo(salvarArquivo(arquivo));
         }
 
         repository.save(tarefa);
         return toDto(tarefa);
+    }
+
+    private Arquivo salvarArquivo(MultipartFile arquivo) {
+        String key = "tarefas/" + UUID.randomUUID() + "-" + arquivo.getOriginalFilename();
+        s3Service.upload(key, arquivo);
+        var arquivoEntity = new Arquivo();
+        arquivoEntity.setS3Key(key);
+        arquivoEntity.setNomeOriginal(arquivo.getOriginalFilename());
+        arquivoEntity.setContentType(arquivo.getContentType());
+        arquivoEntity.setTamanho(arquivo.getSize());
+        arquivoRepository.save(arquivoEntity);
+        return arquivoEntity;
+    }
+
+    private boolean temTexto(String valor) {
+        return valor != null && !valor.isBlank();
     }
 
     public ListagemTarefaDto toDto(Tarefa tarefa) {
@@ -84,8 +93,13 @@ public class TarefaService {
     }
 
     @Transactional
-    public List<ListagemTarefaDto> cadastrarTarefaLote(CadastroTarefaConteudoLoteDto dados, MultipartFile arquivo,
+    public LoteRegistradoDto cadastrarTarefaLote(CadastroTarefaConteudoLoteDto dados, MultipartFile arquivo,
             Professor professor) {
+        if (dados.addTarefa() && !temTexto(dados.tarefa())) {
+            throw ErrosSistema.OperacaoInvalidaException
+                    .com("Informe a tarefa de casa quando 'Tarefa de casa' estiver ativada.");
+        }
+
         var aulas = aulaRepository.findByProfessorIdAndDisciplinaIdAndSerieId(
                 professor.getId(), dados.disciplinaId(), dados.serieId());
 
@@ -94,20 +108,19 @@ public class TarefaService {
 
         Arquivo arquivoEntity = null;
         if (arquivo != null && !arquivo.isEmpty()) {
-            String key = "tarefas/" + UUID.randomUUID() + "-" + arquivo.getOriginalFilename();
-            s3Service.upload(key, arquivo);
-            arquivoEntity = new Arquivo();
-            arquivoEntity.setS3Key(key);
-            arquivoEntity.setNomeOriginal(arquivo.getOriginalFilename());
-            arquivoEntity.setContentType(arquivo.getContentType());
-            arquivoEntity.setTamanho(arquivo.getSize());
-            arquivoRepository.save(arquivoEntity);
+            arquivoEntity = salvarArquivo(arquivo);
         }
 
         var criadas = new ArrayList<ListagemTarefaDto>();
+        int turmasRegistradas = 0;
 
-        for (var entry : aulasPorTurma.entrySet()) {
-            var aulasOrdenadas = entry.getValue().stream()
+        for (var turmaId : dados.turmaIds()) {
+            var aulasDaTurma = aulasPorTurma.get(turmaId);
+            if (aulasDaTurma == null || aulasDaTurma.isEmpty()) {
+                continue;
+            }
+
+            var aulasOrdenadas = aulasDaTurma.stream()
                     .sorted(Comparator.comparingInt((Aula a) -> a.getDiaSemana().getValue())
                             .thenComparing(a -> a.getHorario().getHorarioInicio()))
                     .toList();
@@ -125,32 +138,35 @@ public class TarefaService {
             conteudo.setConteudo(dados.conteudo());
             conteudo.setData(dataAula);
             conteudoRepository.save(conteudo);
+            turmasRegistradas++;
 
-            LocalDate prazo;
-            if (dados.numeroAula() < aulasOrdenadas.size()) {
-                var proxima = aulasOrdenadas.get(dados.numeroAula());
-                prazo = dados.semanaInicio()
-                        .plusDays(proxima.getDiaSemana().getValue() - DayOfWeek.MONDAY.getValue());
-            } else {
-                var primeira = aulasOrdenadas.get(0);
-                prazo = dados.semanaInicio().plusWeeks(1)
-                        .plusDays(primeira.getDiaSemana().getValue() - DayOfWeek.MONDAY.getValue());
-            }
+            if (dados.addTarefa()) {
+                LocalDate prazo;
+                if (dados.numeroAula() < aulasOrdenadas.size()) {
+                    var proxima = aulasOrdenadas.get(dados.numeroAula());
+                    prazo = dados.semanaInicio()
+                            .plusDays(proxima.getDiaSemana().getValue() - DayOfWeek.MONDAY.getValue());
+                } else {
+                    var primeira = aulasOrdenadas.get(0);
+                    prazo = dados.semanaInicio().plusWeeks(1)
+                            .plusDays(primeira.getDiaSemana().getValue() - DayOfWeek.MONDAY.getValue());
+                }
 
-            var tarefa = new Tarefa();
-            tarefa.setProfessor(professor);
-            tarefa.setAula(aulaEscolhida);
-            tarefa.setConteudo(dados.tarefa());
-            tarefa.setDataCriacao(dataAula);
-            tarefa.setPrazo(prazo);
-            if (arquivoEntity != null) {
-                tarefa.setArquivo(arquivoEntity);
+                var tarefa = new Tarefa();
+                tarefa.setProfessor(professor);
+                tarefa.setAula(aulaEscolhida);
+                tarefa.setConteudo(dados.tarefa());
+                tarefa.setDataCriacao(dataAula);
+                tarefa.setPrazo(prazo);
+                if (arquivoEntity != null) {
+                    tarefa.setArquivo(arquivoEntity);
+                }
+                repository.save(tarefa);
+                criadas.add(toDto(tarefa));
             }
-            repository.save(tarefa);
-            criadas.add(toDto(tarefa));
         }
 
-        return criadas;
+        return new LoteRegistradoDto(turmasRegistradas, criadas.size(), criadas);
     }
 
     public Page<ListagemTarefaDto> listar(Pageable paginacao) {
@@ -173,15 +189,7 @@ public class TarefaService {
             tarefa.setPrazo(dados.prazo());
 
         if (arquivo != null && !arquivo.isEmpty()) {
-            String key = "tarefas/" + UUID.randomUUID() + "-" + arquivo.getOriginalFilename();
-            s3Service.upload(key, arquivo);
-            var arquivoEntity = new Arquivo();
-            arquivoEntity.setS3Key(key);
-            arquivoEntity.setNomeOriginal(arquivo.getOriginalFilename());
-            arquivoEntity.setContentType(arquivo.getContentType());
-            arquivoEntity.setTamanho(arquivo.getSize());
-            arquivoRepository.save(arquivoEntity);
-            tarefa.setArquivo(arquivoEntity);
+            tarefa.setArquivo(salvarArquivo(arquivo));
         }
 
         repository.save(tarefa);
@@ -205,6 +213,10 @@ public class TarefaService {
 
     public Page<ListagemTarefaDto> recuperarTarefasProfessor(Long id, Pageable paginacao) {
         return repository.findByProfessorIdAndPrazoAfter(id, LocalDate.now(), paginacao).map(this::toDto);
+    }
+
+    public Page<ListagemTarefaDto> recuperarTodasTarefasProfessor(Long id, Pageable paginacao) {
+        return repository.findByProfessorId(id, paginacao).map(this::toDto);
     }
 
     public List<ListagemTarefaDto> listarTarefasPorAula(Long aulaId, LocalDate data) {

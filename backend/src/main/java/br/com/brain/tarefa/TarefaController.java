@@ -5,10 +5,10 @@ import br.com.brain.tarefa.dto.AtualizacaoTarefaDto;
 import br.com.brain.tarefa.dto.CadastroTarefaDto;
 import br.com.brain.tarefa.dto.CadastroTarefaConteudoLoteDto;
 import br.com.brain.tarefa.dto.ListagemTarefaDto;
+import br.com.brain.tarefa.dto.LoteRegistradoDto;
 import br.com.brain.professor.ProfessorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -66,20 +66,24 @@ public class TarefaController {
     }
 
     @PostMapping(value = "/lote", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<List<ListagemTarefaDto>> cadastrarLote(
+    public ResponseEntity<LoteRegistradoDto> cadastrarLote(
             @RequestPart("dados") @Valid CadastroTarefaConteudoLoteDto dados,
             @RequestPart(value = "arquivo", required = false) MultipartFile arquivo,
             @AuthenticationPrincipal DadosAutenticacao usuario) {
         var professor = professorService.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
-        var criadas = service.cadastrarTarefaLote(dados, arquivo, professor);
-        return ResponseEntity.ok(criadas);
+        var resultado = service.cadastrarTarefaLote(dados, arquivo, professor);
+        return ResponseEntity.ok(resultado);
     }
 
     @GetMapping("/professor")
     public ResponseEntity<Page<ListagemTarefaDto>> recuperarTarefas(
             @PageableDefault(size = 10, sort = { "dataCriacao" }, direction = Direction.DESC) Pageable paginacao,
+            @RequestParam(value = "historico", required = false, defaultValue = "false") boolean historico,
             @AuthenticationPrincipal DadosAutenticacao usuario) {
         var professor = professorService.recuperarProfessorPorDadosPessoais(usuario.getDadosPessoais().getId());
-        return ResponseEntity.ok(service.recuperarTarefasProfessor(professor.getId(), paginacao));
+        var tarefas = historico
+                ? service.recuperarTodasTarefasProfessor(professor.getId(), paginacao)
+                : service.recuperarTarefasProfessor(professor.getId(), paginacao);
+        return ResponseEntity.ok(tarefas);
     }
 }

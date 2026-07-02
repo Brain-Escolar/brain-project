@@ -12,13 +12,14 @@ interface UseTarefasProfessorReturn {
   refetch: () => void;
 }
 
-export function useTarefasProfessor(): UseTarefasProfessorReturn {
+export function useTarefasProfessor(historico = false, enabled = true): UseTarefasProfessorReturn {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: [...QUERY_KEYS.tarefas.lists(), "professor"],
+    queryKey: [...QUERY_KEYS.tarefas.lists(), "professor", historico],
     queryFn: async () => {
-      const response = await tarefaApi.getTarefasProfessor();
+      const response = await tarefaApi.getTarefasProfessor(historico);
       return response.content ?? [];
     },
+    enabled,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     retry: 2,
