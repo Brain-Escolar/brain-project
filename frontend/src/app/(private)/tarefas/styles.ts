@@ -26,6 +26,7 @@ export const SegButton = styled.button<{ $active: boolean }>`
 
 export const FiltersContainer = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 20px;
   align-items: center;
@@ -34,9 +35,14 @@ export const FiltersContainer = styled.div`
 export const SearchContainer = styled.div`
   position: relative;
   flex: 1;
+  min-width: 200px;
   max-width: 320px;
   display: flex;
   align-items: center;
+
+  @media (max-width: 600px) {
+    max-width: none;
+  }
 `;
 
 export const SearchIcon = styled.div`
@@ -97,11 +103,16 @@ export const ContentContainer = styled.div`
   display: flex;
   gap: 24px;
   align-items: flex-start;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+  }
 `;
 
 export const MainContent = styled.div`
   flex: 1;
   min-width: 0;
+  width: 100%;
 `;
 
 export const Sidebar = styled.div`
@@ -113,6 +124,10 @@ export const Sidebar = styled.div`
   box-shadow: ${cssVarShadow("level1")};
   padding: 20px;
   height: fit-content;
+
+  @media (max-width: 900px) {
+    width: 100%;
+  }
 `;
 
 export const SidebarTitle = styled.h3`

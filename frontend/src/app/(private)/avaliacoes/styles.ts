@@ -14,8 +14,9 @@ export const AvPanel = styled.div`
 
 export const AvRow = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
+  gap: 12px 16px;
   padding: 14px 16px;
   border-radius: ${cssVarRadius("lg")};
   cursor: pointer;
@@ -23,6 +24,10 @@ export const AvRow = styled.div`
 
   &:hover {
     background: ${cssVarColor("backgroundHover")};
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
   }
 `;
 
@@ -44,6 +49,10 @@ export const AvRowInfo = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+
+  @media (max-width: 480px) {
+    min-width: 140px;
+  }
 `;
 
 export const AvRowTitle = styled.div`
@@ -78,6 +87,10 @@ export const AvRowRight = styled.div`
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    margin-left: 60px;
+  }
 `;
 
 export const AvRowChevron = styled.div`
@@ -92,6 +105,7 @@ export const AvRowChevron = styled.div`
 
 export const FiltersContainer = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 20px;
   align-items: center;
@@ -100,9 +114,14 @@ export const FiltersContainer = styled.div`
 export const SearchContainer = styled.div`
   position: relative;
   flex: 1;
+  min-width: 200px;
   max-width: 320px;
   display: flex;
   align-items: center;
+
+  @media (max-width: 600px) {
+    max-width: none;
+  }
 `;
 
 export const SearchIcon = styled.div`

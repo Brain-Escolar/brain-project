@@ -15,6 +15,7 @@ export const DisciplinaHeader = styled.div`
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 `;
 
 export const DisciplinaIconBox = styled.div`
@@ -44,4 +45,8 @@ export const TurmasGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
+
+  @media (max-width: 360px) {
+    grid-template-columns: 1fr;
+  }
 `;

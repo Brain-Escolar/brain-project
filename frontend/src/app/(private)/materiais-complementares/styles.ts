@@ -13,6 +13,7 @@ export const DiscSection = styled.section`
 
 export const DiscHead = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -88,6 +89,10 @@ export const MatGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 12px;
+
+  @media (max-width: 340px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const MatCard = styled.div`

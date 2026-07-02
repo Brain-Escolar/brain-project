@@ -18,8 +18,10 @@ export default function PageScaffold({ title, description, actions, children }: 
           sx={{
             mb: 3,
             display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
             justifyContent: "space-between",
-            alignItems: "center",
+            alignItems: { xs: "stretch", sm: "center" },
+            gap: { xs: 1.5, sm: 2 },
           }}
         >
           {title && <PageTitle title={title} description={description} />}

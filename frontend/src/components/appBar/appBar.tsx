@@ -4,20 +4,23 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { AppBar as MuiAppBar, Badge, Container, Toolbar, Typography } from "@mui/material";
+import { AppBar as MuiAppBar, Badge, Container, IconButton, Toolbar, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
+import MenuRounded from "@mui/icons-material/MenuRounded";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadConversas } from "@/hooks/useConversas";
 import { NotificationMenu } from "@/components/appBar/notificationMenu";
 import { useTheme } from "@mui/material/styles";
 import { UserMenu } from "@/components/appBar/userMenu";
 import { DynamicModuleMenu } from "@/components/appBar/dynamicModuleMenu/DynamicModuleMenu";
+import { MobileNavDrawer } from "@/components/appBar/mobileNavDrawer/MobileNavDrawer";
 import { getMenuModules, getRoutesWithoutModule } from "@/constants/routesConfig";
 
 export default function AppBar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const theme = useTheme();
+  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   const directRoutes = React.useMemo(
     () => (user ? getRoutesWithoutModule(user.role) : []),
@@ -63,6 +66,14 @@ export default function AppBar() {
     >
       <Container maxWidth={false} disableGutters sx={{ px: { xs: 2, sm: 3 } }}>
         <Toolbar disableGutters sx={{ minHeight: "4rem" }}>
+          <IconButton
+            aria-label="Abrir menu"
+            onClick={() => setMobileNavOpen(true)}
+            sx={{ display: { xs: "inline-flex", md: "none" }, mr: 1, color: appBarText }}
+          >
+            <MenuRounded />
+          </IconButton>
+
           <Link
             href="/"
             aria-label="Brain"
@@ -81,7 +92,7 @@ export default function AppBar() {
 
           <Box
             sx={{
-              display: { xs: "none", sm: "flex" },
+              display: { xs: "none", md: "flex" },
               alignItems: "center",
               justifyContent: "flex-start",
               gap: 2.5,
@@ -153,6 +164,16 @@ export default function AppBar() {
           </Box>
         </Toolbar>
       </Container>
+
+      <MobileNavDrawer
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        role={user.role}
+        directRoutes={directRoutes}
+        moduleMenus={moduleMenus}
+        unreadConversas={unreadConversas}
+        logoSrc={logoSrc}
+      />
     </MuiAppBar>
   );
 }

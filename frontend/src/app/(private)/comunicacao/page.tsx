@@ -22,9 +22,12 @@ import {
   FormControl,
   InputLabel,
   FormHelperText,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
+import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import BusinessIcon from "@mui/icons-material/Business";
 import PeopleIcon from "@mui/icons-material/People";
@@ -72,6 +75,8 @@ function formatDateTime(isoString: string): string {
 }
 
 export default function ComunicacaoPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [page] = useState(0);
   const [search, setSearch] = useState("");
   const [selectedConversa, setSelectedConversa] = useState<ConversaResponse | null>(null);
@@ -160,14 +165,22 @@ export default function ComunicacaoPage() {
       }
     >
 
-      <Box sx={{ display: "flex", gap: 2, mt: 3, height: "calc(100vh - 220px)", minHeight: 500 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 2,
+          mt: 3,
+          height: { xs: "calc(100dvh - 180px)", md: "calc(100vh - 220px)" },
+          minHeight: { xs: 420, md: 500 },
+        }}
+      >
         {/* Painel esquerdo — lista de conversas */}
         <Paper
           variant="outlined"
           sx={{
-            width: 360,
+            width: { xs: "100%", md: 360 },
             flexShrink: 0,
-            display: "flex",
+            display: { xs: selectedConversa ? "none" : "flex", md: "flex" },
             flexDirection: "column",
             overflow: "hidden",
           }}
@@ -302,7 +315,13 @@ export default function ComunicacaoPage() {
         {/* Painel direito — detalhe da conversa */}
         <Paper
           variant="outlined"
-          sx={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}
+          sx={{
+            flex: 1,
+            display: { xs: selectedConversa ? "flex" : "none", md: "flex" },
+            flexDirection: "column",
+            overflow: "hidden",
+            minWidth: 0,
+          }}
         >
           {!selectedConversa ? (
             <Box
@@ -331,23 +350,35 @@ export default function ComunicacaoPage() {
               {/* Cabeçalho da conversa */}
               <Box
                 sx={{
-                  px: 3,
+                  px: { xs: 2, sm: 3 },
                   py: 2,
                   borderBottom: 1,
                   borderColor: "divider",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  gap: 1,
                 }}
               >
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    {selectedConversa.titulo}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {PERFIL_DISPLAY_NAME[selectedConversa.destinatarioPerfilNome] ??
-                      selectedConversa.destinatarioPerfilNome}
-                  </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+                  {isMobile && (
+                    <IconButton
+                      size="small"
+                      aria-label="Voltar para a lista"
+                      onClick={() => setSelectedConversa(null)}
+                    >
+                      <ArrowBackRounded fontSize="small" />
+                    </IconButton>
+                  )}
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="subtitle1" fontWeight={600} noWrap>
+                      {selectedConversa.titulo}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {PERFIL_DISPLAY_NAME[selectedConversa.destinatarioPerfilNome] ??
+                        selectedConversa.destinatarioPerfilNome}
+                    </Typography>
+                  </Box>
                 </Box>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Chip
@@ -379,7 +410,7 @@ export default function ComunicacaoPage() {
               </Box>
 
               {/* Área de mensagens */}
-              <Box sx={{ flex: 1, overflowY: "auto", px: 3, py: 2 }}>
+              <Box sx={{ flex: 1, overflowY: "auto", px: { xs: 2, sm: 3 }, py: 2 }}>
                 {loadingMensagens ? (
                   <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
                     <CircularProgress size={28} />
@@ -398,7 +429,7 @@ export default function ComunicacaoPage() {
                         >
                           <Box
                             sx={{
-                              maxWidth: "70%",
+                              maxWidth: { xs: "85%", sm: "70%" },
                               bgcolor: isOwn ? "primary.main" : "grey.100",
                               color: isOwn ? "primary.contrastText" : "text.primary",
                               borderRadius: 2,
@@ -446,7 +477,7 @@ export default function ComunicacaoPage() {
               {selectedConversa.status === "ABERTA" && (
                 <Box
                   sx={{
-                    px: 3,
+                    px: { xs: 2, sm: 3 },
                     py: 2,
                     borderTop: 1,
                     borderColor: "divider",
@@ -480,7 +511,7 @@ export default function ComunicacaoPage() {
               {selectedConversa.status === "FECHADA" && (
                 <Box
                   sx={{
-                    px: 3,
+                    px: { xs: 2, sm: 3 },
                     py: 2,
                     borderTop: 1,
                     borderColor: "divider",

@@ -87,8 +87,9 @@ export const FilterSelect = styled.select`
 
 export const ResultCard = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
+  gap: 12px 16px;
   padding: 16px;
   background: ${cssVarColor("backgroundSection")};
   border: 1px solid ${cssVarColor("borderSubtle")};
@@ -114,7 +115,7 @@ export const ResultIcon = styled.div`
 
 export const ResultBody = styled.div`
   flex: 1;
-  min-width: 0;
+  min-width: 160px;
   display: flex;
   flex-direction: column;
   gap: 4px;

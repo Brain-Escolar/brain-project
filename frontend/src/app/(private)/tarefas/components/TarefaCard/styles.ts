@@ -15,13 +15,18 @@ export const Panel = styled.div`
 
 export const Row = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
+  gap: 12px 16px;
   padding: 14px 16px;
   border-radius: ${cssVarRadius("lg")};
 
   & + & {
     border-top: 1px solid ${cssVarColor("borderSubtle")};
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
   }
 `;
 
@@ -43,6 +48,10 @@ export const RowInfo = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+
+  @media (max-width: 480px) {
+    min-width: 140px;
+  }
 `;
 
 export const RowTitle = styled.div`
@@ -81,4 +90,8 @@ export const RowRight = styled.div`
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+
+  @media (max-width: 480px) {
+    margin-left: 60px;
+  }
 `;
