@@ -208,7 +208,11 @@ public class TarefaService {
     }
 
     public List<ListagemTarefaDto> listarTarefasPorAula(Long aulaId, LocalDate data) {
-        return repository.findByAulaIdAndPrazo(aulaId, data)
+        var aula = aulaRepository.findById(aulaId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
+        return repository
+                .findByAulaTurmaIdAndAulaDisciplinaIdAndPrazo(
+                        aula.getTurma().getId(), aula.getDisciplina().getId(), data)
                 .stream().map(this::toDto).toList();
     }
 
@@ -221,7 +225,11 @@ public class TarefaService {
     }
 
     public List<String> listarDatasComTarefas(Long aulaId) {
-        return repository.findDistinctPrazoByAulaId(aulaId)
+        var aula = aulaRepository.findById(aulaId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
+        return repository
+                .findDistinctPrazoByAulaTurmaIdAndAulaDisciplinaId(
+                        aula.getTurma().getId(), aula.getDisciplina().getId())
                 .stream().map(LocalDate::toString).toList();
     }
 

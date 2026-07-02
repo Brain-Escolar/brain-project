@@ -42,7 +42,7 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
 
     boolean existsByProfessorIdAndTurmaIdAndDisciplinaId(Long professorId, Long turmaId, Long disciplinaId);
 
-    List<Aula> findByDisciplinaId(Long disciplinaId);
+    List<Aula> findByDisciplinaIdAndTurmaId(Long disciplinaId, Long turmaId);
 
     List<Aula> findByProfessorIdAndDiaSemanaIn(Long professorId, List<DayOfWeek> dias, Sort sort);
 

@@ -19,12 +19,6 @@ import TabelaHorarioSemanal from "../tabelaHorarioSemanal/tabelaHorarioSemanal";
 
 type ViewMode = "diario" | "semanal";
 
-/** Formata um horário vindo da API como [hora, minuto] para "HH:MM". */
-function formatHorario(time: number[]): string {
-  const [h = 0, m = 0] = time ?? [];
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-
 function isToday(date: Date): boolean {
   const now = new Date();
   return (
@@ -130,14 +124,10 @@ function SemanalContent({
             <Typography sx={{ fontSize: 13, fontWeight: 600, lineHeight: 1.25 }}>
               {aula.disciplina}
             </Typography>
-            <Typography
-              sx={{ fontSize: 12, color: "var(--colors-textSecondary)", mt: 0.3 }}
-            >
+            <Typography sx={{ fontSize: 12, color: "var(--colors-textSecondary)", mt: 0.3 }}>
               {aula.serie} {aula.turma}
             </Typography>
-            <Typography
-              sx={{ fontSize: 11, color: "var(--colors-textTertiary)", mt: 0.2 }}
-            >
+            <Typography sx={{ fontSize: 11, color: "var(--colors-textTertiary)", mt: 0.2 }}>
               Sala {aula.sala}
             </Typography>
           </>
@@ -241,7 +231,7 @@ export default function SectionMinhasAulas() {
               key={`${aula.disciplina}-${aula.turma}-${index}`}
               title={`${aula.disciplina} - ${aula.serie} ${aula.turma}`}
               image={"https://placehold.co/100.png"}
-              hour={`${formatHorario(aula.horarioInicio)} - ${formatHorario(aula.horarioFim)}`}
+              hour={`${aula.horarioInicio} - ${aula.horarioFim}`}
               classroom={`Sala ${aula.sala}`}
               students={aula.quantidadeAlunos}
               highlight={index === proximaAulaIndex}

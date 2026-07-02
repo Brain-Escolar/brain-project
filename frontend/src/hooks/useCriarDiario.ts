@@ -6,8 +6,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export interface CriarDiarioInput {
   conteudo: string;
-  descricaoTarefa: string;
-  prazo: string; // "YYYY-MM-DD"
+  descricaoTarefa?: string;
+  prazo?: string; // "YYYY-MM-DD"
   aulaId: number;
   turmaId: number;
   data: string; // "YYYY-MM-DD" — data da aula
@@ -32,23 +32,25 @@ export function useCriarDiario(aulaId: string) {
         });
       }
 
-      if (input.tarefaId) {
-        await tarefaApi.atualizarTarefa({
-          id: String(input.tarefaId),
-          conteudo: input.descricaoTarefa,
-          prazo: input.prazo,
-          arquivo: input.arquivo,
-        });
-      } else {
-        await tarefaApi.criarTarefa(
-          {
+      if (input.descricaoTarefa && input.prazo) {
+        if (input.tarefaId) {
+          await tarefaApi.atualizarTarefa({
+            id: String(input.tarefaId),
             conteudo: input.descricaoTarefa,
-            aulaId: input.turmaId,
             prazo: input.prazo,
-            dataCriacao: input.data,
-          },
-          input.arquivo,
-        );
+            arquivo: input.arquivo,
+          });
+        } else {
+          await tarefaApi.criarTarefa(
+            {
+              conteudo: input.descricaoTarefa,
+              aulaId: input.aulaId,
+              prazo: input.prazo,
+              dataCriacao: input.data,
+            },
+            input.arquivo,
+          );
+        }
       }
     },
     onSuccess: (_, input) => {

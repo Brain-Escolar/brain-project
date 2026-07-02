@@ -12,7 +12,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { AttachFile, Close, InsertInvitation } from "@mui/icons-material";
+import { Add, AttachFile, Close, InsertInvitation } from "@mui/icons-material";
 import { format, parseISO } from "date-fns";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -34,6 +34,7 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
   const [descricaoTarefa, setDescricaoTarefa] = useState("");
   const [prazo, setPrazo] = useState<Date | null>(null);
   const [arquivo, setArquivo] = useState<File | null>(null);
+  const [mostrarFormTarefa, setMostrarFormTarefa] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Valores originais carregados do banco — para detectar mudanças
@@ -52,6 +53,7 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
   const initialized = useRef(false);
   useEffect(() => {
     initialized.current = false;
+    setMostrarFormTarefa(false);
   }, [aulaId, data]);
 
   // Inicializa os campos quando o diário carrega.
@@ -71,6 +73,7 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
       setOriginalDescricaoTarefa(d);
       setOriginalPrazo(prazoDb);
       if (prazoDb) setPrazo(parseISO(prazoDb));
+      setMostrarFormTarefa(!!diario.tarefa);
       initialized.current = true;
     }
 
@@ -82,25 +85,43 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
 
   const hasChanges = useMemo(() => {
     if (!diarioExiste) return true;
+    if (conteudo.trim() !== originalConteudo.trim()) return true;
+    if (!mostrarFormTarefa) return false;
     const prazoStr = prazo ? format(prazo, "yyyy-MM-dd") : null;
     return (
-      conteudo.trim() !== originalConteudo.trim() ||
       descricaoTarefa.trim() !== originalDescricaoTarefa.trim() ||
       prazoStr !== originalPrazo ||
       arquivo !== null
     );
-  }, [conteudo, descricaoTarefa, prazo, arquivo, originalConteudo, originalDescricaoTarefa, originalPrazo, diarioExiste]);
+  }, [
+    conteudo,
+    descricaoTarefa,
+    prazo,
+    arquivo,
+    originalConteudo,
+    originalDescricaoTarefa,
+    originalPrazo,
+    diarioExiste,
+    mostrarFormTarefa,
+  ]);
+
+  const handleCancelarTarefa = () => {
+    setMostrarFormTarefa(false);
+    setDescricaoTarefa("");
+    setArquivo(null);
+    setPrazo(proximaAula?.data ? parseISO(proximaAula.data) : null);
+  };
 
   const handleSalvarDiario = async () => {
     if (!conteudo.trim()) {
       toast.error("Informe o conteúdo da aula.");
       return;
     }
-    if (!descricaoTarefa.trim()) {
+    if (mostrarFormTarefa && !descricaoTarefa.trim()) {
       toast.error("Informe a descrição da tarefa.");
       return;
     }
-    if (!prazo) {
+    if (mostrarFormTarefa && !prazo) {
       toast.error("Informe o prazo da tarefa.");
       return;
     }
@@ -109,17 +130,17 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
       return;
     }
 
-    const prazoFormatado = format(prazo, "yyyy-MM-dd");
+    const prazoFormatado = prazo ? format(prazo, "yyyy-MM-dd") : undefined;
 
     try {
       await criarDiario({
         conteudo: conteudo.trim(),
-        descricaoTarefa: descricaoTarefa.trim(),
-        prazo: prazoFormatado,
+        descricaoTarefa: mostrarFormTarefa ? descricaoTarefa.trim() : undefined,
+        prazo: mostrarFormTarefa ? prazoFormatado : undefined,
         aulaId: Number(aulaId),
         turmaId,
         data,
-        arquivo: arquivo ?? undefined,
+        arquivo: mostrarFormTarefa ? arquivo ?? undefined : undefined,
         conteudoId: diario.conteudo?.id,
         tarefaId: diario.tarefa?.id,
       });
@@ -127,14 +148,19 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
       setArquivo(null);
       // Atualiza os originais para refletir o novo estado salvo
       setOriginalConteudo(conteudo.trim());
-      setOriginalDescricaoTarefa(descricaoTarefa.trim());
-      setOriginalPrazo(prazoFormatado);
+      if (mostrarFormTarefa) {
+        setOriginalDescricaoTarefa(descricaoTarefa.trim());
+        setOriginalPrazo(prazoFormatado ?? null);
+      }
     } catch {
       toast.error("Erro ao salvar diário. Tente novamente.");
     }
   };
 
-  const canSave = !!conteudo.trim() && !!descricaoTarefa.trim() && !!prazo && !!turmaId;
+  const canSave =
+    !!conteudo.trim() &&
+    !!turmaId &&
+    (!mostrarFormTarefa || (!!descricaoTarefa.trim() && !!prazo));
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
@@ -230,98 +256,123 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
               disabled={carregandoDiario}
             />
 
-            <TextField
-              label="Descrição da tarefa"
-              size="small"
-              fullWidth
-              multiline
-              rows={2}
-              value={descricaoTarefa}
-              onChange={(e) => setDescricaoTarefa(e.target.value)}
-              disabled={carregandoDiario}
-            />
-
-            <DatePicker
-              label="Prazo da tarefa"
-              value={prazo}
-              onChange={(v) => setPrazo(v as Date | null)}
-              slotProps={{ textField: { size: "small", fullWidth: true } }}
-              disabled={carregandoDiario}
-            />
-
-            {/* Anexo: mostra arquivo existente ou input para novo */}
-            <Box>
-              <input
-                ref={fileInputRef}
-                type="file"
-                hidden
-                onChange={(e) => setArquivo(e.target.files?.[0] ?? null)}
-              />
-              {arquivo ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    p: 1,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                  }}
-                >
-                  <AttachFile fontSize="small" color="action" />
-                  <Typography variant="body2" sx={{ flex: 1 }} noWrap>
-                    {arquivo.name}
+            {mostrarFormTarefa ? (
+              <>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Typography variant="body2" fontWeight={600} color="text.secondary">
+                    Tarefa
                   </Typography>
-                  <IconButton size="small" onClick={() => setArquivo(null)}>
-                    <Close fontSize="small" />
-                  </IconButton>
+                  {!diario.tarefa && (
+                    <IconButton size="small" onClick={handleCancelarTarefa} disabled={carregandoDiario}>
+                      <Close fontSize="small" />
+                    </IconButton>
+                  )}
                 </Box>
-              ) : diario.tarefa?.documentoUrl ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Box
-                    component="a"
-                    href={diario.tarefa.documentoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      p: 1,
-                      flex: 1,
-                      bgcolor: "grey.50",
-                      borderRadius: 1,
-                      textDecoration: "none",
-                      "&:hover": { bgcolor: "grey.100" },
-                    }}
-                  >
-                    <AttachFile fontSize="small" color="action" />
-                    <Typography variant="body2" color="primary">
-                      Anexo atual
-                    </Typography>
-                  </Box>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    startIcon={<AttachFile />}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    Substituir
-                  </Button>
-                </Box>
-              ) : (
-                <Button
-                  variant="outlined"
+
+                <TextField
+                  label="Descrição da tarefa"
                   size="small"
-                  startIcon={<AttachFile />}
-                  onClick={() => fileInputRef.current?.click()}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  value={descricaoTarefa}
+                  onChange={(e) => setDescricaoTarefa(e.target.value)}
                   disabled={carregandoDiario}
-                >
-                  Anexar arquivo
-                </Button>
-              )}
-            </Box>
+                />
+
+                <DatePicker
+                  label="Prazo da tarefa"
+                  value={prazo}
+                  onChange={(v) => setPrazo(v as Date | null)}
+                  slotProps={{ textField: { size: "small", fullWidth: true } }}
+                  disabled={carregandoDiario}
+                />
+
+                {/* Anexo: mostra arquivo existente ou input para novo */}
+                <Box>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    hidden
+                    onChange={(e) => setArquivo(e.target.files?.[0] ?? null)}
+                  />
+                  {arquivo ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        p: 1,
+                        border: "1px solid",
+                        borderColor: "divider",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <AttachFile fontSize="small" color="action" />
+                      <Typography variant="body2" sx={{ flex: 1 }} noWrap>
+                        {arquivo.name}
+                      </Typography>
+                      <IconButton size="small" onClick={() => setArquivo(null)}>
+                        <Close fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  ) : diario.tarefa?.documentoUrl ? (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        component="a"
+                        href={diario.tarefa.documentoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          p: 1,
+                          flex: 1,
+                          bgcolor: "grey.50",
+                          borderRadius: 1,
+                          textDecoration: "none",
+                          "&:hover": { bgcolor: "grey.100" },
+                        }}
+                      >
+                        <AttachFile fontSize="small" color="action" />
+                        <Typography variant="body2" color="primary">
+                          Anexo atual
+                        </Typography>
+                      </Box>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<AttachFile />}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Substituir
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<AttachFile />}
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={carregandoDiario}
+                    >
+                      Anexar arquivo
+                    </Button>
+                  )}
+                </Box>
+              </>
+            ) : (
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<Add />}
+                onClick={() => setMostrarFormTarefa(true)}
+                disabled={carregandoDiario}
+              >
+                Adicionar tarefa
+              </Button>
+            )}
 
             <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Button

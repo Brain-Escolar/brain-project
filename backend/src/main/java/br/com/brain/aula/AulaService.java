@@ -186,7 +186,8 @@ public class AulaService {
         var aula = repository.findById(aulaId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId));
 
-        var aulasDaDisciplina = repository.findByDisciplinaId(aula.getDisciplina().getId());
+        var aulasDaDisciplina = repository.findByDisciplinaIdAndTurmaId(
+                aula.getDisciplina().getId(), aula.getTurma().getId());
 
         return aulasDaDisciplina.stream()
                 .map(a -> {
