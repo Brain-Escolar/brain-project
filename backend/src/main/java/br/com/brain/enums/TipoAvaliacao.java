@@ -7,7 +7,8 @@ public enum TipoAvaliacao {
     PROVA("Prova"),
     TRABALHO("Trabalho"),
     LISTA("Lista"),
-    SEMINARIO("Seminário");
+    SEMINARIO("Seminário"),
+    RECUPERACAO("Recuperação");
 
     private final String descricao;
 

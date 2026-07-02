@@ -15,4 +15,9 @@ public interface ChamadaRepository extends JpaRepository<Chamada, Long> {
 
     @Query("SELECT COUNT(c) FROM Chamada c WHERE c.aluno.id = :alunoId AND c.aula.disciplina.id = :disciplinaId")
     Integer countTotalByAlunoAndDisciplina(@Param("alunoId") Long alunoId, @Param("disciplinaId") Long disciplinaId);
+
+    @Query("SELECT COUNT(c) FROM Chamada c WHERE c.aluno.id = :alunoId AND c.aula.disciplina.id = :disciplinaId "
+            + "AND c.presente = false AND c.data BETWEEN :inicio AND :fim")
+    Integer countFaltasByAlunoAndDisciplinaAndPeriodo(@Param("alunoId") Long alunoId,
+            @Param("disciplinaId") Long disciplinaId, @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 }
