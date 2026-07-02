@@ -73,6 +73,7 @@ export enum RouteLabelsEnum {
   CALENDARIO = "Calendário",
   BOLETIM = "Boletim",
   AVALIACOES = "Avaliações",
+  CONTRACHEQUE = "Contracheque e declarações",
   COMUNICADOS = "Comunicados",
   COMUNICADO_CADASTRO = "Cadastro de Comunicado",
   COMUNICACAO = "Fale conosco",

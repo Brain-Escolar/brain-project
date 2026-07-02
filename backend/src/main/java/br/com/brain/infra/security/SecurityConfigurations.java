@@ -53,6 +53,14 @@ public class SecurityConfigurations {
                             req.requestMatchers(HttpMethod.PUT, "/comunicado/**").hasRole("SECRETARIO");
                             req.requestMatchers(HttpMethod.DELETE, "/comunicado/**").hasRole("SECRETARIO");
 
+                            // Holerite / Informe de rendimentos (contracheque e declarações)
+                            req.requestMatchers(HttpMethod.POST, "/holerite/**")
+                                    .hasAnyRole("RECURSOS_HUMANOS", "ADMIN");
+                            req.requestMatchers(HttpMethod.GET, "/holerite/**").hasRole("PROFESSOR");
+                            req.requestMatchers(HttpMethod.POST, "/informe-rendimento/**")
+                                    .hasAnyRole("RECURSOS_HUMANOS", "ADMIN");
+                            req.requestMatchers(HttpMethod.GET, "/informe-rendimento/**").hasRole("PROFESSOR");
+
                             // Aluno
                             req.requestMatchers(HttpMethod.POST, "/aluno/**").hasRole("SECRETARIO");
                             req.requestMatchers(HttpMethod.GET, "/aluno/**")
@@ -120,7 +128,8 @@ public class SecurityConfigurations {
                 + "ROLE_DIRETOR > ROLE_SECRETARIO\n"
                 + "ROLE_SECRETARIO > ROLE_COORDENADOR\n"
                 + "ROLE_ADMIN > ROLE_PROFESSOR\n"
-                + "ROLE_ADMIN > ROLE_ESTUDANTE\n";
+                + "ROLE_ADMIN > ROLE_ESTUDANTE\n"
+                + "ROLE_ADMIN > ROLE_RECURSOS_HUMANOS\n";
         return RoleHierarchyImpl.fromHierarchy(hierarquia);
     }
 }

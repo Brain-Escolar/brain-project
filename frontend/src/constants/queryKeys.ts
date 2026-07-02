@@ -179,4 +179,12 @@ export const QUERY_KEYS = {
     periodo: (dataInicio: string, dataFim: string) =>
       [...["eventos"], "periodo", dataInicio, dataFim] as const,
   },
+  holerites: {
+    all: ["holerites"] as const,
+    meus: () => [...QUERY_KEYS.holerites.all, "meus"] as const,
+  },
+  informesRendimento: {
+    all: ["informesRendimento"] as const,
+    meus: () => [...QUERY_KEYS.informesRendimento.all, "meus"] as const,
+  },
 } as const;

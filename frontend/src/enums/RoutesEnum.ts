@@ -84,6 +84,7 @@ export enum RoutesEnum {
   BOLETIM = "/boletim",
   AVALIACOES = "/avaliacoes",
   TAREFAS = "/tarefas",
+  CONTRACHEQUE = "/contracheque",
   COMUNICADOS = "/comunicados",
   COMUNICADOS_CADASTRO = "/comunicados/cadastro",
   COMUNICACAO = "/comunicacao",
