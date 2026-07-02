@@ -27,6 +27,7 @@ import { EventoApi } from "./domains/evento";
 import { CalendarGoogleApi } from "./domains/calendar-google";
 import { HoleriteApi } from "./domains/holerite";
 import { InformeRendimentoApi } from "./domains/informe-rendimento";
+import { MaterialComplementarApi } from "./domains/material-complementar";
 
 export const alunoApi = new AlunoApi();
 export const estudanteApi = new EstudanteApi();
@@ -57,3 +58,4 @@ export const eventoApi = new EventoApi();
 export const calendarGoogleApi = new CalendarGoogleApi();
 export const holeriteApi = new HoleriteApi();
 export const informeRendimentoApi = new InformeRendimentoApi();
+export const materialComplementarApi = new MaterialComplementarApi();

@@ -187,4 +187,8 @@ export const QUERY_KEYS = {
     all: ["informesRendimento"] as const,
     meus: () => [...QUERY_KEYS.informesRendimento.all, "meus"] as const,
   },
+  materiaisComplementares: {
+    all: ["materiaisComplementares"] as const,
+    professor: () => [...QUERY_KEYS.materiaisComplementares.all, "professor"] as const,
+  },
 } as const;

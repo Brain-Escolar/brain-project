@@ -61,6 +61,11 @@ public class SecurityConfigurations {
                                     .hasAnyRole("RECURSOS_HUMANOS", "ADMIN");
                             req.requestMatchers(HttpMethod.GET, "/informe-rendimento/**").hasRole("PROFESSOR");
 
+                            // Material complementar
+                            req.requestMatchers(HttpMethod.POST, "/material-complementar/**").hasRole("PROFESSOR");
+                            req.requestMatchers(HttpMethod.GET, "/material-complementar/**").hasRole("PROFESSOR");
+                            req.requestMatchers(HttpMethod.DELETE, "/material-complementar/**").hasRole("PROFESSOR");
+
                             // Aluno
                             req.requestMatchers(HttpMethod.POST, "/aluno/**").hasRole("SECRETARIO");
                             req.requestMatchers(HttpMethod.GET, "/aluno/**")

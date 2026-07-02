@@ -24,6 +24,7 @@ import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
 import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import RequestQuoteOutlinedIcon from "@mui/icons-material/RequestQuoteOutlined";
+import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -428,6 +429,13 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.AVALIACAO_TURMA_NOTAS,
     isShowMenu: false,
     roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
+  },
+  {
+    text: RouteLabelsEnum.MATERIAIS_COMPLEMENTARES,
+    icon: <FolderOpenOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.MATERIAIS_COMPLEMENTARES,
+    isShowMenu: true,
+    roles: [UserRoleEnum.PROFESSOR],
   },
   {
     text: RouteLabelsEnum.CONTRACHEQUE,

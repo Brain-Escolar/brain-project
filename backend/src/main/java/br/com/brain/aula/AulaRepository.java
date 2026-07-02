@@ -42,6 +42,15 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
 
     boolean existsByProfessorIdAndTurmaIdAndDisciplinaId(Long professorId, Long turmaId, Long disciplinaId);
 
+    boolean existsByProfessorIdAndDisciplinaId(Long professorId, Long disciplinaId);
+
+    @Query("""
+                SELECT DISTINCT aula.disciplina.id
+                FROM Aula aula
+                WHERE aula.professor.id = :professorId
+            """)
+    List<Long> findDisciplinaIdsDistinctByProfessorId(@Param("professorId") Long professorId);
+
     List<Aula> findByDisciplinaIdAndTurmaId(Long disciplinaId, Long turmaId);
 
     List<Aula> findByProfessorIdAndDiaSemanaIn(Long professorId, List<DayOfWeek> dias, Sort sort);
