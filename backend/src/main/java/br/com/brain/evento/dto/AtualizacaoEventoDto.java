@@ -13,5 +13,5 @@ public record AtualizacaoEventoDto(
         Long serieId,
         Long unidadeId,
         Long professorId,
-        Long avaliacaoId) {
+        Long avaliacaoTurmaId) {
 }

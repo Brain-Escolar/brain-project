@@ -2,7 +2,7 @@ package br.com.brain.notas;
 
 import br.com.brain.aluno.Aluno;
 import br.com.brain.aluno.AlunoRepository;
-import br.com.brain.avaliacao.Avaliacao;
+import br.com.brain.avaliacao.AvaliacaoTurma;
 import br.com.brain.notas.dto.AtualizacaoNotasDto;
 import br.com.brain.notas.dto.CadastroNotasDto;
 import br.com.brain.notas.dto.DetalhamentoNotasAlunoDisciplinaDto;
@@ -31,10 +31,10 @@ public class NotasService {
     public Notas cadastrarNotas(CadastroNotasDto dados) {
 
         Aluno aluno = em.getReference(Aluno.class, dados.alunoId());
-        Avaliacao avaliacao = em.getReference(Avaliacao.class, dados.avaliacaoId());
+        AvaliacaoTurma avaliacaoTurma = em.getReference(AvaliacaoTurma.class, dados.avaliacaoTurmaId());
         var notas = new Notas();
         notas.setAluno(aluno);
-        notas.setAvaliacao(avaliacao);
+        notas.setAvaliacaoTurma(avaliacaoTurma);
         notas.setPontuacao(dados.pontuacao());
         notas.setPeriodoReferencia(dados.periodoReferencia());
 
@@ -56,9 +56,9 @@ public class NotasService {
             Aluno aluno = em.getReference(Aluno.class, dados.alunoId());
             nota.setAluno(aluno);
         }
-        if (dados.avaliacaoId() != null) {
-            Avaliacao avaliacao = em.getReference(Avaliacao.class, dados.avaliacaoId());
-            nota.setAvaliacao(avaliacao);
+        if (dados.avaliacaoTurmaId() != null) {
+            AvaliacaoTurma avaliacaoTurma = em.getReference(AvaliacaoTurma.class, dados.avaliacaoTurmaId());
+            nota.setAvaliacaoTurma(avaliacaoTurma);
         }
         if (dados.pontuacao() != null) {
             nota.setPontuacao(dados.pontuacao());
@@ -90,7 +90,7 @@ public class NotasService {
     public DetalhamentoNotasAlunoDisciplinaDto buscarNotasAlunoPorDisciplina(Long alunoId, Long disciplinaId) {
         var aluno = alunoRepository.findById(alunoId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
-        var notas = repository.findByAlunoIdAndAvaliacaoDisciplinaId(alunoId, disciplinaId);
+        var notas = repository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(alunoId, disciplinaId);
         return new DetalhamentoNotasAlunoDisciplinaDto(aluno, notas);
     }
 }

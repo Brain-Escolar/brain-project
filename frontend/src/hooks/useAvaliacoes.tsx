@@ -15,7 +15,7 @@ export function useAvaliacoes() {
   } = useQuery({
     queryKey: QUERY_KEYS.avaliacoes.lists(),
     queryFn: async () => {
-      const response = await avaliacaoApi.getListaAvaliacoes();
+      const response = await avaliacaoApi.getListaAvaliacoesProfessor();
       return response.content || [];
     },
   });

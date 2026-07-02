@@ -1,22 +1,21 @@
 package br.com.brain.avaliacao;
 
-import br.com.brain.aluno.AlunoRepository;
+import br.com.brain.arquivo.Arquivo;
+import br.com.brain.arquivo.ArquivoRepository;
+import br.com.brain.arquivo.dto.ListagemArquivoDto;
 import br.com.brain.disciplina.Disciplina;
-import br.com.brain.evento.Evento;
-import br.com.brain.evento.EventoRepository;
-import br.com.brain.notas.Notas;
+import br.com.brain.infra.aws.S3Service;
 import br.com.brain.notas.NotasRepository;
-import br.com.brain.professor.Professor;
-import br.com.brain.turma.Turma;
-import br.com.brain.enums.TipoEvento;
 import br.com.brain.avaliacao.dto.AtualizacaoAvaliacaoDto;
 import br.com.brain.avaliacao.dto.CadastroAvaliacaoDto;
-import br.com.brain.avaliacao.dto.CadastroNotasAvaliacaoDto;
-import br.com.brain.aluno.dto.NomeAlunoDto;
+import br.com.brain.avaliacao.dto.DetalhamentoAvaliacaoDto;
 import br.com.brain.avaliacao.dto.ListagemAvaliacaoDto;
 import br.com.brain.exception.ErrosSistema;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -25,49 +24,54 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 public class AvaliacaoService {
 
     private final AvaliacaoRepository repository;
-    private final EventoRepository eventoRepository;
-    private final AlunoRepository alunoRepository;
+    private final AvaliacaoTurmaRepository avaliacaoTurmaRepository;
+    private final AvaliacaoTurmaService avaliacaoTurmaService;
+    private final AvaliacaoAnexoRepository avaliacaoAnexoRepository;
+    private final ArquivoRepository arquivoRepository;
     private final NotasRepository notasRepository;
+    private final S3Service s3Service;
 
     @PersistenceContext
     private EntityManager em;
 
     @Transactional
-    public Avaliacao cadastrarAvaliacao(CadastroAvaliacaoDto dados) {
+    public Avaliacao cadastrarAvaliacao(CadastroAvaliacaoDto dados, List<MultipartFile> anexos, Long professorPadraoId) {
 
         Disciplina disciplina = em.getReference(Disciplina.class, dados.disciplinaId());
-        Professor professor = em.find(Professor.class, dados.professorId());
-        Turma turma = em.getReference(Turma.class, dados.turmaId());
         var avaliacao = new Avaliacao();
         avaliacao.setNome(dados.nome());
         avaliacao.setDisciplina(disciplina);
-        avaliacao.setProfessor(professor);
-        avaliacao.setTurma(turma);
+        avaliacao.setTipo(dados.tipo());
         avaliacao.setNotaMaxima(dados.notaMaxima());
         avaliacao.setConteudo(dados.conteudo());
-        avaliacao.setDataAplicacao(dados.dataAplicacao());
         if (dados.notaExtra() != null) {
             avaliacao.setNotaExtra(dados.notaExtra());
         }
-        if (dados.dataEntregaNotas() != null) {
-            avaliacao.setDataEntregaNotas(dados.dataEntregaNotas());
-            var evento = criarEventoEntregaNotas(avaliacao, professor, dados.dataEntregaNotas());
-            avaliacao.setEvento(evento);
-        }
 
         repository.save(avaliacao);
+
+        for (var turmaDto : dados.turmas()) {
+            avaliacaoTurmaService.criarParaAvaliacao(avaliacao, turmaDto, professorPadraoId);
+        }
+
+        if (anexos != null) {
+            for (var anexo : anexos) {
+                adicionarAnexo(avaliacao, anexo);
+            }
+        }
 
         return avaliacao;
     }
 
     public Page<ListagemAvaliacaoDto> listar(Pageable paginacao) {
-        return repository.findAll(paginacao).map(ListagemAvaliacaoDto::new);
+        return repository.findAll(paginacao).map(avaliacao -> construirListagem(avaliacao, null));
     }
 
     @Transactional
@@ -82,11 +86,8 @@ public class AvaliacaoService {
             Disciplina disciplina = em.getReference(Disciplina.class, dados.disciplinaId());
             avaliacao.setDisciplina(disciplina);
         }
-        if (dados.turmaId() != null) {
-            avaliacao.setTurma(em.getReference(Turma.class, dados.turmaId()));
-        }
-        if (dados.dataAplicacao() != null) {
-            avaliacao.setDataAplicacao(dados.dataAplicacao());
+        if (dados.tipo() != null) {
+            avaliacao.setTipo(dados.tipo());
         }
         if (dados.notaMaxima() != null) {
             avaliacao.setNotaMaxima(dados.notaMaxima());
@@ -97,16 +98,6 @@ public class AvaliacaoService {
         if (dados.notaExtra() != null) {
             avaliacao.setNotaExtra(dados.notaExtra());
         }
-        if (dados.dataEntregaNotas() != null) {
-            avaliacao.setDataEntregaNotas(dados.dataEntregaNotas());
-            if (avaliacao.getEvento() != null) {
-                avaliacao.getEvento().setDataEvento(dados.dataEntregaNotas());
-                eventoRepository.save(avaliacao.getEvento());
-            } else {
-                var evento = criarEventoEntregaNotas(avaliacao, avaliacao.getProfessor(), dados.dataEntregaNotas());
-                avaliacao.setEvento(evento);
-            }
-        }
         repository.save(avaliacao);
 
         return avaliacao;
@@ -114,64 +105,74 @@ public class AvaliacaoService {
 
     @Transactional
     public void excluir(Long id) {
-        var avaliacao = repository.findById(id).get();
+        var avaliacao = repository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Avaliação", id));
+
+        var turmas = avaliacaoTurmaRepository.findByAvaliacaoId(id);
+        boolean temNotasLancadas = turmas.stream()
+                .anyMatch(turma -> notasRepository.countByAvaliacaoTurmaId(turma.getId()) > 0);
+        if (temNotasLancadas) {
+            throw ErrosSistema.OperacaoInvalidaException
+                    .com("Não é possível excluir uma avaliação que já possui notas lançadas.");
+        }
+
+        avaliacaoTurmaRepository.deleteAll(turmas);
+        avaliacaoAnexoRepository.deleteAll(avaliacaoAnexoRepository.findByAvaliacaoId(id));
         repository.delete(avaliacao);
     }
 
-    public Avaliacao detalhar(Long id) {
-        return repository.findById(id).get();
+    public DetalhamentoAvaliacaoDto detalhar(Long id) {
+        var avaliacao = repository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Avaliação", id));
+
+        var anexos = avaliacaoAnexoRepository.findByAvaliacaoId(id).stream()
+                .map(anexo -> {
+                    String downloadUrl = s3Service.generatePresignedDownloadUrl(
+                            anexo.getArquivo().getS3Key(), Duration.ofMinutes(15));
+                    return new ListagemArquivoDto(anexo.getArquivo(), downloadUrl);
+                })
+                .toList();
+
+        var turmas = avaliacaoTurmaService.listarResumoPorAvaliacao(id);
+
+        return new DetalhamentoAvaliacaoDto(avaliacao, anexos, turmas);
     }
 
     public Page<ListagemAvaliacaoDto> listarPorProfessor(Long professorId, Pageable paginacao) {
-        return repository.findByProfessorId(professorId, paginacao).map(avaliacao -> {
-            long totalAlunos = avaliacao.getTurma() != null
-                    ? alunoRepository.countByTurmaIdAndMatriculadoTrue(avaliacao.getTurma().getId())
-                    : 0L;
-            long alunosCorrigidos = notasRepository.countByAvaliacaoId(avaliacao.getId());
-            return new ListagemAvaliacaoDto(avaliacao, totalAlunos, alunosCorrigidos);
-        });
-    }
-
-    public List<NomeAlunoDto> recuperarAlunosPorAvaliacao(Long avaliacaoId) {
-        var avaliacao = repository.findById(avaliacaoId)
-                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Avaliação", avaliacaoId));
-
-        if (avaliacao.getTurma() == null) {
-            return List.of();
-        }
-
-        return alunoRepository.findByTurmaIdAndMatriculadoTrue(avaliacao.getTurma().getId())
-                .stream()
-                .map(NomeAlunoDto::new)
-                .toList();
+        return repository.findDistinctByAvaliacoesTurmasProfessorId(professorId, paginacao)
+                .map(avaliacao -> construirListagem(avaliacao, professorId));
     }
 
     @Transactional
-    public void cadastrarNotasDeUmaAvaliacao(Long avaliacaoId, CadastroNotasAvaliacaoDto dados) {
-        var avaliacao = repository.findById(avaliacaoId)
-                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Avaliação", avaliacaoId));
+    public void adicionarAnexo(Avaliacao avaliacao, MultipartFile anexo) {
+        String key = "avaliacoes/" + UUID.randomUUID() + "-" + anexo.getOriginalFilename();
+        s3Service.upload(key, anexo);
 
-        var notas = dados.notas().stream().map(notaDto -> {
-            var nota = new Notas();
-            nota.setAvaliacao(avaliacao);
-            nota.setAluno(em.getReference(br.com.brain.aluno.Aluno.class, notaDto.alunoId()));
-            nota.setPontuacao(notaDto.pontuacao());
-            nota.setPeriodoReferencia(dados.periodoReferencia());
-            return nota;
-        }).toList();
+        var arquivo = new Arquivo();
+        arquivo.setS3Key(key);
+        arquivo.setNomeOriginal(anexo.getOriginalFilename());
+        arquivo.setContentType(anexo.getContentType());
+        arquivo.setTamanho(anexo.getSize());
+        arquivoRepository.save(arquivo);
 
-        notasRepository.saveAll(notas);
+        var avaliacaoAnexo = new AvaliacaoAnexo();
+        avaliacaoAnexo.setArquivo(arquivo);
+        avaliacaoAnexo.setAvaliacao(avaliacao);
+        avaliacaoAnexoRepository.save(avaliacaoAnexo);
     }
 
-    private Evento criarEventoEntregaNotas(Avaliacao avaliacao, Professor professor, java.time.LocalDate dataEntregaNotas) {
-        var evento = new Evento();
-        evento.setTitulo("Entrega de notas: " + avaliacao.getNome());
-        evento.setDescricao("Prazo para lançamento de notas da avaliação \"" + avaliacao.getNome() + "\"");
-        evento.setDataEvento(dataEntregaNotas);
-        evento.setTipo(TipoEvento.ENTREGA_NOTAS);
-        evento.setProfessor(professor);
-        evento.setAvaliacao(avaliacao);
-        eventoRepository.save(evento);
-        return evento;
+    private ListagemAvaliacaoDto construirListagem(Avaliacao avaliacao, Long professorId) {
+        var turmas = professorId != null
+                ? avaliacaoTurmaRepository.findByAvaliacaoIdAndProfessorId(avaliacao.getId(), professorId)
+                : avaliacaoTurmaRepository.findByAvaliacaoId(avaliacao.getId());
+
+        long totalTurmas = turmas.size();
+        long turmasLancadas = turmas.stream()
+                .map(avaliacaoTurmaService::construirListagem)
+                .filter(resumo -> resumo.totalAlunos() > 0 && resumo.alunosCorrigidos() >= resumo.totalAlunos())
+                .count();
+        var turmaIds = turmas.stream().map(turma -> turma.getTurma().getId()).toList();
+
+        return new ListagemAvaliacaoDto(avaliacao, totalTurmas, turmasLancadas, turmaIds);
     }
 }

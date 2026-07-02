@@ -15,7 +15,8 @@ export function useAvaliacaoMutations() {
 
   // Mutation para criar avaliação
   const createAvaliacao = useMutation({
-    mutationFn: (data: AvaliacaoPostRequest) => avaliacaoApi.criarAvaliacao(data),
+    mutationFn: ({ dados, anexos }: { dados: AvaliacaoPostRequest; anexos?: File[] }) =>
+      avaliacaoApi.criarAvaliacao(dados, anexos),
     onSuccess: () => {
       // Invalida e refetch a lista de avaliações
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.avaliacoes.all });

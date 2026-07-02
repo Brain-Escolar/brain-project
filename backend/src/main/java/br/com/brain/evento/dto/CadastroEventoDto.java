@@ -15,5 +15,5 @@ public record CadastroEventoDto(
         Long serieId,
         Long unidadeId,
         Long professorId,
-        Long avaliacaoId) {
+        Long avaliacaoTurmaId) {
 }

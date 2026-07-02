@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface NotasRepository extends JpaRepository<Notas, Long> {
 
-    long countByAvaliacaoId(Long avaliacaoId);
+    long countByAvaliacaoTurmaId(Long avaliacaoTurmaId);
 
-    List<Notas> findByAlunoIdAndAvaliacaoDisciplinaId(Long alunoId, Long disciplinaId);
+    List<Notas> findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(Long alunoId, Long disciplinaId);
 }

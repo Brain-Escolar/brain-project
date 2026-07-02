@@ -44,7 +44,6 @@ export enum RouteLabelsEnum {
   HORARIO = "Horário",
 
   // Avaliacao labels
-  AVALIACOES_CADASTRO = "Avaliações",
   AVALIACAO = "Avaliação",
 
   // Notas labels

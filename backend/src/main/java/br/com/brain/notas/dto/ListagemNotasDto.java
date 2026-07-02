@@ -12,8 +12,8 @@ public record ListagemNotasDto(
     public ListagemNotasDto(Notas notas) {
         this(
                 notas.getAluno().getDadosPessoais().getNome(),
-                notas.getAvaliacao().getDisciplina().getNome(),
-                notas.getAvaliacao().getNome(),
+                notas.getAvaliacaoTurma().getAvaliacao().getDisciplina().getNome(),
+                notas.getAvaliacaoTurma().getAvaliacao().getNome(),
                 notas.getPontuacao());
     }
 }

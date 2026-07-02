@@ -1,7 +1,7 @@
 package br.com.brain.notas;
 
 import br.com.brain.aluno.Aluno;
-import br.com.brain.avaliacao.Avaliacao;
+import br.com.brain.avaliacao.AvaliacaoTurma;
 import br.com.brain.shared.EntidadeBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,8 +35,8 @@ public class Notas extends EntidadeBase {
     private Aluno aluno;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "avaliacao_id", referencedColumnName = "id")
-    private Avaliacao avaliacao;
+    @JoinColumn(name = "avaliacao_turma_id", referencedColumnName = "id")
+    private AvaliacaoTurma avaliacaoTurma;
 
     @Column(name = "pontuacao")
     private BigDecimal pontuacao;

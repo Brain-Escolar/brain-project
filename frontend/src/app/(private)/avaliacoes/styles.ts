@@ -1,157 +1,154 @@
 "use client";
-import { cssVarColor } from "@/styles";
-import { BrainBoxShadow } from "@/utils/utilsCss";
+import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius, cssVarShadow } from "@/styles";
 import styled from "styled-components";
 
-export const Header = styled.div`
-  margin-bottom: 32px;
-`;
-
-export const TabsContainer = styled.div`
+export const AvPanel = styled.div`
+  background: ${cssVarColor("backgroundSection")};
+  border: 1px solid ${cssVarColor("borderSubtle")};
+  border-radius: ${cssVarRadius("xl")};
+  box-shadow: ${cssVarShadow("level1")};
+  padding: 8px;
   display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-  border-bottom: 1px solid ${cssVarColor("border")};
+  flex-direction: column;
 `;
 
-export const Tab = styled.button<{ $active?: boolean }>`
-  background: none;
-  border: none;
-  padding: 12px 16px;
+export const AvRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: ${cssVarRadius("lg")};
   cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: ${(props) => (props.$active ? cssVarColor("primary") : cssVarColor("textSecondary"))};
-  border-bottom: 2px solid ${(props) => (props.$active ? cssVarColor("primary") : "transparent")};
-  transition: all 0.2s ease;
+  transition: background 140ms;
 
   &:hover {
-    color: ${cssVarColor("primary")};
+    background: ${cssVarColor("backgroundHover")};
+  }
+`;
+
+export const AvRowIcon = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: ${cssVarRadius("md")};
+  background: ${cssVarColor("primarySubtle")};
+  color: ${cssVarColor("primary")};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
+
+export const AvRowInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+export const AvRowTitle = styled.div`
+  font-size: ${cssVarFontSize("h4")};
+  font-weight: ${cssVarFontWeight("semibold")};
+  color: ${cssVarColor("text")};
+  line-height: 1.2;
+`;
+
+export const AvRowMeta = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: ${cssVarFontSize("body2")};
+  color: ${cssVarColor("textSecondary")};
+  flex-wrap: wrap;
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  svg {
+    font-size: 18px;
+    color: ${cssVarColor("textTertiary")};
+  }
+`;
+
+export const AvRowRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+`;
+
+export const AvRowChevron = styled.div`
+  color: ${cssVarColor("textTertiary")};
+  display: flex;
+  align-items: center;
+
+  svg {
+    font-size: 22px;
   }
 `;
 
 export const FiltersContainer = styled.div`
   display: flex;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   align-items: center;
 `;
 
 export const SearchContainer = styled.div`
   position: relative;
   flex: 1;
-  max-width: 300px;
-`;
-
-export const SearchInput = styled.input`
-  width: 100%;
-  padding: 8px 12px 8px 36px;
-  border: 1px solid ${cssVarColor("border")};
-  border-radius: 6px;
-  font-size: 0.875rem;
-  background: ${cssVarColor("background")};
-  color: ${cssVarColor("text")};
-
-  &::placeholder {
-    color: ${cssVarColor("textSecondary")};
-  }
-
-  &:focus {
-    outline: none;
-    border-color: ${cssVarColor("primary")};
-  }
+  max-width: 320px;
+  display: flex;
+  align-items: center;
 `;
 
 export const SearchIcon = styled.div`
   position: absolute;
   left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: ${cssVarColor("textSecondary")};
-  font-size: 0.875rem;
+  display: flex;
+  color: ${cssVarColor("textTertiary")};
+
+  svg {
+    font-size: 20px;
+  }
+`;
+
+export const SearchInput = styled.input`
+  width: 100%;
+  height: 40px;
+  padding: 0 12px 0 40px;
+  border: 1px solid ${cssVarColor("border")};
+  border-radius: ${cssVarRadius("md")};
+  background: ${cssVarColor("backgroundSection")};
+  font-size: ${cssVarFontSize("body2")};
+  color: ${cssVarColor("text")};
+  outline: none;
+  transition: border-color 140ms, box-shadow 140ms;
+
+  &::placeholder {
+    color: ${cssVarColor("textTertiary")};
+  }
+
+  &:focus {
+    border-color: ${cssVarColor("primary")};
+  }
 `;
 
 export const FilterSelect = styled.select`
-  padding: 8px 12px;
+  height: 40px;
+  padding: 0 12px;
   border: 1px solid ${cssVarColor("border")};
-  border-radius: 6px;
-  font-size: 0.875rem;
-  background: ${cssVarColor("background")};
+  border-radius: ${cssVarRadius("md")};
+  font-size: ${cssVarFontSize("body2")};
+  background: ${cssVarColor("backgroundSection")};
   color: ${cssVarColor("text")};
   cursor: pointer;
 
   &:focus {
     outline: none;
     border-color: ${cssVarColor("primary")};
-  }
-`;
-
-export const ContentContainer = styled.div`
-  display: flex;
-  gap: 24px;
-`;
-
-export const MainContent = styled.div`
-  flex: 1;
-`;
-
-export const Sidebar = styled.div`
-  width: 300px;
-  background: ${cssVarColor("background")};
-  border: 1px solid ${cssVarColor("border")};
-  border-radius: 8px;
-  padding: 20px;
-  ${BrainBoxShadow}
-  height: fit-content;
-`;
-
-export const SidebarTitle = styled.h3`
-  margin: 0 0 16px 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: ${cssVarColor("text")};
-`;
-
-export const SidebarSubtitle = styled.p`
-  margin: 0 0 20px 0;
-  font-size: 0.875rem;
-  color: ${cssVarColor("textSecondary")};
-`;
-
-export const StatCard = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid ${cssVarColor("border")};
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-export const StatLabel = styled.span`
-  font-size: 0.875rem;
-  color: ${cssVarColor("text")};
-`;
-
-export const StatValue = styled.span`
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: ${cssVarColor("text")};
-`;
-
-export const EvaluationsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-`;
-
-export const ClickableCard = styled.div`
-  cursor: pointer;
-  transition: transform 0.15s ease;
-
-  &:hover {
-    transform: translateY(-1px);
   }
 `;

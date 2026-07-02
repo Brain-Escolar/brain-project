@@ -15,7 +15,7 @@ public record DetalhamentoEventoDto(
         Long serieId,
         Long unidadeId,
         Long professorId,
-        Long avaliacaoId) {
+        Long avaliacaoTurmaId) {
 
     public DetalhamentoEventoDto(Evento evento) {
         this(
@@ -28,6 +28,6 @@ public record DetalhamentoEventoDto(
                 evento.getSerie() != null ? evento.getSerie().getId() : null,
                 evento.getUnidade() != null ? evento.getUnidade().getId() : null,
                 evento.getProfessor() != null ? evento.getProfessor().getId() : null,
-                evento.getAvaliacao() != null ? evento.getAvaliacao().getId() : null);
+                evento.getAvaliacaoTurma() != null ? evento.getAvaliacaoTurma().getId() : null);
     }
 }

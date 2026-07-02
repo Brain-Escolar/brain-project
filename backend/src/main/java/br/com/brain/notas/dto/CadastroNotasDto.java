@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record CadastroNotasDto(
         @NotNull Long alunoId,
-        @NotNull Long avaliacaoId,
+        @NotNull Long avaliacaoTurmaId,
         @NotNull BigDecimal pontuacao,
         @NotNull LocalDate periodoReferencia) {
 }

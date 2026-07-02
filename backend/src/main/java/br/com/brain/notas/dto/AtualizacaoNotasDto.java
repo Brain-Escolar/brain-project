@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 public record AtualizacaoNotasDto(
         Long alunoId,
-        Long avaliacaoId,
+        Long avaliacaoTurmaId,
         BigDecimal pontuacao,
         LocalDate periodoReferencia) {
 }

@@ -1,47 +1,32 @@
 package br.com.brain.avaliacao.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.List;
 
 import br.com.brain.avaliacao.Avaliacao;
+import br.com.brain.enums.TipoAvaliacao;
 
 public record ListagemAvaliacaoDto(
         Long id,
         String nome,
         String disciplina,
-        String turma,
+        TipoAvaliacao tipo,
         BigDecimal notaMaxima,
         String conteudo,
-        LocalDate dataAplicacao,
-        LocalDate dataEntregaNotas,
-        Long totalAlunos,
-        Long alunosCorrigidos) {
+        long totalTurmas,
+        long turmasLancadas,
+        List<Long> turmaIds) {
 
-    public ListagemAvaliacaoDto(Avaliacao avaliacao) {
+    public ListagemAvaliacaoDto(Avaliacao avaliacao, long totalTurmas, long turmasLancadas, List<Long> turmaIds) {
         this(
                 avaliacao.getId(),
                 avaliacao.getNome(),
                 avaliacao.getDisciplina().getNome(),
-                avaliacao.getTurma() == null ? null : avaliacao.getTurma().getNome(),
+                avaliacao.getTipo(),
                 avaliacao.getNotaMaxima(),
                 avaliacao.getConteudo(),
-                avaliacao.getDataAplicacao(),
-                avaliacao.getDataEntregaNotas(),
-                null,
-                null);
-    }
-
-    public ListagemAvaliacaoDto(Avaliacao avaliacao, long totalAlunos, long alunosCorrigidos) {
-        this(
-                avaliacao.getId(),
-                avaliacao.getNome(),
-                avaliacao.getDisciplina().getNome(),
-                avaliacao.getTurma() == null ? null : avaliacao.getTurma().getNome(),
-                avaliacao.getNotaMaxima(),
-                avaliacao.getConteudo(),
-                avaliacao.getDataAplicacao(),
-                avaliacao.getDataEntregaNotas(),
-                totalAlunos,
-                alunosCorrigidos);
+                totalTurmas,
+                turmasLancadas,
+                turmaIds);
     }
 }

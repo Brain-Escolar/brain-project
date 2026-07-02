@@ -1,166 +1,162 @@
 "use client";
-import EvaluationCard from "@/components/evaluationCard/evaluationCard";
+import Badge from "@/components/badge";
 import LoadingComponent from "@/components/loadingComponent/loadingComponent";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
 import { RoutesEnum } from "@/enums";
 import { useAvaliacoes } from "@/hooks/useAvaliacoes";
-import { useDisciplinas } from "@/hooks/useDisciplinas";
-import { useSeries } from "@/hooks/useSeries";
-import { useTarefasProfessor } from "@/hooks/useTarefasProfessor";
-import AddIcon from "@mui/icons-material/Add";
+import { useMinhasTurmas } from "@/hooks/useMinhasTurmas";
+import { AvaliacaoListaResponse } from "@/services/domains/avaliacao/response";
+import { getDisciplinaIcon } from "@/utils/disciplinaUtils";
+import AddRounded from "@mui/icons-material/AddRounded";
+import CheckRounded from "@mui/icons-material/CheckRounded";
+import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
+import GroupsRounded from "@mui/icons-material/GroupsRounded";
+import MenuBookRounded from "@mui/icons-material/MenuBookRounded";
+import PendingRounded from "@mui/icons-material/PendingRounded";
+import SearchRounded from "@mui/icons-material/SearchRounded";
 import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import TarefaCard from "./components/TarefaCard";
-import ModalCriarTarefa from "./components/ModalCriarTarefa";
+import { useMemo, useState } from "react";
+import ModalCriarAvaliacao from "./components/ModalCriarAvaliacao";
 import * as S from "./styles";
+
+const TIPO_LABELS = {
+  PROVA: "Prova",
+  TRABALHO: "Trabalho",
+  LISTA: "Lista",
+  SEMINARIO: "Seminário",
+} as const;
+
+const TIPO_TONE = {
+  PROVA: "primary",
+  TRABALHO: "info",
+  LISTA: "neutral",
+  SEMINARIO: "warning",
+} as const;
+
+function StatusBadge({ av }: { av: AvaliacaoListaResponse }) {
+  if (av.totalTurmas === 0) {
+    return <Badge $tone="neutral">Sem turmas</Badge>;
+  }
+  if (av.turmasLancadas >= av.totalTurmas) {
+    return (
+      <Badge $tone="success">
+        <CheckRounded sx={{ fontSize: 14 }} />
+        Concluído
+      </Badge>
+    );
+  }
+  return (
+    <Badge $tone="warning">
+      <PendingRounded sx={{ fontSize: 14 }} />
+      {av.turmasLancadas}/{av.totalTurmas} turmas
+    </Badge>
+  );
+}
 
 export default function AvaliacoesPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"avaliacoes" | "tarefas">("avaliacoes");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDisciplinaId, setSelectedDisciplinaId] = useState("");
-  const [selectedSerieId, setSelectedSerieId] = useState("");
   const [selectedTurma, setSelectedTurma] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalAvaliacaoOpen, setModalAvaliacaoOpen] = useState(false);
 
-  const { avaliacoes, loading: loadingAvaliacoes } = useAvaliacoes();
-  const { tarefas, loading: loadingTarefas } = useTarefasProfessor();
-  const { disciplinas } = useDisciplinas();
-  const { series } = useSeries();
+  const { avaliacoes, loading } = useAvaliacoes();
+  const { disciplinas: minhasTurmas } = useMinhasTurmas();
+
+  const turmasDisponiveis = useMemo(() => {
+    const map = new Map<number, string>();
+    minhasTurmas.forEach((disciplina) =>
+      disciplina.turmas.forEach((turma) => map.set(turma.turmaId, `${turma.serieNome} ${turma.nomeTurma}`)),
+    );
+    return Array.from(map.entries()).map(([turmaId, label]) => ({ turmaId, label }));
+  }, [minhasTurmas]);
 
   const filteredAvaliacoes = avaliacoes.filter((av) => {
     const term = searchTerm.toLowerCase();
-    return av.nome.toLowerCase().includes(term) || av.disciplina.toLowerCase().includes(term);
-  });
-
-  const filteredTarefas = tarefas.filter((t) => {
-    const term = searchTerm.toLowerCase();
-    return t.conteudo.toLowerCase().includes(term) || t.professor.toLowerCase().includes(term);
+    const matchTermo = av.nome.toLowerCase().includes(term) || av.disciplina.toLowerCase().includes(term);
+    const matchTurma = !selectedTurma || av.turmaIds.includes(Number(selectedTurma));
+    return matchTermo && matchTurma;
   });
 
   return (
-    <PageScaffold title="Avaliações e tarefas" description="Gerencie avaliações e notas dos alunos">
-      <S.TabsContainer>
-        <S.Tab $active={activeTab === "avaliacoes"} onClick={() => setActiveTab("avaliacoes")}>
-          ⭐ AVALIAÇÕES
-        </S.Tab>
-        <S.Tab $active={activeTab === "tarefas"} onClick={() => setActiveTab("tarefas")}>
-          ⭐ TAREFAS
-        </S.Tab>
-      </S.TabsContainer>
+    <PageScaffold
+      title="Avaliações"
+      description="Crie avaliações, acompanhe o lançamento de notas e edite o conteúdo de cada uma."
+      actions={
+        <Button variant="contained" startIcon={<AddRounded />} onClick={() => setModalAvaliacaoOpen(true)}>
+          Criar avaliação
+        </Button>
+      }
+    >
+      <S.FiltersContainer>
+        <S.SearchContainer>
+          <S.SearchIcon>
+            <SearchRounded />
+          </S.SearchIcon>
+          <S.SearchInput
+            type="text"
+            placeholder="Pesquisar"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </S.SearchContainer>
 
-      <S.ContentContainer>
-        <S.MainContent>
-          <S.FiltersContainer>
-            <S.SearchContainer>
-              <S.SearchIcon>🔍</S.SearchIcon>
-              <S.SearchInput
-                type="text"
-                placeholder="Pesquisar"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </S.SearchContainer>
+        <S.FilterSelect value={selectedTurma} onChange={(e) => setSelectedTurma(e.target.value)}>
+          <option value="">Turma</option>
+          {turmasDisponiveis.map((t) => (
+            <option key={t.turmaId} value={String(t.turmaId)}>
+              {t.label}
+            </option>
+          ))}
+        </S.FilterSelect>
+      </S.FiltersContainer>
 
-            <S.FilterSelect
-              value={selectedDisciplinaId}
-              onChange={(e) => setSelectedDisciplinaId(e.target.value)}
-            >
-              <option value="">Disciplina</option>
-              {disciplinas.map((d) => (
-                <option key={d.id} value={String(d.id)}>
-                  {d.nome}
-                </option>
-              ))}
-            </S.FilterSelect>
-
-            <S.FilterSelect
-              value={selectedSerieId}
-              onChange={(e) => setSelectedSerieId(e.target.value)}
-            >
-              <option value="">Série</option>
-              {series.map((s) => (
-                <option key={s.id} value={String(s.id)}>
-                  {s.nome}
-                </option>
-              ))}
-            </S.FilterSelect>
-
-            {activeTab === "avaliacoes" && (
-              <S.FilterSelect
-                value={selectedTurma}
-                onChange={(e) => setSelectedTurma(e.target.value)}
+      {loading ? (
+        <LoadingComponent />
+      ) : filteredAvaliacoes.length === 0 ? (
+        <BrainResultNotFound />
+      ) : (
+        <S.AvPanel>
+          {filteredAvaliacoes.map((av) => {
+            const DisciplinaIcon = getDisciplinaIcon(av.disciplina);
+            return (
+              <S.AvRow
+                key={av.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push(`${RoutesEnum.AVALIACAO_DETALHE}?id=${av.id}`)}
               >
-                <option value="">Turma</option>
-              </S.FilterSelect>
-            )}
+                <S.AvRowIcon>
+                  <DisciplinaIcon sx={{ fontSize: 24 }} />
+                </S.AvRowIcon>
+                <S.AvRowInfo>
+                  <S.AvRowTitle>{av.nome}</S.AvRowTitle>
+                  <S.AvRowMeta>
+                    <span>
+                      <MenuBookRounded />
+                      {av.disciplina}
+                    </span>
+                    <span>
+                      <GroupsRounded />
+                      {av.totalTurmas} turma{av.totalTurmas === 1 ? "" : "s"}
+                    </span>
+                  </S.AvRowMeta>
+                </S.AvRowInfo>
+                <S.AvRowRight>
+                  <Badge $tone={TIPO_TONE[av.tipo]}>{TIPO_LABELS[av.tipo]}</Badge>
+                  <StatusBadge av={av} />
+                  <S.AvRowChevron>
+                    <ChevronRightRounded />
+                  </S.AvRowChevron>
+                </S.AvRowRight>
+              </S.AvRow>
+            );
+          })}
+        </S.AvPanel>
+      )}
 
-            {activeTab === "tarefas" && (
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setModalOpen(true)}
-                sx={{ whiteSpace: "nowrap" }}
-              >
-                ADICIONAR
-              </Button>
-            )}
-          </S.FiltersContainer>
-
-          {activeTab === "avaliacoes" ? (
-            loadingAvaliacoes ? (
-              <LoadingComponent />
-            ) : filteredAvaliacoes.length === 0 ? (
-              <BrainResultNotFound />
-            ) : (
-              <S.EvaluationsList>
-                {filteredAvaliacoes.map((av) => (
-                  <S.ClickableCard
-                    key={av.id}
-                    onClick={() => router.push(`${RoutesEnum.AVALIACAO_DETALHE}?id=${av.id}`)}
-                  >
-                    <EvaluationCard
-                      title={av.nome}
-                      subject={av.disciplina}
-                      maxScore={av.peso}
-                      status="pending"
-                      progress={0}
-                      total={0}
-                      openDate="-"
-                      dueDate="-"
-                    />
-                  </S.ClickableCard>
-                ))}
-              </S.EvaluationsList>
-            )
-          ) : loadingTarefas ? (
-            <LoadingComponent />
-          ) : filteredTarefas.length === 0 ? (
-            <BrainResultNotFound />
-          ) : (
-            filteredTarefas.map((t) => <TarefaCard key={t.id} tarefa={t} />)
-          )}
-        </S.MainContent>
-
-        <S.Sidebar>
-          <S.SidebarTitle>Visão geral</S.SidebarTitle>
-          <S.SidebarSubtitle>Resumo de todas as avaliações</S.SidebarSubtitle>
-
-          <S.StatCard>
-            <S.StatLabel>Total de avaliações</S.StatLabel>
-            <S.StatValue>{avaliacoes.length}</S.StatValue>
-          </S.StatCard>
-
-          <S.StatCard>
-            <S.StatLabel>Total de tarefas</S.StatLabel>
-            <S.StatValue>{tarefas.length}</S.StatValue>
-          </S.StatCard>
-        </S.Sidebar>
-      </S.ContentContainer>
-
-      <ModalCriarTarefa open={modalOpen} onClose={() => setModalOpen(false)} />
+      <ModalCriarAvaliacao open={modalAvaliacaoOpen} onClose={() => setModalAvaliacaoOpen(false)} />
     </PageScaffold>
   );
 }

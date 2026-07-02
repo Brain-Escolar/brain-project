@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AvaliacaoRepository extends JpaRepository<Avaliacao, Long> {
 
-    Page<Avaliacao> findByProfessorId(Long professorId, Pageable pageable);
+    Page<Avaliacao> findDistinctByAvaliacoesTurmasProfessorId(Long professorId, Pageable pageable);
 }

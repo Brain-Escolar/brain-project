@@ -12,8 +12,8 @@ public record NotaDisciplinaItemDto(
 
     public NotaDisciplinaItemDto(Notas notas) {
         this(
-                notas.getAvaliacao().getNome(),
-                notas.getAvaliacao().getDataAplicacao(),
+                notas.getAvaliacaoTurma().getAvaliacao().getNome(),
+                notas.getAvaliacaoTurma().getDataAplicacao(),
                 notas.getPontuacao());
     }
 }

@@ -1,5 +1,4 @@
 export * from "./aulaDetail";
-export * from "./avaliacaoDetalhe";
 export * from "./comunicados";
 export * from "./gradesCurriculares";
 export * from "./disciplinas";

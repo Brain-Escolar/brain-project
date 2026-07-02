@@ -1,22 +1,45 @@
+export type TipoAvaliacao = "PROVA" | "TRABALHO" | "LISTA" | "SEMINARIO";
+
+export interface AvaliacaoTurmaInputRequest {
+  turmaId: number;
+  professorId?: number;
+  dataAplicacao?: string;
+  dataEntregaNotas?: string;
+}
+
 export interface AvaliacaoPostRequest {
   nome: string;
   disciplinaId: number;
-  peso: number;
-  conteudo: string;
-  notaExtra: boolean;
+  tipo: TipoAvaliacao;
+  notaMaxima: number;
+  conteudo?: string;
+  notaExtra?: boolean;
+  turmas: AvaliacaoTurmaInputRequest[];
 }
 
-export interface AvaliacaoPutRequest extends AvaliacaoPostRequest {
+export interface AvaliacaoPutRequest {
   id: string;
+  nome?: string;
+  disciplinaId?: number;
+  tipo?: TipoAvaliacao;
+  notaMaxima?: number;
+  conteudo?: string;
+  notaExtra?: boolean;
 }
 
-export interface SalvarNotasAlunoRequest {
+export interface AtualizacaoAvaliacaoTurmaRequest {
+  professorId?: number;
+  dataAplicacao?: string;
+  dataEntregaNotas?: string;
+}
+
+export interface SalvarNotaAlunoRequest {
   alunoId: number;
-  nota: number | null;
-  falta: boolean;
+  pontuacao: number;
 }
 
-export interface SalvarNotasAvaliacaoRequest {
-  avaliacaoId: number;
-  alunos: SalvarNotasAlunoRequest[];
+export interface SalvarNotasAvaliacaoTurmaRequest {
+  avaliacaoTurmaId: number;
+  notas: SalvarNotaAlunoRequest[];
+  periodoReferencia: string;
 }

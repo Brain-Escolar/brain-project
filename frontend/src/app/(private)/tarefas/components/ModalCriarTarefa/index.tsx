@@ -5,9 +5,7 @@ import { professorApi } from "@/services/api";
 import { ProfessorAulaSemanalResponse } from "@/services/domains/professor";
 import { TarefaLotePostRequest } from "@/services/domains/tarefa/request";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-import { cssVarColor } from "@/styles";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import InsertDriveFileOutlinedIcon from "@mui/icons-material/InsertDriveFileOutlined";
+import FileUploadArea from "@/components/fileUploadArea";
 import {
   Button,
   CircularProgress,
@@ -23,43 +21,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "react-toastify";
-import styled from "styled-components";
-
-const UploadArea = styled.div<{ $hasFile?: boolean }>`
-  border: 2px dashed ${(p) => (p.$hasFile ? cssVarColor("primary") : cssVarColor("border"))};
-  border-radius: 8px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  background: ${(p) => (p.$hasFile ? "rgba(0, 120, 212, 0.04)" : cssVarColor("background"))};
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: ${cssVarColor("primary")};
-    background: rgba(0, 120, 212, 0.04);
-  }
-`;
-
-const UploadLabel = styled.p`
-  margin: 0;
-  font-size: 0.85rem;
-  color: ${cssVarColor("textSecondary")};
-  text-align: center;
-`;
-
-const FilePreview = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: ${cssVarColor("text")};
-  font-weight: 500;
-`;
 
 interface ModalCriarTarefaProps {
   open: boolean;
@@ -93,7 +56,6 @@ const SEMANAS = gerarSemanas();
 
 export default function ModalCriarTarefa({ open, onClose }: ModalCriarTarefaProps) {
   const queryClient = useQueryClient();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [semanaInicio, setSemanaInicio] = useState("");
   const [serieId, setSerieId] = useState("");
@@ -284,47 +246,12 @@ export default function ModalCriarTarefa({ open, onClose }: ModalCriarTarefaProp
             <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
               Arquivo (opcional)
             </Typography>
-            <input
-              ref={fileInputRef}
-              type="file"
-              style={{ display: "none" }}
-              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png"
+            <FileUploadArea
+              files={selectedFile ? [selectedFile] : []}
+              onChange={(files) => setSelectedFile(files[files.length - 1] ?? null)}
+              multiple={false}
+              label="Clique para selecionar um arquivo (PDF, Word, Excel, PowerPoint ou imagem)"
             />
-            <UploadArea $hasFile={!!selectedFile} onClick={() => fileInputRef.current?.click()}>
-              {selectedFile ? (
-                <FilePreview>
-                  <InsertDriveFileOutlinedIcon sx={{ fontSize: 20, color: "primary.main" }} />
-                  <span>{selectedFile.name}</span>
-                  <Typography variant="caption" color="text.secondary">
-                    ({(selectedFile.size / 1024).toFixed(0)} KB)
-                  </Typography>
-                </FilePreview>
-              ) : (
-                <>
-                  <CloudUploadIcon sx={{ fontSize: 32, color: "text.secondary" }} />
-                  <UploadLabel>
-                    Clique para selecionar um arquivo
-                    <br />
-                    PDF, Word, Excel, PowerPoint ou imagem
-                  </UploadLabel>
-                </>
-              )}
-            </UploadArea>
-            {selectedFile && (
-              <Button
-                size="small"
-                color="error"
-                sx={{ mt: 0.5 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedFile(null);
-                  if (fileInputRef.current) fileInputRef.current.value = "";
-                }}
-              >
-                Remover arquivo
-              </Button>
-            )}
           </div>
         </DialogContent>
 

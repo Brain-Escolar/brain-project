@@ -1,42 +1,70 @@
 import { IBrainResult } from "@/services/commoResponse";
 import { httpClient } from "@/services/http";
-import { AvaliacaoPostRequest, AvaliacaoPutRequest, SalvarNotasAvaliacaoRequest } from "./request";
-import { AvaliacaoDetalhePageResponse, AvaliacaoDetalheResponse, AvaliacaoListaResponse } from "./response";
+import {
+  AtualizacaoAvaliacaoTurmaRequest,
+  AvaliacaoPostRequest,
+  AvaliacaoPutRequest,
+  AvaliacaoTurmaInputRequest,
+  SalvarNotasAvaliacaoTurmaRequest,
+} from "./request";
+import {
+  AlunoAvaliacaoTurmaResponse,
+  AvaliacaoDetalheResponse,
+  AvaliacaoListaResponse,
+  AvaliacaoTurmaResponse,
+} from "./response";
 
 const BASE_ROUTE = "avaliacao";
 
 export class AvaliacaoApi {
-  criarAvaliacao(request: AvaliacaoPostRequest): Promise<IBrainResult<void>> {
-    return httpClient.post(`${BASE_ROUTE}`, request);
+  criarAvaliacao(dados: AvaliacaoPostRequest, anexos?: File[]): Promise<AvaliacaoDetalheResponse> {
+    const formData = new FormData();
+    formData.append("dados", new Blob([JSON.stringify(dados)], { type: "application/json" }));
+    (anexos ?? []).forEach((anexo) => formData.append("anexos", anexo));
+    return httpClient.post(`${BASE_ROUTE}`, formData);
   }
 
-  getListaAvaliacoes(): Promise<IBrainResult<AvaliacaoListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+  getListaAvaliacoesProfessor(): Promise<IBrainResult<AvaliacaoListaResponse>> {
+    return httpClient.get(`${BASE_ROUTE}/professor`);
   }
 
   getAvaliacaoById(id: string): Promise<AvaliacaoDetalheResponse> {
     return httpClient.get(`${BASE_ROUTE}/${id}`);
   }
 
-  atualizarAvaliacao(request: AvaliacaoPutRequest): Promise<IBrainResult<void>> {
-    return httpClient.put(`${BASE_ROUTE}/${request.id}`, request);
+  atualizarAvaliacao(request: AvaliacaoPutRequest): Promise<AvaliacaoDetalheResponse> {
+    const { id, ...dados } = request;
+    return httpClient.put(`${BASE_ROUTE}/${id}`, dados);
   }
 
-  deleteAvaliacao(id: string): Promise<IBrainResult<void>> {
+  deleteAvaliacao(id: string): Promise<void> {
     return httpClient.delete(`${BASE_ROUTE}/${id}`);
   }
 
-  // TODO: Endpoint ainda não implementado no backend.
-  // Mock temporário em: src/mocks/avaliacaoDetalhe.ts → mockAvaliacaoDetalhe
-  // Quando implementado, substituir o mock no hook useAvaliacaoDetalheComAlunos por esta chamada.
-  getAvaliacaoDetalheComAlunos(id: string): Promise<AvaliacaoDetalhePageResponse> {
-    return httpClient.get(`${BASE_ROUTE}/${id}/detalhe`);
+  listarTurmasDaAvaliacao(avaliacaoId: string): Promise<AvaliacaoTurmaResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/${avaliacaoId}/turmas`);
   }
 
-  // TODO: Endpoint ainda não implementado no backend.
-  // Mock temporário em: src/mocks/avaliacaoDetalhe.ts → mockAvaliacaoDetalhe
-  // Quando implementado, substituir o mock no hook useAvaliacaoDetalheMutations por esta chamada.
-  salvarNotasAvaliacao(request: SalvarNotasAvaliacaoRequest): Promise<IBrainResult<void>> {
-    return httpClient.post(`${BASE_ROUTE}/${request.avaliacaoId}/notas`, request);
+  adicionarTurma(avaliacaoId: string, dados: AvaliacaoTurmaInputRequest): Promise<AvaliacaoTurmaResponse> {
+    return httpClient.post(`${BASE_ROUTE}/${avaliacaoId}/turmas`, dados);
+  }
+
+  atualizarDatasTurma(
+    avaliacaoTurmaId: number,
+    dados: AtualizacaoAvaliacaoTurmaRequest,
+  ): Promise<AvaliacaoTurmaResponse> {
+    return httpClient.put(`${BASE_ROUTE}/turmas/${avaliacaoTurmaId}`, dados);
+  }
+
+  removerTurma(avaliacaoTurmaId: number): Promise<void> {
+    return httpClient.delete(`${BASE_ROUTE}/turmas/${avaliacaoTurmaId}`);
+  }
+
+  getAlunosPorAvaliacaoTurma(avaliacaoTurmaId: number): Promise<AlunoAvaliacaoTurmaResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/turmas/${avaliacaoTurmaId}/alunos`);
+  }
+
+  salvarNotasAvaliacaoTurma(request: SalvarNotasAvaliacaoTurmaRequest): Promise<void> {
+    return httpClient.post(`${BASE_ROUTE}/turmas/${request.avaliacaoTurmaId}/notas`, request);
   }
 }

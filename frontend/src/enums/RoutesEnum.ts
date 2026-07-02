@@ -48,9 +48,8 @@ export enum RoutesEnum {
   HORARIO_CADASTRO = "/horario/cadastro",
 
   // Avaliacao routes
-  AVALIACAO_LISTA = "/avaliacao/lista",
-  AVALIACAO_CADASTRO = "/avaliacao/cadastro",
   AVALIACAO_DETALHE = "/avaliacao/detalhe",
+  AVALIACAO_TURMA_NOTAS = "/avaliacao/turma/notas",
 
   // Notas routes
   NOTA_LISTA = "/notas/lista",
@@ -84,6 +83,7 @@ export enum RoutesEnum {
   CALENDARIO = "/calendario",
   BOLETIM = "/boletim",
   AVALIACOES = "/avaliacoes",
+  TAREFAS = "/tarefas",
   COMUNICADOS = "/comunicados",
   COMUNICADOS_CADASTRO = "/comunicados/cadastro",
   COMUNICACAO = "/comunicacao",

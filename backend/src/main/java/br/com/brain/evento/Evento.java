@@ -1,7 +1,7 @@
 package br.com.brain.evento;
 
 import br.com.brain.shared.EntidadeBase;
-import br.com.brain.avaliacao.Avaliacao;
+import br.com.brain.avaliacao.AvaliacaoTurma;
 import br.com.brain.professor.Professor;
 import br.com.brain.serie.Serie;
 import br.com.brain.turma.Turma;
@@ -63,6 +63,6 @@ public class Evento extends EntidadeBase {
     private Professor professor;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "avaliacao_id", referencedColumnName = "id")
-    private Avaliacao avaliacao;
+    @JoinColumn(name = "avaliacao_turma_id", referencedColumnName = "id")
+    private AvaliacaoTurma avaliacaoTurma;
 }

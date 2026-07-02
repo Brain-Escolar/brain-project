@@ -120,7 +120,7 @@ public class MinhasTurmasService {
     }
 
     private DetalhamentoAlunoTurmaDto montarDetalheAluno(Aluno aluno, Long disciplinaId) {
-        var notas = notasRepository.findByAlunoIdAndAvaliacaoDisciplinaId(aluno.getId(), disciplinaId).stream()
+        var notas = notasRepository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(aluno.getId(), disciplinaId).stream()
                 .map(NotaDisciplinaItemDto::new)
                 .toList();
         var anotacoes = anotacaoRepository.findByDisciplinaIdAndAlunoId(disciplinaId, aluno.getId()).stream()
@@ -143,7 +143,7 @@ public class MinhasTurmasService {
     }
 
     private BigDecimal calcularMedia(Long alunoId, Long disciplinaId) {
-        var notas = notasRepository.findByAlunoIdAndAvaliacaoDisciplinaId(alunoId, disciplinaId);
+        var notas = notasRepository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(alunoId, disciplinaId);
         if (notas.isEmpty()) {
             return null;
         }

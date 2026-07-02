@@ -1,6 +1,6 @@
 package br.com.brain.evento;
 
-import br.com.brain.avaliacao.Avaliacao;
+import br.com.brain.avaliacao.AvaliacaoTurma;
 import br.com.brain.professor.Professor;
 import br.com.brain.serie.Serie;
 import br.com.brain.turma.Turma;
@@ -49,8 +49,8 @@ public class EventoService {
         if (dados.professorId() != null) {
             evento.setProfessor(em.getReference(Professor.class, dados.professorId()));
         }
-        if (dados.avaliacaoId() != null) {
-            evento.setAvaliacao(em.getReference(Avaliacao.class, dados.avaliacaoId()));
+        if (dados.avaliacaoTurmaId() != null) {
+            evento.setAvaliacaoTurma(em.getReference(AvaliacaoTurma.class, dados.avaliacaoTurmaId()));
         }
 
         repository.save(evento);
@@ -110,8 +110,8 @@ public class EventoService {
         if (dados.professorId() != null) {
             evento.setProfessor(em.getReference(Professor.class, dados.professorId()));
         }
-        if (dados.avaliacaoId() != null) {
-            evento.setAvaliacao(em.getReference(Avaliacao.class, dados.avaliacaoId()));
+        if (dados.avaliacaoTurmaId() != null) {
+            evento.setAvaliacaoTurma(em.getReference(AvaliacaoTurma.class, dados.avaliacaoTurmaId()));
         }
 
         repository.save(evento);
