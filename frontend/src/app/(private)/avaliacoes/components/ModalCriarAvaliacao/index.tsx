@@ -3,7 +3,13 @@
 import FileUploadArea from "@/components/fileUploadArea";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { useMinhasTurmas } from "@/hooks/useMinhasTurmas";
-import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius, cssVarShadow } from "@/styles";
+import {
+  cssVarColor,
+  cssVarFontSize,
+  cssVarFontWeight,
+  cssVarRadius,
+  cssVarShadow,
+} from "@/styles";
 import { AvaliacaoPostRequest, TipoAvaliacao } from "@/services/domains/avaliacao/request";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import {
@@ -74,8 +80,7 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
     }));
   }, [disciplinas, disciplinaId]);
 
-  const valido =
-    nome.trim() && disciplinaId && notaMaxima && turmasSelecionadas.length > 0;
+  const valido = nome.trim() && disciplinaId && notaMaxima && turmasSelecionadas.length > 0;
 
   function handleClose() {
     setNome("");
@@ -154,7 +159,13 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
       fullWidth
       maxWidth="sm"
       PaperProps={{
-        sx: { borderRadius: cssVarRadius("xl"), boxShadow: cssVarShadow("level3"), overflow: "hidden" },
+        component: "form",
+        onSubmit: handleSubmit,
+        sx: {
+          borderRadius: cssVarRadius("xl"),
+          boxShadow: cssVarShadow("level3"),
+          overflow: "hidden",
+        },
       }}
     >
       <Box
@@ -167,13 +178,22 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
           pt: 2.75,
           pb: 2,
           borderBottom: `1px solid ${cssVarColor("borderSubtle")}`,
+          flexShrink: 0,
         }}
       >
         <Box>
-          <Typography sx={{ fontSize: cssVarFontSize("h3"), fontWeight: cssVarFontWeight("semibold"), color: cssVarColor("text") }}>
+          <Typography
+            sx={{
+              fontSize: cssVarFontSize("h3"),
+              fontWeight: cssVarFontWeight("semibold"),
+              color: cssVarColor("text"),
+            }}
+          >
             Nova avaliação
           </Typography>
-          <Typography sx={{ fontSize: cssVarFontSize("body2"), color: cssVarColor("textSecondary"), mt: 0.5 }}>
+          <Typography
+            sx={{ fontSize: cssVarFontSize("body2"), color: cssVarColor("textSecondary"), mt: 0.5 }}
+          >
             Defina os dados básicos. Você poderá editar o conteúdo e lançar notas depois.
           </Typography>
         </Box>
@@ -182,151 +202,166 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
         </IconButton>
       </Box>
 
-      <form onSubmit={handleSubmit}>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, px: 3, py: 2.5 }}>
-          <TextField
-            label="Nome da avaliação"
-            placeholder="Ex.: Prova Mensal — Frações"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            required
-            fullWidth
-          />
+      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, px: 3, py: 2.5 }}>
+        <TextField
+          label="Nome da avaliação"
+          placeholder="Ex.: Prova Mensal — Frações"
+          value={nome}
+          onChange={(e) => setNome(e.target.value)}
+          required
+          fullWidth
+        />
 
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <FormControl fullWidth required>
-              <InputLabel>Disciplina</InputLabel>
-              <Select
-                value={disciplinaId}
-                label="Disciplina"
-                onChange={(e) => handleDisciplinaChange(e.target.value)}
-              >
-                {disciplinas.map((d) => (
-                  <MenuItem key={d.disciplinaId} value={String(d.disciplinaId)}>
-                    {d.nomeDisciplina}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel>Tipo</InputLabel>
-              <Select value={tipo} label="Tipo" onChange={(e) => setTipo(e.target.value as TipoAvaliacao)}>
-                {TIPOS.map((t) => (
-                  <MenuItem key={t.value} value={t.value}>
-                    {t.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-
-          <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-            <TextField
-              label="Nota máxima"
-              value={notaMaxima}
-              onChange={(e) => setNotaMaxima(e.target.value)}
-              required
-              sx={{ flex: 1 }}
-            />
-            <FormControlLabel
-              control={<Checkbox checked={notaExtra} onChange={(e) => setNotaExtra(e.target.checked)} />}
-              label="Nota extra"
-            />
-          </Box>
-
-          <TextField
-            label="Conteúdo / descrição"
-            placeholder="Tópicos cobrados, instruções..."
-            value={conteudo}
-            onChange={(e) => setConteudo(e.target.value)}
-            multiline
-            rows={3}
-            fullWidth
-          />
-
-          <Autocomplete
-            multiple
-            options={turmasDisponiveis}
-            value={turmasSelecionadas}
-            onChange={(_, value) => handleTurmasChange(value)}
-            getOptionLabel={(option) => option.label}
-            isOptionEqualToValue={(a, b) => a.turmaId === b.turmaId}
-            disabled={!disciplinaId}
-            renderInput={(params) => (
-              <TextField {...params} label="Turmas" placeholder="Selecione as turmas" required={turmasSelecionadas.length === 0} />
-            )}
-          />
-
-          {turmasSelecionadas.length > 0 && (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                Datas por turma
-              </Typography>
-              {turmasSelecionadas.map((t) => (
-                <Box key={t.turmaId} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                  <Typography variant="body2" sx={{ width: 90, flexShrink: 0 }}>
-                    {t.label}
-                  </Typography>
-                  <TextField
-                    label="Aplicação"
-                    type="date"
-                    size="small"
-                    value={datasPorTurma[t.turmaId]?.dataAplicacao ?? ""}
-                    onChange={(e) => {
-                      handleDataTurmaChange(t.turmaId, "dataAplicacao", e.target.value);
-                      if (tipo === "PROVA") handleUsarMesmaData("dataAplicacao", e.target.value);
-                    }}
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                  />
-                  <TextField
-                    label="Entrega de notas"
-                    type="date"
-                    size="small"
-                    value={datasPorTurma[t.turmaId]?.dataEntregaNotas ?? ""}
-                    onChange={(e) => {
-                      handleDataTurmaChange(t.turmaId, "dataEntregaNotas", e.target.value);
-                      if (tipo === "PROVA") handleUsarMesmaData("dataEntregaNotas", e.target.value);
-                    }}
-                    InputLabelProps={{ shrink: true }}
-                    fullWidth
-                  />
-                </Box>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <FormControl fullWidth required>
+            <InputLabel>Disciplina</InputLabel>
+            <Select
+              value={disciplinaId}
+              label="Disciplina"
+              onChange={(e) => handleDisciplinaChange(e.target.value)}
+            >
+              {disciplinas.map((d) => (
+                <MenuItem key={d.disciplinaId} value={String(d.disciplinaId)}>
+                  {d.nomeDisciplina}
+                </MenuItem>
               ))}
-              {tipo === "PROVA" && (
-                <Typography variant="caption" color="text.secondary">
-                  Como o tipo é Prova, a data preenchida numa turma é replicada para as demais. Você pode
-                  ajustar individualmente depois de criar a avaliação.
-                </Typography>
-              )}
-            </Box>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth>
+            <InputLabel>Tipo</InputLabel>
+            <Select
+              value={tipo}
+              label="Tipo"
+              onChange={(e) => setTipo(e.target.value as TipoAvaliacao)}
+            >
+              {TIPOS.map((t) => (
+                <MenuItem key={t.value} value={t.value}>
+                  {t.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
+
+        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+          <TextField
+            label="Nota máxima"
+            value={notaMaxima}
+            onChange={(e) => setNotaMaxima(e.target.value)}
+            required
+            sx={{ flex: 1 }}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox checked={notaExtra} onChange={(e) => setNotaExtra(e.target.checked)} />
+            }
+            label="Nota extra"
+          />
+        </Box>
+
+        <TextField
+          label="Conteúdo / descrição"
+          placeholder="Tópicos cobrados, instruções..."
+          value={conteudo}
+          onChange={(e) => setConteudo(e.target.value)}
+          multiline
+          rows={3}
+          fullWidth
+        />
+
+        <Autocomplete
+          multiple
+          options={turmasDisponiveis}
+          value={turmasSelecionadas}
+          onChange={(_, value) => handleTurmasChange(value)}
+          getOptionLabel={(option) => option.label}
+          isOptionEqualToValue={(a, b) => a.turmaId === b.turmaId}
+          disabled={!disciplinaId}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Turmas"
+              placeholder="Selecione as turmas"
+              required={turmasSelecionadas.length === 0}
+            />
           )}
+        />
 
-          <div>
-            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-              Anexos (opcional)
+        {turmasSelecionadas.length > 0 && (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              Datas por turma
             </Typography>
-            <FileUploadArea files={anexos} onChange={setAnexos} multiple />
-          </div>
-        </DialogContent>
+            {turmasSelecionadas.map((t) => (
+              <Box key={t.turmaId} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                <Typography variant="body2" sx={{ width: 90, flexShrink: 0 }}>
+                  {t.label}
+                </Typography>
+                <TextField
+                  label="Aplicação"
+                  type="date"
+                  size="small"
+                  value={datasPorTurma[t.turmaId]?.dataAplicacao ?? ""}
+                  onChange={(e) => {
+                    handleDataTurmaChange(t.turmaId, "dataAplicacao", e.target.value);
+                    if (tipo === "PROVA") handleUsarMesmaData("dataAplicacao", e.target.value);
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+                <TextField
+                  label="Entrega de notas"
+                  type="date"
+                  size="small"
+                  value={datasPorTurma[t.turmaId]?.dataEntregaNotas ?? ""}
+                  onChange={(e) => {
+                    handleDataTurmaChange(t.turmaId, "dataEntregaNotas", e.target.value);
+                    if (tipo === "PROVA") handleUsarMesmaData("dataEntregaNotas", e.target.value);
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                />
+              </Box>
+            ))}
+            {tipo === "PROVA" && (
+              <Typography variant="caption" color="text.secondary">
+                Como o tipo é Prova, a data preenchida numa turma é replicada para as demais. Você
+                pode ajustar individualmente depois de criar a avaliação.
+              </Typography>
+            )}
+          </Box>
+        )}
 
-        <DialogActions
-          sx={{ px: 3, pt: 2, pb: 2.75, gap: 1.25, borderTop: `1px solid ${cssVarColor("borderSubtle")}` }}
+        <div>
+          <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+            Anexos (opcional)
+          </Typography>
+          <FileUploadArea files={anexos} onChange={setAnexos} multiple />
+        </div>
+      </DialogContent>
+
+      <DialogActions
+        sx={{
+          px: 3,
+          pt: 2,
+          pb: 2.75,
+          gap: 1.25,
+          borderTop: `1px solid ${cssVarColor("borderSubtle")}`,
+        }}
+      >
+        <Button variant="outlined" onClick={handleClose} disabled={createAvaliacao.isPending}>
+          Cancelar
+        </Button>
+        <Button
+          variant="contained"
+          type="submit"
+          disabled={!valido || createAvaliacao.isPending}
+          startIcon={createAvaliacao.isPending ? <CircularProgress size={16} /> : undefined}
         >
-          <Button variant="outlined" onClick={handleClose} disabled={createAvaliacao.isPending}>
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            type="submit"
-            disabled={!valido || createAvaliacao.isPending}
-            startIcon={createAvaliacao.isPending ? <CircularProgress size={16} /> : undefined}
-          >
-            {createAvaliacao.isPending ? "Criando..." : "Criar avaliação"}
-          </Button>
-        </DialogActions>
-      </form>
+          {createAvaliacao.isPending ? "Criando..." : "Criar avaliação"}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }
