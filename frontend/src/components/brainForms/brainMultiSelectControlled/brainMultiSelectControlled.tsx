@@ -1,11 +1,5 @@
 import { KeyValue } from "@/services/models/keyValue";
-import {
-  Autocomplete,
-  Checkbox,
-  FormControl,
-  FormHelperText,
-  TextField,
-} from "@mui/material";
+import { Autocomplete, Checkbox, FormControl, FormHelperText, TextField } from "@mui/material";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
@@ -17,6 +11,7 @@ interface BrainMultiSelectControlledProps<T extends FieldValues> {
   options: KeyValue[];
   placeholder?: string;
   required?: boolean;
+  disabled?: boolean;
 }
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -29,29 +24,25 @@ export function BrainMultiSelectControlled<T extends FieldValues>({
   options,
   placeholder = "Selecione as opções",
   required = false,
+  disabled = false,
 }: BrainMultiSelectControlledProps<T>) {
   return (
     <Controller
       name={name}
       control={control}
       render={({ field, fieldState: { error } }) => {
-        const selectedValues: string[] = Array.isArray(field.value)
-          ? field.value.map(String)
-          : [];
-        const selectedOptions = options.filter((opt) =>
-          selectedValues.includes(String(opt.key)),
-        );
+        const selectedValues: string[] = Array.isArray(field.value) ? field.value.map(String) : [];
+        const selectedOptions = options.filter((opt) => selectedValues.includes(String(opt.key)));
 
         return (
           <FormControl fullWidth error={!!error} size="small">
             <Autocomplete
               multiple
               options={options}
+              disabled={disabled}
               disableCloseOnSelect
               getOptionLabel={(option) => option.value}
-              isOptionEqualToValue={(option, value) =>
-                String(option.key) === String(value.key)
-              }
+              isOptionEqualToValue={(option, value) => String(option.key) === String(value.key)}
               value={selectedOptions}
               onChange={(_, newValue) => {
                 const keys = newValue.map((opt) => {

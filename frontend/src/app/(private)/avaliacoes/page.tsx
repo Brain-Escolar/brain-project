@@ -1,5 +1,6 @@
 "use client";
 import Badge from "@/components/badge";
+import { BrainMultiSelectControlled } from "@/components/brainForms/brainMultiSelectControlled";
 import LoadingComponent from "@/components/loadingComponent/loadingComponent";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
@@ -15,9 +16,10 @@ import GroupsRounded from "@mui/icons-material/GroupsRounded";
 import MenuBookRounded from "@mui/icons-material/MenuBookRounded";
 import PendingRounded from "@mui/icons-material/PendingRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
-import { Button } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import ModalCriarAvaliacao from "./components/ModalCriarAvaliacao";
 import * as S from "./styles";
 
@@ -58,8 +60,10 @@ function StatusBadge({ av }: { av: AvaliacaoListaResponse }) {
 export default function AvaliacoesPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTurma, setSelectedTurma] = useState("");
   const [modalAvaliacaoOpen, setModalAvaliacaoOpen] = useState(false);
+
+  const { control } = useForm<{ turmaIds: number[] }>({ defaultValues: { turmaIds: [] } });
+  const turmasSelecionadas = useWatch({ control, name: "turmaIds" }) ?? [];
 
   const { avaliacoes, loading } = useAvaliacoes();
   const { disciplinas: minhasTurmas } = useMinhasTurmas();
@@ -67,15 +71,22 @@ export default function AvaliacoesPage() {
   const turmasDisponiveis = useMemo(() => {
     const map = new Map<number, string>();
     minhasTurmas.forEach((disciplina) =>
-      disciplina.turmas.forEach((turma) => map.set(turma.turmaId, `${turma.serieNome} ${turma.nomeTurma}`)),
+      disciplina.turmas.forEach((turma) =>
+        map.set(turma.turmaId, `${turma.serieNome} ${turma.nomeTurma}`),
+      ),
     );
-    return Array.from(map.entries()).map(([turmaId, label]) => ({ turmaId, label }));
+    return Array.from(map.entries()).map(([turmaId, label]) => ({
+      key: String(turmaId),
+      value: label,
+    }));
   }, [minhasTurmas]);
 
   const filteredAvaliacoes = avaliacoes.filter((av) => {
     const term = searchTerm.toLowerCase();
-    const matchTermo = av.nome.toLowerCase().includes(term) || av.disciplina.toLowerCase().includes(term);
-    const matchTurma = !selectedTurma || av.turmaIds.includes(Number(selectedTurma));
+    const matchTermo =
+      av.nome.toLowerCase().includes(term) || av.disciplina.toLowerCase().includes(term);
+    const matchTurma =
+      turmasSelecionadas.length === 0 || av.turmaIds.some((id) => turmasSelecionadas.includes(id));
     return matchTermo && matchTurma;
   });
 
@@ -84,7 +95,11 @@ export default function AvaliacoesPage() {
       title="Avaliações"
       description="Crie avaliações, acompanhe o lançamento de notas e edite o conteúdo de cada uma."
       actions={
-        <Button variant="contained" startIcon={<AddRounded />} onClick={() => setModalAvaliacaoOpen(true)}>
+        <Button
+          variant="contained"
+          startIcon={<AddRounded />}
+          onClick={() => setModalAvaliacaoOpen(true)}
+        >
           Criar avaliação
         </Button>
       }
@@ -102,14 +117,15 @@ export default function AvaliacoesPage() {
           />
         </S.SearchContainer>
 
-        <S.FilterSelect value={selectedTurma} onChange={(e) => setSelectedTurma(e.target.value)}>
-          <option value="">Turma</option>
-          {turmasDisponiveis.map((t) => (
-            <option key={t.turmaId} value={String(t.turmaId)}>
-              {t.label}
-            </option>
-          ))}
-        </S.FilterSelect>
+        <Box sx={{ minWidth: 220 }}>
+          <BrainMultiSelectControlled
+            name="turmaIds"
+            control={control}
+            label="Turma"
+            options={turmasDisponiveis}
+            placeholder="Todas as turmas"
+          />
+        </Box>
       </S.FiltersContainer>
 
       {loading ? (

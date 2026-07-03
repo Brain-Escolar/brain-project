@@ -1,5 +1,11 @@
 "use client";
-import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius, cssVarShadow } from "@/styles";
+import {
+  cssVarColor,
+  cssVarFontSize,
+  cssVarFontWeight,
+  cssVarRadius,
+  cssVarShadow,
+} from "@/styles";
 import styled from "styled-components";
 
 export const AvPanel = styled.div`
@@ -145,29 +151,15 @@ export const SearchInput = styled.input`
   font-size: ${cssVarFontSize("body2")};
   color: ${cssVarColor("text")};
   outline: none;
-  transition: border-color 140ms, box-shadow 140ms;
+  transition:
+    border-color 140ms,
+    box-shadow 140ms;
 
   &::placeholder {
     color: ${cssVarColor("textTertiary")};
   }
 
   &:focus {
-    border-color: ${cssVarColor("primary")};
-  }
-`;
-
-export const FilterSelect = styled.select`
-  height: 40px;
-  padding: 0 12px;
-  border: 1px solid ${cssVarColor("border")};
-  border-radius: ${cssVarRadius("md")};
-  font-size: ${cssVarFontSize("body2")};
-  background: ${cssVarColor("backgroundSection")};
-  color: ${cssVarColor("text")};
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
     border-color: ${cssVarColor("primary")};
   }
 `;

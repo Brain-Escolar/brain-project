@@ -1,8 +1,15 @@
 "use client";
 
+import { BrainDatePickerControlled } from "@/components/brainForms/brainDatePickerControlled";
+import { BrainDropdownControlled } from "@/components/brainForms/brainDropdownControlled";
+import { BrainMultiSelectControlled } from "@/components/brainForms/brainMultiSelectControlled";
+import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import FileUploadArea from "@/components/fileUploadArea";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { useBrainForm } from "@/hooks/useBrainForm";
 import { useMinhasTurmas } from "@/hooks/useMinhasTurmas";
+import { AvaliacaoPostRequest } from "@/services/domains/avaliacao/request";
+import { KeyValue } from "@/services/models/keyValue";
 import {
   cssVarColor,
   cssVarFontSize,
@@ -10,10 +17,8 @@ import {
   cssVarRadius,
   cssVarShadow,
 } from "@/styles";
-import { AvaliacaoPostRequest, TipoAvaliacao } from "@/services/domains/avaliacao/request";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import {
-  Autocomplete,
   Box,
   Button,
   Checkbox,
@@ -21,129 +26,107 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  FormControl,
   FormControlLabel,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
   Typography,
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { format, isValid as isValidDate } from "date-fns";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Controller, Path, useWatch } from "react-hook-form";
 import { useAvaliacaoMutations } from "../../../avaliacao/useAvaliacaoMutations";
+import { AvaliacaoFormData, avaliacaoDefaultValues, avaliacaoSchema } from "./schema";
 
 interface ModalCriarAvaliacaoProps {
   open: boolean;
   onClose: () => void;
 }
 
-const TIPOS: { value: TipoAvaliacao; label: string }[] = [
-  { value: "PROVA", label: "Prova" },
-  { value: "TRABALHO", label: "Trabalho" },
-  { value: "LISTA", label: "Lista" },
-  { value: "SEMINARIO", label: "Seminário" },
+const TIPO_OPTIONS: KeyValue[] = [
+  { key: "PROVA", value: "Prova" },
+  { key: "TRABALHO", value: "Trabalho" },
+  { key: "LISTA", value: "Lista" },
+  { key: "SEMINARIO", value: "Seminário" },
 ];
 
-interface TurmaOption {
-  turmaId: number;
-  label: string;
-}
+const SEM_TURMAS: number[] = [];
 
-interface DatasTurma {
-  dataAplicacao: string;
-  dataEntregaNotas: string;
-}
+// Date -> yyyy-mm-dd (formato aceito pelo backend e pelos inputs de data da tela de detalhe).
+// Retorna undefined para datas vazias ou inválidas.
+const toApiDate = (valor?: Date | null) =>
+  valor && isValidDate(valor) ? format(valor, "yyyy-MM-dd") : undefined;
 
 export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliacaoProps) {
   const queryClient = useQueryClient();
   const { createAvaliacao } = useAvaliacaoMutations();
   const { disciplinas } = useMinhasTurmas();
-
-  const [nome, setNome] = useState("");
-  const [disciplinaId, setDisciplinaId] = useState("");
-  const [tipo, setTipo] = useState<TipoAvaliacao>("PROVA");
-  const [notaMaxima, setNotaMaxima] = useState("10");
-  const [conteudo, setConteudo] = useState("");
-  const [notaExtra, setNotaExtra] = useState(false);
-  const [turmasSelecionadas, setTurmasSelecionadas] = useState<TurmaOption[]>([]);
-  const [datasPorTurma, setDatasPorTurma] = useState<Record<number, DatasTurma>>({});
   const [anexos, setAnexos] = useState<File[]>([]);
 
-  const turmasDisponiveis = useMemo<TurmaOption[]>(() => {
+  const { control, handleSubmit, reset, setValue, isValid } = useBrainForm<AvaliacaoFormData>({
+    schema: avaliacaoSchema,
+    defaultValues: avaliacaoDefaultValues,
+  });
+
+  const disciplinaId = useWatch({ control, name: "disciplinaId" });
+  const tipo = useWatch({ control, name: "tipo" });
+  const turmaIds = useWatch({ control, name: "turmaIds" }) ?? SEM_TURMAS;
+  const datas = useWatch({ control, name: "datas" });
+
+  const disciplinaOptions = useMemo<KeyValue[]>(
+    () => disciplinas.map((d) => ({ key: String(d.disciplinaId), value: d.nomeDisciplina })),
+    [disciplinas],
+  );
+
+  const turmaOptions = useMemo<KeyValue[]>(() => {
     const disciplina = disciplinas.find((d) => String(d.disciplinaId) === disciplinaId);
     if (!disciplina) return [];
     return disciplina.turmas.map((t) => ({
-      turmaId: t.turmaId,
-      label: `${t.serieNome} ${t.nomeTurma}`,
+      key: String(t.turmaId),
+      value: `${t.serieNome} ${t.nomeTurma}`,
     }));
   }, [disciplinas, disciplinaId]);
 
-  const valido = nome.trim() && disciplinaId && notaMaxima && turmasSelecionadas.length > 0;
+  const turmasSelecionadas = useMemo(
+    () =>
+      turmaIds.flatMap((id) => {
+        const opt = turmaOptions.find((t) => t.key === String(id));
+        return opt ? [{ turmaId: id, label: opt.value }] : [];
+      }),
+    [turmaIds, turmaOptions],
+  );
+
+  // Ao trocar de disciplina as turmas disponíveis mudam, então limpamos a seleção e as datas.
+  const disciplinaAnterior = useRef(disciplinaId);
+  useEffect(() => {
+    if (disciplinaAnterior.current !== disciplinaId) {
+      disciplinaAnterior.current = disciplinaId;
+      setValue("turmaIds", []);
+      setValue("datas", {});
+    }
+  }, [disciplinaId, setValue]);
 
   function handleClose() {
-    setNome("");
-    setDisciplinaId("");
-    setTipo("PROVA");
-    setNotaMaxima("10");
-    setConteudo("");
-    setNotaExtra(false);
-    setTurmasSelecionadas([]);
-    setDatasPorTurma({});
+    reset(avaliacaoDefaultValues);
     setAnexos([]);
     onClose();
   }
 
-  function handleDisciplinaChange(value: string) {
-    setDisciplinaId(value);
-    setTurmasSelecionadas([]);
-    setDatasPorTurma({});
+  function replicarData(campo: "dataAplicacao" | "dataEntregaNotas", valor: Date | null) {
+    turmaIds.forEach((id) => setValue(`datas.${id}.${campo}`, valor));
   }
 
-  function handleTurmasChange(selecionadas: TurmaOption[]) {
-    setTurmasSelecionadas(selecionadas);
-    setDatasPorTurma((atual) => {
-      const proximo: Record<number, DatasTurma> = {};
-      selecionadas.forEach((t) => {
-        proximo[t.turmaId] = atual[t.turmaId] ?? { dataAplicacao: "", dataEntregaNotas: "" };
-      });
-      return proximo;
-    });
-  }
-
-  function handleDataTurmaChange(turmaId: number, campo: keyof DatasTurma, valor: string) {
-    setDatasPorTurma((atual) => ({
-      ...atual,
-      [turmaId]: { ...atual[turmaId], [campo]: valor },
-    }));
-  }
-
-  function handleUsarMesmaData(campo: keyof DatasTurma, valor: string) {
-    setDatasPorTurma((atual) => {
-      const proximo: Record<number, DatasTurma> = {};
-      Object.keys(atual).forEach((id) => {
-        proximo[Number(id)] = { ...atual[Number(id)], [campo]: valor };
-      });
-      return proximo;
-    });
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!valido) return;
-
+  async function onSubmit(data: AvaliacaoFormData) {
     const dados: AvaliacaoPostRequest = {
-      nome: nome.trim(),
-      disciplinaId: Number(disciplinaId),
-      tipo,
-      notaMaxima: Number(notaMaxima.replace(",", ".")),
-      conteudo: conteudo || undefined,
-      notaExtra,
-      turmas: turmasSelecionadas.map((t) => ({
-        turmaId: t.turmaId,
-        dataAplicacao: datasPorTurma[t.turmaId]?.dataAplicacao || undefined,
-        dataEntregaNotas: datasPorTurma[t.turmaId]?.dataEntregaNotas || undefined,
+      nome: data.nome.trim(),
+      disciplinaId: Number(data.disciplinaId),
+      tipo: data.tipo,
+      notaMaxima: Number(data.notaMaxima.replace(",", ".")),
+      conteudo: data.conteudo || undefined,
+      notaExtra: data.notaExtra,
+      turmas: data.turmaIds.map((id) => ({
+        turmaId: id,
+        dataAplicacao: toApiDate(data.datas?.[id]?.dataAplicacao),
+        dataEntregaNotas: toApiDate(data.datas?.[id]?.dataEntregaNotas),
       })),
     };
 
@@ -160,7 +143,7 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
       maxWidth="sm"
       PaperProps={{
         component: "form",
-        onSubmit: handleSubmit,
+        onSubmit: handleSubmit(onSubmit),
         sx: {
           borderRadius: cssVarRadius("xl"),
           boxShadow: cssVarShadow("level3"),
@@ -203,89 +186,78 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
       </Box>
 
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, px: 3, py: 2.5 }}>
-        <TextField
+        <BrainTextFieldControlled
+          name="nome"
+          control={control}
           label="Nome da avaliação"
           placeholder="Ex.: Prova Mensal — Frações"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
           required
-          fullWidth
         />
 
         <Box sx={{ display: "flex", gap: 2 }}>
-          <FormControl fullWidth required>
-            <InputLabel>Disciplina</InputLabel>
-            <Select
-              value={disciplinaId}
+          <Box sx={{ flex: 1 }}>
+            <BrainDropdownControlled
+              name="disciplinaId"
+              control={control}
               label="Disciplina"
-              onChange={(e) => handleDisciplinaChange(e.target.value)}
-            >
-              {disciplinas.map((d) => (
-                <MenuItem key={d.disciplinaId} value={String(d.disciplinaId)}>
-                  {d.nomeDisciplina}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth>
-            <InputLabel>Tipo</InputLabel>
-            <Select
-              value={tipo}
+              options={disciplinaOptions}
+              required
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <BrainDropdownControlled
+              name="tipo"
+              control={control}
               label="Tipo"
-              onChange={(e) => setTipo(e.target.value as TipoAvaliacao)}
-            >
-              {TIPOS.map((t) => (
-                <MenuItem key={t.value} value={t.value}>
-                  {t.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+              options={TIPO_OPTIONS}
+            />
+          </Box>
         </Box>
 
         <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-          <TextField
-            label="Nota máxima"
-            value={notaMaxima}
-            onChange={(e) => setNotaMaxima(e.target.value)}
-            required
-            sx={{ flex: 1 }}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox checked={notaExtra} onChange={(e) => setNotaExtra(e.target.checked)} />
-            }
-            label="Nota extra"
+          <Box sx={{ flex: 1 }}>
+            <BrainTextFieldControlled
+              name="notaMaxima"
+              control={control}
+              label="Nota máxima"
+              required
+            />
+          </Box>
+          <Controller
+            name="notaExtra"
+            control={control}
+            render={({ field }) => (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    {...field}
+                    checked={field.value}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                  />
+                }
+                label="Nota extra"
+              />
+            )}
           />
         </Box>
 
-        <TextField
+        <BrainTextFieldControlled
+          name="conteudo"
+          control={control}
           label="Conteúdo / descrição"
           placeholder="Tópicos cobrados, instruções..."
-          value={conteudo}
-          onChange={(e) => setConteudo(e.target.value)}
           multiline
           rows={3}
-          fullWidth
         />
 
-        <Autocomplete
-          multiple
-          options={turmasDisponiveis}
-          value={turmasSelecionadas}
-          onChange={(_, value) => handleTurmasChange(value)}
-          getOptionLabel={(option) => option.label}
-          isOptionEqualToValue={(a, b) => a.turmaId === b.turmaId}
+        <BrainMultiSelectControlled
+          name="turmaIds"
+          control={control}
+          label="Turmas"
+          options={turmaOptions}
+          placeholder="Selecione as turmas"
           disabled={!disciplinaId}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Turmas"
-              placeholder="Selecione as turmas"
-              required={turmasSelecionadas.length === 0}
-            />
-          )}
+          required={turmaIds.length === 0}
         />
 
         {turmasSelecionadas.length > 0 && (
@@ -298,29 +270,22 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
                 <Typography variant="body2" sx={{ width: 90, flexShrink: 0 }}>
                   {t.label}
                 </Typography>
-                <TextField
+                <BrainDatePickerControlled
+                  name={`datas.${t.turmaId}.dataAplicacao` as Path<AvaliacaoFormData>}
+                  control={control}
                   label="Aplicação"
-                  type="date"
-                  size="small"
-                  value={datasPorTurma[t.turmaId]?.dataAplicacao ?? ""}
-                  onChange={(e) => {
-                    handleDataTurmaChange(t.turmaId, "dataAplicacao", e.target.value);
-                    if (tipo === "PROVA") handleUsarMesmaData("dataAplicacao", e.target.value);
-                  }}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
+                  onValueChange={
+                    tipo === "PROVA" ? (v) => replicarData("dataAplicacao", v) : undefined
+                  }
                 />
-                <TextField
+                <BrainDatePickerControlled
+                  name={`datas.${t.turmaId}.dataEntregaNotas` as Path<AvaliacaoFormData>}
+                  control={control}
                   label="Entrega de notas"
-                  type="date"
-                  size="small"
-                  value={datasPorTurma[t.turmaId]?.dataEntregaNotas ?? ""}
-                  onChange={(e) => {
-                    handleDataTurmaChange(t.turmaId, "dataEntregaNotas", e.target.value);
-                    if (tipo === "PROVA") handleUsarMesmaData("dataEntregaNotas", e.target.value);
-                  }}
-                  InputLabelProps={{ shrink: true }}
-                  fullWidth
+                  minDate={datas?.[t.turmaId]?.dataAplicacao ?? undefined}
+                  onValueChange={
+                    tipo === "PROVA" ? (v) => replicarData("dataEntregaNotas", v) : undefined
+                  }
                 />
               </Box>
             ))}
@@ -356,7 +321,7 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
         <Button
           variant="contained"
           type="submit"
-          disabled={!valido || createAvaliacao.isPending}
+          disabled={!isValid || createAvaliacao.isPending}
           startIcon={createAvaliacao.isPending ? <CircularProgress size={16} /> : undefined}
         >
           {createAvaliacao.isPending ? "Criando..." : "Criar avaliação"}
