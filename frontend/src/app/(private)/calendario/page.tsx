@@ -20,17 +20,11 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import AddIcon from "@mui/icons-material/Add";
 import { useEventos } from "@/hooks/useEventos";
-import { TipoEvento } from "@/services/domains/evento";
+import { EventoResponse, TipoEvento } from "@/services/domains/evento";
 import NovoEventoModal from "./NovoEventoModal";
-
-const TIPO_CONFIG: Record<TipoEvento, { label: string; color: string }> = {
-  PROVA: { label: "Provas", color: "#f44336" },
-  ENTREGA_PROVA: { label: "Entregas de Prova", color: "#ff9800" },
-  ENTREGA_NOTAS: { label: "Entrega de Notas", color: "#9c27b0" },
-  REUNIAO: { label: "Reuniões", color: "#2196f3" },
-  FERIADO: { label: "Feriados", color: "#4caf50" },
-  OUTRO: { label: "Outros", color: "#757575" },
-};
+import DetalheEventoModal from "./DetalheEventoModal";
+import ListaEventosDiaModal from "./ListaEventosDiaModal";
+import { TIPO_CONFIG } from "./eventoTipos";
 
 const MESES_PT = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -94,6 +88,9 @@ export default function Calendario() {
   );
   const [modalAberto, setModalAberto] = useState(false);
   const [dataSelecionada, setDataSelecionada] = useState<string | undefined>(undefined);
+  const [eventoDetalhe, setEventoDetalhe] = useState<EventoResponse | null>(null);
+  const [eventoEmEdicao, setEventoEmEdicao] = useState<EventoResponse | null>(null);
+  const [diaLista, setDiaLista] = useState<string | null>(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -164,8 +161,28 @@ export default function Calendario() {
     return (eventosPorDia[key] ?? []).filter((e) => tiposAtivos.has(e.tipo));
   }
 
+  const eventosDoDiaLista = diaLista
+    ? (eventosPorDia[diaLista] ?? []).filter((e) => tiposAtivos.has(e.tipo))
+    : [];
+
   function abrirNovoEvento(data?: string) {
+    setEventoEmEdicao(null);
     setDataSelecionada(data);
+    setModalAberto(true);
+  }
+
+  function abrirDetalheEvento(evento: EventoResponse) {
+    setDiaLista(null);
+    setEventoDetalhe(evento);
+  }
+
+  function abrirListaDia(data: string) {
+    setDiaLista(data);
+  }
+
+  function handleEditarEvento(evento: EventoResponse) {
+    setEventoDetalhe(null);
+    setEventoEmEdicao(evento);
     setModalAberto(true);
   }
 
@@ -286,7 +303,11 @@ export default function Calendario() {
             return (
               <Box
                 key={index}
-                onClick={() => abrirNovoEvento(formatDate(dayInfo.year, dayInfo.month, dayInfo.day))}
+                onClick={() => {
+                  const dateKey = formatDate(dayInfo.year, dayInfo.month, dayInfo.day);
+                  if (isMobile && dayEvents.length > 0) abrirListaDia(dateKey);
+                  else abrirNovoEvento(dateKey);
+                }}
                 sx={{
                   minHeight: isMobile ? 60 : 120,
                   p: isMobile ? 0.5 : 1,
@@ -353,6 +374,19 @@ export default function Calendario() {
                     {dayEvents.slice(0, 3).map((evento) => (
                       <Box
                         key={evento.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          abrirDetalheEvento(evento);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            abrirDetalheEvento(evento);
+                          }
+                        }}
                         sx={{
                           fontSize: "10px",
                           p: 0.5,
@@ -363,6 +397,9 @@ export default function Calendario() {
                           alignItems: "center",
                           gap: 0.5,
                           overflow: "hidden",
+                          cursor: "pointer",
+                          transition: "filter 0.15s",
+                          "&:hover": { filter: "brightness(0.9)" },
                         }}
                       >
                         <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "white", flexShrink: 0 }} />
@@ -375,7 +412,20 @@ export default function Calendario() {
                       </Box>
                     ))}
                     {dayEvents.length > 3 && (
-                      <Typography variant="caption" sx={{ fontSize: "10px", color: "text.secondary", pl: 0.5 }}>
+                      <Typography
+                        variant="caption"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          abrirListaDia(formatDate(dayInfo.year, dayInfo.month, dayInfo.day));
+                        }}
+                        sx={{
+                          fontSize: "10px",
+                          color: "text.secondary",
+                          pl: 0.5,
+                          cursor: "pointer",
+                          "&:hover": { textDecoration: "underline" },
+                        }}
+                      >
                         +{dayEvents.length - 3} mais
                       </Typography>
                     )}
@@ -437,8 +487,32 @@ export default function Calendario() {
 
       <NovoEventoModal
         open={modalAberto}
-        onClose={() => setModalAberto(false)}
+        onClose={() => {
+          setModalAberto(false);
+          setEventoEmEdicao(null);
+        }}
         dataInicial={dataSelecionada}
+        evento={eventoEmEdicao}
+      />
+
+      <DetalheEventoModal
+        open={!!eventoDetalhe}
+        evento={eventoDetalhe}
+        onClose={() => setEventoDetalhe(null)}
+        onEditar={handleEditarEvento}
+      />
+
+      <ListaEventosDiaModal
+        open={!!diaLista}
+        data={diaLista}
+        eventos={eventosDoDiaLista}
+        onClose={() => setDiaLista(null)}
+        onSelecionarEvento={abrirDetalheEvento}
+        onNovoEvento={() => {
+          const data = diaLista ?? undefined;
+          setDiaLista(null);
+          abrirNovoEvento(data);
+        }}
       />
     </PageScaffold>
   );

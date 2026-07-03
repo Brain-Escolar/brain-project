@@ -18,22 +18,16 @@ import {
 } from "@mui/material";
 import { useEventoMutations } from "@/hooks/useEventoMutations";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
-import { TipoEvento } from "@/services/domains/evento";
-
-const TIPO_OPTIONS: { value: TipoEvento; label: string }[] = [
-  { value: "PROVA", label: "Prova" },
-  { value: "ENTREGA_PROVA", label: "Entrega de Prova" },
-  { value: "ENTREGA_NOTAS", label: "Entrega de Notas" },
-  { value: "REUNIAO", label: "Reunião" },
-  { value: "FERIADO", label: "Feriado" },
-  { value: "OUTRO", label: "Outro" },
-];
+import { EventoResponse, TipoEvento } from "@/services/domains/evento";
+import { TIPO_OPTIONS } from "./eventoTipos";
 
 interface NovoEventoModalProps {
   open: boolean;
   onClose: () => void;
   /** Data inicial pré-selecionada no formato "yyyy-MM-dd". */
   dataInicial?: string;
+  /** Evento existente: quando informado, o modal opera em modo edição. */
+  evento?: EventoResponse | null;
 }
 
 /** Monta um ISO date-time no fuso de São Paulo (sem horário de verão = -03:00). */
@@ -41,9 +35,10 @@ function toIsoSaoPaulo(data: string, hora: string): string {
   return `${data}T${hora}:00-03:00`;
 }
 
-export default function NovoEventoModal({ open, onClose, dataInicial }: NovoEventoModalProps) {
-  const { criarEvento } = useEventoMutations();
+export default function NovoEventoModal({ open, onClose, dataInicial, evento }: NovoEventoModalProps) {
+  const { criarEvento, atualizarEvento } = useEventoMutations();
   const { adicionarEventos } = useGoogleCalendar();
+  const isEdicao = !!evento;
 
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
@@ -55,21 +50,35 @@ export default function NovoEventoModal({ open, onClose, dataInicial }: NovoEven
 
   useEffect(() => {
     if (open) {
-      setTitulo("");
-      setDescricao("");
-      setDataEvento(dataInicial ?? new Date().toISOString().slice(0, 10));
-      setTipo("OUTRO");
+      setTitulo(evento?.titulo ?? "");
+      setDescricao(evento?.descricao ?? "");
+      setDataEvento(evento?.dataEvento ?? dataInicial ?? new Date().toISOString().slice(0, 10));
+      setTipo(evento?.tipo ?? "OUTRO");
       setSincronizarGoogle(false);
       setHoraInicio("08:00");
       setHoraFim("09:00");
     }
-  }, [open, dataInicial]);
+  }, [open, dataInicial, evento]);
 
-  const isSaving = criarEvento.isPending || adicionarEventos.isPending;
+  const isSaving = criarEvento.isPending || atualizarEvento.isPending || adicionarEventos.isPending;
   const podeSalvar = titulo.trim().length > 0 && !!dataEvento && !isSaving;
 
   const handleSalvar = async () => {
     if (!podeSalvar) return;
+
+    if (isEdicao) {
+      // descricao vazia vai como "" (não undefined): o backend ignora null e o usuário
+      // precisa conseguir limpar a descrição de um evento existente.
+      await atualizarEvento.mutateAsync({
+        id: evento.id,
+        titulo: titulo.trim(),
+        descricao: descricao.trim(),
+        dataEvento,
+        tipo,
+      });
+      onClose();
+      return;
+    }
 
     await criarEvento.mutateAsync({
       titulo: titulo.trim(),
@@ -99,9 +108,11 @@ export default function NovoEventoModal({ open, onClose, dataInicial }: NovoEven
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ pb: 0.5 }}>
-        Novo Evento
+        {isEdicao ? "Editar Evento" : "Novo Evento"}
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Cadastre um evento no calendário e, opcionalmente, no seu Google Agenda
+          {isEdicao
+            ? "Altere os dados do evento"
+            : "Cadastre um evento no calendário e, opcionalmente, no seu Google Agenda"}
         </Typography>
       </DialogTitle>
 
@@ -149,17 +160,19 @@ export default function NovoEventoModal({ open, onClose, dataInicial }: NovoEven
             minRows={2}
           />
 
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={sincronizarGoogle}
-                onChange={(e) => setSincronizarGoogle(e.target.checked)}
-              />
-            }
-            label="Adicionar ao Google Agenda"
-          />
+          {!isEdicao && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={sincronizarGoogle}
+                  onChange={(e) => setSincronizarGoogle(e.target.checked)}
+                />
+              }
+              label="Adicionar ao Google Agenda"
+            />
+          )}
 
-          {sincronizarGoogle && (
+          {!isEdicao && sincronizarGoogle && (
             <Box sx={{ display: "flex", gap: 2 }}>
               <TextField
                 label="Hora início"
