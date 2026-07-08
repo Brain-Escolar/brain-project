@@ -5,18 +5,24 @@ import { professorApi } from "@/services/api";
 import { ProfessorAulaSemanalResponse } from "@/services/domains/professor";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 
-const DIAS_SEMANA = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"] as const;
+const DIAS_SEMANA = [
+  "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+] as const;
 
 export function getWeekDays(date: Date): Date[] {
   const d = new Date(date);
-  const day = d.getDay();
-  const mondayOffset = day === 0 ? -6 : 1 - day;
-  const monday = new Date(d);
-  monday.setDate(d.getDate() + mondayOffset);
+  const sunday = new Date(d);
+  sunday.setDate(d.getDate() - d.getDay());
 
-  return Array.from({ length: 5 }, (_, i) => {
-    const weekDay = new Date(monday);
-    weekDay.setDate(monday.getDate() + i);
+  return Array.from({ length: 7 }, (_, i) => {
+    const weekDay = new Date(sunday);
+    weekDay.setDate(sunday.getDate() + i);
     return weekDay;
   });
 }
