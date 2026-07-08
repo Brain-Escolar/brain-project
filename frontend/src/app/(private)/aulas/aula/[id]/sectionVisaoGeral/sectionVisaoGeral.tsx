@@ -14,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { format, parseISO } from "date-fns";
 import * as S from "../styles";
 
 interface ISectionVisaoGeralProps {
@@ -115,7 +116,7 @@ function SectionVisaoGeral({ aulaId, data }: ISectionVisaoGeralProps) {
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                       <AccessTimeIcon sx={{ fontSize: 13, color: "text.secondary" }} />
                       <Typography variant="caption" color="text.secondary">
-                        Prazo: {tarefa.prazo}
+                        Prazo: {format(parseISO(tarefa.prazo), "dd/MM/yyyy")}
                       </Typography>
                     </Box>
                   </CardContent>

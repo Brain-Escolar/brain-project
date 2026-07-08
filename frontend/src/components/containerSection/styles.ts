@@ -23,6 +23,22 @@ export const HeaderContainer = styled.div`
   }
 `;
 
+export const HeaderTitleRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+export const HeaderActions = styled.div`
+  flex-shrink: 0;
+`;
+
 interface IBodyContainerProps {
   $numberOfCollumns: number;
 }

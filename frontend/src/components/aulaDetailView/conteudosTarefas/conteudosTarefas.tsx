@@ -221,7 +221,7 @@ function ConteudosTarefas({ aulaId, turmaId, data }: ConteudosTarefasProps) {
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <InsertInvitation fontSize="small" color="action" />
                     <Typography variant="caption" color="text.secondary">
-                      Prazo: {tarefa.prazo}
+                      Prazo: {format(parseISO(tarefa.prazo), "dd/MM/yyyy")}
                     </Typography>
                   </Box>
                 </Paper>

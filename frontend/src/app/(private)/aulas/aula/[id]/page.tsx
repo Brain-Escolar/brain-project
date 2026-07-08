@@ -5,11 +5,13 @@ import RegistrosDisciplinares from "@/components/aulaDetailView/registrosDiscipl
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import StarIcon from "@mui/icons-material/Star";
-import { Box, Skeleton, Tab, Tabs, Typography } from "@mui/material";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import { Box, Chip, Skeleton, Tab, Tabs, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import SectionVisaoGeral from "./sectionVisaoGeral/sectionVisaoGeral";
 import { useAulaDetalhe } from "@/hooks/useAulaDetalhe";
 import { useProximaAula } from "@/hooks/useProximaAula";
@@ -47,6 +49,11 @@ export default function AulaDetailPage() {
   const { aula, loading, error } = useAulaDetalhe(aulaId);
   const { proximaAula, loading: loadingProxima } = useProximaAula(aulaId, dataOcorrencia);
 
+  const dataFormatada = format(parseISO(dataOcorrencia), "EEEE, d 'de' MMMM 'de' yyyy", {
+    locale: ptBR,
+  });
+  const dataFormatadaCapitalizada = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
@@ -71,7 +78,17 @@ export default function AulaDetailPage() {
 
       <S.PageLayout>
         {/* Coluna Principal */}
-        <ContainerSection title="Atividades da Aula">
+        <ContainerSection
+          title="Atividades da Aula"
+          actions={
+            <Chip
+              icon={<CalendarMonthIcon />}
+              label={dataFormatadaCapitalizada}
+              variant="outlined"
+              sx={{ fontWeight: 600 }}
+            />
+          }
+        >
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
               <Tab
@@ -148,7 +165,7 @@ export default function AulaDetailPage() {
               {loadingProxima ? (
                 <Skeleton variant="text" width={120} />
               ) : proximaAula ? (
-                `${proximaAula.data} · ${proximaAula.horarioInicio.slice(0, 5)} - ${proximaAula.horarioFim.slice(0, 5)}`
+                `${format(parseISO(proximaAula.data), "dd/MM/yyyy")} · ${proximaAula.horarioInicio.slice(0, 5)} - ${proximaAula.horarioFim.slice(0, 5)}`
               ) : (
                 "—"
               )}
