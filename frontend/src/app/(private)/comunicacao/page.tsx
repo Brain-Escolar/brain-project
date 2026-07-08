@@ -107,11 +107,15 @@ export default function ComunicacaoPage() {
     mensagensEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensagens]);
 
+  const marcarTodasComoLidaRef = useRef(marcarTodasComoLida.mutate);
+  marcarTodasComoLidaRef.current = marcarTodasComoLida.mutate;
+
+  const conversaId = selectedConversa?.id;
   useEffect(() => {
-    if (selectedConversa?.id && mensagens.length > 0 && !loadingMensagens) {
-      marcarTodasComoLida.mutate(selectedConversa.id);
+    if (conversaId && mensagens.length > 0 && !loadingMensagens) {
+      marcarTodasComoLidaRef.current(conversaId);
     }
-  }, [selectedConversa, mensagens.length, loadingMensagens, marcarTodasComoLida]);
+  }, [conversaId, mensagens.length, loadingMensagens]);
 
   function handleOpenNovaConversa() {
     reset({ titulo: "", primeiraMensagem: "" });
