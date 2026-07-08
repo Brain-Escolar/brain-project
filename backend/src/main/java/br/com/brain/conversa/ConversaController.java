@@ -74,4 +74,12 @@ public class ConversaController {
         var conversa = service.fechar(id);
         return ResponseEntity.ok(new ListagemConversaDto(conversa, 0));
     }
+
+    @PatchMapping("/{id}/reabrir")
+    public ResponseEntity<ListagemConversaDto> reabrir(
+            @PathVariable Long id,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var conversa = service.reabrir(id);
+        return ResponseEntity.ok(new ListagemConversaDto(conversa, 0));
+    }
 }

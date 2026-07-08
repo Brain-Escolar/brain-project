@@ -89,7 +89,7 @@ export default function ComunicacaoPage() {
   const { conversas, isLoading } = useConversasRemetente(page);
   const { destinatarios, isLoading: loadingDestinatarios } = useDestinatariosDisponiveis();
   const { mensagens, isLoading: loadingMensagens } = useMensagens(selectedConversa?.id ?? null);
-  const { criarConversa, enviarMensagem, fecharConversa, marcarTodasComoLida } =
+  const { criarConversa, enviarMensagem, fecharConversa, reabrirConversa, marcarTodasComoLida } =
     useConversaMutations();
 
   const { control, handleSubmit, reset } = useBrainForm<NovaConversaForm>({
@@ -387,7 +387,7 @@ export default function ComunicacaoPage() {
                     color={selectedConversa.status === "ABERTA" ? "success" : "default"}
                     variant="outlined"
                   />
-                  {selectedConversa.status === "ABERTA" && (
+                  {selectedConversa.status === "ABERTA" ? (
                     <Button
                       size="small"
                       variant="outlined"
@@ -404,6 +404,24 @@ export default function ComunicacaoPage() {
                       }
                     >
                       Encerrar
+                    </Button>
+                  ) : (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      disabled={reabrirConversa.isPending}
+                      onClick={() =>
+                        reabrirConversa
+                          .mutateAsync(selectedConversa.id)
+                          .then(() =>
+                            setSelectedConversa((prev) =>
+                              prev ? { ...prev, status: "ABERTA" } : null,
+                            ),
+                          )
+                      }
+                    >
+                      Reabrir
                     </Button>
                   )}
                 </Stack>
@@ -518,7 +536,7 @@ export default function ComunicacaoPage() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: 1,
+                    gap: 1.5,
                     bgcolor: "grey.50",
                   }}
                 >
@@ -526,6 +544,22 @@ export default function ComunicacaoPage() {
                   <Typography variant="body2" color="text.secondary">
                     Esta conversa foi encerrada
                   </Typography>
+                  <Button
+                    size="small"
+                    variant="text"
+                    disabled={reabrirConversa.isPending}
+                    onClick={() =>
+                      reabrirConversa
+                        .mutateAsync(selectedConversa.id)
+                        .then(() =>
+                          setSelectedConversa((prev) =>
+                            prev ? { ...prev, status: "ABERTA" } : null,
+                          ),
+                        )
+                    }
+                  >
+                    Reabrir
+                  </Button>
                 </Box>
               )}
             </>

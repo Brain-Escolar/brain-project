@@ -129,4 +129,18 @@ public class ConversaService {
         conversaRepository.save(conversa);
         return conversa;
     }
+
+    @Transactional
+    public Conversa reabrir(Long id) {
+        var conversa = conversaRepository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Conversa", id));
+
+        if (conversa.getStatus() == StatusConversa.ABERTA) {
+            throw ErrosSistema.OperacaoInvalidaException.com("Conversa já está aberta.");
+        }
+
+        conversa.setStatus(StatusConversa.ABERTA);
+        conversaRepository.save(conversa);
+        return conversa;
+    }
 }

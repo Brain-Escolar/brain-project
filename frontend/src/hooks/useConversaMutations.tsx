@@ -71,5 +71,28 @@ export function useConversaMutations() {
     },
   });
 
-  return { criarConversa, enviarMensagem, fecharConversa, marcarTodasComoLida };
+  const reabrirConversa = useMutation({
+    mutationFn: (id: number) => conversaApi.reabrir(id),
+    onSuccess: (conversaReaberta) => {
+      queryClient.setQueryData(
+        QUERY_KEYS.conversas.remetente(0),
+        (old: IBrainResult<ConversaResponse> | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            content: old.content.map((c) =>
+              c.id === conversaReaberta.id ? conversaReaberta : c,
+            ),
+          };
+        },
+      );
+      queryClient.invalidateQueries({ queryKey: ["conversas"] });
+      toast.success("Conversa reaberta.");
+    },
+    onError: () => {
+      toast.error("Erro ao reabrir conversa.");
+    },
+  });
+
+  return { criarConversa, enviarMensagem, fecharConversa, reabrirConversa, marcarTodasComoLida };
 }

@@ -31,6 +31,10 @@ export class ConversaApi {
     return httpClient.patch(`${BASE}/${id}/fechar`, {});
   }
 
+  reabrir(id: number): Promise<ConversaResponse> {
+    return httpClient.patch(`${BASE}/${id}/reabrir`, {});
+  }
+
   listarMensagens(conversaId: number, params?: { page?: number; size?: number }): Promise<IBrainResult<MensagemResponse>> {
     return httpClient.get(`${BASE}/${conversaId}/mensagens`, { params });
   }
