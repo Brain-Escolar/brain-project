@@ -1,5 +1,6 @@
 import { IBrainResult } from "@/services/commoResponse";
 import { httpClient } from "@/services/http";
+import { MaterialComplementarResponse } from "@/services/domains/material-complementar";
 import { EstudanteAulaRequest } from "./request";
 import { EstudanteAnotacaoResponse, EstudanteAulaResponse, EstudanteTarefaResponse } from "./response";
 
@@ -20,5 +21,9 @@ export class EstudanteApi {
 
   getTarefasAluno(): Promise<IBrainResult<EstudanteTarefaResponse>> {
     return httpClient.get(`${BASE_ROUTE}/tarefas`);
+  }
+
+  getMateriaisComplementares(): Promise<MaterialComplementarResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/materiais-complementares`);
   }
 }

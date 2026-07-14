@@ -97,11 +97,13 @@ public class MaterialComplementarService {
     }
 
     public List<ListagemMaterialComplementarDto> listarPorProfessor(Long professorId) {
-        var disciplinaIds = aulaRepository.findDisciplinaIdsDistinctByProfessorId(professorId);
-        if (disciplinaIds.isEmpty()) {
-            return List.of();
-        }
-        return repository.findByDisciplinaIdInOrderByCriadoEmDesc(disciplinaIds).stream()
+        return repository.findByProfessorIdOrderByCriadoEmDesc(professorId).stream()
+                .map(this::paraDto)
+                .toList();
+    }
+
+    public List<ListagemMaterialComplementarDto> listarPorAluno(Long turmaId) {
+        return repository.findByTurmaIdOrderByCriadoEmDesc(turmaId).stream()
                 .map(this::paraDto)
                 .toList();
     }

@@ -20,6 +20,8 @@ import br.com.brain.serie.dto.SerieUnidadeTurmaDto;
 import br.com.brain.anotacao.AnotacaoService;
 import br.com.brain.aula.AulaService;
 import br.com.brain.fichamedica.FichaMedicaService;
+import br.com.brain.materialComplementar.MaterialComplementarService;
+import br.com.brain.materialComplementar.dto.ListagemMaterialComplementarDto;
 import br.com.brain.tarefa.TarefaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,7 @@ public class AlunoController {
     private final AnotacaoService anotacaoService;
     private final AulaService aulaService;
     private final TarefaService tarefaService;
+    private final MaterialComplementarService materialComplementarService;
 
     @PostMapping
     public ResponseEntity<DetalhamentoAlunoDto> cadastrar(
@@ -167,5 +170,12 @@ public class AlunoController {
         var aluno = service.recuperarAlunoPorDadosPessoais(usuario.getDadosPessoais().getId());
         var tarefas = tarefaService.recuperarTarefasAluno(aluno.getTurma().getId(), paginacao);
         return ResponseEntity.ok(tarefas);
+    }
+
+    @GetMapping("/materiais-complementares")
+    public ResponseEntity<List<ListagemMaterialComplementarDto>> recuperarMateriaisComplementares(
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var aluno = service.recuperarAlunoPorDadosPessoais(usuario.getDadosPessoais().getId());
+        return ResponseEntity.ok(materialComplementarService.listarPorAluno(aluno.getTurma().getId()));
     }
 }

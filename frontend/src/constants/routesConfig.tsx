@@ -380,6 +380,13 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ESTUDANTE],
     showBadge: true,
   },
+  {
+    text: RouteLabelsEnum.MATERIAIS_COMPLEMENTARES,
+    icon: <FolderOpenOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.MATERIAIS_COMPLEMENTARES,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ESTUDANTE],
+  },
   // ========== USO OPERACIONAL - PROFESSOR ==========
   {
     text: RouteLabelsEnum.MINHAS_TURMAS,
