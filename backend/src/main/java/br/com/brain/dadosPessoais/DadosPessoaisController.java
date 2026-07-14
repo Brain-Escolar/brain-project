@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
-import jakarta.persistence.EntityNotFoundException;
+import br.com.brain.exception.ErrosSistema;
 
 @RestController
 @RequestMapping("dados-pessoais")
@@ -18,7 +18,8 @@ public class DadosPessoaisController {
     @GetMapping("/cpf/{cpf}")
     public ResponseEntity<DadosPessoais> buscarPorCpf(@PathVariable("cpf") String cpf) {
         var dadosPessoais = service.buscarDadosPessoaisPorCpf(cpf);
-        return ResponseEntity.ok(dadosPessoais.orElseThrow(() -> new EntityNotFoundException("Dados pessoais não encontrados")));
+        return ResponseEntity.ok(dadosPessoais.orElseThrow(
+                () -> ErrosSistema.RecursoNaoEncontradoException.para("Dados pessoais")));
     }
 
 }

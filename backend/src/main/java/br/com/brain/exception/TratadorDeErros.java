@@ -6,13 +6,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import br.com.brain.exception.ErrosSistema.DataInvalidaException;
 import br.com.brain.exception.ErrosSistema.RecursoJaExisteException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 
 @Slf4j
 @RestControllerAdvice
@@ -116,6 +124,50 @@ public class TratadorDeErros {
                 .status(HttpStatus.CONFLICT)
                 .body(ApiError.of("CONFLITO_DE_DADOS",
                         "Registro já existe ou viola uma restrição de integridade",
+                        request.getRequestURI()));
+    }
+
+    @ExceptionHandler({ EntityNotFoundException.class, java.util.NoSuchElementException.class })
+    public ResponseEntity<ApiError> handleEntityNotFound(RuntimeException ex, HttpServletRequest request) {
+        log.warn("Recurso não encontrado em {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of("RECURSO_NAO_ENCONTRADO", ex.getMessage(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler({ HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class, ConstraintViolationException.class })
+    public ResponseEntity<ApiError> handleRequisicaoInvalida(Exception ex, HttpServletRequest request) {
+        log.warn("Requisição inválida em {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiError.of("REQUISICAO_INVALIDA", "Requisição malformada ou com parâmetros inválidos",
+                        request.getRequestURI()));
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiError> handleMetodoNaoSuportado(HttpRequestMethodNotSupportedException ex,
+            HttpServletRequest request) {
+        log.warn("Método não suportado em {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiError.of("METODO_NAO_SUPORTADO", ex.getMessage(), request.getRequestURI()));
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> handleAutenticacao(AuthenticationException ex, HttpServletRequest request) {
+        log.warn("Falha de autenticação em {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiError.of("CREDENCIAIS_INVALIDAS", "Usuário ou senha inválidos", request.getRequestURI()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiError> handleAcessoNegadoSpring(AccessDeniedException ex, HttpServletRequest request) {
+        log.warn("Acesso negado em {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiError.of("ACESSO_NEGADO", "Você não tem permissão para realizar esta operação.",
                         request.getRequestURI()));
     }
 

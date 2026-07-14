@@ -55,7 +55,7 @@ public class TokenService {
             var algoritmo = Algorithm.HMAC256(secret);
             return JWT.require(algoritmo).withIssuer("API Brain").build().verify(tokenJWT).getSubject();
         } catch (JWTVerificationException exception) {
-            throw new ErrosSistema.ErroInternoException("Token JWT inválido ou expirado!", exception);
+            throw new ErrosSistema.TokenInvalidoOuExpiradoException("Token JWT inválido ou expirado!");
         }
     }
 
@@ -65,7 +65,7 @@ public class TokenService {
             return JWT.require(algoritmo).withIssuer("API Brain").build().verify(tokenJWT).getClaim("tenantId")
                     .asString();
         } catch (JWTVerificationException exception) {
-            throw new ErrosSistema.ErroInternoException("Token JWT inválido ou expirado!", exception);
+            throw new ErrosSistema.TokenInvalidoOuExpiradoException("Token JWT inválido ou expirado!");
         }
     }
 
