@@ -30,7 +30,7 @@ public class TratadorDeErros {
     public ResponseEntity<ApiError> handleOperacaoInvalida(ErrosSistema.OperacaoInvalidaException ex, HttpServletRequest request) {
         log.warn("Operação inválida: {}", ex.getMessage());
         return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .status(HttpStatus.UNPROCESSABLE_CONTENT)
                 .body(ApiError.of("OPERACAO_INVALIDA", ex.getMessage(), request.getRequestURI()));
     }
 
