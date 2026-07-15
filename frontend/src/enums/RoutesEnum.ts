@@ -83,7 +83,7 @@ export enum RoutesEnum {
   CALENDARIO = "/calendario",
   BOLETIM = "/boletim",
   AVALIACOES = "/avaliacoes",
-  TAREFAS = "/tarefas",
+  DIARIO = "/diario",
   CONTRACHEQUE = "/contracheque",
   MATERIAIS_COMPLEMENTARES = "/materiais-complementares",
   COMUNICADOS = "/comunicados",

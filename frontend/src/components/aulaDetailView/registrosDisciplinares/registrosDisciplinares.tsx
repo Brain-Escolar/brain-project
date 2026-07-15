@@ -35,6 +35,8 @@ import { useCriarAnotacao } from "@/hooks/useCriarAnotacao";
 import { useExcluirAnotacao } from "@/hooks/useExcluirAnotacao";
 import { TIPOS_ANOTACAO, TipoAnotacao } from "@/services/domains/anotacao";
 import { toast } from "react-toastify";
+import Link from "next/link";
+import { RoutesEnum } from "@/enums/RoutesEnum";
 
 interface RegistrosDisciplinaresProps {
   aulaId: string;
@@ -163,7 +165,15 @@ function RegistrosDisciplinares({ aulaId, data }: RegistrosDisciplinaresProps) {
                     />
                   </TableCell>
                   <TableCell sx={{ py: 1 }}>
-                    <Typography variant="body2">{aluno.nome}</Typography>
+                    <Typography
+                      variant="body2"
+                      component={Link}
+                      href={`${RoutesEnum.ALUNO_DETALHE}/${aluno.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      sx={{ color: "primary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+                    >
+                      {aluno.nome}
+                    </Typography>
                   </TableCell>
                 </TableRow>
               );

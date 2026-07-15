@@ -74,6 +74,14 @@ export function buildMuiTheme(mode: "light" | "dark") {
           },
         },
       },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            padding: 0,
+            minHeight: 48,
+          },
+        },
+      },
     },
   });
 }

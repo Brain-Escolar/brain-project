@@ -13,7 +13,7 @@ import * as S from "./styles";
 
 type Aba = "novo" | "lancamentos";
 
-export default function TarefasPage() {
+export default function DiarioPage() {
   const [aba, setAba] = useState<Aba>("novo");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDisciplinaId, setSelectedDisciplinaId] = useState("");
@@ -33,7 +33,7 @@ export default function TarefasPage() {
 
   return (
     <PageScaffold
-      title="Tarefas"
+      title="Diário"
       description="Registre o conteúdo das aulas e as tarefas de casa das suas turmas, e acompanhe os lançamentos."
     >
       <S.Seg role="tablist" aria-label="Modo de visualização">

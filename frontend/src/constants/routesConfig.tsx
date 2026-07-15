@@ -417,9 +417,9 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
   },
   {
-    text: RouteLabelsEnum.TAREFA_LISTA,
+    text: RouteLabelsEnum.DIARIO,
     icon: <AssignmentIcon fontSize="small" />,
-    router: RoutesEnum.TAREFAS,
+    router: RoutesEnum.DIARIO,
     isShowMenu: true,
     roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
   },

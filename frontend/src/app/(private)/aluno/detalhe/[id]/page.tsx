@@ -13,7 +13,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { RoutesEnum } from "@/enums/RoutesEnum";
 import { UserRoleEnum } from "@/enums/UserRoleEnum";
 import { AlunoDetalheResponse, FichaMedicaAlunoResponse } from "@/services/domains/aluno/response";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PersonIcon from "@mui/icons-material/Person";
 import EditIcon from "@mui/icons-material/Edit";
 import {
@@ -24,7 +23,6 @@ import {
   CircularProgress,
   Divider,
   FormControl,
-  IconButton,
   InputLabel,
   MenuItem,
   Select,
@@ -368,13 +366,6 @@ export default function AlunoDetalhePage() {
         ) : undefined
       }
     >
-      <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-        <IconButton onClick={() => router.back()} size="small">
-          <ArrowBackIcon fontSize="small" />
-        </IconButton>
-        <Typography variant="body2" color="text.secondary">Voltar</Typography>
-      </Box>
-
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       <S.PageLayout>
