@@ -28,6 +28,7 @@ import {
   DialogContent,
   FormControlLabel,
   IconButton,
+  Switch,
   Typography,
 } from "@mui/material";
 import { useQueryClient } from "@tanstack/react-query";
@@ -61,6 +62,7 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
   const { createAvaliacao } = useAvaliacaoMutations();
   const { disciplinas } = useMinhasTurmas();
   const [anexos, setAnexos] = useState<File[]>([]);
+  const [mesmaDataParaTodas, setMesmaDataParaTodas] = useState(true);
 
   const { control, handleSubmit, reset, setValue, isValid } = useBrainForm<AvaliacaoFormData>({
     schema: avaliacaoSchema,
@@ -68,7 +70,6 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
   });
 
   const disciplinaId = useWatch({ control, name: "disciplinaId" });
-  const tipo = useWatch({ control, name: "tipo" });
   const turmaIds = useWatch({ control, name: "turmaIds" }) ?? SEM_TURMAS;
   const datas = useWatch({ control, name: "datas" });
 
@@ -108,11 +109,20 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
   function handleClose() {
     reset(avaliacaoDefaultValues);
     setAnexos([]);
+    setMesmaDataParaTodas(true);
     onClose();
   }
 
   function replicarData(campo: "dataAplicacao" | "dataEntregaNotas", valor: Date | null) {
     turmaIds.forEach((id) => setValue(`datas.${id}.${campo}`, valor));
+  }
+
+  function handleToggleMesmaData(ligado: boolean) {
+    setMesmaDataParaTodas(ligado);
+    if (!ligado || turmaIds.length === 0) return;
+    const primeiraTurmaId = turmaIds[0];
+    replicarData("dataAplicacao", datas?.[primeiraTurmaId]?.dataAplicacao ?? null);
+    replicarData("dataEntregaNotas", datas?.[primeiraTurmaId]?.dataEntregaNotas ?? null);
   }
 
   async function onSubmit(data: AvaliacaoFormData) {
@@ -262,9 +272,29 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
 
         {turmasSelecionadas.length > 0 && (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              Datas por turma
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                Datas por turma
+              </Typography>
+              {turmasSelecionadas.length > 1 && (
+                <FormControlLabel
+                  labelPlacement="start"
+                  control={
+                    <Switch
+                      size="small"
+                      checked={mesmaDataParaTodas}
+                      onChange={(e) => handleToggleMesmaData(e.target.checked)}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" color="text.secondary">
+                      Mesma data para todas as turmas
+                    </Typography>
+                  }
+                  sx={{ ml: 0 }}
+                />
+              )}
+            </Box>
             {turmasSelecionadas.map((t) => (
               <Box key={t.turmaId} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                 <Typography variant="body2" sx={{ width: 90, flexShrink: 0 }}>
@@ -275,7 +305,7 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
                   control={control}
                   label="Aplicação"
                   onValueChange={
-                    tipo === "PROVA" ? (v) => replicarData("dataAplicacao", v) : undefined
+                    mesmaDataParaTodas ? (v) => replicarData("dataAplicacao", v) : undefined
                   }
                 />
                 <BrainDatePickerControlled
@@ -284,15 +314,15 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
                   label="Entrega de notas"
                   minDate={datas?.[t.turmaId]?.dataAplicacao ?? undefined}
                   onValueChange={
-                    tipo === "PROVA" ? (v) => replicarData("dataEntregaNotas", v) : undefined
+                    mesmaDataParaTodas ? (v) => replicarData("dataEntregaNotas", v) : undefined
                   }
                 />
               </Box>
             ))}
-            {tipo === "PROVA" && (
+            {mesmaDataParaTodas && turmasSelecionadas.length > 1 && (
               <Typography variant="caption" color="text.secondary">
-                Como o tipo é Prova, a data preenchida numa turma é replicada para as demais. Você
-                pode ajustar individualmente depois de criar a avaliação.
+                A data preenchida numa turma é replicada para as demais. Desligue a opção acima
+                para ajustar cada turma individualmente.
               </Typography>
             )}
           </Box>
