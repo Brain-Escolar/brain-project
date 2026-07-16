@@ -2,7 +2,12 @@ import { IBrainResult } from "@/services/commoResponse";
 import { httpClient } from "@/services/http";
 import { MaterialComplementarResponse } from "@/services/domains/material-complementar";
 import { EstudanteAulaRequest } from "./request";
-import { EstudanteAnotacaoResponse, EstudanteAulaResponse, EstudanteTarefaResponse } from "./response";
+import {
+  BoletimResponse,
+  EstudanteAnotacaoResponse,
+  EstudanteAulaResponse,
+  EstudanteTarefaResponse,
+} from "./response";
 
 const BASE_ROUTE = "aluno";
 
@@ -25,5 +30,10 @@ export class EstudanteApi {
 
   getMateriaisComplementares(): Promise<MaterialComplementarResponse[]> {
     return httpClient.get(`${BASE_ROUTE}/materiais-complementares`);
+  }
+
+  getBoletim(): Promise<BoletimResponse> {
+    // BoletimController é um recurso independente, montado em `/boletim` (não sob `/aluno`).
+    return httpClient.get("boletim");
   }
 }
