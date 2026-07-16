@@ -16,8 +16,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useState, useMemo } from "react";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 import { useEventos } from "@/hooks/useEventos";
 import { EventoResponse, TipoEvento } from "@/services/domains/evento";
@@ -32,6 +32,19 @@ const MESES_PT = [
 ];
 
 const daysOfWeek = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
+
+/** Altura da linha "Hoje / < > / Mês" — usada para alinhar o topo do título "Eventos" com o grid. */
+const CALENDAR_HEADER_HEIGHT = 32;
+
+const hojeButtonSx = {
+  color: "#141414",
+  borderColor: "var(--colors-border)",
+  "&:hover": {
+    color: "#141414",
+    borderColor: "var(--colors-border)",
+    backgroundColor: "var(--colors-backgroundHover)",
+  },
+} as const;
 
 function formatDate(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -189,7 +202,7 @@ export default function Calendario() {
   const tituloMes = `${MESES_PT[currentMonth]} ${currentYear}`;
 
   const filtrosSidebar = (
-    <Stack spacing={isMobile ? 1 : 2}>
+    <Stack spacing={0.75}>
       {(Object.keys(TIPO_CONFIG) as TipoEvento[]).map((tipo) => {
         const cfg = TIPO_CONFIG[tipo];
         const count = contagemPorTipo[tipo] ?? 0;
@@ -201,29 +214,40 @@ export default function Calendario() {
                 checked={tiposAtivos.has(tipo)}
                 onChange={() => toggleTipo(tipo)}
                 size="small"
+                sx={{
+                  p: 0.25,
+                  mr: 1,
+                  color: cfg.color,
+                  "&.Mui-checked": { color: cfg.color },
+                }}
               />
             }
             label={
               <Box
                 sx={{
                   display: "flex",
-                  justifyContent: "space-between",
                   alignItems: "center",
+                  gap: 0.5,
                   width: "100%",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Box sx={{ width: isMobile ? 8 : 12, height: isMobile ? 8 : 12, bgcolor: cfg.color, borderRadius: 1 }} />
-                  <Typography variant={isMobile ? "caption" : "body2"} sx={isMobile ? { fontSize: "0.7rem" } : {}}>
-                    {cfg.label}
-                  </Typography>
-                </Box>
+                <Typography variant={isMobile ? "caption" : "body2"} sx={isMobile ? { fontSize: "0.7rem" } : {}}>
+                  {cfg.label}
+                </Typography>
                 <Typography variant="body2" color="text.secondary">
                   ({count})
                 </Typography>
               </Box>
             }
-            sx={{ m: 0, width: "100%" }}
+            sx={{
+              m: 0,
+              width: "100%",
+              borderRadius: 1,
+              px: 0.75,
+              py: 0.25,
+              transition: "background-color 0.15s",
+              "&:hover": { bgcolor: "action.hover" },
+            }}
           />
         );
       })}
@@ -236,6 +260,7 @@ export default function Calendario() {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        minHeight: isMobile ? "auto" : CALENDAR_HEADER_HEIGHT,
         mb: isMobile ? 1 : 3,
         flexWrap: "wrap",
         gap: 1,
@@ -243,20 +268,23 @@ export default function Calendario() {
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Button
-          variant="text"
+          variant="outlined"
           size="small"
           onClick={goToToday}
-          sx={{ textTransform: "uppercase", fontSize: isMobile ? "0.7rem" : undefined }}
+          sx={{ ...hojeButtonSx, fontSize: isMobile ? "0.7rem" : undefined }}
         >
           Hoje
         </Button>
         <IconButton size="small" onClick={navigatePrev}>
-          <ArrowBackIcon fontSize={isMobile ? "small" : "medium"} />
+          <ChevronLeftIcon fontSize={isMobile ? "small" : "medium"} />
         </IconButton>
         <IconButton size="small" onClick={navigateNext}>
-          <ArrowForwardIcon fontSize={isMobile ? "small" : "medium"} />
+          <ChevronRightIcon fontSize={isMobile ? "small" : "medium"} />
         </IconButton>
-        <Typography variant={isMobile ? "body1" : "h6"} sx={{ ml: 1 }}>
+        <Typography
+          variant={isMobile ? "body1" : "h6"}
+          sx={{ color: "var(--colors-textSecondary)", fontWeight: 400 }}
+        >
           {tituloMes}
         </Typography>
         {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
@@ -279,14 +307,14 @@ export default function Calendario() {
             <Box
               key={index}
               sx={{
-                p: isMobile ? 0.5 : 2,
+                p: isMobile ? 0.5 : 2.5,
                 textAlign: "center",
                 borderRight: index < 6 ? 1 : 0,
                 borderColor: "divider",
               }}
             >
               <Typography
-                variant="caption"
+                variant="body2"
                 color="text.secondary"
                 fontWeight="bold"
                 sx={isMobile ? { fontSize: "0.6rem" } : {}}
@@ -310,8 +338,8 @@ export default function Calendario() {
                 }}
                 sx={{
                   minWidth: 0,
-                  minHeight: isMobile ? 60 : 120,
-                  p: isMobile ? 0.5 : 1,
+                  minHeight: isMobile ? 70 : 120,
+                  p: isMobile ? 0.5 : 1.5,
                   overflow: "hidden",
                   borderRight: (index + 1) % 7 !== 0 ? 1 : 0,
                   borderBottom: index < calendarDays.length - 7 ? 1 : 0,
@@ -324,13 +352,13 @@ export default function Calendario() {
                 }}
               >
                 <Typography
-                  variant={isMobile ? "caption" : "body2"}
+                  variant={isMobile ? "caption" : "body1"}
                   sx={{
                     color: dayInfo.isToday ? "white" : !dayInfo.isCurrentMonth ? "text.disabled" : "text.primary",
                     fontWeight: dayInfo.isToday ? "bold" : "normal",
                     bgcolor: dayInfo.isToday ? "primary.main" : "transparent",
-                    width: dayInfo.isToday ? (isMobile ? 16 : 24) : "auto",
-                    height: dayInfo.isToday ? (isMobile ? 16 : 24) : "auto",
+                    width: dayInfo.isToday ? (isMobile ? 16 : 28) : "auto",
+                    height: dayInfo.isToday ? (isMobile ? 16 : 28) : "auto",
                     borderRadius: dayInfo.isToday ? "50%" : 0,
                     display: "flex",
                     alignItems: "center",
@@ -366,13 +394,13 @@ export default function Calendario() {
                       ))}
                       {dayEvents.length > 2 && (
                         <Typography sx={{ fontSize: "6px", color: "text.secondary" }}>
-                          +{dayEvents.length - 2}
+                          + {dayEvents.length - 2}
                         </Typography>
                       )}
                     </Box>
                   )
                 ) : (
-                  <Stack spacing={0.5} sx={{ mt: 1 }}>
+                  <Stack spacing={0.75} sx={{ mt: 1.25 }}>
                     {dayEvents.slice(0, 3).map((evento) => (
                       <Box
                         key={evento.id}
@@ -390,14 +418,13 @@ export default function Calendario() {
                           }
                         }}
                         sx={{
-                          fontSize: "10px",
-                          p: 0.5,
+                          fontSize: "11px",
+                          p: "5px 8px",
                           borderRadius: 1,
                           bgcolor: TIPO_CONFIG[evento.tipo].color,
                           color: "white",
                           display: "flex",
                           alignItems: "center",
-                          gap: 0.5,
                           overflow: "hidden",
                           cursor: "pointer",
                           transition: "filter 0.15s",
@@ -407,9 +434,8 @@ export default function Calendario() {
                         <Typography
                           variant="caption"
                           sx={{
-                            fontSize: "10px",
+                            fontSize: "11px",
                             color: "white",
-                            pl: "10px",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
@@ -427,9 +453,9 @@ export default function Calendario() {
                           abrirListaDia(formatDate(dayInfo.year, dayInfo.month, dayInfo.day));
                         }}
                         sx={{
-                          fontSize: "10px",
+                          fontSize: "11px",
                           color: "text.secondary",
-                          pl: 0.5,
+                          pl: "8px",
                           cursor: "pointer",
                           "&:hover": { textDecoration: "underline" },
                         }}
@@ -476,12 +502,13 @@ export default function Calendario() {
           </Box>
         </Stack>
       ) : (
-        <LayoutColumns sizeLeft="70%" sizeRight="30%">
+        <LayoutColumns sizeLeft="80%" sizeRight="20%">
           <Box>
             {calendarHeader}
             {calendarGrid}
           </Box>
           <Box>
+            <Box sx={{ height: CALENDAR_HEADER_HEIGHT + 24 }} />
             <Typography variant="h6" gutterBottom>
               Eventos
             </Typography>
