@@ -345,13 +345,6 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ESTUDANTE],
   },
   {
-    text: RouteLabelsEnum.MINHAS_AULAS,
-    icon: <MenuBookOutlinedIcon fontSize="small" />,
-    router: RoutesEnum.MINHAS_AULAS,
-    isShowMenu: true,
-    roles: [UserRoleEnum.ESTUDANTE],
-  },
-  {
     text: RouteLabelsEnum.CALENDARIO,
     icon: <CalendarTodayOutlinedIcon fontSize="small" />,
     router: RoutesEnum.CALENDARIO,
