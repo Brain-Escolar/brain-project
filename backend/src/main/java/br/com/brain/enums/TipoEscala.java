@@ -5,7 +5,7 @@ import lombok.Getter;
 /**
  * Tipo de escala de avaliação adotada pela escola.
  * NUMERIC cobre notas numéricas (0–10, 0–100, etc.). Deixado como enum para
- * permitir futuras escalas (conceitos/letras) sem quebrar o contrato do boletim.
+ * permitir futuras escalas (conceitos/letras) sem quebrar o contrato dos relatórios.
  */
 @Getter
 public enum TipoEscala {

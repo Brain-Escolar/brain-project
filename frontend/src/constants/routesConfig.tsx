@@ -18,7 +18,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import HomeIcon from "@mui/icons-material/Home";
-import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+import SummarizeOutlinedIcon from "@mui/icons-material/SummarizeOutlined";
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
 import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
 import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
@@ -359,9 +359,9 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ESTUDANTE],
   },
   {
-    text: RouteLabelsEnum.BOLETIM,
-    icon: <FactCheckOutlinedIcon fontSize="small" />,
-    router: RoutesEnum.BOLETIM,
+    text: RouteLabelsEnum.RELATORIOS,
+    icon: <SummarizeOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.RELATORIOS,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
   },

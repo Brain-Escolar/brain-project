@@ -15,7 +15,7 @@ import java.time.LocalDate;
 /**
  * Período letivo configurável por ano (bimestre, trimestre, semestre, anual, ...).
  * O intervalo [dataInicio, dataFim] é usado para alocar cada nota
- * (via {@code periodo_referencia}) e cada chamada ao período correto no boletim.
+ * (via {@code periodo_referencia}) e cada chamada ao período correto nos relatórios.
  */
 @Entity
 @Table(name = "periodos_letivos")

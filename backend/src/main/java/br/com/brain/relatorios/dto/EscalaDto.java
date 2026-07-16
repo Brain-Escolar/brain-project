@@ -1,10 +1,10 @@
-package br.com.brain.boletim.dto;
+package br.com.brain.relatorios.dto;
 
 import br.com.brain.configuracaoAcademica.EscalaAvaliacao;
 
 import java.math.BigDecimal;
 
-/** Escala de avaliação da escola exposta ao boletim (ex.: 0–10, aprovação 6,0). */
+/** Escala de avaliação da escola exposta aos relatórios (ex.: 0–10, aprovação 6,0). */
 public record EscalaDto(
         String type,
         BigDecimal minValue,

@@ -30,9 +30,9 @@ export interface EstudanteTarefaResponse {
   prazo: string;
 }
 
-// ===== Boletim =====
+// ===== Relatórios (notas e frequência) =====
 
-export interface BoletimEscalaResponse {
+export interface RelatorioEscalaResponse {
   type: string;
   minValue: number;
   maxValue: number;
@@ -41,35 +41,35 @@ export interface BoletimEscalaResponse {
   label: string;
 }
 
-export interface BoletimPeriodoResponse {
+export interface RelatorioPeriodoResponse {
   id: number;
   name: string;
   sequence: number;
   isCurrent: boolean;
 }
 
-export interface BoletimNotaPeriodoResponse {
+export interface RelatorioNotaPeriodoResponse {
   periodoId: number;
   sequence: number;
   nota: number | null;
   faltas: number;
 }
 
-export type BoletimSituacao = "APROVADO" | "REPROVADO" | "EM_ANDAMENTO";
+export type RelatorioSituacao = "APROVADO" | "REPROVADO" | "EM_ANDAMENTO";
 
-export interface BoletimDisciplinaResponse {
+export interface RelatorioDisciplinaResponse {
   disciplinaId: number;
   nome: string;
-  periodos: BoletimNotaPeriodoResponse[];
+  periodos: RelatorioNotaPeriodoResponse[];
   notaAnual: number | null;
   recuperacao: number | null;
   notaFinal: number | null;
   totalFaltas: number;
   frequencia: number | null;
-  situacao: BoletimSituacao;
+  situacao: RelatorioSituacao;
 }
 
-export interface BoletimAlunoResponse {
+export interface RelatorioAlunoResponse {
   id: number;
   nome: string;
   serie: string;
@@ -77,19 +77,26 @@ export interface BoletimAlunoResponse {
   unidade: string;
 }
 
-export interface BoletimResumoResponse {
+export interface RelatorioResumoResponse {
   mediaGeral: number | null;
   frequenciaGeral: number | null;
   emRecuperacao: number;
-  situacaoFinal: BoletimSituacao;
+  disciplinasAprovadas: number;
+  totalDisciplinas: number;
+  totalFaltas: number;
+  emAlerta: number;
+  situacaoFinal: RelatorioSituacao;
 }
 
-export interface BoletimResponse {
+export interface RelatorioResponse {
   anoAcademico: number;
   notaAprovacao: number;
-  gradingScale: BoletimEscalaResponse;
-  periodos: BoletimPeriodoResponse[];
-  aluno: BoletimAlunoResponse;
-  resumo: BoletimResumoResponse;
-  disciplinas: BoletimDisciplinaResponse[];
+  frequenciaMinima: number;
+  limiteFaltas: number;
+  percentualLimiteFaltas: number;
+  gradingScale: RelatorioEscalaResponse;
+  periodos: RelatorioPeriodoResponse[];
+  aluno: RelatorioAlunoResponse;
+  resumo: RelatorioResumoResponse;
+  disciplinas: RelatorioDisciplinaResponse[];
 }

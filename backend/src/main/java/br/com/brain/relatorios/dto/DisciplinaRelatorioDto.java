@@ -1,13 +1,13 @@
-package br.com.brain.boletim.dto;
+package br.com.brain.relatorios.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Linha do boletim de uma disciplina: notas/faltas por período, média anual,
+ * Linha de relatório de uma disciplina: notas/faltas por período, média anual,
  * recuperação (quando houver), nota final, faltas totais, frequência e situação.
  */
-public record DisciplinaBoletimDto(
+public record DisciplinaRelatorioDto(
         Long disciplinaId,
         String nome,
         List<NotaPeriodoDto> periodos,
@@ -15,6 +15,6 @@ public record DisciplinaBoletimDto(
         BigDecimal recuperacao,
         BigDecimal notaFinal,
         Integer totalFaltas,
-        Integer frequencia,
+        BigDecimal frequencia,
         String situacao) {
 }

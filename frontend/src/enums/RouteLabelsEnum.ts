@@ -74,7 +74,7 @@ export enum RouteLabelsEnum {
   MINHAS_AULAS = "Minhas aulas",
   MINHAS_TURMAS = "Minhas turmas",
   CALENDARIO = "Calendário",
-  BOLETIM = "Boletim",
+  RELATORIOS = "Relatórios",
   AVALIACOES = "Avaliações",
   CONTRACHEQUE = "Contracheque e declarações",
   MATERIAIS_COMPLEMENTARES = "Materiais complementares",
@@ -85,7 +85,6 @@ export enum RouteLabelsEnum {
 
   // Admin labels
   USUARIOS = "Usuários",
-  RELATORIOS = "Relatórios",
   CONFIGURACOES = "Configurações",
 
   UNIDADE = "Unidade",

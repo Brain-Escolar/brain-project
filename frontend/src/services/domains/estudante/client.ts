@@ -3,7 +3,7 @@ import { httpClient } from "@/services/http";
 import { MaterialComplementarResponse } from "@/services/domains/material-complementar";
 import { EstudanteAulaRequest } from "./request";
 import {
-  BoletimResponse,
+  RelatorioResponse,
   EstudanteAnotacaoResponse,
   EstudanteAulaResponse,
   EstudanteTarefaResponse,
@@ -32,8 +32,8 @@ export class EstudanteApi {
     return httpClient.get(`${BASE_ROUTE}/materiais-complementares`);
   }
 
-  getBoletim(): Promise<BoletimResponse> {
-    // BoletimController é um recurso independente, montado em `/boletim` (não sob `/aluno`).
-    return httpClient.get("boletim");
+  getRelatorio(): Promise<RelatorioResponse> {
+    // RelatoriosController é um recurso independente, montado em `/relatorios` (não sob `/aluno`).
+    return httpClient.get("relatorios");
   }
 }

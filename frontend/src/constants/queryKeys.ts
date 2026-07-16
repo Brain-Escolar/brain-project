@@ -153,8 +153,8 @@ export const QUERY_KEYS = {
       all: ["estudante", "materiaisComplementares"] as const,
       lists: () => [...QUERY_KEYS.estudante.materiaisComplementares.all, "list"] as const,
     },
-    boletim: {
-      all: ["estudante", "boletim"] as const,
+    relatorios: {
+      all: ["estudante", "relatorios"] as const,
     },
   },
   comunicados: {

@@ -18,13 +18,13 @@ public class ConfiguracaoAcademicaService {
     private final PeriodoLetivoRepository periodoLetivoRepository;
 
     /**
-     * Compõe a configuração usada pelo boletim: a escala da escola (constante,
+     * Compõe a configuração usada pelos relatórios: a escala da escola (constante,
      * linha única em {@code configuracoes_escola}) e os períodos do ano letivo.
      * Quando a escola ainda não personalizou, aplica o padrão (escala 0–10 com
-     * aprovação 6,0 e 4 bimestres), mantendo o boletim funcional desde o início.
+     * aprovação 6,0 e 4 bimestres), mantendo os relatórios funcionais desde o início.
      */
     @Transactional(readOnly = true)
-    public ConfiguracaoBoletim obterOuPadrao(int anoLetivo) {
+    public ConfiguracaoRelatorio obterOuPadrao(int anoLetivo) {
         var escala = configuracaoEscolaRepository.findById(ConfiguracaoEscola.ID_UNICO)
                 .map(ConfiguracaoEscola::getEscala)
                 .orElseGet(this::escalaPadrao);
@@ -34,7 +34,7 @@ public class ConfiguracaoAcademicaService {
             periodos = periodosPadrao(anoLetivo);
         }
 
-        return new ConfiguracaoBoletim(anoLetivo, escala, periodos);
+        return new ConfiguracaoRelatorio(anoLetivo, escala, periodos);
     }
 
     private EscalaAvaliacao escalaPadrao() {

@@ -1,4 +1,4 @@
-package br.com.brain.boletim.dto;
+package br.com.brain.relatorios.dto;
 
 import java.math.BigDecimal;
 
