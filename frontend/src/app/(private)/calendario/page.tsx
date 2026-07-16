@@ -309,8 +309,10 @@ export default function Calendario() {
                   else abrirNovoEvento(dateKey);
                 }}
                 sx={{
+                  minWidth: 0,
                   minHeight: isMobile ? 60 : 120,
                   p: isMobile ? 0.5 : 1,
+                  overflow: "hidden",
                   borderRight: (index + 1) % 7 !== 0 ? 1 : 0,
                   borderBottom: index < calendarDays.length - 7 ? 1 : 0,
                   borderColor: "divider",
@@ -402,10 +404,16 @@ export default function Calendario() {
                           "&:hover": { filter: "brightness(0.9)" },
                         }}
                       >
-                        <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "white", flexShrink: 0 }} />
                         <Typography
                           variant="caption"
-                          sx={{ fontSize: "10px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                          sx={{
+                            fontSize: "10px",
+                            color: "white",
+                            pl: "10px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
                         >
                           {evento.titulo}
                         </Typography>
