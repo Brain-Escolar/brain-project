@@ -11,7 +11,7 @@ import { Box } from "@mui/material";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import SectionAulasAluno from "./sectionAulasAluno";
-import SectionResumoSemana from "./sectionResumoSemana";
+import SectionSidebarAluno from "./sectionSidebarAluno";
 
 function buildHeaderDescription(
   serie?: string,
@@ -46,7 +46,7 @@ export default function DashAlunoPage() {
 
       <LayoutColumns sizeLeft="70%" sizeRight="30%">
         <SectionAulasAluno />
-        <SectionResumoSemana />
+        <SectionSidebarAluno />
       </LayoutColumns>
     </PageScaffold>
   );

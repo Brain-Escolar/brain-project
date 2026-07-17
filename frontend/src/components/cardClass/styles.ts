@@ -107,11 +107,15 @@ export const MetaItem = styled.span`
   }
 `;
 
-export const Badge = styled.span`
-  align-self: flex-start;
+export const Badge = styled.span<{ $tone?: "primary" | "success" }>`
+  align-self: center;
   flex-shrink: 0;
-  color: ${cssVarColor("primary")};
-  font-size: ${cssVarFontSize("body2")};
+  padding: 4px 10px;
+  border-radius: ${cssVarRadius("pill")};
+  background: ${({ $tone }) =>
+    $tone === "success" ? cssVarColor("successSubtle") : cssVarColor("primary")};
+  color: ${({ $tone }) => ($tone === "success" ? cssVarColor("successText") : "#fff")};
+  font-size: ${cssVarFontSize("small")};
   font-weight: ${cssVarFontWeight("semibold")};
   white-space: nowrap;
 `;

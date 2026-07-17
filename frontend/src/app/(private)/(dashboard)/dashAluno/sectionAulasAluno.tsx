@@ -12,6 +12,7 @@ import { formatDateForAPI } from "@/utils/utilsDate";
 import { RoutesEnum } from "@/enums";
 import { Box, Button, IconButton, styled, Typography } from "@mui/material";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
+import EventBusyOutlinedIcon from "@mui/icons-material/EventBusyOutlined";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -148,7 +149,7 @@ function SemanalContent({
               {aula.disciplina}
             </Typography>
             <Typography sx={{ fontSize: 12, color: "var(--colors-textSecondary)", mt: 0.3 }}>
-              {aula.professor}
+              {`Sala ${aula.sala}`}
             </Typography>
           </>
         )}
@@ -170,10 +171,13 @@ export default function SectionAulasAluno() {
     router.push(`${RoutesEnum.ALUNO_AULA}/${aula.id}`);
 
   let proximaAulaIndex = -1;
+  let proximaAulaComecou = false;
   if (isToday(selectedDate) && aulas && aulas.length > 0) {
     const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
     proximaAulaIndex = aulas.findIndex((a) => horarioToMinutes(a.horarioFim) > nowMin);
-    if (proximaAulaIndex === -1) proximaAulaIndex = 0;
+    proximaAulaComecou =
+      proximaAulaIndex !== -1 &&
+      nowMin >= horarioToMinutes(aulas[proximaAulaIndex].horarioInicio);
   }
 
   return (
@@ -226,7 +230,13 @@ export default function SectionAulasAluno() {
           </Button>
         </>
       ) : !aulas || aulas.length === 0 ? (
-        <BrainResultNotFound message="Nenhuma aula encontrada para esse dia" />
+        <CardClassPanel>
+          <BrainResultNotFound
+            icon={<EventBusyOutlinedIcon />}
+            message="Sem aulas neste dia"
+            description="Aproveite para adiantar as tarefas pendentes ou revisar o conteúdo da semana."
+          />
+        </CardClassPanel>
       ) : (
         <CardClassPanel>
           {aulas.map((aula, index) => (
@@ -238,7 +248,14 @@ export default function SectionAulasAluno() {
               classroom={`Sala ${aula.sala}`}
               teacher={aula.professor}
               highlight={index === proximaAulaIndex}
-              badgeLabel={index === proximaAulaIndex ? "Próxima aula" : undefined}
+              badgeLabel={
+                index === proximaAulaIndex
+                  ? proximaAulaComecou
+                    ? "Agora"
+                    : "Próxima aula"
+                  : undefined
+              }
+              badgeTone={index === proximaAulaIndex && proximaAulaComecou ? "success" : "primary"}
               onClick={() => handleAulaClick(aula)}
             />
           ))}

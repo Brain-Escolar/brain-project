@@ -37,6 +37,21 @@ export function getDisciplinaTagTone(label: string): DisciplinaTagTone {
   return tones[Math.abs(hash) % tones.length];
 }
 
+/** Cores do tile da disciplina (fundo suave + ícone colorido), derivadas do tom do chip. */
+export function getDisciplinaTileColors(disciplina: string): { bg: string; color: string } {
+  const tone = getDisciplinaTagTone(disciplina);
+  switch (tone) {
+    case "green":
+      return { bg: "var(--colors-successSubtle)", color: "var(--colors-successText)" };
+    case "orange":
+      return { bg: "var(--colors-warningSubtle)", color: "var(--colors-warningText)" };
+    case "blue":
+      return { bg: "var(--colors-infoSubtle)", color: "var(--colors-infoText)" };
+    default:
+      return { bg: "var(--colors-surfaceSunken)", color: "var(--colors-textSecondary)" };
+  }
+}
+
 export function formatProfessorLabel(professor: string): string {
   const trimmed = professor.trim();
   if (/^prof/i.test(trimmed)) return trimmed;

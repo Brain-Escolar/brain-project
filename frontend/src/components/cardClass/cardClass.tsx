@@ -25,6 +25,8 @@ interface ICardClassProps {
   highlight?: boolean;
   /** Rótulo à direita do card (ex.: "Próxima aula"). */
   badgeLabel?: string;
+  /** Tom do badge: azul sólido (padrão) ou verde (ex.: aula em andamento). */
+  badgeTone?: "primary" | "success";
   onClick?: () => void;
 }
 
@@ -39,6 +41,7 @@ function CardClass({
   students,
   highlight = false,
   badgeLabel,
+  badgeTone = "primary",
   onClick,
 }: ICardClassProps) {
   const showImage = !isNullUndefined(image);
@@ -89,7 +92,7 @@ function CardClass({
         </S.MetaRow>
       </S.AreaInfo>
 
-      {badgeLabel && <S.Badge>{badgeLabel}</S.Badge>}
+      {badgeLabel && <S.Badge $tone={badgeTone}>{badgeLabel}</S.Badge>}
     </S.Container>
   );
 }

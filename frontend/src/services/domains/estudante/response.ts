@@ -21,9 +21,11 @@ export interface EstudanteAnotacaoResponse {
 
 export interface EstudanteTarefaResponse {
   id: number;
+  aulaId: number;
   conteudo: string;
   documentoUrl?: string;
   professor: string;
+  disciplina: string;
   turma: string;
   serie: string;
   unidade: string;
