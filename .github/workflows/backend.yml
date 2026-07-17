@@ -21,7 +21,7 @@ jobs:
         working-directory: backend
 
     outputs:
-      image: ${{ steps.meta.outputs.tags }}
+      image_sha_tag: ${{ steps.set-image.outputs.image_sha_tag }}
 
     steps:
       - name: Checkout
@@ -32,6 +32,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 25
+          cache: maven
 
       - name: Run tests
         run: mvn test
@@ -46,16 +47,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set image name
+      - name: Set image tags
+        id: set-image
         run: |
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE=ghcr.io/$OWNER/brain-project/backend:latest
-          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          BASE=ghcr.io/$OWNER/brain-project/backend
+          echo "IMAGE_SHA=$BASE:${{ github.sha }}" >> $GITHUB_ENV
+          echo "IMAGE_LATEST=$BASE:latest" >> $GITHUB_ENV
+          echo "image_sha_tag=$BASE:${{ github.sha }}" >> $GITHUB_OUTPUT
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t $IMAGE -f Dockerfile .
-          docker push $IMAGE
+          docker build -t $IMAGE_SHA -t $IMAGE_LATEST -f Dockerfile .
+          docker push $IMAGE_SHA
+          docker push $IMAGE_LATEST
 
   deploy:
     needs: build
@@ -74,3 +79,12 @@ jobs:
             cd deploy
             docker compose pull
             docker compose up -d
+
+            sleep 15
+            if [ "$(docker inspect -f '{{.State.Running}}' spring-app 2>/dev/null)" != "true" ]; then
+              echo "Container não subiu corretamente, abortando limpeza de imagens."
+              exit 1
+            fi
+
+            docker image prune -af --filter "until=48h"
+            docker builder prune -af --filter "until=48h"
