@@ -73,7 +73,7 @@ public class AulaService {
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", id));
 
         if (dados.disciplinaId() != null) {
-            Disciplina disciplina = em.getReference(Disciplina.class, dados.professorId());
+            Disciplina disciplina = em.getReference(Disciplina.class, dados.disciplinaId());
             aula.setDisciplina(disciplina);
         }
         if (dados.professorId() != null) {
