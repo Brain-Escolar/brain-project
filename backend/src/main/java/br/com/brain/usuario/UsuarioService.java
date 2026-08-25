@@ -98,6 +98,14 @@ public class UsuarioService {
     }
 
     @Transactional
+    public DadosAutenticacao reativarUsuario(String username) {
+        var usuario = usuarioRepository.findByEmailIgnoreCaseAndVerificadoTrue(username).orElseThrow();
+        usuario.reativar();
+        usuarioRepository.save(usuario);
+        return usuario;
+    }
+
+    @Transactional
     public void salvarGoogleAccessToken(Map<String, Object> oAuth, DadosAutenticacao usuario) {
         usuario.setGoogleAccessToken(oAuth.get("access_token").toString());
         if (oAuth.get("refresh_token") != null) {

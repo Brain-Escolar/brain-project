@@ -89,4 +89,7 @@ export enum RouteLabelsEnum {
 
   UNIDADE = "Unidade",
   UNIDADE_LISTA = "Unidades",
+
+  // Secretaria labels
+  SECRETARIA_MATRICULAS = "Matrículas",
 }

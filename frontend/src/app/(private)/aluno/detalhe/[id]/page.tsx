@@ -57,12 +57,14 @@ const ABAS_POR_PERFIL: Record<UserRoleEnum, TabKey[]> = {
   [UserRoleEnum.PROFESSOR]: ["notas", "anotacoes"],
   [UserRoleEnum.ADMIN]: ["dadosPessoais", "fichaMedica", "notas", "anotacoes"],
   [UserRoleEnum.ESTUDANTE]: ["dadosPessoais", "fichaMedica", "notas", "anotacoes"],
+  [UserRoleEnum.SECRETARIO]: ["dadosPessoais", "fichaMedica", "notas", "anotacoes"],
 };
 
 const SIDEBAR_POR_PERFIL: Record<UserRoleEnum, SidebarKey[]> = {
   [UserRoleEnum.PROFESSOR]: ["serie", "turma"],
   [UserRoleEnum.ADMIN]: ["cpf", "rg", "email", "nascimento"],
   [UserRoleEnum.ESTUDANTE]: ["cpf", "rg", "email", "nascimento"],
+  [UserRoleEnum.SECRETARIO]: ["cpf", "rg", "email", "nascimento"],
 };
 
 const LABEL_ABA: Record<TabKey, string> = {
@@ -354,7 +356,7 @@ export default function AlunoDetalhePage() {
               Editar
             </Button>
             {aluno.matriculado ? (
-              <Button variant="outlined" color="error" size="small" onClick={() => desmatricular.mutate()} disabled={desmatricular.isPending}>
+              <Button variant="outlined" color="error" size="small" onClick={() => desmatricular.mutate(undefined)} disabled={desmatricular.isPending}>
                 {desmatricular.isPending ? "Desmatriculando..." : "Desmatricular"}
               </Button>
             ) : (

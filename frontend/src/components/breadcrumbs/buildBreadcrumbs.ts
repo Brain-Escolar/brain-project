@@ -15,12 +15,14 @@ const HOME_PATHS: Record<UserRoleEnum, RoutesEnum> = {
   [UserRoleEnum.ADMIN]: RoutesEnum.HOME_ADMIN,
   [UserRoleEnum.PROFESSOR]: RoutesEnum.HOME,
   [UserRoleEnum.ESTUDANTE]: RoutesEnum.HOME_ESTUDANTE,
+  [UserRoleEnum.SECRETARIO]: RoutesEnum.SECRETARIA_MATRICULAS,
 };
 
 const ALL_HOME_PATHS = new Set<string>([
   RoutesEnum.HOME,
   RoutesEnum.HOME_ESTUDANTE,
   RoutesEnum.HOME_ADMIN,
+  RoutesEnum.SECRETARIA_MATRICULAS,
 ]);
 
 function prettifySegment(segment: string): string {

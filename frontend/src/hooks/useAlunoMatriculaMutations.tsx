@@ -12,6 +12,9 @@ export function useAlunoMatriculaMutations(alunoId: string) {
     mutationFn: () => alunoApi.matricularAluno(alunoId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.detail(alunoId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.lists() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.leads() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.matriculados() });
       toast.success("Aluno matriculado com sucesso!");
     },
     onError: () => {
@@ -20,9 +23,14 @@ export function useAlunoMatriculaMutations(alunoId: string) {
   });
 
   const desmatricular = useMutation({
-    mutationFn: () => alunoApi.desmatricularAluno(alunoId),
+    mutationFn: (motivo?: string) =>
+      alunoApi.desmatricularAluno(alunoId, motivo ? { motivo } : undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.detail(alunoId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.lists() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.leads() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.matriculados() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.desmatriculados() });
       toast.success("Aluno desmatriculado com sucesso!");
     },
     onError: () => {
@@ -30,5 +38,20 @@ export function useAlunoMatriculaMutations(alunoId: string) {
     },
   });
 
-  return { matricular, desmatricular };
+  const rematricular = useMutation({
+    mutationFn: () => alunoApi.rematricularAluno(alunoId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.detail(alunoId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.lists() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.leads() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.matriculados() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.desmatriculados() });
+      toast.success("Aluno rematriculado com sucesso!");
+    },
+    onError: () => {
+      toast.error("Erro ao rematricular aluno. Tente novamente.");
+    },
+  });
+
+  return { matricular, desmatricular, rematricular };
 }

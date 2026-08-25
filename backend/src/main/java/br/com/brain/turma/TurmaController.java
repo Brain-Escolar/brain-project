@@ -29,7 +29,7 @@ public class TurmaController {
             @RequestBody @Valid CadastroTurmaDto dados, UriComponentsBuilder uriBuilder) {
         var turma = service.cadastrarTurma(dados);
         var uri = uriBuilder.path("/turma/{id}").buildAndExpand(turma.getId()).toUri();
-        return ResponseEntity.created(uri).body(new ListagemTurmaDto(turma));
+        return ResponseEntity.created(uri).body(service.toListagemDto(turma));
     }
 
     @GetMapping
@@ -43,7 +43,7 @@ public class TurmaController {
     public ResponseEntity<ListagemTurmaDto> atualizar(@PathVariable("id") Long id,
             @RequestBody @Valid AtualizacaoTurmaDto dados) {
         var unidade = service.atualizar(id, dados);
-        return ResponseEntity.ok(new ListagemTurmaDto(unidade));
+        return ResponseEntity.ok(service.toListagemDto(unidade));
     }
 
     @DeleteMapping("/{id}")
@@ -55,7 +55,7 @@ public class TurmaController {
     @GetMapping("/{id}")
     public ResponseEntity<ListagemTurmaDto> detalhar(@PathVariable("id") Long id) {
         var turma = service.detalhar(id);
-        return ResponseEntity.ok(new ListagemTurmaDto(turma));
+        return ResponseEntity.ok(service.toListagemDto(turma));
     }
 
     @GetMapping("/{id}/alunos")

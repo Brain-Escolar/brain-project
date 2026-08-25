@@ -3,11 +3,16 @@ export interface TurmaListaResponse {
   nome: string;
   anoLetivo: number;
   serie: string;
+  serieId?: number;
   turno: string;
   unidade: string;
+  unidadeId?: number;
   vagasTotais: number;
   alunosMatriculados: number;
   gradeCurricular: string;
+  vagas?: number;
+  ocupadas?: number;
+  sala?: string;
 }
 
 export interface TurmaDetalheResponse {
@@ -21,6 +26,9 @@ export interface TurmaDetalheResponse {
   vagasTotais: number;
   alunosMatriculados: number;
   gradeCurricularId: number;
+  vagas?: number;
+  ocupadas?: number;
+  sala?: string;
 }
 
 export interface TurmaResponse {

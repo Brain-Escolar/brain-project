@@ -125,6 +125,10 @@ public class DadosAutenticacao extends EntidadeBase implements UserDetails {
         this.ativo = false;
     }
 
+    public void reativar() {
+        this.ativo = true;
+    }
+
     @Override
     public String toString() {
         return "Usuario{" +

@@ -25,6 +25,7 @@ import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutline
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import RequestQuoteOutlinedIcon from "@mui/icons-material/RequestQuoteOutlined";
 import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -110,14 +111,14 @@ export const ROUTES: RouteConfig[] = [
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
   },
   {
     text: RouteLabelsEnum.ALUNO,
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_DETALHE,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR, UserRoleEnum.SECRETARIO],
   },
   {
     text: RouteLabelsEnum.TURMAS,
@@ -509,7 +510,20 @@ export const ROUTES: RouteConfig[] = [
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.PERFIL,
     isShowMenu: false,
-    roles: [UserRoleEnum.ESTUDANTE, UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
+    roles: [
+      UserRoleEnum.ESTUDANTE,
+      UserRoleEnum.PROFESSOR,
+      UserRoleEnum.ADMIN,
+      UserRoleEnum.SECRETARIO,
+    ],
+  },
+  // ========== SECRETARIA ==========
+  {
+    text: RouteLabelsEnum.SECRETARIA_MATRICULAS,
+    icon: <HowToRegIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_MATRICULAS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
   },
 ];
 

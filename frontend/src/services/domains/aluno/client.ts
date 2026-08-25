@@ -2,6 +2,7 @@ import { httpClient } from "@/services/http";
 import { AlunoDetalheResponse, AlunoListaResponse, AnotacaoAlunoDisciplinaResponse, CursoPretendidoResponse, FichaMedicaAlunoResponse } from "./response";
 import { IBrainResult } from "@/services/commoResponse";
 import {
+  AlunoDesmatricularRequest,
   AlunoPostRequest,
   AlunoPutRequest,
   AlunoVincularSerieRequest,
@@ -34,6 +35,10 @@ export class AlunoApi {
     return httpClient.get(`${BASE_ROUTE}/leads`);
   }
 
+  getDesmatriculados(): Promise<IBrainResult<AlunoListaResponse>> {
+    return httpClient.get(`${BASE_ROUTE}/desmatriculados`);
+  }
+
   matricularAluno(id: string): Promise<AlunoDetalheResponse> {
     return httpClient.post(`${BASE_ROUTE}/matricular/${id}`, {});
   }
@@ -45,8 +50,15 @@ export class AlunoApi {
     return httpClient.post(`${BASE_ROUTE}/vincular-serie/${id}`, dados);
   }
 
-  desmatricularAluno(id: string): Promise<AlunoDetalheResponse> {
-    return httpClient.post(`${BASE_ROUTE}/desmatricular/${id}`, {});
+  desmatricularAluno(
+    id: string,
+    dados?: AlunoDesmatricularRequest,
+  ): Promise<AlunoDetalheResponse> {
+    return httpClient.post(`${BASE_ROUTE}/desmatricular/${id}`, dados ?? {});
+  }
+
+  rematricularAluno(id: string): Promise<AlunoDetalheResponse> {
+    return httpClient.post(`${BASE_ROUTE}/rematricular/${id}`, {});
   }
 
   getFichaMedicaByAluno(alunoId: string): Promise<FichaMedicaAlunoResponse> {

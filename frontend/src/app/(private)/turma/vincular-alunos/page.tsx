@@ -211,7 +211,7 @@ function VincularAlunosPageContent() {
               <S.StatsContainer>
                 <div className="stats-number">{selectedAlunoIds.length}</div>
                 <div className="stats-label">
-                  alunos selecionados de {turma?.vagasTotais || "—"} vagas
+                  alunos selecionados de {turma?.vagas ?? "—"} vagas
                 </div>
               </S.StatsContainer>
               <S.ResumoItem>
@@ -220,17 +220,17 @@ function VincularAlunosPageContent() {
               </S.ResumoItem>
               <S.ResumoItem>
                 <span className="resumo-label">Vagas Totais</span>
-                <span className="resumo-value">{turma?.vagasTotais || "—"}</span>
+                <span className="resumo-value">{turma?.vagas ?? "—"}</span>
               </S.ResumoItem>
               <S.ResumoItem>
                 <span className="resumo-label">Já Matriculados</span>
-                <span className="resumo-value">{turma?.alunosMatriculados || 0}</span>
+                <span className="resumo-value">{turma?.ocupadas ?? 0}</span>
               </S.ResumoItem>
               <S.ResumoItem>
                 <span className="resumo-label">Vagas Restantes</span>
                 <span className="resumo-value">
-                  {turma
-                    ? turma.vagasTotais - turma.alunosMatriculados
+                  {turma && turma.vagas != null && turma.ocupadas != null
+                    ? turma.vagas - turma.ocupadas
                     : "—"}
                 </span>
               </S.ResumoItem>

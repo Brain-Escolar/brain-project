@@ -16,7 +16,9 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
 
     Page<Aluno> findByMatriculadoTrue(Pageable pageable);
 
-    Page<Aluno> findByMatriculadoFalse(Pageable pageable);
+    Page<Aluno> findByMatriculadoFalseAndDataDesmatriculaIsNull(Pageable pageable);
+
+    Page<Aluno> findByMatriculadoFalseAndDataDesmatriculaIsNotNull(Pageable pageable);
 
     @Query("""
             SELECT aula

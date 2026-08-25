@@ -2,6 +2,7 @@ package br.com.brain.turma;
 
 import br.com.brain.serie.Serie;
 import br.com.brain.unidade.Unidade;
+import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.aluno.dto.ListagemAlunoDto;
 import br.com.brain.turma.dto.AtualizacaoTurmaDto;
 import br.com.brain.turma.dto.CadastroTurmaDto;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 public class TurmaService {
 
     private final TurmaRepository repository;
+    private final AlunoRepository alunoRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -48,7 +50,12 @@ public class TurmaService {
     }
 
     public Page<ListagemTurmaDto> listar(Pageable paginacao) {
-        return repository.findAll(paginacao).map(ListagemTurmaDto::new);
+        return repository.findAll(paginacao).map(this::toListagemDto);
+    }
+
+    public ListagemTurmaDto toListagemDto(Turma turma) {
+        int ocupadas = (int) alunoRepository.countByTurmaIdAndMatriculadoTrue(turma.getId());
+        return new ListagemTurmaDto(turma, ocupadas);
     }
 
     @Transactional

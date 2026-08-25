@@ -22,6 +22,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -81,7 +82,11 @@ public class AlunoService {
     }
 
     public Page<ListagemAlunoDto> listarLeads(Pageable paginacao) {
-        return repository.findByMatriculadoFalse(paginacao).map(ListagemAlunoDto::new);
+        return repository.findByMatriculadoFalseAndDataDesmatriculaIsNull(paginacao).map(ListagemAlunoDto::new);
+    }
+
+    public Page<ListagemAlunoDto> listarDesmatriculados(Pageable paginacao) {
+        return repository.findByMatriculadoFalseAndDataDesmatriculaIsNotNull(paginacao).map(ListagemAlunoDto::new);
     }
 
     @Transactional
@@ -137,14 +142,27 @@ public class AlunoService {
     }
 
     @Transactional
-    public Aluno desmatricular(Long id) {
+    public Aluno desmatricular(Long id, String motivo) {
         var aluno = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
         usuarioService.desativarUsuario(aluno.getDadosPessoais().getEmailProfissional());
         aluno.setMatriculado(false);
-        aluno.getDadosPessoais().setMatricula(null);
-        aluno.getDadosPessoais().setEmailProfissional(null);
+        aluno.setMotivoDesmatricula(motivo != null && !motivo.isBlank() ? motivo : "Não informado");
+        aluno.setDataDesmatricula(LocalDate.now());
+        repository.save(aluno);
+        return aluno;
+    }
+
+    @Transactional
+    public Aluno rematricular(Long id) {
+        var aluno = repository
+                .findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
+        usuarioService.reativarUsuario(aluno.getDadosPessoais().getEmailProfissional());
+        aluno.setMatriculado(true);
+        aluno.setMotivoDesmatricula(null);
+        aluno.setDataDesmatricula(null);
         repository.save(aluno);
         return aluno;
     }

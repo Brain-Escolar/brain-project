@@ -33,12 +33,22 @@ export interface AlunoListaResponse {
   cpf: string;
   matricula: string;
   nome: string;
+  unidade: string;
+  serie: string;
+  turma: string;
+  unidadeId?: number;
+  serieId?: number;
+  turmaId?: number;
   nomeSocial: string;
   email: string;
   emailEscolar: string;
   telefones: string[];
   endereco: AlunoEnderecoResponse;
   rg: string;
+  matriculado: boolean;
+  motivoDesmatricula?: string;
+  dataDesmatricula?: string;
+  criadoEm?: string;
 }
 
 export interface AlunoDetalheResponse {
@@ -59,6 +69,12 @@ export interface AlunoDetalheResponse {
   cursoPretendido?: string;
   serieNome?: string;
   turmaNome?: string;
+  serieId?: number;
+  unidadeId?: number;
+  turmaId?: number;
+  emailEscolar?: string;
+  motivoDesmatricula?: string;
+  dataDesmatricula?: string;
 }
 
 export interface CursoPretendidoResponse {

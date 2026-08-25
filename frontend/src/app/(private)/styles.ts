@@ -14,4 +14,5 @@ export const Content = styled.div`
   width: 100%;
   margin-top: 4rem;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 `;

@@ -42,3 +42,7 @@ export interface AlunoVincularSerieRequest {
   unidadeId: number;
   turmaId: number;
 }
+
+export interface AlunoDesmatricularRequest {
+  motivo: string;
+}

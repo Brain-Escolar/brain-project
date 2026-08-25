@@ -6,6 +6,7 @@ import br.com.brain.aluno.dto.AtualizacaoAlunoDto;
 import br.com.brain.aluno.dto.AtualizacaoCursoPretendidoDto;
 import br.com.brain.aluno.dto.CadastroAlunoDto;
 import br.com.brain.aluno.dto.CursoPretendidoDto;
+import br.com.brain.aluno.dto.DesmatriculaAlunoDto;
 import br.com.brain.aluno.dto.DetalhamentoAlunoDto;
 import br.com.brain.aluno.dto.ListagemAlunoDto;
 import br.com.brain.anotacao.dto.AnotacaoAlunoDisciplinaDto;
@@ -58,6 +59,13 @@ public class AlunoController {
         return ResponseEntity.ok(page);
     }
 
+    @GetMapping("desmatriculados")
+    public ResponseEntity<Page<ListagemAlunoDto>> listarDesmatriculados(
+            @PageableDefault(size = 10, sort = { "dadosPessoais.nome" }) Pageable paginacao) {
+        var page = service.listarDesmatriculados(paginacao);
+        return ResponseEntity.ok(page);
+    }
+
     @PostMapping("matricular/{id}")
     public ResponseEntity<DetalhamentoAlunoDto> matricular(@PathVariable("id") Long id) {
         var aluno = service.matricular(id);
@@ -86,8 +94,15 @@ public class AlunoController {
     }
 
     @PostMapping("desmatricular/{id}")
-    public ResponseEntity<DetalhamentoAlunoDto> desmatricular(@PathVariable("id") Long id) {
-        var aluno = service.desmatricular(id);
+    public ResponseEntity<DetalhamentoAlunoDto> desmatricular(@PathVariable("id") Long id,
+            @RequestBody(required = false) DesmatriculaAlunoDto dados) {
+        var aluno = service.desmatricular(id, dados == null ? null : dados.motivo());
+        return ResponseEntity.ok(new DetalhamentoAlunoDto(aluno));
+    }
+
+    @PostMapping("rematricular/{id}")
+    public ResponseEntity<DetalhamentoAlunoDto> rematricular(@PathVariable("id") Long id) {
+        var aluno = service.rematricular(id);
         return ResponseEntity.ok(new DetalhamentoAlunoDto(aluno));
     }
 
