@@ -51,6 +51,13 @@ export interface AlunoListaResponse {
   criadoEm?: string;
 }
 
+export interface ResponsavelResumoResponse {
+  id: number;
+  nome: string;
+  telefones: string[];
+  financeiro: boolean;
+}
+
 export interface AlunoDetalheResponse {
   id: number;
   cpf?: string;
@@ -75,6 +82,7 @@ export interface AlunoDetalheResponse {
   emailEscolar?: string;
   motivoDesmatricula?: string;
   dataDesmatricula?: string;
+  responsaveis?: ResponsavelResumoResponse[];
 }
 
 export interface CursoPretendidoResponse {

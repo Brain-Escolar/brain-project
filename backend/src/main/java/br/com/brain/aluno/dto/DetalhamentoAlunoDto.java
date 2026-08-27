@@ -6,6 +6,7 @@ import br.com.brain.endereco.Endereco;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record DetalhamentoAlunoDto(
         @JsonView(AlunoViews.Publico.class) Long id,
@@ -27,7 +28,8 @@ public record DetalhamentoAlunoDto(
         @JsonView(AlunoViews.Publico.class) Long unidadeId,
         @JsonView(AlunoViews.Publico.class) Long turmaId,
         @JsonView(AlunoViews.Administrativo.class) String motivoDesmatricula,
-        @JsonView(AlunoViews.Administrativo.class) LocalDate dataDesmatricula) {
+        @JsonView(AlunoViews.Administrativo.class) LocalDate dataDesmatricula,
+        @JsonView(AlunoViews.Administrativo.class) List<ResponsavelResumoDto> responsaveis) {
 
     public DetalhamentoAlunoDto(Aluno aluno) {
         this(
@@ -50,6 +52,7 @@ public record DetalhamentoAlunoDto(
                 aluno.getUnidade() != null ? aluno.getUnidade().getId() : null,
                 aluno.getTurma() != null ? aluno.getTurma().getId() : null,
                 aluno.getMotivoDesmatricula(),
-                aluno.getDataDesmatricula());
+                aluno.getDataDesmatricula(),
+                aluno.getResponsaveis().stream().map(ResponsavelResumoDto::new).toList());
     }
 }
