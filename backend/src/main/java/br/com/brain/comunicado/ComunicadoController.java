@@ -1,5 +1,6 @@
 package br.com.brain.comunicado;
 
+import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.comunicado.dto.AtualizacaoComunicadoDto;
 import br.com.brain.comunicado.dto.CadastroComunicadoDto;
 import br.com.brain.comunicado.dto.ListagemComunicadoDto;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -40,14 +42,16 @@ public class ComunicadoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ListagemComunicadoDto> atualizar(@PathVariable("id") Long id,
-            @RequestBody @Valid AtualizacaoComunicadoDto dados) {
-        var comunicado = service.atualizar(dados, id);
+            @RequestBody @Valid AtualizacaoComunicadoDto dados,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var comunicado = service.atualizar(dados, id, usuario);
         return ResponseEntity.ok(new ListagemComunicadoDto(comunicado));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ListagemComunicadoDto> excluir(@PathVariable("id") Long id) {
-        service.excluir(id);
+    public ResponseEntity<ListagemComunicadoDto> excluir(@PathVariable("id") Long id,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        service.excluir(id, usuario);
         return ResponseEntity.noContent().build();
     }
 

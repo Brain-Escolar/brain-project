@@ -16,6 +16,17 @@ export const TIPO_OPTIONS: { value: TipoEvento; label: string }[] = (
   Object.keys(TIPO_CONFIG) as TipoEvento[]
 ).map((value) => ({ value, label: TIPO_CONFIG[value].labelSingular }));
 
+/**
+ * Tipos gerados pelo fluxo de avaliação do professor — a Secretaria não os cria
+ * e não pode editar/excluir eventos existentes desses tipos (somente leitura).
+ */
+export const TIPOS_EVENTO_AVALIACAO: TipoEvento[] = ["PROVA", "ENTREGA_PROVA", "ENTREGA_NOTAS"];
+
+/** Tipos que a Secretaria pode criar/editar: Reunião, Feriado e Outro. */
+export const TIPO_OPTIONS_SECRETARIA = TIPO_OPTIONS.filter(
+  (opt) => !TIPOS_EVENTO_AVALIACAO.includes(opt.value),
+);
+
 /** Formata "yyyy-MM-dd" → "dd/mm/yyyy" sem passar por Date (evita deslocamento de fuso). */
 export function formatarDataBr(data: string): string {
   const [ano, mes, dia] = data.split("-");

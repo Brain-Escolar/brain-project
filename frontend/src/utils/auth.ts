@@ -10,6 +10,7 @@ export interface JWTPayload {
   id: number;
   name: string;
   role: string;
+  dadosPessoaisId?: number;
   exp: number;
 }
 
@@ -18,6 +19,8 @@ export interface UserData {
   name: string;
   email: string;
   role: UserRoleEnum;
+  /** Id de DadosPessoais do usuário logado — usado para comparar autoria (ex.: comunicados, mensagens). */
+  dadosPessoaisId?: number;
   exp: number;
 }
 
@@ -46,6 +49,7 @@ export function decodeToken(token: string): UserData | null {
       name: payload.name,
       email: payload.sub,
       role,
+      dadosPessoaisId: payload.dadosPessoaisId,
       exp: payload.exp,
     };
   } catch (error) {

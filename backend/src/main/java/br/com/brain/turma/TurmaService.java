@@ -97,4 +97,39 @@ public class TurmaService {
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", id));
         return turma.getAlunos().stream().map(ListagemAlunoDto::new).toList();
     }
+
+    @Transactional
+    public void vincularAlunos(Long turmaId, List<Long> alunoIds) {
+        var turma = repository
+                .findById(turmaId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", turmaId));
+
+        int ocupadas = (int) alunoRepository.countByTurmaIdAndMatriculadoTrue(turmaId);
+        if (ocupadas + alunoIds.size() > turma.getVagas()) {
+            throw ErrosSistema.OperacaoInvalidaException
+                    .com("Turma não tem vagas suficientes para " + alunoIds.size() + " aluno(s).");
+        }
+
+        for (Long alunoId : alunoIds) {
+            var aluno = alunoRepository
+                    .findById(alunoId)
+                    .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
+            aluno.setTurma(turma);
+            alunoRepository.save(aluno);
+        }
+    }
+
+    @Transactional
+    public void desvincularAluno(Long turmaId, Long alunoId) {
+        var aluno = alunoRepository
+                .findById(alunoId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
+
+        if (aluno.getTurma() == null || !aluno.getTurma().getId().equals(turmaId)) {
+            throw ErrosSistema.OperacaoInvalidaException.com("Aluno não pertence a esta turma.");
+        }
+
+        aluno.setTurma(null);
+        alunoRepository.save(aluno);
+    }
 }

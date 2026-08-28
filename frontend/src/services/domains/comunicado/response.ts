@@ -12,6 +12,7 @@ export interface ComunicadoListResponse {
   categoria?: ComunicadoCategoria;
   imagemUrl?: string;
   anexoUrl?: string;
+  autorId?: number;
 }
 
 export interface ComunicadoCreateRequest {

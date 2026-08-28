@@ -19,7 +19,8 @@ import { BrainTextFieldControlled } from "@/components/brainForms/brainTextField
 import { RichTextEditor } from "@/components/richTextEditor/RichTextEditor";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
-import { RoutesEnum } from "@/enums";
+import { RoutesEnum, UserRoleEnum } from "@/enums";
+import { useAuth } from "@/hooks/useAuth";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useComunicado } from "@/hooks/useComunicado";
 import { useComunicadoMutations } from "@/hooks/useComunicadoMutations";
@@ -48,9 +49,16 @@ function ComunicadoPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const comunicadoId = searchParams.get("id");
+  const { user } = useAuth();
 
   const { comunicado, loading: loadingComunicado, error: errorComunicado } = useComunicado(comunicadoId);
   const { createComunicado, updateComunicado } = useComunicadoMutations();
+
+  // Secretaria não publica na categoria "Atualização RH" — restrita a Admin/RH.
+  const categoriaOptions =
+    user?.role === UserRoleEnum.SECRETARIO
+      ? CATEGORIA_OPTIONS.filter((opt) => opt.key !== "ATUALIZACAO_RH")
+      : CATEGORIA_OPTIONS;
 
   const isEditMode = !!comunicadoId;
 
@@ -154,7 +162,7 @@ function ComunicadoPageContent() {
                 name="categoria"
                 control={control}
                 label="Categoria"
-                options={CATEGORIA_OPTIONS}
+                options={categoriaOptions}
                 placeholder="Selecione uma categoria"
               />
             </ContainerSection>

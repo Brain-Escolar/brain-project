@@ -12,7 +12,8 @@ public record DetalhamentoComunicadoDto(
         LocalDate data,
         ComunicadoCategoriaEnum categoria,
         String imagemUrl,
-        String anexoUrl) {
+        String anexoUrl,
+        Long autorId) {
 
     public DetalhamentoComunicadoDto(Comunicado comunicado) {
         this(
@@ -22,6 +23,7 @@ public record DetalhamentoComunicadoDto(
                 comunicado.getData(),
                 comunicado.getCategoria(),
                 comunicado.getImagemUrl(),
-                comunicado.getAnexoUrl());
+                comunicado.getAnexoUrl(),
+                comunicado.getCriadoPor());
     }
 }

@@ -19,12 +19,14 @@ import { useState, useMemo } from "react";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
+import { useAuth } from "@/hooks/useAuth";
 import { useEventos } from "@/hooks/useEventos";
 import { EventoResponse, TipoEvento } from "@/services/domains/evento";
+import { UserRoleEnum } from "@/enums";
 import NovoEventoModal from "./NovoEventoModal";
 import DetalheEventoModal from "./DetalheEventoModal";
 import ListaEventosDiaModal from "./ListaEventosDiaModal";
-import { TIPO_CONFIG } from "./eventoTipos";
+import { TIPO_CONFIG, TIPO_OPTIONS_SECRETARIA, TIPOS_EVENTO_AVALIACAO } from "./eventoTipos";
 
 const MESES_PT = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -93,6 +95,8 @@ function buildCalendarDays(year: number, month: number): CalendarDay[] {
 }
 
 export default function Calendario() {
+  const { user } = useAuth();
+  const isSecretario = user?.role === UserRoleEnum.SECRETARIO;
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -528,6 +532,7 @@ export default function Calendario() {
         }}
         dataInicial={dataSelecionada}
         evento={eventoEmEdicao}
+        tipoOptions={isSecretario ? TIPO_OPTIONS_SECRETARIA : undefined}
       />
 
       <DetalheEventoModal
@@ -535,6 +540,7 @@ export default function Calendario() {
         evento={eventoDetalhe}
         onClose={() => setEventoDetalhe(null)}
         onEditar={handleEditarEvento}
+        somenteLeitura={isSecretario && !!eventoDetalhe && TIPOS_EVENTO_AVALIACAO.includes(eventoDetalhe.tipo)}
       />
 
       <ListaEventosDiaModal

@@ -26,9 +26,17 @@ interface DetalheEventoModalProps {
   evento: EventoResponse | null;
   onClose: () => void;
   onEditar: (evento: EventoResponse) => void;
+  /** Quando true, oculta as ações de Editar/Excluir (ex.: eventos de avaliação para a Secretaria). */
+  somenteLeitura?: boolean;
 }
 
-export default function DetalheEventoModal({ open, evento, onClose, onEditar }: DetalheEventoModalProps) {
+export default function DetalheEventoModal({
+  open,
+  evento,
+  onClose,
+  onEditar,
+  somenteLeitura = false,
+}: DetalheEventoModalProps) {
   const { excluirEvento } = useEventoMutations();
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
 
@@ -119,18 +127,26 @@ export default function DetalheEventoModal({ open, evento, onClose, onEditar }: 
         <DialogActions
           sx={{ px: 3, pt: 2, pb: 2.75, gap: 1.25, borderTop: `1px solid ${cssVarColor("borderSubtle")}` }}
         >
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteOutline />}
-            onClick={() => setConfirmandoExclusao(true)}
-            sx={{ mr: "auto" }}
-          >
-            Excluir
-          </Button>
-          <Button variant="contained" startIcon={<EditOutlined />} onClick={() => onEditar(evento)}>
-            Editar
-          </Button>
+          {somenteLeitura ? (
+            <Typography sx={{ fontSize: cssVarFontSize("small"), color: cssVarColor("textSecondary"), mr: "auto" }}>
+              Gerado pelo fluxo de avaliação — somente leitura.
+            </Typography>
+          ) : (
+            <>
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteOutline />}
+                onClick={() => setConfirmandoExclusao(true)}
+                sx={{ mr: "auto" }}
+              >
+                Excluir
+              </Button>
+              <Button variant="contained" startIcon={<EditOutlined />} onClick={() => onEditar(evento)}>
+                Editar
+              </Button>
+            </>
+          )}
         </DialogActions>
       </Dialog>
 

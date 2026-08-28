@@ -28,6 +28,8 @@ public class TokenService {
                     .withClaim("id", usuario.getId())
                     .withClaim("role", usuario.getAuthorities().toString())
                     .withClaim("name", usuario.getSocialName())
+                    .withClaim("dadosPessoaisId",
+                            usuario.getDadosPessoais() != null ? usuario.getDadosPessoais().getId() : null)
                     .withClaim("tenantId", tenantId)
                     .withExpiresAt(expiracao(30))
                     .sign(algoritmo);

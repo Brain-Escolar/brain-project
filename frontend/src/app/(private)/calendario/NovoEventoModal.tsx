@@ -28,6 +28,8 @@ interface NovoEventoModalProps {
   dataInicial?: string;
   /** Evento existente: quando informado, o modal opera em modo edição. */
   evento?: EventoResponse | null;
+  /** Restringe as opções de tipo exibidas (ex.: Secretaria só cria Reunião/Feriado/Outro). */
+  tipoOptions?: { value: TipoEvento; label: string }[];
 }
 
 /** Monta um ISO date-time no fuso de São Paulo (sem horário de verão = -03:00). */
@@ -35,7 +37,13 @@ function toIsoSaoPaulo(data: string, hora: string): string {
   return `${data}T${hora}:00-03:00`;
 }
 
-export default function NovoEventoModal({ open, onClose, dataInicial, evento }: NovoEventoModalProps) {
+export default function NovoEventoModal({
+  open,
+  onClose,
+  dataInicial,
+  evento,
+  tipoOptions = TIPO_OPTIONS,
+}: NovoEventoModalProps) {
   const { criarEvento, atualizarEvento } = useEventoMutations();
   const { adicionarEventos } = useGoogleCalendar();
   const isEdicao = !!evento;
@@ -134,7 +142,7 @@ export default function NovoEventoModal({ open, onClose, dataInicial, evento }: 
             onChange={(e) => setTipo(e.target.value as TipoEvento)}
             fullWidth
           >
-            {TIPO_OPTIONS.map((opt) => (
+            {tipoOptions.map((opt) => (
               <MenuItem key={opt.value} value={opt.value}>
                 {opt.label}
               </MenuItem>

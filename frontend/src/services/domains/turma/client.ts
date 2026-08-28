@@ -26,7 +26,7 @@ export class TurmaApi {
   }
 
   getListaTurmasPaginada(): Promise<IBrainResult<TurmaListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getTurmaById(id: string): Promise<TurmaDetalheResponse> {

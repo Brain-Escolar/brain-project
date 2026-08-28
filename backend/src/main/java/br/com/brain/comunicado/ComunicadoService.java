@@ -2,9 +2,11 @@ package br.com.brain.comunicado;
 
 import br.com.brain.alerta.AlertaService;
 import br.com.brain.alerta.dto.CadastroAlertaDto;
+import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.comunicado.dto.AtualizacaoComunicadoDto;
 import br.com.brain.comunicado.dto.CadastroComunicadoDto;
 import br.com.brain.comunicado.dto.ListagemComunicadoDto;
+import br.com.brain.enums.PerfilNome;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.infra.aws.S3Service;
 import jakarta.persistence.EntityManager;
@@ -63,9 +65,11 @@ public class ComunicadoService {
     }
 
     @Transactional
-    public Comunicado atualizar(AtualizacaoComunicadoDto dados, Long id) {
+    public Comunicado atualizar(AtualizacaoComunicadoDto dados, Long id, DadosAutenticacao usuario) {
         var comunicado = repository.findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Comunicado", id));
+
+        verificarPermissaoDeEdicao(comunicado, usuario);
 
         if (dados.titulo() != null) {
             comunicado.setTitulo(dados.titulo());
@@ -92,11 +96,12 @@ public class ComunicadoService {
     }
 
     @Transactional
-    public void excluir(Long id) {
+    public void excluir(Long id, DadosAutenticacao usuario) {
         var comunicado = repository
                 .findById(id)
                 .orElseThrow(
                         () -> ErrosSistema.RecursoNaoEncontradoException.para("Comunicado", id));
+        verificarPermissaoDeEdicao(comunicado, usuario);
         repository.delete(comunicado);
     }
 
@@ -104,5 +109,19 @@ public class ComunicadoService {
         return repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Comunicado", id));
+    }
+
+    /**
+     * Secretaria só edita/remove comunicados que ela mesma criou; Admin pode gerenciar qualquer um.
+     */
+    private void verificarPermissaoDeEdicao(Comunicado comunicado, DadosAutenticacao usuario) {
+        var dadosPessoais = usuario.getDadosPessoais();
+        boolean isAdmin = dadosPessoais.getPerfis().stream().anyMatch(p -> p.getNome() == PerfilNome.ADMIN);
+        boolean isAutor = dadosPessoais.getId().equals(comunicado.getCriadoPor());
+
+        if (!isAdmin && !isAutor) {
+            throw new ErrosSistema.AcessoNegadoException(
+                    "Você só pode editar ou remover comunicados criados por você.");
+        }
     }
 }

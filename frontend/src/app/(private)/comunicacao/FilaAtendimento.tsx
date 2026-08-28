@@ -1,5 +1,6 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Box,
   Typography,
@@ -10,66 +11,44 @@ import {
   Paper,
   Stack,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   CircularProgress,
   Divider,
   Avatar,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  FormHelperText,
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
-import AddIcon from "@mui/icons-material/Add";
 import ArrowBackRounded from "@mui/icons-material/ArrowBackRounded";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-import BusinessIcon from "@mui/icons-material/Business";
-import PeopleIcon from "@mui/icons-material/People";
 import SendIcon from "@mui/icons-material/Send";
 import LockIcon from "@mui/icons-material/Lock";
+import SchoolIcon from "@mui/icons-material/School";
+import PersonIcon from "@mui/icons-material/Person";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
+import SegmentedControl from "@/components/segmentedControl/segmentedControl";
 import { useAuth } from "@/hooks/useAuth";
-import { useConversasRemetente, useDestinatariosDisponiveis } from "@/hooks/useConversas";
 import { useMensagens } from "@/hooks/useMensagens";
 import { useConversaMutations } from "@/hooks/useConversaMutations";
-import { useBrainForm } from "@/hooks/useBrainForm";
-import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
+import { conversaApi } from "@/services/api";
+import { QUERY_KEYS } from "@/constants/queryKeys";
 import { ConversaResponse } from "@/services/domains/conversa/response";
-import { UserRoleEnum } from "@/enums";
-import {
-  PERFIL_DISPLAY_NAME,
-  PerfilNomeEnum,
-} from "@/enums/PerfilNomeEnum";
-import { z } from "zod";
-import FilaAtendimento from "./FilaAtendimento";
+import { PERFIL_DISPLAY_NAME, PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 
-const novaConversaSchema = z.object({
-  titulo: z.string().min(1, "Assunto é obrigatório"),
-  primeiraMensagem: z.string().min(1, "Mensagem é obrigatória"),
-});
-type NovaConversaForm = z.infer<typeof novaConversaSchema>;
+type StatusTab = "ABERTA" | "FECHADA";
 
-function getDestinatarioIcon(perfilNome: string) {
-  if (perfilNome === "COORDENADOR") return <PeopleIcon fontSize="small" />;
-  return <BusinessIcon fontSize="small" />;
+function getRemetenteIcon(perfilNome: string) {
+  if (perfilNome === "PROFESSOR") return <SchoolIcon fontSize="small" />;
+  return <PersonIcon fontSize="small" />;
 }
 
 function formatDate(isoString: string): string {
   if (!isoString) return "";
-  const date = new Date(isoString);
-  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  return new Date(isoString).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
 function formatDateTime(isoString: string): string {
   if (!isoString) return "";
-  const date = new Date(isoString);
-  return date.toLocaleString("pt-BR", {
+  return new Date(isoString).toLocaleString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
@@ -77,42 +56,46 @@ function formatDateTime(isoString: string): string {
   });
 }
 
-export default function ComunicacaoPage() {
-  const { user } = useAuth();
-  if (user?.role === UserRoleEnum.SECRETARIO) {
-    return <FilaAtendimento />;
-  }
-  return <ComunicacaoRemetenteView />;
-}
-
-function ComunicacaoRemetenteView() {
+export default function FilaAtendimento() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [page] = useState(0);
+  const { user } = useAuth();
+
+  const [statusTab, setStatusTab] = useState<StatusTab>("ABERTA");
   const [search, setSearch] = useState("");
   const [selectedConversa, setSelectedConversa] = useState<ConversaResponse | null>(null);
-  const [novaConversaOpen, setNovaConversaOpen] = useState(false);
-  const [destinatario, setDestinatario] = useState<PerfilNomeEnum | "">("");
-  const [destinatarioError, setDestinatarioError] = useState("");
   const [novaMensagem, setNovaMensagem] = useState("");
   const mensagensEndRef = useRef<HTMLDivElement>(null);
 
-  const { conversas, isLoading } = useConversasRemetente(page);
-  const { destinatarios, isLoading: loadingDestinatarios } = useDestinatariosDisponiveis();
-  const { mensagens, isLoading: loadingMensagens } = useMensagens(selectedConversa?.id ?? null);
-  const { criarConversa, enviarMensagem, fecharConversa, reabrirConversa, marcarTodasComoLida } =
-    useConversaMutations();
-
-  const { control, handleSubmit, reset } = useBrainForm<NovaConversaForm>({
-    schema: novaConversaSchema,
-    defaultValues: { titulo: "", primeiraMensagem: "" },
+  const { data, isLoading } = useQuery({
+    queryKey: QUERY_KEYS.conversas.destinatario(PerfilNomeEnum.SECRETARIO, 0),
+    queryFn: () => conversaApi.listarComoDestinatario(PerfilNomeEnum.SECRETARIO, { page: 0, size: 100 }),
   });
+  const conversas = useMemo(() => data?.content ?? [], [data]);
 
-  const conversasFiltradas = conversas.filter(
-    (c) =>
-      c.titulo.toLowerCase().includes(search.toLowerCase()) ||
-      PERFIL_DISPLAY_NAME[c.destinatarioPerfilNome]?.toLowerCase().includes(search.toLowerCase()),
-  );
+  const { mensagens, isLoading: loadingMensagens } = useMensagens(selectedConversa?.id ?? null);
+  const { enviarMensagem, fecharConversa, reabrirConversa, marcarTodasComoLida } = useConversaMutations();
+
+  const conversasFiltradas = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return conversas
+      .filter((c) => c.status === statusTab)
+      .filter(
+        (c) =>
+          !q ||
+          c.titulo.toLowerCase().includes(q) ||
+          c.remetenteNome.toLowerCase().includes(q),
+      )
+      .slice()
+      .sort((a, b) => {
+        const naoLidaDiff = (b.mensagensNaoLidas > 0 ? 1 : 0) - (a.mensagensNaoLidas > 0 ? 1 : 0);
+        if (naoLidaDiff !== 0) return naoLidaDiff;
+        return new Date(a.criadoEm).getTime() - new Date(b.criadoEm).getTime();
+      });
+  }, [conversas, statusTab, search]);
+
+  const nAbertas = conversas.filter((c) => c.status === "ABERTA").length;
+  const nFechadas = conversas.filter((c) => c.status === "FECHADA").length;
 
   useEffect(() => {
     mensagensEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -127,31 +110,6 @@ function ComunicacaoRemetenteView() {
       marcarTodasComoLidaRef.current(conversaId);
     }
   }, [conversaId, mensagens.length, loadingMensagens]);
-
-  function handleOpenNovaConversa() {
-    reset({ titulo: "", primeiraMensagem: "" });
-    setDestinatario("");
-    setDestinatarioError("");
-    setNovaConversaOpen(true);
-  }
-
-  function handleCloseNovaConversa() {
-    setNovaConversaOpen(false);
-  }
-
-  const onSubmitNovaConversa = handleSubmit(async (data: NovaConversaForm) => {
-    if (!destinatario) {
-      setDestinatarioError("Selecione o destinatário");
-      return;
-    }
-    const novaConversa = await criarConversa.mutateAsync({
-      titulo: data.titulo,
-      destinatarioPerfilNome: destinatario as PerfilNomeEnum,
-      primeiraMensagem: data.primeiraMensagem,
-    });
-    setNovaConversaOpen(false);
-    setSelectedConversa(novaConversa);
-  });
 
   async function handleEnviarMensagem() {
     if (!novaMensagem.trim() || !selectedConversa) return;
@@ -171,25 +129,30 @@ function ComunicacaoRemetenteView() {
 
   return (
     <PageScaffold
-      title="Comunicação com a Escola"
-      description="Entre em contato com os departamentos da escola"
-      actions={
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenNovaConversa}>
-          Nova Mensagem
-        </Button>
-      }
+      title="Fale conosco"
+      description="Fila de atendimento — responda as conversas de alunos e professores dirigidas à Secretaria."
     >
+      <Box sx={{ mb: 2 }}>
+        <SegmentedControl
+          ariaLabel="Filtrar por status do atendimento"
+          value={statusTab}
+          onChange={setStatusTab}
+          options={[
+            { value: "ABERTA", label: `Abertas · ${nAbertas}` },
+            { value: "FECHADA", label: `Fechadas · ${nFechadas}` },
+          ]}
+        />
+      </Box>
 
       <Box
         sx={{
           display: "flex",
           gap: 2,
-          mt: 3,
-          height: { xs: "calc(100dvh - 180px)", md: "calc(100vh - 220px)" },
+          height: { xs: "calc(100dvh - 260px)", md: "calc(100vh - 280px)" },
           minHeight: { xs: 420, md: 500 },
         }}
       >
-        {/* Painel esquerdo — lista de conversas */}
+        {/* Painel esquerdo — fila */}
         <Paper
           variant="outlined"
           sx={{
@@ -204,7 +167,7 @@ function ComunicacaoRemetenteView() {
             <TextField
               fullWidth
               size="small"
-              placeholder="Buscar conversas..."
+              placeholder="Buscar por assunto ou remetente..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               InputProps={{
@@ -228,7 +191,7 @@ function ComunicacaoRemetenteView() {
               <Box sx={{ textAlign: "center", py: 6, px: 2 }}>
                 <ChatBubbleOutlineIcon sx={{ fontSize: 40, color: "text.disabled", mb: 1 }} />
                 <Typography variant="body2" color="text.secondary">
-                  Nenhuma conversa encontrada
+                  {statusTab === "ABERTA" ? "Nenhum atendimento pendente" : "Nenhuma conversa fechada"}
                 </Typography>
               </Box>
             )}
@@ -241,8 +204,7 @@ function ComunicacaoRemetenteView() {
                     px: 2,
                     py: 1.5,
                     cursor: "pointer",
-                    bgcolor:
-                      selectedConversa?.id === conversa.id ? "action.selected" : "transparent",
+                    bgcolor: selectedConversa?.id === conversa.id ? "action.selected" : "transparent",
                     "&:hover": { bgcolor: "action.hover" },
                     display: "flex",
                     gap: 1.5,
@@ -250,16 +212,10 @@ function ComunicacaoRemetenteView() {
                   }}
                 >
                   <Avatar sx={{ width: 36, height: 36, bgcolor: "primary.light", mt: 0.3 }}>
-                    {getDestinatarioIcon(conversa.destinatarioPerfilNome)}
+                    {getRemetenteIcon(conversa.remetentePerfilNome)}
                   </Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <Typography
                         variant="body2"
                         fontWeight={conversa.mensagensNaoLidas > 0 ? 700 : 600}
@@ -268,15 +224,7 @@ function ComunicacaoRemetenteView() {
                       >
                         {conversa.titulo}
                       </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 0.75,
-                          ml: 1,
-                          flexShrink: 0,
-                        }}
-                      >
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, ml: 1, flexShrink: 0 }}>
                         {conversa.mensagensNaoLidas > 0 && (
                           <Box
                             sx={{
@@ -302,23 +250,9 @@ function ComunicacaoRemetenteView() {
                       </Box>
                     </Box>
                     <Typography variant="caption" color="text.secondary">
-                      {PERFIL_DISPLAY_NAME[conversa.destinatarioPerfilNome] ??
-                        conversa.destinatarioPerfilNome}
+                      {conversa.remetenteNome} ·{" "}
+                      {PERFIL_DISPLAY_NAME[conversa.remetentePerfilNome] ?? conversa.remetentePerfilNome}
                     </Typography>
-                    <Box sx={{ mt: 0.5 }}>
-                      <Chip
-                        size="small"
-                        label={conversa.status === "ABERTA" ? "Aberto" : "Encerrado"}
-                        icon={
-                          conversa.status === "FECHADA" ? (
-                            <LockIcon sx={{ fontSize: "12px !important" }} />
-                          ) : undefined
-                        }
-                        color={conversa.status === "ABERTA" ? "success" : "default"}
-                        variant="outlined"
-                        sx={{ height: 20, fontSize: "0.65rem" }}
-                      />
-                    </Box>
                   </Box>
                 </Box>
                 <Divider />
@@ -327,7 +261,7 @@ function ComunicacaoRemetenteView() {
           </Box>
         </Paper>
 
-        {/* Painel direito — detalhe da conversa */}
+        {/* Painel direito — thread */}
         <Paper
           variant="outlined"
           sx={{
@@ -354,15 +288,11 @@ function ComunicacaoRemetenteView() {
                 Selecione uma conversa
               </Typography>
               <Typography variant="body2" color="text.disabled">
-                Escolha uma conversa existente ou inicie uma nova mensagem
+                Escolha um atendimento na fila ao lado para responder.
               </Typography>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenNovaConversa}>
-                Nova Mensagem
-              </Button>
             </Box>
           ) : (
             <>
-              {/* Cabeçalho da conversa */}
               <Box
                 sx={{
                   px: { xs: 2, sm: 3 },
@@ -379,7 +309,7 @@ function ComunicacaoRemetenteView() {
                   {isMobile && (
                     <IconButton
                       size="small"
-                      aria-label="Voltar para a lista"
+                      aria-label="Voltar para a fila"
                       onClick={() => setSelectedConversa(null)}
                     >
                       <ArrowBackRounded fontSize="small" />
@@ -390,15 +320,16 @@ function ComunicacaoRemetenteView() {
                       {selectedConversa.titulo}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {PERFIL_DISPLAY_NAME[selectedConversa.destinatarioPerfilNome] ??
-                        selectedConversa.destinatarioPerfilNome}
+                      {selectedConversa.remetenteNome} ·{" "}
+                      {PERFIL_DISPLAY_NAME[selectedConversa.remetentePerfilNome] ??
+                        selectedConversa.remetentePerfilNome}
                     </Typography>
                   </Box>
                 </Box>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Chip
                     size="small"
-                    label={selectedConversa.status === "ABERTA" ? "Aberto" : "Encerrado"}
+                    label={selectedConversa.status === "ABERTA" ? "Aberta" : "Fechada"}
                     color={selectedConversa.status === "ABERTA" ? "success" : "default"}
                     variant="outlined"
                   />
@@ -408,17 +339,16 @@ function ComunicacaoRemetenteView() {
                       variant="outlined"
                       color="error"
                       startIcon={<LockIcon />}
+                      disabled={fecharConversa.isPending}
                       onClick={() =>
                         fecharConversa
                           .mutateAsync(selectedConversa.id)
                           .then(() =>
-                            setSelectedConversa((prev) =>
-                              prev ? { ...prev, status: "FECHADA" } : null,
-                            ),
+                            setSelectedConversa((prev) => (prev ? { ...prev, status: "FECHADA" } : null)),
                           )
                       }
                     >
-                      Encerrar
+                      Fechar
                     </Button>
                   ) : (
                     <Button
@@ -430,9 +360,7 @@ function ComunicacaoRemetenteView() {
                         reabrirConversa
                           .mutateAsync(selectedConversa.id)
                           .then(() =>
-                            setSelectedConversa((prev) =>
-                              prev ? { ...prev, status: "ABERTA" } : null,
-                            ),
+                            setSelectedConversa((prev) => (prev ? { ...prev, status: "ABERTA" } : null)),
                           )
                       }
                     >
@@ -442,7 +370,6 @@ function ComunicacaoRemetenteView() {
                 </Stack>
               </Box>
 
-              {/* Área de mensagens */}
               <Box sx={{ flex: 1, overflowY: "auto", px: { xs: 2, sm: 3 }, py: 2 }}>
                 {loadingMensagens ? (
                   <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -451,14 +378,11 @@ function ComunicacaoRemetenteView() {
                 ) : (
                   <Stack spacing={2}>
                     {mensagens.map((msg) => {
-                      const isOwn = msg.remetenteId === selectedConversa.remetenteId;
+                      const isOwn = msg.remetenteId === user?.dadosPessoaisId;
                       return (
                         <Box
                           key={msg.id}
-                          sx={{
-                            display: "flex",
-                            justifyContent: isOwn ? "flex-end" : "flex-start",
-                          }}
+                          sx={{ display: "flex", justifyContent: isOwn ? "flex-end" : "flex-start" }}
                         >
                           <Box
                             sx={{
@@ -480,20 +404,14 @@ function ComunicacaoRemetenteView() {
                                 {msg.remetenteNome}
                               </Typography>
                             )}
-                            <Typography
-                              variant="body2"
-                              sx={{ color: isOwn ? "#fff" : "text.primary" }}
-                            >
+                            <Typography variant="body2" sx={{ color: isOwn ? "#fff" : "text.primary" }}>
                               {msg.conteudo}
                             </Typography>
                             <Typography
                               variant="caption"
                               display="block"
                               textAlign="right"
-                              sx={{
-                                mt: 0.5,
-                                color: isOwn ? "rgba(255,255,255,0.7)" : "text.secondary",
-                              }}
+                              sx={{ mt: 0.5, color: isOwn ? "rgba(255,255,255,0.7)" : "text.secondary" }}
                             >
                               {formatDateTime(msg.criadoEm)}
                             </Typography>
@@ -506,8 +424,7 @@ function ComunicacaoRemetenteView() {
                 )}
               </Box>
 
-              {/* Input de resposta */}
-              {selectedConversa.status === "ABERTA" && (
+              {selectedConversa.status === "ABERTA" ? (
                 <Box
                   sx={{
                     px: { xs: 2, sm: 3 },
@@ -524,7 +441,7 @@ function ComunicacaoRemetenteView() {
                     size="small"
                     multiline
                     maxRows={4}
-                    placeholder="Digite sua mensagem..."
+                    placeholder="Digite sua resposta..."
                     value={novaMensagem}
                     onChange={(e) => setNovaMensagem(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -539,9 +456,7 @@ function ComunicacaoRemetenteView() {
                     <SendIcon />
                   </IconButton>
                 </Box>
-              )}
-
-              {selectedConversa.status === "FECHADA" && (
+              ) : (
                 <Box
                   sx={{
                     px: { xs: 2, sm: 3 },
@@ -557,7 +472,7 @@ function ComunicacaoRemetenteView() {
                 >
                   <LockIcon fontSize="small" color="disabled" />
                   <Typography variant="body2" color="text.secondary">
-                    Esta conversa foi encerrada
+                    Esta conversa foi fechada
                   </Typography>
                   <Button
                     size="small"
@@ -567,9 +482,7 @@ function ComunicacaoRemetenteView() {
                       reabrirConversa
                         .mutateAsync(selectedConversa.id)
                         .then(() =>
-                          setSelectedConversa((prev) =>
-                            prev ? { ...prev, status: "ABERTA" } : null,
-                          ),
+                          setSelectedConversa((prev) => (prev ? { ...prev, status: "ABERTA" } : null)),
                         )
                     }
                   >
@@ -581,55 +494,6 @@ function ComunicacaoRemetenteView() {
           )}
         </Paper>
       </Box>
-
-      {/* Dialog — Nova Mensagem */}
-      <Dialog open={novaConversaOpen} onClose={handleCloseNovaConversa} maxWidth="sm" fullWidth>
-        <form onSubmit={onSubmitNovaConversa}>
-          <DialogTitle>Nova Mensagem</DialogTitle>
-          <DialogContent>
-            <Stack spacing={3} sx={{ mt: 1 }}>
-              <BrainTextFieldControlled name="titulo" control={control} label="Assunto" required />
-              <FormControl fullWidth error={!!destinatarioError} disabled={loadingDestinatarios}>
-                <InputLabel>Destinatário</InputLabel>
-                <Select
-                  value={destinatario}
-                  label="Destinatário"
-                  onChange={(e) => {
-                    setDestinatario(e.target.value as PerfilNomeEnum);
-                    setDestinatarioError("");
-                  }}
-                >
-                  {destinatarios.map((perfil) => (
-                    <MenuItem key={perfil} value={perfil}>
-                      {PERFIL_DISPLAY_NAME[perfil] ?? perfil}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {destinatarioError && <FormHelperText>{destinatarioError}</FormHelperText>}
-              </FormControl>
-              <BrainTextFieldControlled
-                name="primeiraMensagem"
-                control={control}
-                label="Mensagem"
-                required
-                multiline
-                rows={4}
-              />
-            </Stack>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseNovaConversa}>Cancelar</Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={criarConversa.isPending}
-              startIcon={<SendIcon />}
-            >
-              Enviar
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
     </PageScaffold>
   );
 }

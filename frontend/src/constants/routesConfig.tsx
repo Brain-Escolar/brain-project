@@ -26,6 +26,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import RequestQuoteOutlinedIcon from "@mui/icons-material/RequestQuoteOutlined";
 import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
+import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -296,7 +297,7 @@ export const ROUTES: RouteConfig[] = [
     icon: <CampaignIcon fontSize="small" />,
     router: RoutesEnum.COMUNICADOS_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
   },
   {
     text: RouteLabelsEnum.FICHA_MEDICA_LISTA,
@@ -334,7 +335,7 @@ export const ROUTES: RouteConfig[] = [
     icon: <ForumIcon fontSize="small" />,
     router: RoutesEnum.COMUNICACAO,
     isShowMenu: true,
-    roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
     showBadge: true,
   },
   // ========== USO OPERACIONAL - ESTUDANTE ==========
@@ -522,6 +523,34 @@ export const ROUTES: RouteConfig[] = [
     text: RouteLabelsEnum.SECRETARIA_MATRICULAS,
     icon: <HowToRegIcon fontSize="small" />,
     router: RoutesEnum.SECRETARIA_MATRICULAS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
+    text: RouteLabelsEnum.SECRETARIA_ENTURMACAO,
+    icon: <GroupAddIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_ENTURMACAO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
+    text: RouteLabelsEnum.SECRETARIA_TURMA_GERENCIAR,
+    icon: <GroupAddIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_TURMA_GERENCIAR,
+    isShowMenu: false,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
+    text: RouteLabelsEnum.CALENDARIO,
+    icon: <CalendarTodayOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.CALENDARIO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
+    text: RouteLabelsEnum.COMUNICADOS,
+    icon: <CampaignOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICADOS,
     isShowMenu: true,
     roles: [UserRoleEnum.SECRETARIO],
   },

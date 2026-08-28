@@ -13,6 +13,7 @@ import br.com.brain.aluno.dto.ListagemAlunoDto;
 import br.com.brain.turma.dto.AtualizacaoTurmaDto;
 import br.com.brain.turma.dto.CadastroTurmaDto;
 import br.com.brain.turma.dto.ListagemTurmaDto;
+import br.com.brain.turma.dto.VincularAlunosDto;
 
 import java.util.List;
 import jakarta.validation.Valid;
@@ -61,5 +62,18 @@ public class TurmaController {
     @GetMapping("/{id}/alunos")
     public ResponseEntity<List<ListagemAlunoDto>> listarAlunos(@PathVariable Long id) {
         return ResponseEntity.ok(service.listarAlunos(id));
+    }
+
+    @PostMapping("/{id}/alunos")
+    public ResponseEntity<Void> vincularAlunos(@PathVariable Long id,
+            @RequestBody @Valid VincularAlunosDto dados) {
+        service.vincularAlunos(id, dados.alunoIds());
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/alunos/{alunoId}")
+    public ResponseEntity<Void> desvincularAluno(@PathVariable Long id, @PathVariable Long alunoId) {
+        service.desvincularAluno(id, alunoId);
+        return ResponseEntity.noContent().build();
     }
 }

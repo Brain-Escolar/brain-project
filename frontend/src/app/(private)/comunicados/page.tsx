@@ -2,12 +2,19 @@
 
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
+  IconButton,
   InputAdornment,
   MenuItem,
   Paper,
@@ -20,10 +27,16 @@ import DownloadIcon from "@mui/icons-material/Download";
 import SearchIcon from "@mui/icons-material/Search";
 import DescriptionIcon from "@mui/icons-material/Description";
 import CloseIcon from "@mui/icons-material/Close";
+import AddIcon from "@mui/icons-material/Add";
+import EditOutlined from "@mui/icons-material/EditOutlined";
+import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { RichTextContent } from "@/components/richTextEditor/RichTextContent";
+import { useAuth } from "@/hooks/useAuth";
 import { useComunicados } from "@/hooks/useComunicados";
+import { useComunicadoMutations } from "@/hooks/useComunicadoMutations";
 import { ComunicadoCategoria } from "@/services/domains/comunicado/response";
+import { RoutesEnum, UserRoleEnum } from "@/enums";
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -48,12 +61,14 @@ const CATEGORIA_ENUM_MAP: Record<ComunicadoCategoria, CategoriaKey> = {
 
 interface AvisoItem {
   id: string;
+  rawId: number;
   titulo: string;
   descricao: string;
   data: string; // DD/MM/YY
   categoria: CategoriaKey;
   imagemUrl?: string;
   anexoUrl?: string;
+  autorId?: number;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -67,9 +82,14 @@ function formatDate(iso: string): string {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ComunicadosPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const { deleteComunicado } = useComunicadoMutations();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>("");
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [avisoParaExcluir, setAvisoParaExcluir] = useState<AvisoItem | null>(null);
 
   function toggleExpand(id: string) {
     setExpandedIds((prev) => {
@@ -79,18 +99,34 @@ export default function ComunicadosPage() {
     });
   }
 
+  const podeCriar = user?.role === UserRoleEnum.SECRETARIO || user?.role === UserRoleEnum.ADMIN;
+
+  function podeGerenciar(aviso: AvisoItem): boolean {
+    if (user?.role === UserRoleEnum.ADMIN) return true;
+    if (user?.role === UserRoleEnum.SECRETARIO) return aviso.autorId != null && aviso.autorId === user.dadosPessoaisId;
+    return false;
+  }
+
+  async function handleConfirmarExclusao() {
+    if (!avisoParaExcluir) return;
+    await deleteComunicado.mutateAsync(avisoParaExcluir.rawId);
+    setAvisoParaExcluir(null);
+  }
+
   const { comunicados, loading, error } = useComunicados(0, 100);
 
   // Map comunicados into unified list, sorted by date desc
   const allAvisos = useMemo<AvisoItem[]>(() => {
     const mapped: AvisoItem[] = comunicados.map((c) => ({
       id: `c-${c.id}`,
+      rawId: c.id,
       titulo: c.titulo,
       descricao: c.conteudo,
       data: c.data ? formatDate(c.data) : "",
       categoria: (c.categoria ? CATEGORIA_ENUM_MAP[c.categoria] : "Administrativo") as CategoriaKey,
       imagemUrl: c.imagemUrl,
       anexoUrl: c.anexoUrl,
+      autorId: c.autorId,
     }));
 
     return mapped.sort((a, b) => {
@@ -124,6 +160,17 @@ export default function ComunicadosPage() {
     <PageScaffold
       title="Comunicados"
       description="Acompanhe atualizações e comunicados importantes da escola"
+      actions={
+        podeCriar ? (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => router.push(RoutesEnum.COMUNICADOS_CADASTRO)}
+          >
+            Novo Comunicado
+          </Button>
+        ) : undefined
+      }
     >
 
         {/* Loading state */}
@@ -300,20 +347,43 @@ export default function ComunicadosPage() {
                                 {aviso.data}
                               </Typography>
 
-                              {aviso.anexoUrl && (
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  color="primary"
-                                  startIcon={<DownloadIcon />}
-                                  href={aviso.anexoUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  sx={{ textTransform: "none" }}
-                                >
-                                  Baixar
-                                </Button>
-                              )}
+                              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                {aviso.anexoUrl && (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="primary"
+                                    startIcon={<DownloadIcon />}
+                                    href={aviso.anexoUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    sx={{ textTransform: "none" }}
+                                  >
+                                    Baixar
+                                  </Button>
+                                )}
+                                {podeGerenciar(aviso) && (
+                                  <>
+                                    <IconButton
+                                      size="small"
+                                      title="Editar"
+                                      onClick={() =>
+                                        router.push(`${RoutesEnum.COMUNICADOS_CADASTRO}?id=${aviso.rawId}`)
+                                      }
+                                    >
+                                      <EditOutlined fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      title="Excluir"
+                                      onClick={() => setAvisoParaExcluir(aviso)}
+                                    >
+                                      <DeleteOutline fontSize="small" />
+                                    </IconButton>
+                                  </>
+                                )}
+                              </Box>
                             </Box>
                           </Box>
                         </Paper>
@@ -410,6 +480,30 @@ export default function ComunicadosPage() {
             </Grid>
           </>
         )}
+
+      <Dialog open={!!avisoParaExcluir} onClose={() => setAvisoParaExcluir(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Excluir comunicado</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja excluir <strong>{avisoParaExcluir?.titulo}</strong>? Esta ação não
+            pode ser desfeita.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAvisoParaExcluir(null)} disabled={deleteComunicado.isPending}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmarExclusao}
+            disabled={deleteComunicado.isPending}
+            startIcon={deleteComunicado.isPending ? <CircularProgress size={16} color="inherit" /> : undefined}
+          >
+            {deleteComunicado.isPending ? "Excluindo..." : "Excluir"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </PageScaffold>
   );
 }

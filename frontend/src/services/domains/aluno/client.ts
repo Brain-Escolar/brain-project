@@ -16,7 +16,7 @@ export class AlunoApi {
   }
 
   getListaAlunos(): Promise<IBrainResult<AlunoListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getAlunoById(id: string): Promise<AlunoDetalheResponse> {
