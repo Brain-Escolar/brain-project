@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { responsavelPortalApi } from "@/services/api";
 import { AlunoVinculadoResponse } from "@/services/domains/responsavel-portal";
+import { useAuth } from "@/hooks/useAuth";
+import { UserRoleEnum } from "@/enums";
 
 const STORAGE_KEY = "brain.responsavel.alunoId";
 
@@ -57,6 +59,12 @@ function salvarSelecao(alunoId: number) {
  */
 export function AlunoSelecionadoProvider({ children }: { children: ReactNode }) {
   const [alunoIdSelecionado, setAlunoIdSelecionado] = useState<number | null>(null);
+  const { user } = useAuth();
+
+  // O provider envolve TODOS os perfis (fica no layout privado), mas
+  // /portal-responsavel/alunos exige ROLE_RESPONSAVEL. Sem este gate, todo
+  // professor, admin e secretario dispararia um 403 a cada carregamento.
+  const ehResponsavel = user?.role === UserRoleEnum.RESPONSAVEL;
 
   const {
     data: alunos = [],
@@ -65,6 +73,7 @@ export function AlunoSelecionadoProvider({ children }: { children: ReactNode }) 
   } = useQuery({
     queryKey: QUERY_KEYS.responsavel.alunos(),
     queryFn: () => responsavelPortalApi.getAlunosVinculados(),
+    enabled: ehResponsavel,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -105,10 +114,10 @@ export function AlunoSelecionadoProvider({ children }: { children: ReactNode }) 
       alunoId: alunoAtual?.id ?? null,
       selecionarAluno,
       precisaSeletor: alunos.length > 1,
-      isLoading,
+      isLoading: ehResponsavel && isLoading,
       error,
     }),
-    [alunos, alunoAtual, selecionarAluno, isLoading, error],
+    [alunos, alunoAtual, selecionarAluno, ehResponsavel, isLoading, error],
   );
 
   return (

@@ -16,6 +16,8 @@ const HOME_PATHS: Record<UserRoleEnum, RoutesEnum> = {
   [UserRoleEnum.PROFESSOR]: RoutesEnum.HOME,
   [UserRoleEnum.ESTUDANTE]: RoutesEnum.HOME_ESTUDANTE,
   [UserRoleEnum.SECRETARIO]: RoutesEnum.SECRETARIA_MATRICULAS,
+  // O responsável cai na HOME, que ramifica por perfil e monta o dashboard dele.
+  [UserRoleEnum.RESPONSAVEL]: RoutesEnum.HOME,
 };
 
 const ALL_HOME_PATHS = new Set<string>([

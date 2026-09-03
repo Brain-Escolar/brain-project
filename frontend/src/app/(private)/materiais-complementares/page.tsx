@@ -11,7 +11,12 @@ export default function MateriaisComplementaresPage() {
 
   if (isLoading && !user) return <LoadingComponent />;
 
-  if (user?.role === UserRoleEnum.ESTUDANTE) {
+  // O responsavel ve a MESMA tela do aluno — a diferenca esta na fonte de
+  // dados, resolvida dentro do componente por useContextoAluno.
+  if (
+    user?.role === UserRoleEnum.ESTUDANTE ||
+    user?.role === UserRoleEnum.RESPONSAVEL
+  ) {
     return <MateriaisComplementaresAlunoPage />;
   }
 

@@ -60,6 +60,10 @@ const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
   [UserRoleEnum.ADMIN]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.ESTUDANTE]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.SECRETARIO]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
+  // O responsável não acessa esta tela — ela é o detalhe administrativo do
+  // aluno. Ele vê os dados do filho pelo portal (/portal-responsavel/**),
+  // que valida o vínculo. Entrada vazia só para satisfazer o Record.
+  [UserRoleEnum.RESPONSAVEL]: [],
 };
 
 const LABEL_ABA: Record<TabKey, string> = {

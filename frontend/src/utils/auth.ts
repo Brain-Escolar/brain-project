@@ -142,7 +142,9 @@ export const ROLE_ROUTES: Record<UserRoleEnum, string[]> = {
     "/comunicados",
     "/comunicacao",
     "/materiais-complementares",
-    "/ficha-medica",
+    // "/ficha-medica" — a tela do responsável ainda não existe: 3 dos 4 cards
+    // do design (medicações, contato de emergência, plano de saúde) não têm
+    // origem no backend. Liberar a rota sem tela só geraria 404.
     "/financeiro",
     "/perfil",
   ],

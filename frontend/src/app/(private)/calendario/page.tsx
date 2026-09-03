@@ -21,6 +21,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 import { useAuth } from "@/hooks/useAuth";
 import { useEventos } from "@/hooks/useEventos";
+import { useContextoAluno } from "@/hooks/useContextoAluno";
 import { EventoResponse, TipoEvento } from "@/services/domains/evento";
 import { UserRoleEnum } from "@/enums";
 import NovoEventoModal from "./NovoEventoModal";
@@ -115,7 +116,11 @@ export default function Calendario() {
   const dataInicio = formatDate(currentYear, currentMonth, 1);
   const dataFim = formatDate(currentYear, currentMonth, new Date(currentYear, currentMonth + 1, 0).getDate());
 
-  const { eventos, loading } = useEventos({ dataInicio, dataFim });
+  // O responsavel ve o calendario da turma do aluno dele, nao o da escola
+  // inteira — e nao cria eventos.
+  const { turmaId, ehResponsavel } = useContextoAluno();
+  const { eventos, loading } = useEventos({ dataInicio, dataFim, turmaId });
+  const podeCriarEvento = !ehResponsavel;
 
   const calendarDays = useMemo(() => buildCalendarDays(currentYear, currentMonth), [currentYear, currentMonth]);
 
@@ -337,8 +342,12 @@ export default function Calendario() {
                 key={index}
                 onClick={() => {
                   const dateKey = formatDate(dayInfo.year, dayInfo.month, dayInfo.day);
-                  if (isMobile && dayEvents.length > 0) abrirListaDia(dateKey);
-                  else abrirNovoEvento(dateKey);
+                  // Sem permissao de criar, clicar no dia so abre a lista.
+                  if (dayEvents.length > 0 && (isMobile || !podeCriarEvento)) {
+                    abrirListaDia(dateKey);
+                  } else if (podeCriarEvento) {
+                    abrirNovoEvento(dateKey);
+                  }
                 }}
                 sx={{
                   minWidth: 0,
@@ -480,16 +489,22 @@ export default function Calendario() {
   return (
     <PageScaffold
       title="Calendário"
-      description="Gerencie seu calendário e seus compromissos"
+      description={
+        ehResponsavel
+          ? "Provas, prazos e eventos da turma do aluno"
+          : "Gerencie seu calendário e seus compromissos"
+      }
       actions={
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => abrirNovoEvento()}
-          size={isMobile ? "small" : "medium"}
-        >
-          Novo evento
-        </Button>
+        podeCriarEvento ? (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => abrirNovoEvento()}
+            size={isMobile ? "small" : "medium"}
+          >
+            Novo evento
+          </Button>
+        ) : undefined
       }
     >
       {isMobile ? (
@@ -549,11 +564,15 @@ export default function Calendario() {
         eventos={eventosDoDiaLista}
         onClose={() => setDiaLista(null)}
         onSelecionarEvento={abrirDetalheEvento}
-        onNovoEvento={() => {
-          const data = diaLista ?? undefined;
-          setDiaLista(null);
-          abrirNovoEvento(data);
-        }}
+        onNovoEvento={
+          podeCriarEvento
+            ? () => {
+                const data = diaLista ?? undefined;
+                setDiaLista(null);
+                abrirNovoEvento(data);
+              }
+            : undefined
+        }
       />
     </PageScaffold>
   );

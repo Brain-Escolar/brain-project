@@ -19,6 +19,7 @@ import Badge, { BadgeTone } from "@/components/badge";
 import LoadingComponent from "@/components/loadingComponent/loadingComponent";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
 import { useRelatorios } from "@/hooks/useRelatorios";
+import { useContextoAluno } from "@/hooks/useContextoAluno";
 import { RelatorioSituacao } from "@/services/domains/estudante/response";
 import * as S from "./styles";
 
@@ -43,10 +44,11 @@ function situacaoIcon(situacao: RelatorioSituacao) {
 }
 
 export default function RelatoriosContent() {
-  const { relatorio, loading, error } = useRelatorios();
+  const { alunoId, pronto, carregando, nomeAluno } = useContextoAluno();
+  const { relatorio, loading, error } = useRelatorios(alunoId, pronto);
   const [report, setReport] = useState<ReportType>("notas");
 
-  if (loading) return <LoadingComponent />;
+  if (carregando || loading) return <LoadingComponent />;
   if (error || !relatorio) {
     return <BrainResultNotFound message="Não foi possível carregar os relatórios." />;
   }
@@ -98,7 +100,7 @@ export default function RelatoriosContent() {
 
   return (
     <PageScaffold
-      title="Relatórios"
+      title={nomeAluno ? `Notas e frequência de ${nomeAluno.split(" ")[0]}` : "Relatórios"}
       description={subtitulo}
       actions={
         <Button variant="outlined" startIcon={<DownloadOutlinedIcon />}>
