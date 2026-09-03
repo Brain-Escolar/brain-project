@@ -29,8 +29,10 @@ import { HoleriteApi } from "./domains/holerite";
 import { InformeRendimentoApi } from "./domains/informe-rendimento";
 import { MaterialComplementarApi } from "./domains/material-complementar";
 import { ProdutoApi } from "./domains/produto";
+import { OrientacaoApi } from "./domains/orientacao";
 
 export const alunoApi = new AlunoApi();
+export const orientacaoApi = new OrientacaoApi();
 export const estudanteApi = new EstudanteApi();
 export const aulaApi = new AulaApi();
 export const loginApi = new LoginAPI();

@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import DashProfessorPage from "./dashProfessor/dashProfessor";
 import DashAlunoPage from "./dashAluno/dashAluno";
+import DashOrientadorPage from "./dashOrientador/dashOrientador";
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
@@ -29,6 +30,10 @@ export default function Dashboard() {
 
   if (user?.role === "ESTUDANTE") {
     return <DashAlunoPage />;
+  }
+
+  if (user?.role === "ORIENTADOR") {
+    return <DashOrientadorPage />;
   }
 
   return (

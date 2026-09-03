@@ -119,7 +119,12 @@ export const ROUTES: RouteConfig[] = [
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_DETALHE,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR, UserRoleEnum.SECRETARIO],
+    roles: [
+      UserRoleEnum.ADMIN,
+      UserRoleEnum.PROFESSOR,
+      UserRoleEnum.SECRETARIO,
+      UserRoleEnum.ORIENTADOR,
+    ],
   },
   {
     text: RouteLabelsEnum.TURMAS,
@@ -516,6 +521,7 @@ export const ROUTES: RouteConfig[] = [
       UserRoleEnum.PROFESSOR,
       UserRoleEnum.ADMIN,
       UserRoleEnum.SECRETARIO,
+      UserRoleEnum.ORIENTADOR,
     ],
   },
   // ========== SECRETARIA ==========
@@ -553,6 +559,36 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.COMUNICADOS,
     isShowMenu: true,
     roles: [UserRoleEnum.SECRETARIO],
+  },
+  // ========== ORIENTACAO ==========
+  {
+    text: RouteLabelsEnum.HOME_DASHBOARD,
+    icon: <HomeIcon fontSize="small" />,
+    router: RoutesEnum.HOME,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
+  },
+  {
+    text: RouteLabelsEnum.COMUNICACAO,
+    icon: <ChatBubbleOutlineOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICACAO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
+    showBadge: true,
+  },
+  {
+    text: RouteLabelsEnum.COMUNICADOS,
+    icon: <CampaignOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICADOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
+  },
+  {
+    text: RouteLabelsEnum.CALENDARIO,
+    icon: <CalendarTodayOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.CALENDARIO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
   },
 ];
 

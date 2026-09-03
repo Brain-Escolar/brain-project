@@ -3,6 +3,7 @@ package br.com.brain.mensagem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import br.com.brain.conversa.dto.ConversaNaoLidaContagem;
+import br.com.brain.enums.PerfilNome;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -61,4 +62,21 @@ public interface MensagemRepository extends JpaRepository<Mensagem, Long> {
             )
             """)
     long countConversasComRespostaNaoLida(@Param("dadosPessoaisId") Long dadosPessoaisId);
+
+    /**
+     * Conversas dirigidas a um perfil (caixa de entrada da Secretaria, Orientação
+     * etc.) que ainda têm mensagens não lidas pelo usuário informado.
+     */
+    @Query("""
+            SELECT COUNT(DISTINCT m.conversa.id) FROM Mensagem m
+            WHERE m.conversa.destinatario.nome = :perfilNome
+            AND m.remetente.id != :dadosPessoaisId
+            AND NOT EXISTS (
+                SELECT ml FROM MensagemLida ml
+                WHERE ml.mensagem.id = m.id
+                AND ml.dadosPessoais.id = :dadosPessoaisId
+            )
+            """)
+    long countConversasNaoLidasPorDestinatario(@Param("perfilNome") PerfilNome perfilNome,
+            @Param("dadosPessoaisId") Long dadosPessoaisId);
 }

@@ -36,6 +36,11 @@ import { PERFIL_DISPLAY_NAME, PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 
 type StatusTab = "ABERTA" | "FECHADA";
 
+interface FilaAtendimentoProps {
+  /** Perfil cuja caixa de entrada é exibida. */
+  perfil?: PerfilNomeEnum;
+}
+
 function getRemetenteIcon(perfilNome: string) {
   if (perfilNome === "PROFESSOR") return <SchoolIcon fontSize="small" />;
   return <PersonIcon fontSize="small" />;
@@ -56,7 +61,9 @@ function formatDateTime(isoString: string): string {
   });
 }
 
-export default function FilaAtendimento() {
+export default function FilaAtendimento({
+  perfil = PerfilNomeEnum.SECRETARIO,
+}: FilaAtendimentoProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { user } = useAuth();
@@ -68,8 +75,8 @@ export default function FilaAtendimento() {
   const mensagensEndRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: QUERY_KEYS.conversas.destinatario(PerfilNomeEnum.SECRETARIO, 0),
-    queryFn: () => conversaApi.listarComoDestinatario(PerfilNomeEnum.SECRETARIO, { page: 0, size: 100 }),
+    queryKey: QUERY_KEYS.conversas.destinatario(perfil, 0),
+    queryFn: () => conversaApi.listarComoDestinatario(perfil, { page: 0, size: 100 }),
   });
   const conversas = useMemo(() => data?.content ?? [], [data]);
 
@@ -130,7 +137,9 @@ export default function FilaAtendimento() {
   return (
     <PageScaffold
       title="Fale conosco"
-      description="Fila de atendimento — responda as conversas de alunos e professores dirigidas à Secretaria."
+      description={`Fila de atendimento — responda as conversas de alunos e professores dirigidas à ${
+        PERFIL_DISPLAY_NAME[perfil] ?? perfil
+      }.`}
     >
       <Box sx={{ mb: 2 }}>
         <SegmentedControl

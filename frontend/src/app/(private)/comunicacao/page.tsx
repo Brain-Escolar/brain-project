@@ -82,6 +82,9 @@ export default function ComunicacaoPage() {
   if (user?.role === UserRoleEnum.SECRETARIO) {
     return <FilaAtendimento />;
   }
+  if (user?.role === UserRoleEnum.ORIENTADOR) {
+    return <FilaAtendimento perfil={PerfilNomeEnum.ORIENTADOR} />;
+  }
   return <ComunicacaoRemetenteView />;
 }
 

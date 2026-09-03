@@ -16,6 +16,7 @@ const HOME_PATHS: Record<UserRoleEnum, RoutesEnum> = {
   [UserRoleEnum.PROFESSOR]: RoutesEnum.HOME,
   [UserRoleEnum.ESTUDANTE]: RoutesEnum.HOME_ESTUDANTE,
   [UserRoleEnum.SECRETARIO]: RoutesEnum.SECRETARIA_MATRICULAS,
+  [UserRoleEnum.ORIENTADOR]: RoutesEnum.HOME,
 };
 
 const ALL_HOME_PATHS = new Set<string>([

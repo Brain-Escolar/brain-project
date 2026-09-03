@@ -3,4 +3,5 @@ export enum UserRoleEnum {
   PROFESSOR = "PROFESSOR",
   ADMIN = "ADMIN",
   SECRETARIO = "SECRETARIO",
+  ORIENTADOR = "ORIENTADOR",
 }

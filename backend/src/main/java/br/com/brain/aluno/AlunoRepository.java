@@ -33,5 +33,32 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
 
     long countByTurmaIdAndMatriculadoTrue(Long turmaId);
 
+    long countByMatriculadoTrue();
+
+    long countByMatriculadoTrueAndTurmaIsNull();
+
+    /**
+     * Busca de alunos matriculados usada pela Orientação: texto livre sobre nome e
+     * matrícula, com filtros opcionais de unidade, série e turma. Um filtro nulo
+     * não restringe o resultado.
+     */
+    @Query("""
+            SELECT aluno
+            FROM Aluno aluno
+            WHERE aluno.matriculado = true
+            AND (:termo IS NULL
+                 OR LOWER(aluno.dadosPessoais.nome) LIKE LOWER(CONCAT('%', :termo, '%'))
+                 OR LOWER(aluno.dadosPessoais.matricula) LIKE LOWER(CONCAT('%', :termo, '%')))
+            AND (:unidadeId IS NULL OR aluno.unidade.id = :unidadeId)
+            AND (:serieId IS NULL OR aluno.serie.id = :serieId)
+            AND (:turmaId IS NULL OR aluno.turma.id = :turmaId)
+            """)
+    Page<Aluno> buscarMatriculadosParaOrientacao(
+            @Param("termo") String termo,
+            @Param("unidadeId") Long unidadeId,
+            @Param("serieId") Long serieId,
+            @Param("turmaId") Long turmaId,
+            Pageable pageable);
+
     List<Aluno> findByTurmaIdAndMatriculadoTrue(Long turmaId);
 }

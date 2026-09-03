@@ -134,6 +134,7 @@ export const ROLE_ROUTES: Record<UserRoleEnum, string[]> = {
     "/planejamento-anual", "/aluno", "/calendario", "/minhas-aulas", "/perfil",
   ],
   SECRETARIO: ["/secretaria", "/aluno", "/perfil"],
+  ORIENTADOR: ["/", "/aluno", "/comunicados", "/comunicacao", "/calendario", "/perfil"],
 };
 
 /**
@@ -162,6 +163,8 @@ export function getDefaultRoute(userRole: UserRoleEnum): string {
       return "/";
     case "ADMIN":
       return "/admin";
+    case "ORIENTADOR":
+      return "/";
     default:
       return "/";
   }

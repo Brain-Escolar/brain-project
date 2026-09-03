@@ -185,6 +185,12 @@ export const QUERY_KEYS = {
     mensagens: (conversaId: number, page?: number) => [...["conversas"], "mensagens", conversaId, page] as const,
     destinatariosDisponiveis: () => [...["conversas"], "destinatarios-disponiveis"] as const,
   },
+  orientacao: {
+    all: ["orientacao"] as const,
+    inicio: () => [...QUERY_KEYS.orientacao.all, "inicio"] as const,
+    buscaAlunos: (filtros?: Record<string, unknown>) =>
+      [...QUERY_KEYS.orientacao.all, "busca-alunos", filtros] as const,
+  },
   eventos: {
     all: ["eventos"] as const,
     periodo: (dataInicio: string, dataFim: string) =>
