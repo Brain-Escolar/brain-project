@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import AppBar from "@/components/appBar/appBar";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { BreadcrumbProvider } from "@/contexts/BreadcrumbContext";
+import { AlunoSelecionadoProvider } from "@/contexts/AlunoSelecionadoContext";
 import * as S from "./styles";
 import { Container } from "@mui/material";
 
@@ -30,7 +31,14 @@ export default function PrivateLayout({
   return (
     <Suspense>
       <BreadcrumbProvider>
-        <PrivateLayoutContent>{children}</PrivateLayoutContent>
+        {/*
+          O provider e montado para todos os perfis, mas so busca dados quando
+          o usuario e RESPONSAVEL — para os demais o hook devolve alunoId null
+          e as telas compartilhadas seguem com a fonte de dados de sempre.
+        */}
+        <AlunoSelecionadoProvider>
+          <PrivateLayoutContent>{children}</PrivateLayoutContent>
+        </AlunoSelecionadoProvider>
       </BreadcrumbProvider>
     </Suspense>
   );

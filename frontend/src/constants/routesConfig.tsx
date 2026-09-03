@@ -27,6 +27,7 @@ import RequestQuoteOutlinedIcon from "@mui/icons-material/RequestQuoteOutlined";
 import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -381,6 +382,68 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.MATERIAIS_COMPLEMENTARES,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
+  },
+  // ========== PORTAL DO RESPONSÁVEL ==========
+  // A maioria destas rotas JÁ EXISTE e é reusada: o responsável entra nas
+  // telas do aluno, não em cópias. Só OCORRENCIAS e FINANCEIRO são novas.
+  // Este é o padrão do arquivo — CALENDARIO, COMUNICADOS, COMUNICACAO e
+  // MATERIAIS_COMPLEMENTARES já aparecem uma vez por perfil acima.
+  {
+    text: RouteLabelsEnum.HOME_DASHBOARD,
+    icon: <HomeIcon fontSize="small" />,
+    router: RoutesEnum.HOME,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.RELATORIOS,
+    icon: <SummarizeOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.RELATORIOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.OCORRENCIAS,
+    icon: <FlagOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.OCORRENCIAS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.FINANCEIRO,
+    icon: <RequestQuoteOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.FINANCEIRO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.CALENDARIO,
+    icon: <CalendarTodayOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.CALENDARIO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.COMUNICADOS,
+    icon: <CampaignOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICADOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.COMUNICACAO,
+    icon: <ChatBubbleOutlineOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICACAO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+    showBadge: true,
+  },
+  {
+    text: RouteLabelsEnum.MATERIAIS_COMPLEMENTARES,
+    icon: <FolderOpenOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.MATERIAIS_COMPLEMENTARES,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
   },
   // ========== USO OPERACIONAL - PROFESSOR ==========
   {

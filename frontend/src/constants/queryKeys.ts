@@ -202,4 +202,30 @@ export const QUERY_KEYS = {
     all: ["materiaisComplementares"] as const,
     professor: () => [...QUERY_KEYS.materiaisComplementares.all, "professor"] as const,
   },
+  /**
+   * Portal do Responsável.
+   *
+   * Toda chave inclui o alunoId — é isso que faz a troca de aluno no seletor
+   * invalidar e refazer as queries sozinha, sem refetch manual nas telas.
+   */
+  responsavel: {
+    all: ["responsavel"] as const,
+    me: () => [...QUERY_KEYS.responsavel.all, "me"] as const,
+    alunos: () => [...QUERY_KEYS.responsavel.all, "alunos"] as const,
+    aluno: (alunoId: number) => [...QUERY_KEYS.responsavel.all, "aluno", alunoId] as const,
+    resumo: (alunoId: number) => [...QUERY_KEYS.responsavel.aluno(alunoId), "resumo"] as const,
+    relatorio: (alunoId: number) => [...QUERY_KEYS.responsavel.aluno(alunoId), "relatorio"] as const,
+    ocorrencias: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "ocorrencias"] as const,
+    gradeHoraria: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "grade-horaria"] as const,
+    tarefas: (alunoId: number) => [...QUERY_KEYS.responsavel.aluno(alunoId), "tarefas"] as const,
+    materiais: (alunoId: number) => [...QUERY_KEYS.responsavel.aluno(alunoId), "materiais"] as const,
+    calendario: (alunoId: number, mes: string) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "calendario", mes] as const,
+    fichaMedica: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "ficha-medica"] as const,
+    financeiro: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "financeiro"] as const,
+  },
 } as const;
