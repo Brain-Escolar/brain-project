@@ -43,6 +43,9 @@ public class SecurityConfigurations {
                             // Paginas de login
                             req.requestMatchers("/login/**", "/atualizar-token", "/usuario/**").permitAll();
 
+                            // Portal do Responsavel - acima do permitAll para ja valer hoje.
+                            req.requestMatchers("/portal-responsavel/**").hasRole("RESPONSAVEL");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 
