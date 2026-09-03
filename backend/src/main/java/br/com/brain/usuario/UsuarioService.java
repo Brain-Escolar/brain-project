@@ -37,18 +37,39 @@ public class UsuarioService {
     @PersistenceContext
     private EntityManager em;
 
+    /**
+     * Cadastra o login usando o e-mail institucional como identificador.
+     * Comportamento historico, usado por quem tem vinculo com a escola
+     * (aluno e professor recebem emailProfissional na matricula/admissao).
+     */
     @Transactional
     public Long cadastrarUsuario(DadosPessoais dadosPessoais, PerfilNome nomePerfil, String senha) {
+        return cadastrarUsuario(dadosPessoais, nomePerfil, senha, dadosPessoais.getEmailProfissional());
+    }
+
+    /**
+     * Cadastra o login com um identificador explicito.
+     *
+     * Existe para o responsavel, que e externo a escola e por isso nao tem
+     * emailProfissional — o login dele e o e-mail pessoal. Sem este overload o
+     * username sairia null e o acesso seria impossivel.
+     */
+    @Transactional
+    public Long cadastrarUsuario(DadosPessoais dadosPessoais, PerfilNome nomePerfil, String senha, String login) {
         var senhaCriptografada = passwordEncoder.encode(senha);
 
         var perfil = perfilRepository.findByNome(nomePerfil);
-        var usuario = new DadosAutenticacao(dadosPessoais.getPerfis(), dadosPessoais.getEmailProfissional(),
-                senhaCriptografada, perfil);
+        var usuario = new DadosAutenticacao(dadosPessoais.getPerfis(), login, senhaCriptografada, perfil);
 
         usuario.setDadosPessoais(dadosPessoais);
         var usuarioCriado = usuarioRepository.save(usuario);
         String schema = TenantContext.getTenantId();
-        emailService.enviarEmailVerificacao(dadosPessoais.getNomeSocial(), dadosPessoais.getEmail(), senha, usuario,
+        // Nem todo perfil tem nome social (o responsavel nao informa) — sem o
+        // fallback o e-mail de verificacao chegaria com "Ola, null".
+        var nomeParaSaudacao = dadosPessoais.getNomeSocial() != null && !dadosPessoais.getNomeSocial().isBlank()
+                ? dadosPessoais.getNomeSocial()
+                : dadosPessoais.getNome();
+        emailService.enviarEmailVerificacao(nomeParaSaudacao, dadosPessoais.getEmail(), senha, usuario,
                 schema);
         return usuarioCriado.getId();
     }

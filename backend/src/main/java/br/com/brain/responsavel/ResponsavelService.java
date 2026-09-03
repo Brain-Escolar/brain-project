@@ -1,6 +1,10 @@
 package br.com.brain.responsavel;
+import br.com.brain.autenticacao.DadosAutenticacaoRepository;
 import br.com.brain.dadosPessoais.DadosPessoaisService;
 import br.com.brain.endereco.EnderecoService;
+import br.com.brain.enums.PerfilNome;
+import br.com.brain.perfil.PerfilRepository;
+import br.com.brain.usuario.UsuarioService;
 
 import br.com.brain.aluno.Aluno;
 import br.com.brain.dadosPessoais.DadosPessoais;
@@ -27,6 +31,9 @@ public class ResponsavelService {
     private final ResponsavelRepository repository;
     private final EnderecoService enderecoService;
     private final DadosPessoaisService dadosPessoaisService;
+    private final UsuarioService usuarioService;
+    private final PerfilRepository perfilRepository;
+    private final DadosAutenticacaoRepository dadosAutenticacaoRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -45,6 +52,7 @@ public class ResponsavelService {
         var responsavelCadastrado = repository.save(responsavel);
 
         vincularAlunos(responsavelCadastrado.getId(), List.of(alunoId));
+        garantirAcessoAoPortal(dadosPessoais);
 
         return responsavel;
     }
@@ -112,7 +120,48 @@ public class ResponsavelService {
         }
         responsavel.setAlunos(alunos);
         repository.save(responsavel);
+        // Cobre o responsavel cadastrado antes desta funcionalidade existir:
+        // ao ganhar um vinculo, ele ganha o acesso ao portal.
+        garantirAcessoAoPortal(responsavel.getDadosPessoais());
         return responsavel;
+    }
+
+    /**
+     * Garante que o responsavel consiga entrar no Portal do Responsavel.
+     *
+     * Sem isto o perfil RESPONSAVEL existe no enum e na migration mas nunca e
+     * atribuido a ninguem, e nenhum responsavel tem DadosAutenticacao — o
+     * portal inteiro fica inalcancavel.
+     *
+     * Idempotente de proposito: um responsavel com dois filhos passa por aqui
+     * duas vezes, e quem ja tem login (inclusive um professor que tambem e
+     * responsavel) so ganha o perfil, nunca um segundo acesso.
+     *
+     * O login e o e-mail pessoal e a senha inicial e o CPF — mesmo padrao que
+     * AlunoService.matricular usa para o estudante. O e-mail de verificacao
+     * sai no cadastro; a conta so fica ativa depois que a pessoa confirma.
+     */
+    private void garantirAcessoAoPortal(DadosPessoais dadosPessoais) {
+        if (dadosPessoais == null || dadosPessoais.getId() == null) {
+            return;
+        }
+
+        var jaTemPerfil = dadosPessoais.getPerfis().stream()
+                .anyMatch(perfil -> PerfilNome.RESPONSAVEL.equals(perfil.getNome()));
+
+        if (dadosAutenticacaoRepository.existsByDadosPessoaisId(dadosPessoais.getId())) {
+            if (!jaTemPerfil) {
+                dadosPessoais.getPerfis().add(perfilRepository.findByNome(PerfilNome.RESPONSAVEL));
+                dadosPessoaisService.salvar(dadosPessoais);
+            }
+            return;
+        }
+
+        usuarioService.cadastrarUsuario(
+                dadosPessoais,
+                PerfilNome.RESPONSAVEL,
+                dadosPessoais.getCpf(),
+                dadosPessoais.getEmail());
     }
 
     private DadosPessoais criarDadosPessoais(CadastroResponsavelDto dados) {
