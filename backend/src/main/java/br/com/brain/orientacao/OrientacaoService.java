@@ -2,6 +2,7 @@ package br.com.brain.orientacao;
 
 import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.aluno.dto.ListagemAlunoDto;
+import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.comunicado.ComunicadoRepository;
 import br.com.brain.comunicado.ComunicadoService;
 import br.com.brain.conversa.ConversaRepository;
@@ -48,7 +49,9 @@ public class OrientacaoService {
     private final ComunicadoService comunicadoService;
 
     @Transactional(readOnly = true)
-    public InicioOrientacaoDto montarInicio(Long dadosPessoaisId) {
+    public InicioOrientacaoDto montarInicio(DadosAutenticacao usuario) {
+        var dadosPessoaisId = usuario.getDadosPessoais().getId();
+
         // listarPorDestinatario valida que o usuário realmente tem o perfil ORIENTADOR.
         var atendimentos = conversaService.listarPorDestinatario(
                 dadosPessoaisId,
@@ -57,7 +60,7 @@ public class OrientacaoService {
                 .getContent();
 
         var comunicados = comunicadoService.listar(
-                PageRequest.of(0, COMUNICADOS_NO_INICIO, Sort.by(Sort.Direction.DESC, "data")))
+                PageRequest.of(0, COMUNICADOS_NO_INICIO, Sort.by(Sort.Direction.DESC, "data")), usuario)
                 .getContent();
 
         return new InicioOrientacaoDto(montarIndicadores(dadosPessoaisId), atendimentos, comunicados);

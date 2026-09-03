@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { differenceInCalendarDays, format } from "date-fns";
 import { Skeleton } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import CampaignOutlinedIcon from "@mui/icons-material/CampaignOutlined";
 import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
@@ -63,9 +64,17 @@ export default function SectionComunicados({ comunicados, loading }: SectionComu
         <S.PanelTitleGroup>
           <S.PanelTitle>Comunicados recentes</S.PanelTitle>
         </S.PanelTitleGroup>
-        <S.LinkButton type="button" onClick={() => router.push(RoutesEnum.COMUNICADOS)}>
-          Ver mural
-        </S.LinkButton>
+        <S.PanelActions>
+          <S.LinkButton
+            type="button"
+            onClick={() => router.push(RoutesEnum.COMUNICADOS_CADASTRO)}
+          >
+            <AddIcon fontSize="inherit" /> Novo comunicado
+          </S.LinkButton>
+          <S.LinkButton type="button" onClick={() => router.push(RoutesEnum.COMUNICADOS)}>
+            Ver mural
+          </S.LinkButton>
+        </S.PanelActions>
       </S.PanelHeader>
 
       {loading ? (

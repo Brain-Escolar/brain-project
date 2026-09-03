@@ -61,7 +61,16 @@ export const CountBadge = styled.span`
   line-height: 1;
 `;
 
+export const PanelActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
 export const LinkButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: none;
   background: transparent;
   padding: 0;

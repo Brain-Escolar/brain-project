@@ -21,17 +21,37 @@ export class ComunicadoApi {
     return httpClient.get(`${BASE_ROUTE}/${id}`);
   }
 
-  criarComunicado(data: ComunicadoCreateRequest, imagem?: File): Promise<ComunicadoListResponse> {
+  criarComunicado(
+    data: ComunicadoCreateRequest,
+    imagem?: File,
+    anexo?: File,
+  ): Promise<ComunicadoListResponse> {
     const formData = new FormData();
     formData.append("dados", new Blob([JSON.stringify(data)], { type: "application/json" }));
     if (imagem) {
       formData.append("imagem", imagem);
     }
+    if (anexo) {
+      formData.append("anexo", anexo);
+    }
     return httpClient.post(BASE_ROUTE, formData);
   }
 
-  atualizarComunicado(id: number, data: ComunicadoUpdateRequest): Promise<ComunicadoListResponse> {
-    return httpClient.put(`${BASE_ROUTE}/${id}`, data);
+  atualizarComunicado(
+    id: number,
+    data: ComunicadoUpdateRequest,
+    imagem?: File,
+    anexo?: File,
+  ): Promise<ComunicadoListResponse> {
+    const formData = new FormData();
+    formData.append("dados", new Blob([JSON.stringify(data)], { type: "application/json" }));
+    if (imagem) {
+      formData.append("imagem", imagem);
+    }
+    if (anexo) {
+      formData.append("anexo", anexo);
+    }
+    return httpClient.put(`${BASE_ROUTE}/${id}`, formData);
   }
 
   deleteComunicado(id: number): Promise<void> {

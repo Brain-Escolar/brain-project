@@ -8,7 +8,7 @@ export interface JWTPayload {
   iss: string;
   sub: string;
   id: number;
-  name: string;
+  name: string | null;
   role: string;
   dadosPessoaisId?: number;
   exp: number;
@@ -16,7 +16,7 @@ export interface JWTPayload {
 
 export interface UserData {
   id: number;
-  name: string;
+  name: string | null;
   email: string;
   role: UserRoleEnum;
   /** Id de DadosPessoais do usuário logado — usado para comparar autoria (ex.: comunicados, mensagens). */

@@ -30,12 +30,17 @@ import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import EditOutlined from "@mui/icons-material/EditOutlined";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
+import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { RichTextContent } from "@/components/richTextEditor/RichTextContent";
 import { useAuth } from "@/hooks/useAuth";
 import { useComunicados } from "@/hooks/useComunicados";
 import { useComunicadoMutations } from "@/hooks/useComunicadoMutations";
-import { ComunicadoCategoria } from "@/services/domains/comunicado/response";
+import {
+  ComunicadoCategoria,
+  ComunicadoDestinatario,
+} from "@/services/domains/comunicado/response";
+import { descreverDestinatario } from "@/app/(private)/comunicados/comunicadoUtils";
 import { RoutesEnum, UserRoleEnum } from "@/enums";
 
 // ─── Category config ──────────────────────────────────────────────────────────
@@ -69,7 +74,16 @@ interface AvisoItem {
   imagemUrl?: string;
   anexoUrl?: string;
   autorId?: number;
+  autorNome?: string;
+  destinatarios?: ComunicadoDestinatario[];
 }
+
+/** Perfis autorizados a publicar no mural — espelha as regras de POST em SecurityConfigurations. */
+const PERFIS_QUE_PUBLICAM: UserRoleEnum[] = [
+  UserRoleEnum.SECRETARIO,
+  UserRoleEnum.ORIENTADOR,
+  UserRoleEnum.ADMIN,
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -99,11 +113,14 @@ export default function ComunicadosPage() {
     });
   }
 
-  const podeCriar = user?.role === UserRoleEnum.SECRETARIO || user?.role === UserRoleEnum.ADMIN;
+  const podeCriar = !!user?.role && PERFIS_QUE_PUBLICAM.includes(user.role);
 
   function podeGerenciar(aviso: AvisoItem): boolean {
     if (user?.role === UserRoleEnum.ADMIN) return true;
-    if (user?.role === UserRoleEnum.SECRETARIO) return aviso.autorId != null && aviso.autorId === user.dadosPessoaisId;
+    // Secretaria e Orientação gerenciam apenas os comunicados que publicaram.
+    if (user?.role === UserRoleEnum.SECRETARIO || user?.role === UserRoleEnum.ORIENTADOR) {
+      return aviso.autorId != null && aviso.autorId === user.dadosPessoaisId;
+    }
     return false;
   }
 
@@ -127,6 +144,8 @@ export default function ComunicadosPage() {
       imagemUrl: c.imagemUrl,
       anexoUrl: c.anexoUrl,
       autorId: c.autorId,
+      autorNome: c.autorNome,
+      destinatarios: c.destinatarios,
     }));
 
     return mapped.sort((a, b) => {
@@ -343,9 +362,24 @@ export default function ComunicadosPage() {
                                 mt: 1,
                               }}
                             >
-                              <Typography variant="caption" color="text.secondary">
-                                {aviso.data}
-                              </Typography>
+                              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                                <Typography variant="caption" color="text.secondary">
+                                  {[aviso.data, aviso.autorNome].filter(Boolean).join(" · ")}
+                                </Typography>
+                                {!!aviso.destinatarios?.length && (
+                                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                                    {aviso.destinatarios.map((destinatario, indice) => (
+                                      <Chip
+                                        key={`${aviso.id}-dest-${indice}`}
+                                        size="small"
+                                        variant="outlined"
+                                        icon={<GroupOutlinedIcon />}
+                                        label={descreverDestinatario(destinatario)}
+                                      />
+                                    ))}
+                                  </Box>
+                                )}
+                              </Box>
 
                               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                 {aviso.anexoUrl && (

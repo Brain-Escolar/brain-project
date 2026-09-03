@@ -24,7 +24,7 @@ public class OrientacaoController {
     /** Tela inicial da Orientação: indicadores, atendimentos e comunicados recentes. */
     @GetMapping("/inicio")
     public ResponseEntity<InicioOrientacaoDto> inicio(@AuthenticationPrincipal DadosAutenticacao usuario) {
-        return ResponseEntity.ok(service.montarInicio(usuario.getDadosPessoais().getId()));
+        return ResponseEntity.ok(service.montarInicio(usuario));
     }
 
     /** Busca de alunos matriculados por nome ou matrícula, com filtros opcionais. */

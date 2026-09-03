@@ -17,6 +17,7 @@ import { BrainDropdownControlled } from "@/components/brainForms/brainDropdownCo
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import { RichTextEditor } from "@/components/richTextEditor/RichTextEditor";
+import { DestinatariosField } from "@/app/(private)/comunicados/destinatariosField";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { RoutesEnum, UserRoleEnum } from "@/enums";
@@ -33,6 +34,7 @@ import {
   Typography,
 } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CloseIcon from "@mui/icons-material/Close";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -64,7 +66,10 @@ function ComunicadoPageContent() {
 
   const [imagemFile, setImagemFile] = useState<File | null>(null);
   const [imagemPreview, setImagemPreview] = useState<string | null>(null);
+  const [anexoFile, setAnexoFile] = useState<File | null>(null);
+  const [anexoAtual, setAnexoAtual] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const anexoInputRef = useRef<HTMLInputElement>(null);
 
   const { control, handleSubmit, onFormSubmit, isSubmitting, reset, methodsHookForm } =
     useBrainForm<ComunicadoFormData>({
@@ -80,6 +85,9 @@ function ComunicadoPageContent() {
       if (comunicado.imagemUrl) {
         setImagemPreview(comunicado.imagemUrl);
       }
+      if (comunicado.anexoUrl) {
+        setAnexoAtual(comunicado.anexoUrl);
+      }
     }
   }, [comunicado, isEditMode, reset]);
 
@@ -88,6 +96,17 @@ function ComunicadoPageContent() {
     setImagemFile(file);
     if (file) {
       setImagemPreview(URL.createObjectURL(file));
+    }
+  }
+
+  function handleAnexoSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    setAnexoFile(event.target.files?.[0] ?? null);
+  }
+
+  function handleRemoveAnexo() {
+    setAnexoFile(null);
+    if (anexoInputRef.current) {
+      anexoInputRef.current.value = "";
     }
   }
 
@@ -103,10 +122,18 @@ function ComunicadoPageContent() {
     try {
       if (isEditMode && comunicadoId) {
         const updateData = mapFormDataToComunicadoPutRequest(data, Number(comunicadoId));
-        await updateComunicado.mutateAsync(updateData);
+        await updateComunicado.mutateAsync({
+          ...updateData,
+          imagem: imagemFile ?? undefined,
+          anexo: anexoFile ?? undefined,
+        });
       } else {
         const createData = mapFormDataToComunicadoPostRequest(data);
-        await createComunicado.mutateAsync({ data: createData, imagem: imagemFile ?? undefined });
+        await createComunicado.mutateAsync({
+          data: createData,
+          imagem: imagemFile ?? undefined,
+          anexo: anexoFile ?? undefined,
+        });
       }
       router.push(RoutesEnum.COMUNICADOS);
     } catch (error) {
@@ -265,15 +292,63 @@ function ComunicadoPageContent() {
             {/* Anexo */}
             <ContainerSection
               title="Anexo"
-              description="URL de um arquivo anexo (opcional)"
+              description="Arquivo de apoio do comunicado (opcional)"
               numberOfCollumns={1}
             >
-              <BrainTextFieldControlled
-                name="anexoUrl"
-                control={control}
-                label="URL do Anexo"
-                placeholder="https://..."
+              <input
+                ref={anexoInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,image/*"
+                style={{ display: "none" }}
+                onChange={handleAnexoSelect}
               />
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1, alignItems: "flex-start" }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<AttachFileIcon />}
+                  onClick={() => anexoInputRef.current?.click()}
+                  sx={{ textTransform: "none" }}
+                >
+                  {anexoFile ? "Trocar arquivo" : "Selecionar arquivo"}
+                </Button>
+
+                {anexoFile ? (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="body2">{anexoFile.name}</Typography>
+                    <Button
+                      size="small"
+                      color="error"
+                      startIcon={<CloseIcon />}
+                      onClick={handleRemoveAnexo}
+                      sx={{ textTransform: "none" }}
+                    >
+                      Remover
+                    </Button>
+                  </Box>
+                ) : anexoAtual ? (
+                  <Typography variant="body2" color="text.secondary">
+                    Anexo atual:{" "}
+                    <a href={anexoAtual} target="_blank" rel="noopener noreferrer">
+                      abrir arquivo
+                    </a>{" "}
+                    — selecione um novo arquivo para substituí-lo.
+                  </Typography>
+                ) : (
+                  <Typography variant="caption" color="text.disabled">
+                    PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT ou imagem
+                  </Typography>
+                )}
+              </Box>
+            </ContainerSection>
+
+            {/* Destinatários */}
+            <ContainerSection
+              title="Destinatários"
+              description="Defina quem recebe o comunicado. Combine o público com a abrangência e some quantas regras precisar."
+              numberOfCollumns={1}
+            >
+              <DestinatariosField control={control} />
             </ContainerSection>
 
             <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>

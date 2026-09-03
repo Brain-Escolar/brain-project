@@ -32,7 +32,8 @@ import { CursoPretendidoModal } from "./CursoPretendidoModal";
 export interface UserMenuProps {
   user: {
     email: string;
-    name: string;
+    /** Pode vir nulo: o claim `name` do JWT sai de `nomeSocial`, que é opcional. */
+    name: string | null;
     role: UserRoleEnum;
   };
   menuBg?: string;
@@ -73,7 +74,7 @@ export function UserMenu({
     ? { label: "Ativar tema claro", Icon: LightModeOutlinedIcon, nextTheme: "light" as const }
     : { label: "Ativar tema escuro", Icon: DarkModeOutlinedIcon, nextTheme: "dark" as const };
 
-  const displayName = user.name ?? user.email.split("@")[0] ?? "Usuário";
+  const displayName = user.name?.trim() || user.email.split("@")[0] || "Usuário";
   const roleLabel = user.role === UserRoleEnum.PROFESSOR ? "Professor" : user.role;
   const secondaryLine = roleLabel ?? user.email;
 
@@ -106,7 +107,7 @@ export function UserMenu({
     <>
       <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
         <Avatar alt={displayName} src={avatarSrc}>
-          {user.name.charAt(0).toUpperCase()}
+          {displayName.charAt(0).toUpperCase()}
         </Avatar>
       </IconButton>
 
@@ -138,7 +139,7 @@ export function UserMenu({
         {/* Header */}
         <Box sx={{ px: 2, py: 1.75, display: "flex", gap: 1.5, alignItems: "center" }}>
           <Avatar alt={displayName} src={avatarSrc} sx={{ width: 40, height: 40 }}>
-            {user.name.charAt(0).toUpperCase()}
+            {displayName.charAt(0).toUpperCase()}
           </Avatar>
           <Box sx={{ minWidth: 0 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }} noWrap>

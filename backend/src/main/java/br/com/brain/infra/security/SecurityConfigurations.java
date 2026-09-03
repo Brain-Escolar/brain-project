@@ -51,10 +51,14 @@ public class SecurityConfigurations {
 
                             // Comunicado
                             req.requestMatchers(HttpMethod.GET, "/comunicado/**")
-                                    .hasAnyRole("ESTUDANTE", "PROFESSOR", "SECRETARIO", "ORIENTADOR", "ADMIN");
-                            req.requestMatchers(HttpMethod.POST, "/comunicado/**").hasRole("SECRETARIO");
-                            req.requestMatchers(HttpMethod.PUT, "/comunicado/**").hasRole("SECRETARIO");
-                            req.requestMatchers(HttpMethod.DELETE, "/comunicado/**").hasRole("SECRETARIO");
+                                    .hasAnyRole("ESTUDANTE", "RESPONSAVEL", "PROFESSOR", "SECRETARIO", "ORIENTADOR",
+                                            "ADMIN");
+                            req.requestMatchers(HttpMethod.POST, "/comunicado/**")
+                                    .hasAnyRole("SECRETARIO", "ORIENTADOR");
+                            req.requestMatchers(HttpMethod.PUT, "/comunicado/**")
+                                    .hasAnyRole("SECRETARIO", "ORIENTADOR");
+                            req.requestMatchers(HttpMethod.DELETE, "/comunicado/**")
+                                    .hasAnyRole("SECRETARIO", "ORIENTADOR");
 
                             // Holerite / Informe de rendimentos (contracheque e declarações)
                             req.requestMatchers(HttpMethod.POST, "/holerite/**")

@@ -302,7 +302,7 @@ export const ROUTES: RouteConfig[] = [
     icon: <CampaignIcon fontSize="small" />,
     router: RoutesEnum.COMUNICADOS_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO, UserRoleEnum.ORIENTADOR],
   },
   {
     text: RouteLabelsEnum.FICHA_MEDICA_LISTA,
