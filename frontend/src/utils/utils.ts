@@ -61,3 +61,15 @@ export function unmaskRG(rg: string): string {
 export function unmaskPhone(phone: string): string {
   return phone.replace(/\D/g, "");
 }
+
+/**
+ * Monta as iniciais de um nome para uso em avatar (primeiro + último nome).
+ * @param nome - Nome completo
+ * @returns Até duas letras maiúsculas (ex: "Maria Silva" → "MS")
+ */
+export function iniciais(nome: string): string {
+  const partes = nome.trim().split(/\s+/);
+  const primeira = partes[0]?.[0] ?? "";
+  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
+  return (primeira + ultima).toUpperCase();
+}

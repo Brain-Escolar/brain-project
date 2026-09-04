@@ -37,13 +37,7 @@ import { useAlunos } from "@/hooks/useAlunos";
 import { useTurmas } from "@/hooks/useTurmas";
 import { turmaApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants/queryKeys";
-
-function iniciais(nome: string): string {
-  const partes = nome.trim().split(/\s+/);
-  const primeira = partes[0]?.[0] ?? "";
-  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
-  return (primeira + ultima).toUpperCase();
-}
+import { iniciais } from "@/utils/utils";
 
 export default function GerenciarAlunosTurmaPage() {
   const params = useParams<{ turmaId: string }>();

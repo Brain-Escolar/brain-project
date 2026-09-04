@@ -44,6 +44,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { iniciais } from "@/utils/utils";
 import * as S from "./styles";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -72,13 +73,6 @@ const SECAO_COLUNA_ESQUERDA: SecaoKey[] = ["dadosCadastrais", "responsaveis", "o
 const SECAO_COLUNA_DIREITA: SecaoKey[] = ["boletimResumo", "fichaMedica"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function iniciais(nome: string): string {
-  const partes = nome.trim().split(/\s+/);
-  const primeira = partes[0]?.[0] ?? "";
-  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
-  return (primeira + ultima).toUpperCase();
-}
 
 function formatBRL(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
