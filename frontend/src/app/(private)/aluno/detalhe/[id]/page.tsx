@@ -45,12 +45,13 @@ import {
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import FichaMedicaAluno from "@/components/fichaMedicaAluno/FichaMedicaAluno";
+import SituacaoFamiliarAluno from "@/components/situacaoFamiliarAluno/SituacaoFamiliarAluno";
 import { iniciais } from "@/utils/utils";
 import * as S from "./styles";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TabKey = "geral" | "fichaMedica" | "produtos";
+type TabKey = "geral" | "fichaMedica" | "situacaoFamiliar" | "produtos";
 type SecaoKey = "dadosCadastrais" | "responsaveis" | "ocorrencias" | "boletimResumo" | "fichaMedica";
 
 // ─── Configuração por perfil ──────────────────────────────────────────────────
@@ -71,6 +72,13 @@ const FICHA_MEDICA_EDICAO_ROLES: UserRoleEnum[] = [
   UserRoleEnum.ORIENTADOR,
 ];
 
+/**
+ * Situação familiar é registro sensível de acompanhamento socioemocional —
+ * exclusivo da orientação, que também é quem edita.
+ */
+const SITUACAO_FAMILIAR_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
+const SITUACAO_FAMILIAR_EDICAO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
+
 const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
   [UserRoleEnum.PROFESSOR]: ["ocorrencias", "boletimResumo"],
   [UserRoleEnum.ADMIN]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
@@ -82,6 +90,7 @@ const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
 const LABEL_ABA: Record<TabKey, string> = {
   geral: "Visão geral",
   fichaMedica: "Ficha médica",
+  situacaoFamiliar: "Situação familiar",
   produtos: "Produtos e Contratos",
 };
 
@@ -359,9 +368,12 @@ export default function AlunoDetalhePage() {
   const temProdutos = PRODUTOS_ROLES.includes(role);
   const temFichaMedica = FICHA_MEDICA_ROLES.includes(role);
   const podeEditarFichaMedica = FICHA_MEDICA_EDICAO_ROLES.includes(role);
+  const temSituacaoFamiliar = SITUACAO_FAMILIAR_ROLES.includes(role);
+  const podeEditarSituacaoFamiliar = SITUACAO_FAMILIAR_EDICAO_ROLES.includes(role);
   const abasDoRole: TabKey[] = [
     "geral",
     ...(temFichaMedica ? (["fichaMedica"] as TabKey[]) : []),
+    ...(temSituacaoFamiliar ? (["situacaoFamiliar"] as TabKey[]) : []),
     ...(temProdutos ? (["produtos"] as TabKey[]) : []),
   ];
 
@@ -419,6 +431,9 @@ export default function AlunoDetalhePage() {
         loading={loadingFicha}
         podeEditar={podeEditarFichaMedica}
       />
+    ),
+    situacaoFamiliar: (
+      <SituacaoFamiliarAluno alunoId={alunoId} podeEditar={podeEditarSituacaoFamiliar} />
     ),
     produtos: <ProdutosPanel produtos={produtos} loading={loadingProdutos} formatDate={formatDate} />,
   };

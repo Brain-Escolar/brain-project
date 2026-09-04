@@ -1,5 +1,5 @@
 import { httpClient } from "@/services/http";
-import { AlunoDetalheResponse, AlunoListaResponse, AnotacaoAlunoDisciplinaResponse, CursoPretendidoResponse, FichaMedicaAlunoResponse } from "./response";
+import { AlunoDetalheResponse, AlunoListaResponse, AnotacaoAlunoDisciplinaResponse, CursoPretendidoResponse, FichaMedicaAlunoResponse, SituacaoFamiliarResponse } from "./response";
 import { IBrainResult } from "@/services/commoResponse";
 import {
   AlunoDesmatricularRequest,
@@ -9,6 +9,7 @@ import {
   FichaMedicaDadosClinicosRequest,
   LaudoMedicoRequest,
   MedicacaoRequest,
+  SituacaoFamiliarRequest,
 } from "./request";
 
 const BASE_ROUTE = "aluno";
@@ -132,6 +133,17 @@ export class AlunoApi {
 
   removerMedicacao(alunoId: string, medicacaoId: number): Promise<FichaMedicaAlunoResponse> {
     return httpClient.delete(`${BASE_ROUTE}/${alunoId}/ficha-medica/medicacoes/${medicacaoId}`);
+  }
+
+  getSituacaoFamiliar(alunoId: string): Promise<SituacaoFamiliarResponse> {
+    return httpClient.get(`${BASE_ROUTE}/${alunoId}/situacao-familiar`);
+  }
+
+  salvarSituacaoFamiliar(
+    alunoId: string,
+    dados: SituacaoFamiliarRequest,
+  ): Promise<SituacaoFamiliarResponse> {
+    return httpClient.put(`${BASE_ROUTE}/${alunoId}/situacao-familiar`, dados);
   }
 
   getAnotacoesPorDisciplina(

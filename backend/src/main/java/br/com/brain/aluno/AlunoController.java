@@ -18,10 +18,13 @@ import br.com.brain.fichamedica.dto.AtualizacaoFichaMedicaDto;
 import br.com.brain.fichamedica.dto.CadastroLaudoDto;
 import br.com.brain.fichamedica.dto.CadastroMedicacaoDto;
 import br.com.brain.fichamedica.dto.DetalhamentoFichaMedicaDto;
+import br.com.brain.situacaoFamiliar.dto.AtualizacaoSituacaoFamiliarDto;
+import br.com.brain.situacaoFamiliar.dto.DetalhamentoSituacaoFamiliarDto;
 import br.com.brain.serie.dto.SerieUnidadeTurmaDto;
 import br.com.brain.anotacao.AnotacaoService;
 import br.com.brain.aula.AulaService;
 import br.com.brain.fichamedica.FichaMedicaService;
+import br.com.brain.situacaoFamiliar.SituacaoFamiliarService;
 import br.com.brain.materialComplementar.MaterialComplementarService;
 import br.com.brain.materialComplementar.dto.ListagemMaterialComplementarDto;
 import br.com.brain.tarefa.TarefaService;
@@ -48,6 +51,7 @@ public class AlunoController {
     private final AulaService aulaService;
     private final TarefaService tarefaService;
     private final MaterialComplementarService materialComplementarService;
+    private final SituacaoFamiliarService situacaoFamiliarService;
 
     @PostMapping
     public ResponseEntity<DetalhamentoAlunoDto> cadastrar(
@@ -162,6 +166,17 @@ public class AlunoController {
     public ResponseEntity<DetalhamentoFichaMedicaDto> removerMedicacao(
             @PathVariable Long id, @PathVariable Long medicacaoId) {
         return ResponseEntity.ok(fichaMedicaService.removerMedicacao(id, medicacaoId));
+    }
+
+    @GetMapping("/{id}/situacao-familiar")
+    public ResponseEntity<DetalhamentoSituacaoFamiliarDto> buscarSituacaoFamiliar(@PathVariable Long id) {
+        return ResponseEntity.ok(situacaoFamiliarService.buscarPorAluno(id));
+    }
+
+    @PutMapping("/{id}/situacao-familiar")
+    public ResponseEntity<DetalhamentoSituacaoFamiliarDto> salvarSituacaoFamiliar(
+            @PathVariable Long id, @RequestBody @Valid AtualizacaoSituacaoFamiliarDto dados) {
+        return ResponseEntity.ok(situacaoFamiliarService.salvar(id, dados));
     }
 
     @GetMapping("/{id}/anotacoes/{disciplinaId}")

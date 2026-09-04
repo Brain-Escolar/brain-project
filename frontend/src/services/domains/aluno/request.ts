@@ -73,3 +73,9 @@ export interface MedicacaoRequest {
   medicamentos?: string;
   observacao?: string;
 }
+
+export interface SituacaoFamiliarRequest {
+  descricao?: string;
+  /** Substitui o conjunto atual de marcações. */
+  opcoesMarcadas: number[];
+}

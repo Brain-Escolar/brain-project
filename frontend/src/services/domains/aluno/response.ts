@@ -139,3 +139,17 @@ export interface FichaMedicaAlunoResponse {
   laudos: LaudoMedicoResponse[];
   medicacoes: MedicacaoResponse[];
 }
+
+export interface SituacaoFamiliarOpcaoResponse {
+  id: number;
+  descricao: string;
+}
+
+export interface SituacaoFamiliarResponse {
+  /** Null enquanto o aluno não tem registro — a aba abre vazia, pronta para preencher. */
+  id: number | null;
+  descricao?: string | null;
+  opcoesMarcadas: number[];
+  /** Catálogo ativo, já enviado junto para a tela montar os checkboxes. */
+  opcoesDisponiveis: SituacaoFamiliarOpcaoResponse[];
+}
