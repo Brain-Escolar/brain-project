@@ -28,7 +28,7 @@ public class FichaMedicaController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ListagemFichaMedicaDto> cadastrar(
             @RequestPart("dados") @Valid CadastroFichaMedicaDto dados,
-            @RequestPart("laudos") List<MultipartFile> laudos,
+            @RequestPart(name = "laudos", required = false) List<MultipartFile> laudos,
             UriComponentsBuilder uriBuilder) {
 
         var fichaMedica = service.cadastrarFichaMedica(laudos, dados);
@@ -58,8 +58,9 @@ public class FichaMedicaController {
 
     @GetMapping("/{id}/laudos")
     public ResponseEntity<Page<ListagemArquivoDto>> listarLaudos(
+            @PathVariable("id") Long id,
             @PageableDefault(size = 10, sort = { "arquivo.nomeOriginal" }) Pageable paginacao) {
-        var page = service.listarLaudos(paginacao);
+        var page = service.listarLaudos(id, paginacao);
         return ResponseEntity.ok(page);
     }
 }

@@ -44,28 +44,44 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import FichaMedicaAluno from "@/components/fichaMedicaAluno/FichaMedicaAluno";
 import { iniciais } from "@/utils/utils";
 import * as S from "./styles";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TabKey = "geral" | "produtos";
+type TabKey = "geral" | "fichaMedica" | "produtos";
 type SecaoKey = "dadosCadastrais" | "responsaveis" | "ocorrencias" | "boletimResumo" | "fichaMedica";
 
 // ─── Configuração por perfil ──────────────────────────────────────────────────
 
 const PRODUTOS_ROLES: UserRoleEnum[] = [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO];
 
+/** Quem enxerga a aba de ficha médica. */
+const FICHA_MEDICA_ROLES: UserRoleEnum[] = [
+  UserRoleEnum.ADMIN,
+  UserRoleEnum.SECRETARIO,
+  UserRoleEnum.ORIENTADOR,
+];
+
+/** Quem também pode anexar laudos/medicações e editar os dados clínicos. */
+const FICHA_MEDICA_EDICAO_ROLES: UserRoleEnum[] = [
+  UserRoleEnum.ADMIN,
+  UserRoleEnum.SECRETARIO,
+  UserRoleEnum.ORIENTADOR,
+];
+
 const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
   [UserRoleEnum.PROFESSOR]: ["ocorrencias", "boletimResumo"],
   [UserRoleEnum.ADMIN]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.ESTUDANTE]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.SECRETARIO]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
-  [UserRoleEnum.ORIENTADOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo"],
+  [UserRoleEnum.ORIENTADOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
 };
 
 const LABEL_ABA: Record<TabKey, string> = {
   geral: "Visão geral",
+  fichaMedica: "Ficha médica",
   produtos: "Produtos e Contratos",
 };
 
@@ -341,10 +357,16 @@ export default function AlunoDetalhePage() {
   const isAdmin = role === UserRoleEnum.ADMIN;
   const secoesDoRole = SECOES_POR_PERFIL[role] ?? SECOES_POR_PERFIL[UserRoleEnum.ADMIN];
   const temProdutos = PRODUTOS_ROLES.includes(role);
-  const abasDoRole: TabKey[] = ["geral", ...(temProdutos ? (["produtos"] as TabKey[]) : [])];
+  const temFichaMedica = FICHA_MEDICA_ROLES.includes(role);
+  const podeEditarFichaMedica = FICHA_MEDICA_EDICAO_ROLES.includes(role);
+  const abasDoRole: TabKey[] = [
+    "geral",
+    ...(temFichaMedica ? (["fichaMedica"] as TabKey[]) : []),
+    ...(temProdutos ? (["produtos"] as TabKey[]) : []),
+  ];
 
   const { aluno, loading, error } = useAluno(alunoId);
-  const precisaFichaMedica = secoesDoRole.includes("fichaMedica");
+  const precisaFichaMedica = secoesDoRole.includes("fichaMedica") || temFichaMedica;
   const { fichaMedica, loading: loadingFicha } = useAlunoFichaMedica(alunoId, !!user && precisaFichaMedica);
   const { produtos, loading: loadingProdutos } = useAlunoProdutos(alunoId, !!user && temProdutos);
   const { disciplinas: todasDisciplinas } = useDisciplinas();
@@ -369,7 +391,7 @@ export default function AlunoDetalhePage() {
     responsaveis: <ResponsaveisCard responsaveis={aluno?.responsaveis} loading={loading} />,
     ocorrencias: <OcorrenciasCard anotacoes={todasAnotacoes} loading={loadingAnotacoes} />,
     boletimResumo: <BoletimResumoCard notas={todasNotas} loading={loadingNotas} onAbrirRelatorio={() => router.push(RoutesEnum.RELATORIOS)} />,
-    fichaMedica: <FichaMedicaResumoCard fichaMedica={fichaMedica} loading={loadingFicha} onAbrirFicha={() => router.push(RoutesEnum.FICHA_MEDICA_LISTA)} />,
+    fichaMedica: <FichaMedicaResumoCard fichaMedica={fichaMedica} loading={loadingFicha} onAbrirFicha={() => { const i = abasDoRole.indexOf("fichaMedica"); if (i >= 0) setActiveTab(i); }} />,
   };
 
   const colunaEsquerda = SECAO_COLUNA_ESQUERDA.filter((k) => secoesDoRole.includes(k));
@@ -389,6 +411,14 @@ export default function AlunoDetalhePage() {
           </div>
         )}
       </S.TwoColumnGrid>
+    ),
+    fichaMedica: (
+      <FichaMedicaAluno
+        alunoId={alunoId}
+        fichaMedica={fichaMedica}
+        loading={loadingFicha}
+        podeEditar={podeEditarFichaMedica}
+      />
     ),
     produtos: <ProdutosPanel produtos={produtos} loading={loadingProdutos} formatDate={formatDate} />,
   };

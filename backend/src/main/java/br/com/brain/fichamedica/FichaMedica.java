@@ -2,6 +2,7 @@ package br.com.brain.fichamedica;
 
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.laudoMedico.LaudoMedico;
+import br.com.brain.medicacao.Medicacao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,10 @@ public class FichaMedica extends EntidadeBase {
     private String alergiasMedicamentosas;
 
     @NotAudited
-    @OneToMany(mappedBy = "fichaMedica", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "fichaMedica", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LaudoMedico> laudos = new ArrayList<>();
+
+    @NotAudited
+    @OneToMany(mappedBy = "fichaMedica", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Medicacao> medicacoes = new ArrayList<>();
 }

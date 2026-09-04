@@ -1,7 +1,5 @@
 package br.com.brain.fichamedica.dto;
 
-import br.com.brain.arquivo.dto.ListagemArquivoDto;
-
 import java.util.List;
 
 public record DetalhamentoFichaMedicaDto(
@@ -12,5 +10,6 @@ public record DetalhamentoFichaMedicaDto(
         String doencasRespiratorias,
         String alergiasAlimentares,
         String alergiasMedicamentosas,
-        List<ListagemArquivoDto> laudos) {
+        List<LaudoMedicoDto> laudos,
+        List<MedicacaoDto> medicacoes) {
 }

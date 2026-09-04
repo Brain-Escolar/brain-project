@@ -96,12 +96,46 @@ export interface AnotacaoAlunoDisciplinaResponse {
   observacao: string;
 }
 
+export interface ArquivoResponse {
+  id: number;
+  nome: string;
+  contentType: string;
+  tamanho: number;
+  downloadUrl: string;
+}
+
+export interface LaudoMedicoResponse {
+  id: number;
+  /** Valor do enum TipoLaudo (ex: "NEUROPSICOLOGICO"). */
+  tipo: string;
+  /** Rótulo pronto para exibição, vindo do backend. */
+  tipoDescricao: string;
+  observacao?: string;
+  arquivo?: ArquivoResponse;
+}
+
+export interface MedicacaoResponse {
+  id: number;
+  /** "PERIODO" ou "CONTINUO". */
+  tipoUso: string;
+  tipoUsoDescricao: string;
+  /** Preenchidos só quando tipoUso é PERIODO. */
+  dataInicio?: string;
+  dataFim?: string;
+  medicamentos?: string;
+  observacao?: string;
+  receita?: ArquivoResponse;
+}
+
 export interface FichaMedicaAlunoResponse {
   id: number;
   nome: string;
   tipoSanguineo: string;
   necessidadesEspeciais?: string;
   doencasRespiratorias?: string;
+  /** As alergias do aluno vivem aqui — não há campo separado por medicação. */
   alergiasAlimentares?: string;
   alergiasMedicamentosas?: string;
+  laudos: LaudoMedicoResponse[];
+  medicacoes: MedicacaoResponse[];
 }

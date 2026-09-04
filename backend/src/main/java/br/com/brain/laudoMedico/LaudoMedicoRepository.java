@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LaudoMedicoRepository extends JpaRepository<LaudoMedico, Long> {
 
-    Page<LaudoMedico> findByFichaMedicaId(Long fichaMedicaId, Pageable pageable);
+    Page<LaudoMedico> findByFichaMedicaId(Long fichaMedicaId, Pageable paginacao);
 }

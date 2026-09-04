@@ -46,3 +46,30 @@ export interface AlunoVincularSerieRequest {
 export interface AlunoDesmatricularRequest {
   motivo: string;
 }
+
+export interface FichaMedicaDadosClinicosRequest {
+  tipoSanguineo?: string;
+  necessidadesEspeciais?: string;
+  doencasRespiratorias?: string;
+  alergiasAlimentares?: string;
+  alergiasMedicamentosas?: string;
+}
+
+export interface LaudoMedicoRequest {
+  arquivo: File;
+  /** Valor do enum TipoLaudo; use "OUTRO" quando nenhum tipo servir. */
+  tipo: string;
+  observacao?: string;
+}
+
+export interface MedicacaoRequest {
+  /** Receita — opcional, nem toda medicação chega com documento. */
+  arquivo?: File | null;
+  /** "PERIODO" ou "CONTINUO". */
+  tipoUso: string;
+  /** Ignorados pelo backend quando tipoUso é CONTINUO. */
+  dataInicio?: string | null;
+  dataFim?: string | null;
+  medicamentos?: string;
+  observacao?: string;
+}
