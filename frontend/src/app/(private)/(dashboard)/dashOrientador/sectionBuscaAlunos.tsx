@@ -85,11 +85,19 @@ export default function SectionBuscaAlunos() {
           <S.PanelTitle>Buscar alunos</S.PanelTitle>
           {buscaAtiva && !loading && <S.CountBadge>{totalElements}</S.CountBadge>}
         </S.PanelTitleGroup>
-        {(temFiltro || termo) && (
-          <S.LinkButton type="button" onClick={limparFiltros}>
-            Limpar
+        <S.PanelActions>
+          {(temFiltro || termo) && (
+            <S.LinkButton type="button" onClick={limparFiltros}>
+              Limpar
+            </S.LinkButton>
+          )}
+          <S.LinkButton
+            type="button"
+            onClick={() => router.push(RoutesEnum.ORIENTACAO_ALUNOS)}
+          >
+            Ver todos
           </S.LinkButton>
-        )}
+        </S.PanelActions>
       </S.PanelHeader>
 
       <TextField

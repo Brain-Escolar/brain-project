@@ -27,6 +27,7 @@ import RequestQuoteOutlinedIcon from "@mui/icons-material/RequestQuoteOutlined";
 import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import PersonSearchOutlinedIcon from "@mui/icons-material/PersonSearchOutlined";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -569,6 +570,13 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ORIENTADOR],
   },
   {
+    text: RouteLabelsEnum.ALUNOS,
+    icon: <PersonSearchOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.ORIENTACAO_ALUNOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
+  },
+  {
     text: RouteLabelsEnum.COMUNICACAO,
     icon: <ChatBubbleOutlineOutlinedIcon fontSize="small" />,
     router: RoutesEnum.COMUNICACAO,
@@ -684,8 +692,11 @@ export function findRouteByPath(pathname: string): RouteConfig | undefined {
 /**
  * Dada uma rota de detalhe (sem moduleMenu), tenta encontrar a rota-irmã
  * "lista" que compartilha o mesmo primeiro segmento e tem moduleMenu definido.
+ * Só considera rotas que o perfil pode acessar — senão o breadcrumb ofereceria
+ * um link que o middleware rejeita (ex.: `/aluno/lista`, que é só do ADMIN,
+ * aparecendo para quem abre `/aluno/detalhe/:id`).
  */
-export function findListSibling(pathname: string): RouteConfig | undefined {
+export function findListSibling(pathname: string, role?: UserRoleEnum): RouteConfig | undefined {
   const firstSegment = pathname.split("/").filter(Boolean)[0];
   if (!firstSegment) return undefined;
 
@@ -693,6 +704,7 @@ export function findListSibling(pathname: string): RouteConfig | undefined {
     (r) =>
       r.isShowMenu &&
       r.moduleMenu != null &&
-      r.router.split("/").filter(Boolean)[0] === firstSegment,
+      r.router.split("/").filter(Boolean)[0] === firstSegment &&
+      (role == null || r.roles.includes(role)),
   );
 }

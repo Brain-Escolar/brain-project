@@ -41,17 +41,24 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long> {
      * Busca de alunos matriculados usada pela Orientação: texto livre sobre nome e
      * matrícula, com filtros opcionais de unidade, série e turma. Um filtro nulo
      * não restringe o resultado.
+     *
+     * <p>A ordem dos operandos importa: o Hibernate infere o tipo de um parâmetro
+     * pelo contexto em que ele aparece, e {@code :param IS NULL} não oferece
+     * contexto nenhum. Com o {@code IS NULL} vindo primeiro o parâmetro era enviado
+     * ao PostgreSQL como {@code bytea}, quebrando em {@code lower(bytea)} e em
+     * {@code cast(bytea as bigint)}. Mantendo a comparação tipada à frente, o tipo
+     * é resolvido e o {@code IS NULL} apenas reaproveita.
      */
     @Query("""
             SELECT aluno
             FROM Aluno aluno
             WHERE aluno.matriculado = true
-            AND (:termo IS NULL
-                 OR LOWER(aluno.dadosPessoais.nome) LIKE LOWER(CONCAT('%', :termo, '%'))
-                 OR LOWER(aluno.dadosPessoais.matricula) LIKE LOWER(CONCAT('%', :termo, '%')))
-            AND (:unidadeId IS NULL OR aluno.unidade.id = :unidadeId)
-            AND (:serieId IS NULL OR aluno.serie.id = :serieId)
-            AND (:turmaId IS NULL OR aluno.turma.id = :turmaId)
+            AND (LOWER(aluno.dadosPessoais.nome) LIKE LOWER(CONCAT('%', :termo, '%'))
+                 OR LOWER(aluno.dadosPessoais.matricula) LIKE LOWER(CONCAT('%', :termo, '%'))
+                 OR :termo IS NULL)
+            AND (aluno.unidade.id = :unidadeId OR :unidadeId IS NULL)
+            AND (aluno.serie.id = :serieId OR :serieId IS NULL)
+            AND (aluno.turma.id = :turmaId OR :turmaId IS NULL)
             """)
     Page<Aluno> buscarMatriculadosParaOrientacao(
             @Param("termo") String termo,

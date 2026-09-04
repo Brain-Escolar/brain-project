@@ -56,7 +56,7 @@ export function buildBreadcrumbs(
 
   const matched = findRouteByPath(pathname);
   const moduleSource: RouteConfig | undefined =
-    matched?.moduleMenu != null ? matched : findListSibling(pathname);
+    matched?.moduleMenu != null ? matched : findListSibling(pathname, role);
 
   if (moduleSource?.moduleMenu != null) {
     items.push({
