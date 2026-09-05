@@ -30,6 +30,7 @@ import { InformeRendimentoApi } from "./domains/informe-rendimento";
 import { MaterialComplementarApi } from "./domains/material-complementar";
 import { ProdutoApi } from "./domains/produto";
 import { ResponsavelPortalApi } from "./domains/responsavel-portal";
+import { CrmApi } from "./domains/crm";
 
 export const alunoApi = new AlunoApi();
 export const responsavelPortalApi = new ResponsavelPortalApi();
@@ -63,3 +64,4 @@ export const holeriteApi = new HoleriteApi();
 export const informeRendimentoApi = new InformeRendimentoApi();
 export const materialComplementarApi = new MaterialComplementarApi();
 export const produtoApi = new ProdutoApi();
+export const crmApi = new CrmApi();

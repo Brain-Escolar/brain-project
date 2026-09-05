@@ -55,7 +55,9 @@ public class AlunoService {
         dadosPessoais.setNomeSocial(dados.nomeSocial());
         dadosPessoais.setEmail(dados.email());
         dadosPessoais.setDataDeNascimento(dados.dataDeNascimento());
-        dadosPessoais.setEndereco(enderecoService.preencherEnderco(dados.endereco()));
+        if (dados.endereco() != null) {
+            dadosPessoais.setEndereco(enderecoService.preencherEnderco(dados.endereco()));
+        }
         dadosPessoais.setGenero(dados.genero());
         dadosPessoais.setCorRaca(dados.corRaca());
         dadosPessoais.setCidadeNaturalidade(dados.cidadeNaturalidade());

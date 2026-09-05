@@ -46,6 +46,9 @@ public class SecurityConfigurations {
                             // Portal do Responsavel - acima do permitAll para ja valer hoje.
                             req.requestMatchers("/portal-responsavel/**").hasRole("RESPONSAVEL");
 
+                            // CRM de matriculas - acima do permitAll para ja valer hoje.
+                            req.requestMatchers("/crm/**").hasRole("SECRETARIO");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 

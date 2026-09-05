@@ -97,6 +97,7 @@ export enum RoutesEnum {
 
   // Secretaria routes
   SECRETARIA_MATRICULAS = "/secretaria/matriculas",
+  SECRETARIA_CRM = "/secretaria/crm",
   SECRETARIA_ENTURMACAO = "/secretaria/enturmacao",
   SECRETARIA_TURMA_GERENCIAR = "/secretaria/turmas",
 

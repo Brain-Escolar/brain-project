@@ -94,6 +94,16 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.unidades.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.unidades.details(), id] as const,
   },
+  crm: {
+    all: ["crm"] as const,
+    origens: () => [...QUERY_KEYS.crm.all, "origens"] as const,
+    equipe: () => [...QUERY_KEYS.crm.all, "equipe"] as const,
+    estagios: () => [...QUERY_KEYS.crm.all, "estagios"] as const,
+    relatorios: (anoLetivo?: number) => [...QUERY_KEYS.crm.all, "relatorios", anoLetivo] as const,
+    processos: (filtros?: Record<string, unknown>) =>
+      [...QUERY_KEYS.crm.all, "processos", "list", filtros ?? {}] as const,
+    processo: (id: string | number) => [...QUERY_KEYS.crm.all, "processos", "detail", id] as const,
+  },
   avaliacoes: {
     all: ["avaliacoes"] as const,
     lists: () => [...QUERY_KEYS.avaliacoes.all, "list"] as const,

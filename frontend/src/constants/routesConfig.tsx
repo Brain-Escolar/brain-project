@@ -26,6 +26,7 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import RequestQuoteOutlinedIcon from "@mui/icons-material/RequestQuoteOutlined";
 import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import * as React from "react";
@@ -586,6 +587,13 @@ export const ROUTES: RouteConfig[] = [
     text: RouteLabelsEnum.SECRETARIA_MATRICULAS,
     icon: <HowToRegIcon fontSize="small" />,
     router: RoutesEnum.SECRETARIA_MATRICULAS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
+    text: RouteLabelsEnum.SECRETARIA_CRM,
+    icon: <FilterAltIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_CRM,
     isShowMenu: true,
     roles: [UserRoleEnum.SECRETARIO],
   },
