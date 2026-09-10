@@ -6,6 +6,10 @@ import br.com.brain.arquivo.ArquivoRepository;
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.laudoMedico.LaudoMedico;
 import br.com.brain.laudoMedico.LaudoMedicoRepository;
+import br.com.brain.medicacao.Medicacao;
+import br.com.brain.medicacao.MedicacaoRepository;
+import br.com.brain.medicacao.dto.CadastroMedicacaoDto;
+import br.com.brain.medicacao.dto.ListagemMedicacaoDto;
 import br.com.brain.arquivo.dto.ListagemArquivoDto;
 import br.com.brain.fichamedica.dto.AtualizacaoFichaMedicaDto;
 import br.com.brain.fichamedica.dto.CadastroFichaMedicaDto;
@@ -37,6 +41,7 @@ public class FichaMedicaService {
     private final ArquivoRepository arquivoRepository;
     private final LaudoMedicoRepository laudoMedicoRepository;
     private final S3Service s3Service;
+    private final MedicacaoRepository medicacaoRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -139,11 +144,81 @@ public class FichaMedicaService {
         return new DetalhamentoFichaMedicaDto(
                 fichaMedica.getId(),
                 fichaMedica.getDadosPessoais().getNome(),
+                fichaMedica.getDadosPessoais().getDataDeNascimento(),
                 tipoSanguineo,
                 fichaMedica.getNecessidadesEspeciais(),
                 fichaMedica.getDoencasRespiratorias(),
                 fichaMedica.getAlergiasAlimentares(),
                 fichaMedica.getAlergiasMedicamentosas(),
-                laudos);
+                laudos,
+                medicacaoRepository
+                        .findByFichaMedicaIdAndAtivaTrueOrderByNomeAsc(fichaMedica.getId())
+                        .stream()
+                        .map(ListagemMedicacaoDto::new)
+                        .toList());
+    }
+
+    /**
+     * Recupera a ficha medica de um aluno, criando uma vazia se ainda nao
+     * existir.
+     *
+     * O responsavel precisa poder anexar um laudo ou registrar uma medicacao
+     * mesmo antes da secretaria ter preenchido a ficha — caso contrario a
+     * primeira inclusao falharia com 404 e a familia nao teria como agir.
+     */
+    @Transactional
+    public FichaMedica recuperarOuCriarPorAluno(Long alunoId) {
+        var aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
+
+        return repository.findByDadosPessoaisId(aluno.getDadosPessoais().getId())
+                .orElseGet(() -> {
+                    var ficha = new FichaMedica();
+                    ficha.setDadosPessoais(aluno.getDadosPessoais());
+                    return repository.save(ficha);
+                });
+    }
+
+    /**
+     * Inclui uma medicacao em uso. Nao ha remocao pelo responsavel de
+     * proposito — ver a migration V97.
+     */
+    @Transactional
+    public ListagemMedicacaoDto incluirMedicacao(Long alunoId, CadastroMedicacaoDto dados) {
+        var ficha = recuperarOuCriarPorAluno(alunoId);
+
+        var medicacao = new Medicacao();
+        medicacao.setFichaMedica(ficha);
+        medicacao.setNome(dados.nome());
+        medicacao.setDosagem(dados.dosagem());
+        medicacao.setHorario(dados.horario());
+        medicacao.setObservacao(dados.observacao());
+        medicacao.setAtiva(true);
+
+        return new ListagemMedicacaoDto(medicacaoRepository.save(medicacao));
+    }
+
+    /** Anexa um laudo a ficha do aluno, reusando o mesmo caminho S3 do cadastro. */
+    @Transactional
+    public ListagemArquivoDto anexarLaudo(Long alunoId, MultipartFile arquivoEnviado) {
+        var ficha = recuperarOuCriarPorAluno(alunoId);
+
+        String key = "fichas-medicas/" + UUID.randomUUID() + "-" + arquivoEnviado.getOriginalFilename();
+        s3Service.upload(key, arquivoEnviado);
+
+        var arquivo = new Arquivo();
+        arquivo.setS3Key(key);
+        arquivo.setNomeOriginal(arquivoEnviado.getOriginalFilename());
+        arquivo.setContentType(arquivoEnviado.getContentType());
+        arquivo.setTamanho(arquivoEnviado.getSize());
+        arquivoRepository.save(arquivo);
+
+        var laudo = new LaudoMedico();
+        laudo.setArquivo(arquivo);
+        laudo.setFichaMedica(ficha);
+        laudoMedicoRepository.save(laudo);
+
+        var downloadUrl = s3Service.generatePresignedDownloadUrl(key, Duration.ofMinutes(5));
+        return new ListagemArquivoDto(arquivo, downloadUrl);
     }
 }

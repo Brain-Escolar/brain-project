@@ -1,5 +1,6 @@
 package br.com.brain.responsavel.portal;
 
+import br.com.brain.alerta.AlertaService;
 import br.com.brain.aluno.AlunoService;
 import br.com.brain.aluno.dto.DetalhamentoAlunoDto;
 import br.com.brain.anotacao.AnotacaoService;
@@ -11,7 +12,11 @@ import br.com.brain.evento.EventoService;
 import br.com.brain.evento.dto.ListagemEventoDto;
 import br.com.brain.exception.ErrosSistema.OperacaoInvalidaException;
 import br.com.brain.fichamedica.FichaMedicaService;
+import br.com.brain.arquivo.dto.ListagemArquivoDto;
+import br.com.brain.enums.PerfilNome;
 import br.com.brain.fichamedica.dto.DetalhamentoFichaMedicaDto;
+import br.com.brain.medicacao.dto.CadastroMedicacaoDto;
+import br.com.brain.medicacao.dto.ListagemMedicacaoDto;
 import br.com.brain.materialComplementar.MaterialComplementarService;
 import br.com.brain.materialComplementar.dto.ListagemMaterialComplementarDto;
 import br.com.brain.notas.NotasService;
@@ -32,6 +37,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -66,6 +72,7 @@ public class ResponsavelPortalService {
     private final FichaMedicaService fichaMedicaService;
     private final AlunoProdutoService alunoProdutoService;
     private final EventoService eventoService;
+    private final AlertaService alertaService;
 
     // ---------------------------------------------------------------- sessao
 
@@ -163,6 +170,43 @@ public class ResponsavelPortalService {
     public DetalhamentoFichaMedicaDto fichaMedica(DadosAutenticacao usuario, Long alunoId) {
         guard.assertPodeVer(usuario, alunoId);
         return fichaMedicaService.buscarPorAluno(alunoId);
+    }
+
+    /**
+     * Inclui uma medicacao em uso na ficha do aluno.
+     *
+     * Escrita — uma das duas unicas do portal. O responsavel so inclui; editar
+     * e desativar e da escola, para que nada saia do historico de saude de um
+     * menor sem a escola saber.
+     */
+    @Transactional
+    public ListagemMedicacaoDto incluirMedicacao(
+            DadosAutenticacao usuario, Long alunoId, CadastroMedicacaoDto dados) {
+        guard.assertPodeVer(usuario, alunoId);
+        return fichaMedicaService.incluirMedicacao(alunoId, dados);
+    }
+
+    /**
+     * Anexa um laudo medico e avisa a Orientacao Educacional.
+     *
+     * O aviso e o item do mindmap "enviar alerta para Orientacao avisando que
+     * foi anexado um laudo" — a familia sobe um documento de saude e alguem
+     * da escola precisa olhar.
+     */
+    @Transactional
+    public ListagemArquivoDto anexarLaudo(
+            DadosAutenticacao usuario, Long alunoId, MultipartFile arquivo) {
+        var aluno = guard.assertPodeVer(usuario, alunoId);
+        var laudo = fichaMedicaService.anexarLaudo(alunoId, arquivo);
+
+        var nomeAluno = aluno.getDadosPessoais() == null ? "aluno" : aluno.getDadosPessoais().getNome();
+        alertaService.notificarPerfil(
+                PerfilNome.ORIENTADOR,
+                "Novo laudo médico anexado",
+                "O responsável anexou o laudo \"%s\" à ficha médica de %s."
+                        .formatted(laudo.nome(), nomeAluno));
+
+        return laudo;
     }
 
     /** Gate duplo: vinculo com o aluno E flag Responsavel.financeiro. */

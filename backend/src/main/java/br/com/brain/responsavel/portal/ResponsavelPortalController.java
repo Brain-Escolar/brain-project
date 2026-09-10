@@ -4,10 +4,13 @@ import br.com.brain.aluno.dto.DetalhamentoAlunoDto;
 import br.com.brain.anotacao.dto.AnotacaoAlunoDisciplinaDto;
 import br.com.brain.anotacao.dto.ListagemAnotacaoSemanaDto;
 import br.com.brain.aula.dto.ListagemAulaDto;
+import br.com.brain.arquivo.dto.ListagemArquivoDto;
 import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.evento.dto.ListagemEventoDto;
 import br.com.brain.fichamedica.dto.DetalhamentoFichaMedicaDto;
 import br.com.brain.materialComplementar.dto.ListagemMaterialComplementarDto;
+import br.com.brain.medicacao.dto.CadastroMedicacaoDto;
+import br.com.brain.medicacao.dto.ListagemMedicacaoDto;
 import br.com.brain.notas.dto.DetalhamentoNotasAlunoDisciplinaDto;
 import br.com.brain.produto.dto.ListagemAlunoProdutoDto;
 import br.com.brain.relatorios.dto.RelatorioDto;
@@ -22,7 +25,13 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -161,6 +170,27 @@ public class ResponsavelPortalController {
             @AuthenticationPrincipal DadosAutenticacao usuario,
             @PathVariable("alunoId") Long alunoId) {
         return ResponseEntity.ok(service.fichaMedica(usuario, alunoId));
+    }
+
+    /**
+     * Inclusao de medicacao — uma das duas unicas escritas do portal.
+     * O responsavel inclui; editar e desativar continua sendo da escola.
+     */
+    @PostMapping("/aluno/{alunoId}/ficha-medica/medicacoes")
+    public ResponseEntity<ListagemMedicacaoDto> incluirMedicacao(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @PathVariable("alunoId") Long alunoId,
+            @RequestBody @Valid CadastroMedicacaoDto dados) {
+        return ResponseEntity.ok(service.incluirMedicacao(usuario, alunoId, dados));
+    }
+
+    /** Anexa um laudo e notifica a Orientacao Educacional. */
+    @PostMapping(value = "/aluno/{alunoId}/ficha-medica/laudos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ListagemArquivoDto> anexarLaudo(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @PathVariable("alunoId") Long alunoId,
+            @RequestPart("arquivo") MultipartFile arquivo) {
+        return ResponseEntity.ok(service.anexarLaudo(usuario, alunoId, arquivo));
     }
 
     @GetMapping("/aluno/{alunoId}/financeiro")
