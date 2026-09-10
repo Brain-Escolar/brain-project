@@ -5,6 +5,7 @@ import AppBar from "@/components/appBar/appBar";
 import Breadcrumbs from "@/components/breadcrumbs";
 import { BreadcrumbProvider } from "@/contexts/BreadcrumbContext";
 import { AlunoSelecionadoProvider } from "@/contexts/AlunoSelecionadoContext";
+import { PerfilAtivoProvider } from "@/contexts/PerfilAtivoContext";
 import * as S from "./styles";
 import { Container } from "@mui/material";
 
@@ -36,9 +37,13 @@ export default function PrivateLayout({
           o usuario e RESPONSAVEL — para os demais o hook devolve alunoId null
           e as telas compartilhadas seguem com a fonte de dados de sempre.
         */}
-        <AlunoSelecionadoProvider>
-          <PrivateLayoutContent>{children}</PrivateLayoutContent>
-        </AlunoSelecionadoProvider>
+        {/* PerfilAtivo vem primeiro: o AlunoSelecionado decide se busca dados
+            olhando qual perfil está ativo. */}
+        <PerfilAtivoProvider>
+          <AlunoSelecionadoProvider>
+            <PrivateLayoutContent>{children}</PrivateLayoutContent>
+          </AlunoSelecionadoProvider>
+        </PerfilAtivoProvider>
       </BreadcrumbProvider>
     </Suspense>
   );

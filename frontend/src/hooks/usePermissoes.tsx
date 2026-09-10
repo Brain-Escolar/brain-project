@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { UserRoleEnum } from "@/enums";
 
 /**
@@ -60,21 +60,17 @@ const NENHUMA: Permissoes = {
 };
 
 export function usePermissoes(): Permissoes {
-  const { user } = useAuth();
-  const roles = user?.roles;
+  const { perfilAtivo } = usePerfilAtivo();
 
   return useMemo(() => {
-    if (!roles || roles.length === 0) return NENHUMA;
+    if (!perfilAtivo) return NENHUMA;
 
-    // Quem acumula perfis soma as capacidades: um professor que também é
-    // responsável gerencia materiais E atua pelo aluno vinculado.
+    // Um perfil por vez. Quem acumula troca no seletor do AppBar — somar as
+    // capacidades dos dois embaralharia dois mundos na mesma tela.
     const entradas = Object.entries(QUEM_PODE) as [keyof Permissoes, UserRoleEnum[]][];
     return entradas.reduce<Permissoes>(
-      (acc, [capacidade, perfis]) => ({
-        ...acc,
-        [capacidade]: perfis.some((perfil) => roles.includes(perfil)),
-      }),
+      (acc, [capacidade, perfis]) => ({ ...acc, [capacidade]: perfis.includes(perfilAtivo) }),
       NENHUMA,
     );
-  }, [roles]);
+  }, [perfilAtivo]);
 }

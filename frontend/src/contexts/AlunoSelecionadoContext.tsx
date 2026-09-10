@@ -5,8 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { responsavelPortalApi } from "@/services/api";
 import { AlunoVinculadoResponse } from "@/services/domains/responsavel-portal";
-import { useAuth } from "@/hooks/useAuth";
 import { UserRoleEnum } from "@/enums";
+import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 
 const STORAGE_KEY = "brain.responsavel.alunoId";
 
@@ -59,12 +59,15 @@ function salvarSelecao(alunoId: number) {
  */
 export function AlunoSelecionadoProvider({ children }: { children: ReactNode }) {
   const [alunoIdSelecionado, setAlunoIdSelecionado] = useState<number | null>(null);
-  const { user } = useAuth();
+  const { perfilAtivo } = usePerfilAtivo();
 
   // O provider envolve TODOS os perfis (fica no layout privado), mas
   // /portal-responsavel/alunos exige ROLE_RESPONSAVEL. Sem este gate, todo
   // professor, admin e secretario dispararia um 403 a cada carregamento.
-  const ehResponsavel = (user?.roles ?? []).includes(UserRoleEnum.RESPONSAVEL);
+  //
+  // Olha o perfil ATIVO: quem acumula professor + responsavel so vê o seletor
+  // de aluno enquanto estiver usando o sistema como responsavel.
+  const ehResponsavel = perfilAtivo === UserRoleEnum.RESPONSAVEL;
 
   const {
     data: alunos = [],
