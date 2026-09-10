@@ -2,7 +2,6 @@ import { httpClient } from "@/services/http";
 import { IBrainResult } from "@/services/commoResponse";
 import { EventoResponse } from "@/services/domains/evento";
 import { MaterialComplementarResponse } from "@/services/domains/material-complementar";
-import { FichaMedicaAlunoResponse } from "@/services/domains/aluno";
 import {
   EstudanteAnotacaoResponse,
   EstudanteTarefaResponse,
@@ -12,16 +11,21 @@ import {
   AlunoProdutoResponse,
   AlunoVinculadoResponse,
   AulaGradeResponse,
+  FichaMedicaPortalResponse,
+  LaudoResponse,
+  MedicacaoResponse,
   ResponsavelLogadoResponse,
   ResumoAlunoResponse,
 } from "./response";
+import { MedicacaoPostRequest } from "./request";
 
 /**
  * Portal do Responsavel.
  *
  * Namespace proprio, separado de `/responsavel` (que e o CRUD da secretaria
- * sobre a entidade Responsavel). Todas as rotas sao somente leitura: o backend
- * valida o vinculo com o aluno a cada chamada.
+ * sobre a entidade Responsavel). O backend valida o vinculo com o aluno a cada
+ * chamada. Quase tudo aqui e leitura — as unicas escritas sao a inclusao de
+ * medicacao e o anexo de laudo na ficha medica.
  */
 const BASE_ROUTE = "portal-responsavel";
 
@@ -76,8 +80,22 @@ export class ResponsavelPortalApi {
 
   // ---- saude e financeiro ----
 
-  getFichaMedica(alunoId: number): Promise<FichaMedicaAlunoResponse> {
+  getFichaMedica(alunoId: number): Promise<FichaMedicaPortalResponse> {
     return httpClient.get(`${BASE_ROUTE}/aluno/${alunoId}/ficha-medica`);
+  }
+
+  incluirMedicacao(alunoId: number, dados: MedicacaoPostRequest): Promise<MedicacaoResponse> {
+    return httpClient.post(`${BASE_ROUTE}/aluno/${alunoId}/ficha-medica/medicacoes`, dados);
+  }
+
+  /**
+   * Anexa um laudo. O backend avisa a Orientacao Educacional por alerta.
+   * O nome da parte precisa ser "arquivo" — e o @RequestPart do controller.
+   */
+  anexarLaudo(alunoId: number, arquivo: File): Promise<LaudoResponse> {
+    const formData = new FormData();
+    formData.append("arquivo", arquivo);
+    return httpClient.post(`${BASE_ROUTE}/aluno/${alunoId}/ficha-medica/laudos`, formData);
   }
 
   /** Só responde 200 se o responsável tiver a flag financeiro no backend. */

@@ -84,3 +84,50 @@ export interface AlunoProdutoResponse {
   dataCompra: string;
   status: "ATIVO" | "CANCELADO";
 }
+
+/**
+ * Medicacao em uso, declarada pelo responsavel. Espelha ListagemMedicacaoDto.
+ *
+ * `dosagem`, `horario` e `observacao` sao opcionais de proposito: o
+ * CadastroMedicacaoDto so exige o nome, porque a familia nem sempre sabe a
+ * dosagem exata na hora do cadastro e exigir o campo levaria a dado inventado
+ * numa ficha de saude.
+ */
+export interface MedicacaoResponse {
+  id: number;
+  nome: string;
+  dosagem: string | null;
+  horario: string | null;
+  observacao: string | null;
+  /** Instant do backend — ISO-8601 com timezone. */
+  registradaEm: string;
+}
+
+/** Laudo anexado a ficha. Espelha ListagemArquivoDto. */
+export interface LaudoResponse {
+  id: number;
+  nome: string;
+  contentType: string;
+  tamanho: number;
+  downloadUrl: string;
+}
+
+/**
+ * Ficha medica como o portal a entrega. Espelha DetalhamentoFichaMedicaDto.
+ *
+ * NAO e o mesmo shape de FichaMedicaAlunoResponse (`domains/aluno`), que e
+ * anterior a inclusao de `dataDeNascimento`, `laudos` e `medicacoes`.
+ */
+export interface FichaMedicaPortalResponse {
+  id: number;
+  nome: string | null;
+  /** LocalDate — "yyyy-MM-dd". Null quando o cadastro nao tem nascimento. */
+  dataDeNascimento: string | null;
+  tipoSanguineo: string | null;
+  necessidadesEspeciais: string | null;
+  doencasRespiratorias: string | null;
+  alergiasAlimentares: string | null;
+  alergiasMedicamentosas: string | null;
+  laudos: LaudoResponse[];
+  medicacoes: MedicacaoResponse[];
+}

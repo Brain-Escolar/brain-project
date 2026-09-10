@@ -104,4 +104,5 @@ export enum RoutesEnum {
   // Responsavel routes (as demais telas do portal reusam as rotas acima)
   OCORRENCIAS = "/ocorrencias",
   FINANCEIRO = "/financeiro",
+  FICHA_MEDICA_RESPONSAVEL = "/responsavel/ficha-medica",
 }

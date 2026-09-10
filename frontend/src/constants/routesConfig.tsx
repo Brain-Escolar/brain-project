@@ -29,6 +29,7 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
+import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -407,6 +408,13 @@ export const ROUTES: RouteConfig[] = [
     text: RouteLabelsEnum.OCORRENCIAS,
     icon: <FlagOutlinedIcon fontSize="small" />,
     router: RoutesEnum.OCORRENCIAS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.FICHA_MEDICA,
+    icon: <HealthAndSafetyOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.FICHA_MEDICA_RESPONSAVEL,
     isShowMenu: true,
     roles: [UserRoleEnum.RESPONSAVEL],
   },
