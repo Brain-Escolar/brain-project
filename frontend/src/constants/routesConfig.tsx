@@ -638,13 +638,25 @@ export function getMenuRoutes(role: UserRoleEnum): RouteConfig[] {
 /**
  * Gera dinamicamente os módulos baseados nas rotas disponíveis para o role
  */
-export function getMenuModules(role: UserRoleEnum): MenuModule[] {
+/** Aceita um perfil ou a lista de perfis de quem acumula mais de um. */
+type PerfilOuPerfis = UserRoleEnum | UserRoleEnum[];
+
+function comoLista(role: PerfilOuPerfis): UserRoleEnum[] {
+  return Array.isArray(role) ? role : [role];
+}
+
+/** A rota aparece se QUALQUER perfil da pessoa a autoriza. */
+function autorizada(rotaRoles: UserRoleEnum[], role: PerfilOuPerfis): boolean {
+  return comoLista(role).some((perfil) => rotaRoles.includes(perfil));
+}
+
+export function getMenuModules(role: PerfilOuPerfis): MenuModule[] {
   // Obtém todos os módulos únicos das rotas visíveis para o role
   const modulesSet = new Set<RoutesModuleEnum>();
 
   ROUTES.forEach((route) => {
     if (
-      route.roles.includes(role) &&
+      autorizada(route.roles, role) &&
       route.isShowMenu &&
       route.moduleMenu !== null &&
       route.moduleMenu !== undefined
@@ -680,22 +692,31 @@ function getUniqueRolesForModule(moduleId: RoutesModuleEnum): UserRoleEnum[] {
 /**
  * Obtém as rotas de um módulo específico para um role
  */
-export function getRoutesByModule(role: UserRoleEnum, moduleId: RoutesModuleEnum): RouteConfig[] {
+export function getRoutesByModule(role: PerfilOuPerfis, moduleId: RoutesModuleEnum): RouteConfig[] {
   return ROUTES.filter(
-    (route) => route.roles.includes(role) && route.isShowMenu && route.moduleMenu === moduleId,
+    (route) => autorizada(route.roles, role) && route.isShowMenu && route.moduleMenu === moduleId,
   );
 }
 
 /**
  * Obtém as rotas que não pertencem a nenhum módulo
  */
-export function getRoutesWithoutModule(role: UserRoleEnum): RouteConfig[] {
-  return ROUTES.filter(
+export function getRoutesWithoutModule(role: PerfilOuPerfis): RouteConfig[] {
+  const visiveis = ROUTES.filter(
     (route) =>
-      route.roles.includes(role) &&
+      autorizada(route.roles, role) &&
       route.isShowMenu &&
       (route.moduleMenu === null || route.moduleMenu === undefined),
   );
+
+  // A mesma rota e registrada uma vez por perfil (padrao do arquivo). Quem
+  // acumula perfis veria o item repetido no menu — deduplica por destino.
+  const vistos = new Set<string>();
+  return visiveis.filter((route) => {
+    if (vistos.has(route.router)) return false;
+    vistos.add(route.router);
+    return true;
+  });
 }
 
 /**

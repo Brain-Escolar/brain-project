@@ -61,14 +61,20 @@ const NENHUMA: Permissoes = {
 
 export function usePermissoes(): Permissoes {
   const { user } = useAuth();
+  const roles = user?.roles;
 
   return useMemo(() => {
-    if (!user?.role) return NENHUMA;
+    if (!roles || roles.length === 0) return NENHUMA;
 
+    // Quem acumula perfis soma as capacidades: um professor que também é
+    // responsável gerencia materiais E atua pelo aluno vinculado.
     const entradas = Object.entries(QUEM_PODE) as [keyof Permissoes, UserRoleEnum[]][];
     return entradas.reduce<Permissoes>(
-      (acc, [capacidade, perfis]) => ({ ...acc, [capacidade]: perfis.includes(user.role) }),
+      (acc, [capacidade, perfis]) => ({
+        ...acc,
+        [capacidade]: perfis.some((perfil) => roles.includes(perfil)),
+      }),
       NENHUMA,
     );
-  }, [user?.role]);
+  }, [roles]);
 }

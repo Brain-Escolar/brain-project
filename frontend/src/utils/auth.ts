@@ -1,7 +1,9 @@
 import Cookies from "js-cookie";
 import { UserRoleEnum } from "@/enums";
+import { parseRoles, perfilPrincipal } from "@/utils/perfis";
 
 export { UserRoleEnum } from "@/enums";
+export { parseRoles, perfilPrincipal } from "@/utils/perfis";
 export type UserRole = UserRoleEnum;
 
 export interface JWTPayload {
@@ -18,7 +20,17 @@ export interface UserData {
   id: number;
   name: string;
   email: string;
+  /**
+   * Perfil principal — usado para despachar dashboard, breadcrumb e rota padrão.
+   * Para quem tem um perfil só (a maioria), é ele mesmo.
+   */
   role: UserRoleEnum;
+  /**
+   * Todos os perfis da pessoa. O modelo de dados permite acumular: um professor
+   * que também é responsável por um aluno tem os dois. Permissões devem olhar
+   * esta lista, não `role`.
+   */
+  roles: UserRoleEnum[];
   /** Id de DadosPessoais do usuário logado — usado para comparar autoria (ex.: comunicados, mensagens). */
   dadosPessoaisId?: number;
   exp: number;
@@ -40,15 +52,14 @@ export function decodeToken(token: string): UserData | null {
 
     const payload: JWTPayload = JSON.parse(jsonPayload);
 
-    // Remove os colchetes do role e converte para o enum
-    const roleStr = payload.role.replace(/[\[\]]/g, "");
-    const role = roleStr as unknown as UserRole;
+    const roles = parseRoles(payload.role);
 
     return {
       id: payload.id,
       name: payload.name,
       email: payload.sub,
-      role,
+      role: perfilPrincipal(roles),
+      roles,
       dadosPessoaisId: payload.dadosPessoaisId,
       exp: payload.exp,
     };
@@ -153,8 +164,13 @@ export const ROLE_ROUTES: Record<UserRoleEnum, string[]> = {
 /**
  * Verifica se o usuário pode acessar uma rota específica
  */
-export function canAccessRoute(userRole: UserRoleEnum, route: string): boolean {
-  const allowedRoutes = ROLE_ROUTES[userRole];
+export function canAccessRoute(
+  userRole: UserRoleEnum | UserRoleEnum[],
+  route: string,
+): boolean {
+  // Quem acumula perfis pode acessar a união das rotas dos seus perfis.
+  const perfis = Array.isArray(userRole) ? userRole : [userRole];
+  const allowedRoutes = perfis.flatMap((perfil) => ROLE_ROUTES[perfil] ?? []);
 
   // Verifica se a rota exata está permitida
   if (allowedRoutes.includes(route)) return true;

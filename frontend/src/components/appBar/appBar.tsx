@@ -25,12 +25,12 @@ export default function AppBar() {
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   const directRoutes = React.useMemo(
-    () => (user ? getRoutesWithoutModule(user.role) : []),
+    () => (user ? getRoutesWithoutModule(user.roles) : []),
     [user],
   );
 
   const moduleMenus = React.useMemo(
-    () => (user ? getMenuModules(user.role) : []),
+    () => (user ? getMenuModules(user.roles) : []),
     [user],
   );
 

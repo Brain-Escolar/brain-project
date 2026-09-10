@@ -64,7 +64,7 @@ export function AlunoSelecionadoProvider({ children }: { children: ReactNode }) 
   // O provider envolve TODOS os perfis (fica no layout privado), mas
   // /portal-responsavel/alunos exige ROLE_RESPONSAVEL. Sem este gate, todo
   // professor, admin e secretario dispararia um 403 a cada carregamento.
-  const ehResponsavel = user?.role === UserRoleEnum.RESPONSAVEL;
+  const ehResponsavel = (user?.roles ?? []).includes(UserRoleEnum.RESPONSAVEL);
 
   const {
     data: alunos = [],

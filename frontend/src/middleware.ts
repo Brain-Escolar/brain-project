@@ -1,6 +1,7 @@
 import { MiddlewareConfig, NextRequest, NextResponse } from "next/server";
 import { getAllowedRoutes } from "@/constants/routesConfig";
 import { UserRoleEnum } from "./enums";
+import { parseRoles, perfilPrincipal } from "@/utils/perfis";
 
 interface JWTPayload {
   iss: string;
@@ -20,7 +21,9 @@ const publicRoutes = [
 
 const REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE = "/login";
 
-function decodeToken(token: string): { role: UserRoleEnum; exp: number } | null {
+function decodeToken(
+  token: string,
+): { role: UserRoleEnum; roles: UserRoleEnum[]; exp: number } | null {
   try {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -32,10 +35,11 @@ function decodeToken(token: string): { role: UserRoleEnum; exp: number } | null 
     );
 
     const payload: JWTPayload = JSON.parse(jsonPayload);
-    const role = payload.role.replace(/[\[\]]/g, "") as UserRoleEnum;
+    const roles = parseRoles(payload.role);
 
     return {
-      role,
+      role: perfilPrincipal(roles),
+      roles,
       exp: payload.exp,
     };
   } catch (error) {
@@ -44,8 +48,9 @@ function decodeToken(token: string): { role: UserRoleEnum; exp: number } | null 
   }
 }
 
-function canAccessRoute(userRole: UserRoleEnum, route: string): boolean {
-  const allowedRoutes = getAllowedRoutes(userRole);
+function canAccessRoute(userRoles: UserRoleEnum[], route: string): boolean {
+  // Quem acumula perfis acessa a uniao das rotas dos seus perfis.
+  const allowedRoutes = userRoles.flatMap((perfil) => getAllowedRoutes(perfil));
 
   if (allowedRoutes.includes(route)) return true;
   return allowedRoutes.some(
@@ -131,7 +136,7 @@ export function middleware(request: NextRequest) {
     // }
 
     // Verifica se o usuário tem permissão para acessar a rota
-    if (!canAccessRoute(tokenData.role, path)) {
+    if (!canAccessRoute(tokenData.roles, path)) {
       // Redireciona para a rota padrão do role apenas se não tiver permissão
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = getDefaultRoute(tokenData.role);
