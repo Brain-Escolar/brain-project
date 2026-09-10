@@ -11,12 +11,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUnreadConversas } from "@/hooks/useConversas";
 import { NotificationMenu } from "@/components/appBar/notificationMenu";
 import SeletorAluno from "@/components/seletorAluno";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import { useTheme } from "@mui/material/styles";
 import { UserMenu } from "@/components/appBar/userMenu";
 import { DynamicModuleMenu } from "@/components/appBar/dynamicModuleMenu/DynamicModuleMenu";
 import { MobileNavDrawer } from "@/components/appBar/mobileNavDrawer/MobileNavDrawer";
 import { getMenuModules, getRoutesWithoutModule } from "@/constants/routesConfig";
-import { UserRoleEnum } from "@/enums";
 
 export default function AppBar() {
   const pathname = usePathname();
@@ -35,6 +35,7 @@ export default function AppBar() {
   );
 
   const unreadConversas = useUnreadConversas();
+  const { atuarPorAlunoVinculado } = usePermissoes();
 
   if (!user) {
     return null;
@@ -153,7 +154,7 @@ export default function AppBar() {
           <Box sx={{ flexGrow: 1 }} />
 
           <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center", gap: 1.5 }}>
-            {user.role === UserRoleEnum.RESPONSAVEL && <SeletorAluno />}
+            {atuarPorAlunoVinculado && <SeletorAluno />}
             <NotificationMenu />
             <UserMenu
               user={{ email: user.email, name: user.name, role: user.role }}
