@@ -164,7 +164,7 @@ export default function AppBar() {
             {atuarPorAlunoVinculado && <SeletorAluno />}
             <NotificationMenu />
             <UserMenu
-              user={{ email: user.email, name: user.name, role: user.role }}
+              user={{ email: user.email, name: user.name, role: perfilAtivo }}
               menuBg={menuBg}
               menuHoverBg={menuHoverBg}
               textColor={appBarText}

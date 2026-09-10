@@ -22,18 +22,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAlunoSelecionado } from "@/contexts/AlunoSelecionadoContext";
 import { useResumoAluno } from "@/hooks/useResumoAluno";
 import { useGradeHorariaAluno } from "@/hooks/useGradeHorariaAluno";
+import type { DiaSemana } from "@/services/domains/aula";
 import * as S from "./styles";
 
-/** Dias da semana como o backend os devolve (DiaSemana.name()). */
-const DIA_ENUM = [
-  "DOMINGO",
-  "SEGUNDA",
-  "TERCA",
-  "QUARTA",
-  "QUINTA",
-  "SEXTA",
-  "SABADO",
-] as const;
+/**
+ * Dias da semana como o backend os devolve: `Aula.diaSemana` e um
+ * `java.time.DayOfWeek` serializado com `.name()` — ou seja, em ingles.
+ * A ordem aqui e a de `Date.getDay()` (0 = domingo).
+ */
+const DIA_ENUM: DiaSemana[] = [
+  "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+];
 
 function fmtNota(valor: number | null | undefined, casas = 1): string {
   if (valor == null) return "–";
