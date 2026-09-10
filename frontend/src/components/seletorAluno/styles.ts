@@ -1,5 +1,6 @@
 "use client";
 import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius } from "@/styles";
+import { BrainBoxShadowHover } from "@/utils/utilsCss";
 import styled from "styled-components";
 
 export const Wrapper = styled.div`
@@ -49,7 +50,7 @@ export const Dropdown = styled.div`
   background: ${cssVarColor("backgroundSection")};
   border: 1px solid ${cssVarColor("border")};
   border-radius: ${cssVarRadius("lg")};
-  box-shadow: ${({ theme }) => theme.shadows.level3};
+  ${BrainBoxShadowHover}
 `;
 
 export const Opcao = styled.button<{ $ativo: boolean }>`
