@@ -18,6 +18,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -157,11 +158,35 @@ public class ResponsavelService {
             return;
         }
 
+        if (dadosPessoais.getEmail() == null || dadosPessoais.getEmail().isBlank()) {
+            // Sem e-mail nao ha login (e o identificador) nem para onde mandar a
+            // verificacao. Acontece com lead vindo do CRM, que entra so com nome.
+            return;
+        }
+
         usuarioService.cadastrarUsuario(
                 dadosPessoais,
                 PerfilNome.RESPONSAVEL,
-                dadosPessoais.getCpf(),
+                senhaInicial(dadosPessoais),
                 dadosPessoais.getEmail());
+    }
+
+    /**
+     * Senha inicial do responsavel.
+     *
+     * O padrao da casa e o CPF (ver AlunoService.matricular), mas desde a V98 o
+     * cpf em dados_pessoais e opcional — o CRM cadastra lead so com nome e
+     * e-mail. Sem o fallback, essa pessoa viraria responsavel com senha null.
+     *
+     * A senha vai no e-mail de verificacao nos dois casos, entao o aleatorio
+     * nao deixa ninguem sem acesso.
+     */
+    private String senhaInicial(DadosPessoais dadosPessoais) {
+        var cpf = dadosPessoais.getCpf();
+        if (cpf != null && !cpf.isBlank()) {
+            return cpf;
+        }
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
 
     private DadosPessoais criarDadosPessoais(CadastroResponsavelDto dados) {

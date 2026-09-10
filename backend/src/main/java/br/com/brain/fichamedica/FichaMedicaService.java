@@ -181,7 +181,7 @@ public class FichaMedicaService {
 
     /**
      * Inclui uma medicacao em uso. Nao ha remocao pelo responsavel de
-     * proposito — ver a migration V97.
+     * proposito — ver a migration V99.
      */
     @Transactional
     public ListagemMedicacaoDto incluirMedicacao(Long alunoId, CadastroMedicacaoDto dados) {
