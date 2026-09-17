@@ -1,5 +1,5 @@
 import { httpClient } from "@/services/http";
-import { AlunoDetalheResponse, AlunoListaResponse, AnotacaoAlunoDisciplinaResponse, CursoPretendidoResponse, FichaMedicaAlunoResponse, SituacaoFamiliarResponse } from "./response";
+import { AlunoDetalheResponse, AlunoListaResponse, AnotacaoAlunoDisciplinaResponse, CursoPretendidoResponse, FichaMedicaAlunoResponse, SituacaoFamiliarResponse, AtendimentoPsicologicoResponse } from "./response";
 import { IBrainResult } from "@/services/commoResponse";
 import {
   AlunoDesmatricularRequest,
@@ -10,6 +10,7 @@ import {
   LaudoMedicoRequest,
   MedicacaoRequest,
   SituacaoFamiliarRequest,
+  AtendimentoPsicologicoRequest,
 } from "./request";
 
 const BASE_ROUTE = "aluno";
@@ -144,6 +145,17 @@ export class AlunoApi {
     dados: SituacaoFamiliarRequest,
   ): Promise<SituacaoFamiliarResponse> {
     return httpClient.put(`${BASE_ROUTE}/${alunoId}/situacao-familiar`, dados);
+  }
+
+  getAtendimentosPsicologicos(alunoId: string): Promise<AtendimentoPsicologicoResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/${alunoId}/atendimentos-psicologicos`);
+  }
+
+  registrarAtendimentoPsicologico(
+    alunoId: string,
+    dados: AtendimentoPsicologicoRequest,
+  ): Promise<AtendimentoPsicologicoResponse> {
+    return httpClient.post(`${BASE_ROUTE}/${alunoId}/atendimentos-psicologicos`, dados);
   }
 
   getAnotacoesPorDisciplina(

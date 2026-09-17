@@ -153,3 +153,13 @@ export interface SituacaoFamiliarResponse {
   /** Catálogo ativo, já enviado junto para a tela montar os checkboxes. */
   opcoesDisponiveis: SituacaoFamiliarOpcaoResponse[];
 }
+
+export interface AtendimentoPsicologicoResponse {
+  id: number;
+  /** ISO "AAAA-MM-DD". */
+  data: string;
+  profissional?: string | null;
+  descricao: string;
+  /** Laudo da ficha médica citado no atendimento, quando houver. */
+  laudo?: LaudoMedicoResponse | null;
+}

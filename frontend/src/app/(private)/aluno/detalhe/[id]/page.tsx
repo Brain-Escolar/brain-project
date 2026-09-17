@@ -46,12 +46,13 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import FichaMedicaAluno from "@/components/fichaMedicaAluno/FichaMedicaAluno";
 import SituacaoFamiliarAluno from "@/components/situacaoFamiliarAluno/SituacaoFamiliarAluno";
+import AtendimentoAluno from "@/components/atendimentoAluno/AtendimentoAluno";
 import { iniciais } from "@/utils/utils";
 import * as S from "./styles";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TabKey = "geral" | "fichaMedica" | "situacaoFamiliar" | "produtos";
+type TabKey = "geral" | "fichaMedica" | "situacaoFamiliar" | "atendimento" | "produtos";
 type SecaoKey = "dadosCadastrais" | "responsaveis" | "ocorrencias" | "boletimResumo" | "fichaMedica";
 
 // ─── Configuração por perfil ──────────────────────────────────────────────────
@@ -79,6 +80,10 @@ const FICHA_MEDICA_EDICAO_ROLES: UserRoleEnum[] = [
 const SITUACAO_FAMILIAR_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
 const SITUACAO_FAMILIAR_EDICAO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
 
+/** Atendimento psicológico — mesmo tratamento sensível da situação familiar. */
+const ATENDIMENTO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
+const ATENDIMENTO_EDICAO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
+
 const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
   [UserRoleEnum.PROFESSOR]: ["ocorrencias", "boletimResumo"],
   [UserRoleEnum.ADMIN]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
@@ -91,6 +96,7 @@ const LABEL_ABA: Record<TabKey, string> = {
   geral: "Visão geral",
   fichaMedica: "Ficha médica",
   situacaoFamiliar: "Situação familiar",
+  atendimento: "Atendimento",
   produtos: "Produtos e Contratos",
 };
 
@@ -370,15 +376,19 @@ export default function AlunoDetalhePage() {
   const podeEditarFichaMedica = FICHA_MEDICA_EDICAO_ROLES.includes(role);
   const temSituacaoFamiliar = SITUACAO_FAMILIAR_ROLES.includes(role);
   const podeEditarSituacaoFamiliar = SITUACAO_FAMILIAR_EDICAO_ROLES.includes(role);
+  const temAtendimento = ATENDIMENTO_ROLES.includes(role);
+  const podeEditarAtendimento = ATENDIMENTO_EDICAO_ROLES.includes(role);
   const abasDoRole: TabKey[] = [
     "geral",
     ...(temFichaMedica ? (["fichaMedica"] as TabKey[]) : []),
     ...(temSituacaoFamiliar ? (["situacaoFamiliar"] as TabKey[]) : []),
+    ...(temAtendimento ? (["atendimento"] as TabKey[]) : []),
     ...(temProdutos ? (["produtos"] as TabKey[]) : []),
   ];
 
   const { aluno, loading, error } = useAluno(alunoId);
-  const precisaFichaMedica = secoesDoRole.includes("fichaMedica") || temFichaMedica;
+  // A aba de Atendimento também consome os laudos, no popup de vínculo.
+  const precisaFichaMedica = secoesDoRole.includes("fichaMedica") || temFichaMedica || temAtendimento;
   const { fichaMedica, loading: loadingFicha } = useAlunoFichaMedica(alunoId, !!user && precisaFichaMedica);
   const { produtos, loading: loadingProdutos } = useAlunoProdutos(alunoId, !!user && temProdutos);
   const { disciplinas: todasDisciplinas } = useDisciplinas();
@@ -434,6 +444,14 @@ export default function AlunoDetalhePage() {
     ),
     situacaoFamiliar: (
       <SituacaoFamiliarAluno alunoId={alunoId} podeEditar={podeEditarSituacaoFamiliar} />
+    ),
+    atendimento: (
+      <AtendimentoAluno
+        alunoId={alunoId}
+        laudos={fichaMedica?.laudos ?? []}
+        loadingLaudos={loadingFicha}
+        podeEditar={podeEditarAtendimento}
+      />
     ),
     produtos: <ProdutosPanel produtos={produtos} loading={loadingProdutos} formatDate={formatDate} />,
   };

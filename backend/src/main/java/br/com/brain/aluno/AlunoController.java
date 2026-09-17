@@ -18,12 +18,15 @@ import br.com.brain.fichamedica.dto.AtualizacaoFichaMedicaDto;
 import br.com.brain.fichamedica.dto.CadastroLaudoDto;
 import br.com.brain.fichamedica.dto.CadastroMedicacaoDto;
 import br.com.brain.fichamedica.dto.DetalhamentoFichaMedicaDto;
+import br.com.brain.atendimentoPsicologico.dto.CadastroAtendimentoPsicologicoDto;
+import br.com.brain.atendimentoPsicologico.dto.ListagemAtendimentoPsicologicoDto;
 import br.com.brain.situacaoFamiliar.dto.AtualizacaoSituacaoFamiliarDto;
 import br.com.brain.situacaoFamiliar.dto.DetalhamentoSituacaoFamiliarDto;
 import br.com.brain.serie.dto.SerieUnidadeTurmaDto;
 import br.com.brain.anotacao.AnotacaoService;
 import br.com.brain.aula.AulaService;
 import br.com.brain.fichamedica.FichaMedicaService;
+import br.com.brain.atendimentoPsicologico.AtendimentoPsicologicoService;
 import br.com.brain.situacaoFamiliar.SituacaoFamiliarService;
 import br.com.brain.materialComplementar.MaterialComplementarService;
 import br.com.brain.materialComplementar.dto.ListagemMaterialComplementarDto;
@@ -52,6 +55,7 @@ public class AlunoController {
     private final TarefaService tarefaService;
     private final MaterialComplementarService materialComplementarService;
     private final SituacaoFamiliarService situacaoFamiliarService;
+    private final AtendimentoPsicologicoService atendimentoPsicologicoService;
 
     @PostMapping
     public ResponseEntity<DetalhamentoAlunoDto> cadastrar(
@@ -177,6 +181,19 @@ public class AlunoController {
     public ResponseEntity<DetalhamentoSituacaoFamiliarDto> salvarSituacaoFamiliar(
             @PathVariable Long id, @RequestBody @Valid AtualizacaoSituacaoFamiliarDto dados) {
         return ResponseEntity.ok(situacaoFamiliarService.salvar(id, dados));
+    }
+
+    @GetMapping("/{id}/atendimentos-psicologicos")
+    public ResponseEntity<List<ListagemAtendimentoPsicologicoDto>> listarAtendimentosPsicologicos(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(atendimentoPsicologicoService.listarPorAluno(id));
+    }
+
+    /** Atendimento é histórico clínico: só acrescenta, não há PUT nem DELETE. */
+    @PostMapping("/{id}/atendimentos-psicologicos")
+    public ResponseEntity<ListagemAtendimentoPsicologicoDto> registrarAtendimentoPsicologico(
+            @PathVariable Long id, @RequestBody @Valid CadastroAtendimentoPsicologicoDto dados) {
+        return ResponseEntity.ok(atendimentoPsicologicoService.registrar(id, dados));
     }
 
     @GetMapping("/{id}/anotacoes/{disciplinaId}")

@@ -78,6 +78,8 @@ export const QUERY_KEYS = {
     fichaMedica: (id: string | number) => [...QUERY_KEYS.alunos.all, "ficha-medica", id] as const,
     situacaoFamiliar: (id: string | number) =>
       [...QUERY_KEYS.alunos.all, "situacao-familiar", id] as const,
+    atendimentosPsicologicos: (id: string | number) =>
+      [...QUERY_KEYS.alunos.all, "atendimentos-psicologicos", id] as const,
     produtos: (id: string | number) => [...QUERY_KEYS.alunos.all, "produtos", id] as const,
     anotacoesDisciplina: (alunoId: string | number, disciplinaId: string | number) =>
       [...QUERY_KEYS.alunos.all, "anotacoes-disciplina", alunoId, disciplinaId] as const,

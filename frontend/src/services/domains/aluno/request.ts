@@ -79,3 +79,12 @@ export interface SituacaoFamiliarRequest {
   /** Substitui o conjunto atual de marcações. */
   opcoesMarcadas: number[];
 }
+
+export interface AtendimentoPsicologicoRequest {
+  /** ISO "AAAA-MM-DD". */
+  data: string;
+  profissional?: string;
+  descricao: string;
+  /** Id de um laudo da ficha médica do próprio aluno. */
+  laudoId?: number | null;
+}
