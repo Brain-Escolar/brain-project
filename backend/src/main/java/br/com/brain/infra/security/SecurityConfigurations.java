@@ -49,6 +49,12 @@ public class SecurityConfigurations {
                             // CRM de matriculas - acima do permitAll para ja valer hoje.
                             req.requestMatchers("/crm/**").hasRole("SECRETARIO");
 
+                            // Bolsas - acima do permitAll para ja valer hoje.
+                            // FINANCEIRO ainda nao existe em PerfilNome; quando
+                            // existir, entra aqui.
+                            req.requestMatchers("/bolsas/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 
