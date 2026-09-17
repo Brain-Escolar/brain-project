@@ -210,8 +210,13 @@ public class BolsaTetoService {
     /**
      * O perfil vem do token, nunca da requisicao: se viesse por parametro,
      * qualquer um pediria o teto de diretor.
+     *
+     * Visivel no pacote porque o BolsaConcessaoService precisa da MESMA leitura
+     * de perfil para decidir quem pode exceder envelope. Duas leituras
+     * diferentes seria uma para consultar e outra para gravar -- e a que grava
+     * divergiria em algum momento.
      */
-    private Set<PerfilNome> perfisDoUsuario() {
+    Set<PerfilNome> perfisDoUsuario() {
         var autenticacao = SecurityContextHolder.getContext().getAuthentication();
         if (autenticacao == null || !autenticacao.isAuthenticated()) {
             return Set.of();

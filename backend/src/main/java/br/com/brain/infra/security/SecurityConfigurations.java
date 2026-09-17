@@ -55,6 +55,16 @@ public class SecurityConfigurations {
                             req.requestMatchers("/bolsas/**")
                                     .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
 
+                            // Simulacoes financeiras - acima do permitAll para ja valer hoje.
+                            // Escrita e da secretaria; a leitura inclui o
+                            // responsavel, que precisa ver a propria proposta.
+                            // Que seja a DELE e regra do servico, nao daqui:
+                            // perfil diz quem entra, nao o que e de quem.
+                            req.requestMatchers(HttpMethod.GET, "/simulacoes/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN", "RESPONSAVEL");
+                            req.requestMatchers("/simulacoes/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 
