@@ -1,108 +1,80 @@
 package br.com.brain.secretario;
-// import br.com.brain.endereco.EnderecoService;
-// import br.com.brain.usuario.UsuarioService;
 
-// package br.com.brain.service;
+import br.com.brain.dadosPessoais.DadosPessoais;
+import br.com.brain.endereco.EnderecoService;
+import br.com.brain.secretario.dto.AtualizacaoSecretarioDto;
+import br.com.brain.secretario.dto.CadastroSecretarioDto;
+import br.com.brain.secretario.dto.ListagemSecretarioDto;
+import br.com.brain.exception.ErrosSistema;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
-// import br.com.brain.secretario.Secretario;
-// import br.com.brain.secretario.SecretarioRepository;
-// import br.com.brain.secretario.dto.AtualizacaoSecretarioDto;
-// import br.com.brain.secretario.dto.CadastroSecretarioDto;
-// import br.com.brain.secretario.dto.ListagemSecretarioDto;
-// import br.com.brain.enums.PerfilNome;
-// import jakarta.persistence.EntityManager;
-// import jakarta.persistence.EntityNotFoundException;
-// import jakarta.persistence.PersistenceContext;
-// import jakarta.transaction.Transactional;
-// import lombok.RequiredArgsConstructor;
-// import org.springframework.data.domain.Page;
-// import org.springframework.data.domain.Pageable;
-// import org.springframework.stereotype.Service;
+@Service
+@RequiredArgsConstructor
+public class SecretarioService {
 
-// @Service
-// @RequiredArgsConstructor
-// public class SecretarioService {
+    private final SecretarioRepository repository;
+    private final EnderecoService enderecoService;
 
-//     private final SecretarioRepository repository;
-//     private final EnderecoService enderecoService;
-//     private final UsuarioService usuarioService;
+    @Transactional
+    public Secretario cadastrarSecretario(CadastroSecretarioDto dados) {
 
-//     @PersistenceContext
-//     private EntityManager em;
+        var secretario = new Secretario();
+        var dadosPessoais = new DadosPessoais();
 
-//     @Transactional
-//     public Secretario cadastrarSecretario(CadastroSecretarioDto dados) {
+        dadosPessoais.setCpf(dados.cpf());
+        dadosPessoais.setNome(dados.nome());
+        dadosPessoais.setNomeSocial(dados.nomeSocial());
+        dadosPessoais.setEmail(dados.email());
+        dadosPessoais.setEmailProfissional(dados.cpf() + "@escola.com");
+        dadosPessoais.setDataDeNascimento(dados.dataDeNascimento());
+        dadosPessoais.setEndereco(enderecoService.preencherEnderco(dados.endereco()));
+        dadosPessoais.setGenero(dados.genero());
+        dadosPessoais.setCorRaca(dados.corRaca());
+        dadosPessoais.setRg(dados.rg());
+        dadosPessoais.setCarteiraDeTrabalho(dados.carteiraDeTrabalho());
+        dadosPessoais.setCidadeNaturalidade(dados.cidadeNaturalidade());
+        dadosPessoais.setTelefones(dados.telefones());
+        secretario.setDadosPessoais(dadosPessoais);
 
-//         var secretario = new Secretario();
-//         secretario.setCpf(dados.cpf());
-//         secretario.setNome(dados.nome());
-//         secretario.setEmail(dados.email());
-//         secretario.setEmailProfissional(dados.cpf() + "@email.com");
-//         secretario.setDataDeNascimento(dados.dataDeNascimento());
-//         secretario.setEndereco(enderecoService.preencherEnderco(dados.endereco()));
-//         secretario.setRg(dados.rg());
-//         secretario.setCarteiraDeTrabalho(dados.carteiraDeTrabalho());
+        repository.save(secretario);
 
-//         usuarioService.cadastrarUsuario(
-//                 secretario.getNome(),
-//                 PerfilNome.SECRETARIO,
-//                 secretario.getEmail(),
-//                 secretario.getEmailProfissional(),
-//                 secretario.getCpf());
+        return secretario;
+    }
 
-//         repository.save(secretario);
+    public Page<ListagemSecretarioDto> listar(Pageable paginacao) {
+        return repository.findAll(paginacao).map(ListagemSecretarioDto::new);
+    }
 
-//         return secretario;
-//     }
+    @Transactional
+    public Secretario atualizar(AtualizacaoSecretarioDto dados, Long id) {
+        var secretario = detalhar(id);
 
-//     public Page<ListagemSecretarioDto> listar(Pageable paginacao) {
-//         return repository.findAll(paginacao).map(ListagemSecretarioDto::new);
-//     }
+        var dadosPessoais = secretario.getDadosPessoais();
+        dadosPessoais.atualizarNome(dados.nome());
+        dadosPessoais.atualizarDataDeNascimento(dados.dataDeNascimento());
+        dadosPessoais.atualizarEmail(dados.email());
+        if (dados.endereco() != null) {
+            var endereco = enderecoService.atualizarEndereco(dadosPessoais.getEndereco(), dados.endereco());
+            dadosPessoais.atualizarEndereco(endereco);
+        }
 
-//     @Transactional
-//     public Secretario atualizar(AtualizacaoSecretarioDto dados, Long id) {
-//         var secretario = repository
-//                 .findById(id)
-//                 .orElseThrow(
-//                         () -> new EntityNotFoundException("Secretario de id " + id + " não existe."));
+        repository.save(secretario);
 
-//         if (dados.nome() != null) {
-//             secretario.setNome(dados.nome());
-//         }
-//         if (dados.dataDeNascimento() != null) {
-//             secretario.setDataDeNascimento(dados.dataDeNascimento());
-//         }
-//         if (dados.email() != null) {
-//             secretario.setEmail(dados.email());
-//         }
-//         if (dados.endereco() != null) {
-//             var endereco = enderecoService.atualizarEndereco(secretario.getEndereco(), dados.endereco());
-//             secretario.setEndereco(endereco);
-//         }
-//         if (dados.rg() != null) {
-//             secretario.setRg(dados.rg());
-//         }
-//         if (dados.carteiraDeTrabalho() != null) {
-//             secretario.setCarteiraDeTrabalho(dados.carteiraDeTrabalho());
-//         }
+        return secretario;
+    }
 
-//         repository.save(secretario);
+    @Transactional
+    public void excluir(Long id) {
+        var secretario = detalhar(id);
+        repository.delete(secretario);
+    }
 
-//         return secretario;
-//     }
-
-//     @Transactional
-//     public void excluir(Long id) {
-//         var secretario = repository
-//                 .findById(id)
-//                 .orElseThrow(
-//                         () -> new EntityNotFoundException("Secretario de id " + id + " não existe."));
-//         repository.delete(secretario);
-//     }
-
-//     public Secretario detalhar(Long id) {
-//         return repository
-//                 .findById(id)
-//                 .orElseThrow(() -> new EntityNotFoundException("Secretario de id " + id + " não existe."));
-//     }
-// }
+    public Secretario detalhar(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Secretario", id));
+    }
+}

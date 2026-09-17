@@ -7,9 +7,7 @@ import br.com.brain.endereco.dto.EnderecoDto;
 
 public record AtualizacaoSecretarioDto(
         String nome,
-        String rg,
         LocalDate dataDeNascimento,
         @Email String email,
-        EnderecoDto endereco,
-        String carteiraDeTrabalho) {
+        EnderecoDto endereco) {
 }

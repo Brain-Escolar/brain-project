@@ -5,8 +5,10 @@ import br.com.brain.secretario.Secretario;
 
 public record ListagemSecretarioDto(
         Long id,
+        Long dadosPessoaisId,
         String cpf,
         String nome,
+        String nomeSocial,
         String email,
         String emailProfissional,
         Endereco endereco,
@@ -16,8 +18,10 @@ public record ListagemSecretarioDto(
     public ListagemSecretarioDto(Secretario secretario) {
         this(
                 secretario.getId(),
+                secretario.getDadosPessoais().getId(),
                 secretario.getDadosPessoais().getCpf(),
                 secretario.getDadosPessoais().getNome(),
+                secretario.getDadosPessoais().getNomeSocial(),
                 secretario.getDadosPessoais().getEmail(),
                 secretario.getDadosPessoais().getEmailProfissional(),
                 secretario.getDadosPessoais().getEndereco(),

@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
 @Audited
 @Table(name = "dados_pessoais")
 @Data
-@EqualsAndHashCode(callSuper = false, exclude = { "professor", "aluno", "responsavel", "rhs", "diretores",
-        "coordenadores", "orientadores", "secretarios", "dependentes", "fichaMedica" })
+@EqualsAndHashCode(callSuper = false, exclude = { "professor", "aluno", "responsavel", "rh", "diretor",
+        "coordenador", "orientador", "secretario", "dependentes", "fichaMedica" })
 public class DadosPessoais extends EntidadeBase {
 
     @Id
@@ -107,30 +107,25 @@ public class DadosPessoais extends EntidadeBase {
     @JsonIgnore
     private FichaMedica fichaMedica;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Rh> rhs = new ArrayList<>();
+    private Rh rh;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Diretor> diretores = new ArrayList<>();
+    private Diretor diretor;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Coordenador> coordenadores = new ArrayList<>();
+    private Coordenador coordenador;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Orientador> orientadores = new ArrayList<>();
+    private Orientador orientador;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Secretario> secretarios = new ArrayList<>();
+    private Secretario secretario;
 
     @NotAudited
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
