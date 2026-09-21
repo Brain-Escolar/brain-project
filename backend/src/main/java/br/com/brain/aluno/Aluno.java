@@ -4,6 +4,7 @@ import br.com.brain.shared.EntidadeBase;
 import br.com.brain.anotacao.Anotacao;
 import br.com.brain.chamada.Chamada;
 import br.com.brain.dadosPessoais.DadosPessoais;
+import br.com.brain.endereco.Endereco;
 import br.com.brain.notas.Notas;
 import br.com.brain.responsavel.Responsavel;
 import br.com.brain.serie.Serie;
@@ -89,4 +90,36 @@ public class Aluno extends EntidadeBase {
     @NotAudited
     @OneToMany(mappedBy = "aluno")
     private List<Chamada> chamadas;
+
+    public boolean isCadastroCompleto() {
+        if (dadosPessoais == null) {
+            return false;
+        }
+        boolean dadosOk = !isBlank(dadosPessoais.getCpf())
+                && dadosPessoais.getDataDeNascimento() != null
+                && enderecoPreenchido(dadosPessoais.getEndereco())
+                && !dadosPessoais.getTelefonesNumeros().isEmpty();
+        boolean temResponsavelFinanceiroCompleto = responsaveis != null && responsaveis.stream()
+                .anyMatch(r -> Boolean.TRUE.equals(r.getFinanceiro()) && responsavelCompleto(r));
+        return dadosOk && temResponsavelFinanceiroCompleto;
+    }
+
+    private static boolean enderecoPreenchido(Endereco endereco) {
+        return endereco != null
+                && !isBlank(endereco.getLogradouro())
+                && !isBlank(endereco.getCep())
+                && !isBlank(endereco.getNumero());
+    }
+
+    private static boolean responsavelCompleto(Responsavel responsavel) {
+        var dp = responsavel.getDadosPessoais();
+        return dp != null
+                && !isBlank(dp.getNome())
+                && !isBlank(dp.getCpf())
+                && !dp.getTelefonesNumeros().isEmpty();
+    }
+
+    private static boolean isBlank(String valor) {
+        return valor == null || valor.isBlank();
+    }
 }

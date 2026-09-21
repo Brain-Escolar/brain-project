@@ -889,10 +889,12 @@ export default function CrmPage() {
           open={!!processoInteracao}
           onClose={() => setProcessoInteracao(null)}
           processoId={processoInteracao.id}
+          alunoId={processoInteracao.alunoId}
           alunoNome={processoInteracao.alunoNome}
           responsavelNome={processoInteracao.responsavelNome}
           estagioAtualId={processoInteracao.estagioId}
           estagios={estagiosOrdenados}
+          cadastroCompleto={processoInteracao.alunoCadastroCompleto}
         />
       )}
 

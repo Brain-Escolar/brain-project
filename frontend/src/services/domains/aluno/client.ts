@@ -3,6 +3,7 @@ import { AlunoDetalheResponse, AlunoListaResponse, AnotacaoAlunoDisciplinaRespon
 import { IBrainResult } from "@/services/commoResponse";
 import {
   AlunoDesmatricularRequest,
+  AlunoListaParams,
   AlunoPostRequest,
   AlunoPutRequest,
   AlunoVincularSerieRequest,
@@ -15,8 +16,8 @@ export class AlunoApi {
     return httpClient.post(`${BASE_ROUTE}`, request);
   }
 
-  getListaAlunos(): Promise<IBrainResult<AlunoListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
+  getListaAlunos(params?: AlunoListaParams): Promise<IBrainResult<AlunoListaResponse>> {
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500, ...params } });
   }
 
   getAlunoById(id: string): Promise<AlunoDetalheResponse> {
@@ -31,12 +32,12 @@ export class AlunoApi {
     return httpClient.delete(`${BASE_ROUTE}/${id}`);
   }
 
-  getLeads(): Promise<IBrainResult<AlunoListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}/leads`);
+  getLeads(params?: AlunoListaParams): Promise<IBrainResult<AlunoListaResponse>> {
+    return httpClient.get(`${BASE_ROUTE}/leads`, { params });
   }
 
-  getDesmatriculados(): Promise<IBrainResult<AlunoListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}/desmatriculados`);
+  getDesmatriculados(params?: AlunoListaParams): Promise<IBrainResult<AlunoListaResponse>> {
+    return httpClient.get(`${BASE_ROUTE}/desmatriculados`, { params });
   }
 
   matricularAluno(id: string): Promise<AlunoDetalheResponse> {

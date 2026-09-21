@@ -367,6 +367,12 @@ public class ProcessoMatriculaService {
         if (ultimoEstagio != null && ultimoEstagio.getId().equals(novoEstagio.getId())) {
             processo.setStatus(StatusProcessoMatricula.MATRICULADO);
             processo.setDataConclusao(Instant.now());
+
+            var aluno = processo.getAluno();
+            var cpf = aluno.getDadosPessoais().getCpf();
+            if (!Boolean.TRUE.equals(aluno.getMatriculado()) && cpf != null && !cpf.isBlank()) {
+                alunoService.matricular(aluno.getId());
+            }
         }
     }
 

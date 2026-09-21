@@ -317,12 +317,18 @@ class ProcessoMatriculaServiceTest {
     }
 
     @Test
-    @DisplayName("registrarInteracao: movendo para o ultimo estagio, marca o processo como matriculado")
+    @DisplayName("registrarInteracao: movendo para o ultimo estagio, marca o processo como matriculado e efetiva a matricula do aluno")
     void registrarInteracaoMovendoParaUltimoEstagioMarcaMatriculado() {
         var estagioAtual = estagio(6L, "Documentacao", 6);
         var ultimoEstagio = estagio(7L, "Matriculado", 7);
+        var aluno = new Aluno();
+        aluno.setId(1L);
+        var dadosPessoais = dadosPessoais(1L, "Fulano");
+        dadosPessoais.setCpf("123.456.789-00");
+        aluno.setDadosPessoais(dadosPessoais);
         var processo = new ProcessoMatricula();
         processo.setId(10L);
+        processo.setAluno(aluno);
         processo.setEstagioAtual(estagioAtual);
         processo.setStatus(StatusProcessoMatricula.ATIVO);
 
@@ -337,6 +343,34 @@ class ProcessoMatriculaServiceTest {
 
         assertThat(processo.getStatus()).isEqualTo(StatusProcessoMatricula.MATRICULADO);
         assertThat(processo.getDataConclusao()).isNotNull();
+        verify(alunoService).matricular(1L);
+    }
+
+    @Test
+    @DisplayName("registrarInteracao: movendo para o ultimo estagio sem CPF cadastrado, nao efetiva a matricula do aluno")
+    void registrarInteracaoMovendoParaUltimoEstagioSemCpfNaoMatricula() {
+        var estagioAtual = estagio(6L, "Documentacao", 6);
+        var ultimoEstagio = estagio(7L, "Matriculado", 7);
+        var aluno = new Aluno();
+        aluno.setId(1L);
+        aluno.setDadosPessoais(dadosPessoais(1L, "Fulano"));
+        var processo = new ProcessoMatricula();
+        processo.setId(10L);
+        processo.setAluno(aluno);
+        processo.setEstagioAtual(estagioAtual);
+        processo.setStatus(StatusProcessoMatricula.ATIVO);
+
+        when(repository.findById(10L)).thenReturn(Optional.of(processo));
+        when(historicoEstagioRepository.findByProcessoIdAndDataSaidaIsNull(10L)).thenReturn(Optional.empty());
+        when(funilEstagioRepository.findById(7L)).thenReturn(Optional.of(ultimoEstagio));
+        when(funilEstagioRepository.findTopByOrderByOrdemDesc()).thenReturn(Optional.of(ultimoEstagio));
+
+        var dados = new CadastroInteracaoDto(TipoInteracao.ANOTACAO, null, null, null, 7L, null);
+
+        service.registrarInteracao(10L, dados, null);
+
+        assertThat(processo.getStatus()).isEqualTo(StatusProcessoMatricula.MATRICULADO);
+        verify(alunoService, never()).matricular(anyLong());
     }
 
     @Test

@@ -79,16 +79,19 @@ public class AlunoService {
         return alunoCadastrado;
     }
 
-    public Page<ListagemAlunoDto> listarAlunos(Pageable paginacao) {
-        return repository.findByMatriculadoTrue(paginacao).map(ListagemAlunoDto::new);
+    public Page<ListagemAlunoDto> listarAlunos(String busca, Long serieId, Long unidadeId, Pageable paginacao) {
+        var spec = AlunoSpecifications.comFiltros(true, null, busca, serieId, unidadeId);
+        return repository.findAll(spec, paginacao).map(ListagemAlunoDto::new);
     }
 
-    public Page<ListagemAlunoDto> listarLeads(Pageable paginacao) {
-        return repository.findByMatriculadoFalseAndDataDesmatriculaIsNull(paginacao).map(ListagemAlunoDto::new);
+    public Page<ListagemAlunoDto> listarLeads(String busca, Long serieId, Long unidadeId, Pageable paginacao) {
+        var spec = AlunoSpecifications.comFiltros(false, false, busca, serieId, unidadeId);
+        return repository.findAll(spec, paginacao).map(ListagemAlunoDto::new);
     }
 
-    public Page<ListagemAlunoDto> listarDesmatriculados(Pageable paginacao) {
-        return repository.findByMatriculadoFalseAndDataDesmatriculaIsNotNull(paginacao).map(ListagemAlunoDto::new);
+    public Page<ListagemAlunoDto> listarDesmatriculados(String busca, Long serieId, Long unidadeId, Pageable paginacao) {
+        var spec = AlunoSpecifications.comFiltros(false, true, busca, serieId, unidadeId);
+        return repository.findAll(spec, paginacao).map(ListagemAlunoDto::new);
     }
 
     @Transactional
@@ -100,11 +103,25 @@ public class AlunoService {
         dadosPessoais.atualizarNome(dados.nome());
         dadosPessoais.atualizarDataDeNascimento(dados.dataDeNascimento());
         dadosPessoais.atualizarEmail(dados.email());
+        dadosPessoais.atualizarCpf(dados.cpf());
+        dadosPessoais.atualizarRg(dados.rg());
+        if (dados.telefones() != null) {
+            dadosPessoais.setTelefones(dados.telefones());
+        }
 
-        var endereco = enderecoService.atualizarEndereco(dadosPessoais.getEndereco(), dados.endereco());
-        dadosPessoais.atualizarEndereco(endereco);
+        if (dados.endereco() != null) {
+            var endereco = enderecoService.atualizarEndereco(dadosPessoais.getEndereco(), dados.endereco());
+            dadosPessoais.atualizarEndereco(endereco);
+        }
 
         repository.save(aluno);
+
+        if (dados.responsaveis() != null && !dados.responsaveis().isEmpty()) {
+            for (CadastroResponsavelDto responsavelDto : dados.responsaveis()) {
+                var responsavelCadastrado = responsavelService.cadastrarResponsavel(responsavelDto, aluno.getId());
+                aluno.getResponsaveis().add(responsavelCadastrado);
+            }
+        }
 
         return aluno;
     }

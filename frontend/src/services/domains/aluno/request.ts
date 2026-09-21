@@ -46,3 +46,11 @@ export interface AlunoVincularSerieRequest {
 export interface AlunoDesmatricularRequest {
   motivo: string;
 }
+
+export interface AlunoListaParams {
+  page?: number;
+  size?: number;
+  busca?: string;
+  serieId?: number;
+  unidadeId?: number;
+}

@@ -32,6 +32,7 @@ import { useCrmEstagios } from "@/hooks/useCrmEstagios";
 import { useCrmEquipe } from "@/hooks/useCrmEquipe";
 import { useCrmMutations } from "@/hooks/useCrmMutations";
 import RegistrarInteracaoDialog from "../_components/RegistrarInteracaoDialog";
+import AvisoCadastroIncompletoDialog from "../_components/AvisoCadastroIncompletoDialog";
 
 function iniciais(nome: string): string {
   const partes = nome.trim().split(/\s+/);
@@ -75,6 +76,7 @@ export default function DetalheLeadCrmPage() {
   const [modalInteracao, setModalInteracao] = useState(false);
   const [modalPerdido, setModalPerdido] = useState(false);
   const [modalReatribuir, setModalReatribuir] = useState(false);
+  const [avisoIncompleto, setAvisoIncompleto] = useState(false);
   const [motivoPerda, setMotivoPerda] = useState("");
   const [novoFuncionarioId, setNovoFuncionarioId] = useState<number | "">("");
 
@@ -87,6 +89,16 @@ export default function DetalheLeadCrmPage() {
     processo != null &&
     estagiosOrdenados.length > 0 &&
     processo.estagioAtualId === estagiosOrdenados[estagiosOrdenados.length - 1].id;
+
+  const indiceEstagioAtual = estagiosOrdenados.findIndex((e) => e.id === processo?.estagioAtualId);
+  const avancoLevaAoUltimoEstagio = indiceEstagioAtual === estagiosOrdenados.length - 2;
+
+  async function handleAvancarEstagio() {
+    await avancarEstagio.mutateAsync();
+    if (avancoLevaAoUltimoEstagio && processo != null && !processo.alunoCadastroCompleto) {
+      setAvisoIncompleto(true);
+    }
+  }
 
   if (loading || !processo) {
     return (
@@ -161,7 +173,7 @@ export default function DetalheLeadCrmPage() {
               <Button
                 variant="contained"
                 startIcon={<ArrowForwardIcon />}
-                onClick={() => avancarEstagio.mutate()}
+                onClick={handleAvancarEstagio}
                 disabled={avancarEstagio.isPending}
               >
                 Avançar estágio
@@ -342,10 +354,18 @@ export default function DetalheLeadCrmPage() {
         open={modalInteracao}
         onClose={() => setModalInteracao(false)}
         processoId={processo.id}
+        alunoId={processo.alunoId}
         alunoNome={processo.alunoNome}
         responsavelNome={processo.responsavelNome}
         estagioAtualId={processo.estagioAtualId}
         estagios={estagiosOrdenados}
+        cadastroCompleto={processo.alunoCadastroCompleto}
+      />
+
+      <AvisoCadastroIncompletoDialog
+        open={avisoIncompleto}
+        onClose={() => setAvisoIncompleto(false)}
+        alunoId={processo.alunoId}
       />
 
       <Dialog open={modalPerdido} onClose={() => setModalPerdido(false)} maxWidth="xs" fullWidth>

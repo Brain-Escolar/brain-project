@@ -38,6 +38,7 @@ export interface ListagemProcessoCrmResponse {
   criadoEm: string;
   diasNoEstagio: number;
   proximaAcao?: string;
+  alunoCadastroCompleto: boolean;
 }
 
 export interface StepFunilResponse {
@@ -83,6 +84,7 @@ export interface DetalhamentoProcessoCrmResponse {
   steps: StepFunilResponse[];
   interacoes: ListagemInteracaoResponse[];
   proximaAcao?: string;
+  alunoCadastroCompleto: boolean;
 }
 
 export interface RelatorioCrmResponse {

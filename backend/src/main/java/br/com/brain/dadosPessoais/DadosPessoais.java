@@ -216,7 +216,11 @@ public class DadosPessoais extends EntidadeBase {
     }
 
     public void setTelefones(List<String> numeros) {
-        this.telefones = new ArrayList<>();
+        if (this.telefones == null) {
+            this.telefones = new ArrayList<>();
+        } else {
+            this.telefones.clear();
+        }
         if (numeros == null) return;
         for (String numero : numeros) {
             Telefone telefone = new Telefone();

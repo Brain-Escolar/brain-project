@@ -2,7 +2,7 @@
 import { RoutesEnum } from "@/enums";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useAlunoMutations } from "@/app/(private)/aluno/useAlunoMutations";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Paper,
   Table,
@@ -22,10 +22,13 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { Edit, Delete, Add } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
+import Badge from "@/components/badge";
 
 export default function ListaAlunoPage() {
   const router = useRouter();
@@ -38,6 +41,17 @@ export default function ListaAlunoPage() {
     id: string;
     nome: string;
   } | null>(null);
+  const [apenasIncompletos, setApenasIncompletos] = useState(false);
+
+  const alunosIncompletos = useMemo(
+    () => alunos.filter((aluno) => !aluno.cadastroCompleto).length,
+    [alunos],
+  );
+
+  const alunosExibidos = useMemo(
+    () => (apenasIncompletos ? alunos.filter((aluno) => !aluno.cadastroCompleto) : alunos),
+    [alunos, apenasIncompletos],
+  );
 
   const handleEditAluno = (alunoId: string) => {
     router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${alunoId}`);
@@ -95,6 +109,28 @@ export default function ListaAlunoPage() {
         </Alert>
       )}
 
+      {!loading && !error && alunosIncompletos > 0 && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 2 }}
+          action={
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={apenasIncompletos}
+                  onChange={(e) => setApenasIncompletos(e.target.checked)}
+                />
+              }
+              label="Mostrar só incompletos"
+              sx={{ mr: 0 }}
+            />
+          }
+        >
+          {alunosIncompletos} aluno{alunosIncompletos > 1 ? "s" : ""} com cadastro incompleto
+        </Alert>
+      )}
+
       {!loading && !error && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
           <Table sx={{ minWidth: 650 }} aria-label="tabela de alunos">
@@ -105,11 +141,12 @@ export default function ListaAlunoPage() {
                 <TableCell sx={{ fontWeight: "bold" }}>CPF</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>E-mail</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>E-mail Escolar</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Cadastro</TableCell>
                 <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {alunos.map((aluno) => (
+              {alunosExibidos.map((aluno) => (
                 <TableRow
                   key={aluno.id}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -132,6 +169,11 @@ export default function ListaAlunoPage() {
                   <TableCell>{aluno.cpf}</TableCell>
                   <TableCell>{aluno.email}</TableCell>
                   <TableCell>{aluno.emailEscolar}</TableCell>
+                  <TableCell>
+                    <Badge $tone={aluno.cadastroCompleto ? "success" : "warning"}>
+                      {aluno.cadastroCompleto ? "Completo" : "Incompleto"}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                       <IconButton

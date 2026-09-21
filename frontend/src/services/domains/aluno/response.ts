@@ -49,6 +49,7 @@ export interface AlunoListaResponse {
   motivoDesmatricula?: string;
   dataDesmatricula?: string;
   criadoEm?: string;
+  cadastroCompleto: boolean;
 }
 
 export interface ResponsavelResumoResponse {

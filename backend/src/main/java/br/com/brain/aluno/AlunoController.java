@@ -54,15 +54,21 @@ public class AlunoController {
 
     @GetMapping("leads")
     public ResponseEntity<Page<ListagemAlunoDto>> listarLeads(
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) Long serieId,
+            @RequestParam(required = false) Long unidadeId,
             @PageableDefault(size = 10, sort = { "dadosPessoais.nome" }) Pageable paginacao) {
-        var page = service.listarLeads(paginacao);
+        var page = service.listarLeads(busca, serieId, unidadeId, paginacao);
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("desmatriculados")
     public ResponseEntity<Page<ListagemAlunoDto>> listarDesmatriculados(
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) Long serieId,
+            @RequestParam(required = false) Long unidadeId,
             @PageableDefault(size = 10, sort = { "dadosPessoais.nome" }) Pageable paginacao) {
-        var page = service.listarDesmatriculados(paginacao);
+        var page = service.listarDesmatriculados(busca, serieId, unidadeId, paginacao);
         return ResponseEntity.ok(page);
     }
 
@@ -74,8 +80,11 @@ public class AlunoController {
 
     @GetMapping
     public ResponseEntity<Page<ListagemAlunoDto>> listarAlunos(
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) Long serieId,
+            @RequestParam(required = false) Long unidadeId,
             @PageableDefault(size = 10, sort = { "dadosPessoais.nome" }) Pageable paginacao) {
-        var page = service.listarAlunos(paginacao);
+        var page = service.listarAlunos(busca, serieId, unidadeId, paginacao);
         return ResponseEntity.ok(page);
     }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -28,6 +28,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   TextField,
   Typography,
@@ -48,6 +49,7 @@ import { useTurmas } from "@/hooks/useTurmas";
 import { useSeries } from "@/hooks/useSeries";
 import { useUnidades } from "@/hooks/useUnidades";
 import { useAlunoMatriculaMutations } from "@/hooks/useAlunoMatriculaMutations";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { AlunoDetalheResponse, AlunoListaResponse } from "@/services/domains/aluno/response";
 import { TurmaListaResponse } from "@/services/domains/turma/response";
 import { alunoApi } from "@/services/api";
@@ -80,15 +82,55 @@ export default function MatriculasPage() {
 
   const [tab, setTab] = useState<TabValue>("leads");
   const [busca, setBusca] = useState("");
-  const [filtroSerie, setFiltroSerie] = useState("Todas");
-  const [filtroUnidade, setFiltroUnidade] = useState("Todas");
+  const [filtroSerie, setFiltroSerie] = useState<number | "Todas">("Todas");
+  const [filtroUnidade, setFiltroUnidade] = useState<number | "Todas">("Todas");
+  const buscaDebounced = useDebouncedValue(busca, 400);
 
-  const { leads, loading: loadingLeads } = useLeads();
-  const { alunos: matriculados, loading: loadingMatriculados } = useAlunos();
-  const { desmatriculados, loading: loadingDesmatriculados } = useDesmatriculados();
+  const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [pageLeads, setPageLeads] = useState(0);
+  const [pageMatriculados, setPageMatriculados] = useState(0);
+  const [pageDesmatriculados, setPageDesmatriculados] = useState(0);
+
+  useEffect(() => {
+    setPageLeads(0);
+    setPageMatriculados(0);
+    setPageDesmatriculados(0);
+  }, [buscaDebounced, filtroSerie, filtroUnidade]);
+
+  const filtrosComuns = {
+    busca: buscaDebounced || undefined,
+    serieId: filtroSerie === "Todas" ? undefined : filtroSerie,
+    unidadeId: filtroUnidade === "Todas" ? undefined : filtroUnidade,
+    size: rowsPerPage,
+  };
+
+  const { leads, totalElements: totalLeads, loading: loadingLeads } = useLeads({
+    ...filtrosComuns,
+    page: pageLeads,
+  });
+  const {
+    alunos: matriculados,
+    totalElements: totalMatriculados,
+    loading: loadingMatriculados,
+  } = useAlunos({ ...filtrosComuns, page: pageMatriculados });
+  const {
+    desmatriculados,
+    totalElements: totalDesmatriculados,
+    loading: loadingDesmatriculados,
+  } = useDesmatriculados({ ...filtrosComuns, page: pageDesmatriculados });
   const { turmas, loading: loadingTurmas } = useTurmas();
   const { series } = useSeries();
   const { unidades } = useUnidades();
+
+  const paginacaoAtual = {
+    leads: { page: pageLeads, total: totalLeads, setPage: setPageLeads },
+    matriculados: { page: pageMatriculados, total: totalMatriculados, setPage: setPageMatriculados },
+    desmatriculados: {
+      page: pageDesmatriculados,
+      total: totalDesmatriculados,
+      setPage: setPageDesmatriculados,
+    },
+  }[tab];
 
   const [modal, setModal] = useState<ModalType>(null);
   const [ctxAluno, setCtxAluno] = useState<AlunoListaResponse | null>(null);
@@ -176,34 +218,6 @@ export default function MatriculasPage() {
     fecharModal();
   }
 
-  const filtrar = (item: AlunoListaResponse) => {
-    const q = busca.trim().toLowerCase();
-    const matchBusca =
-      !q ||
-      item.nome.toLowerCase().includes(q) ||
-      (item.cpf ?? "").includes(q) ||
-      (item.matricula ?? "").toLowerCase().includes(q);
-    const matchSerie = filtroSerie === "Todas" || item.serie === filtroSerie;
-    const matchUnidade = filtroUnidade === "Todas" || item.unidade === filtroUnidade;
-    return matchBusca && matchSerie && matchUnidade;
-  };
-
-  const leadsFiltrados = useMemo(
-    () => leads.filter(filtrar),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [leads, busca, filtroSerie, filtroUnidade],
-  );
-  const matriculadosFiltrados = useMemo(
-    () => matriculados.filter(filtrar),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [matriculados, busca, filtroSerie, filtroUnidade],
-  );
-  const desmatriculadosFiltrados = useMemo(
-    () => desmatriculados.filter(filtrar),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [desmatriculados, busca, filtroSerie, filtroUnidade],
-  );
-
   const loading = loadingLeads || loadingMatriculados || loadingDesmatriculados;
 
   return (
@@ -226,9 +240,9 @@ export default function MatriculasPage() {
           value={tab}
           onChange={setTab}
           options={[
-            { value: "leads", label: `Leads · ${leads.length}` },
-            { value: "matriculados", label: `Matriculados · ${matriculados.length}` },
-            { value: "desmatriculados", label: `Desmatriculados · ${desmatriculados.length}` },
+            { value: "leads", label: `Leads · ${totalLeads}` },
+            { value: "matriculados", label: `Matriculados · ${totalMatriculados}` },
+            { value: "desmatriculados", label: `Desmatriculados · ${totalDesmatriculados}` },
           ]}
         />
       </Box>
@@ -250,18 +264,26 @@ export default function MatriculasPage() {
             },
           }}
         />
-        <Select size="small" value={filtroSerie} onChange={(e) => setFiltroSerie(e.target.value)}>
+        <Select
+          size="small"
+          value={filtroSerie}
+          onChange={(e) => setFiltroSerie(e.target.value === "Todas" ? "Todas" : Number(e.target.value))}
+        >
           <MenuItem value="Todas">Todas as séries</MenuItem>
           {series.map((s) => (
-            <MenuItem key={s.id} value={s.nome}>
+            <MenuItem key={s.id} value={s.id}>
               {s.nome}
             </MenuItem>
           ))}
         </Select>
-        <Select size="small" value={filtroUnidade} onChange={(e) => setFiltroUnidade(e.target.value)}>
+        <Select
+          size="small"
+          value={filtroUnidade}
+          onChange={(e) => setFiltroUnidade(e.target.value === "Todas" ? "Todas" : Number(e.target.value))}
+        >
           <MenuItem value="Todas">Todas as unidades</MenuItem>
           {unidades.map((u) => (
-            <MenuItem key={u.id} value={u.nome}>
+            <MenuItem key={u.id} value={u.id}>
               {u.nome}
             </MenuItem>
           ))}
@@ -276,14 +298,14 @@ export default function MatriculasPage() {
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
           {tab === "leads" && (
             <LeadsTable
-              leads={leadsFiltrados}
+              leads={leads}
               onEditar={(id) => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${id}`)}
               onMatricular={abrirMatricular}
             />
           )}
           {tab === "matriculados" && (
             <MatriculadosTable
-              alunos={matriculadosFiltrados}
+              alunos={matriculados}
               onVerDetalhe={verDetalhe}
               onVincular={abrirVincular}
               onDesmatricular={abrirDesmatricular}
@@ -291,11 +313,26 @@ export default function MatriculasPage() {
           )}
           {tab === "desmatriculados" && (
             <DesmatriculadosTable
-              alunos={desmatriculadosFiltrados}
+              alunos={desmatriculados}
               onVerDetalhe={verDetalhe}
               onRematricular={abrirRematricular}
             />
           )}
+          <TablePagination
+            component="div"
+            count={paginacaoAtual.total}
+            page={paginacaoAtual.page}
+            onPageChange={(_, novaPagina) => paginacaoAtual.setPage(novaPagina)}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={[10, 20, 50]}
+            labelRowsPerPage="Linhas por página"
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPageLeads(0);
+              setPageMatriculados(0);
+              setPageDesmatriculados(0);
+            }}
+          />
         </TableContainer>
       )}
 

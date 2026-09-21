@@ -19,6 +19,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import { useCrmMutations } from "@/hooks/useCrmMutations";
 import { CadastroInteracaoRequest } from "@/services/domains/crm";
 import { FunilEstagioResponse } from "@/services/domains/crm";
+import AvisoCadastroIncompletoDialog from "./AvisoCadastroIncompletoDialog";
 
 const TIPOS: { value: CadastroInteracaoRequest["tipo"]; label: string }[] = [
   { value: "LIGACAO", label: "Ligação" },
@@ -33,10 +34,12 @@ interface RegistrarInteracaoDialogProps {
   open: boolean;
   onClose: () => void;
   processoId: number;
+  alunoId: number;
   alunoNome: string;
   responsavelNome?: string;
   estagioAtualId: number;
   estagios: FunilEstagioResponse[];
+  cadastroCompleto: boolean;
   onSuccess?: () => void;
 }
 
@@ -44,10 +47,12 @@ export default function RegistrarInteracaoDialog({
   open,
   onClose,
   processoId,
+  alunoId,
   alunoNome,
   responsavelNome,
   estagioAtualId,
   estagios,
+  cadastroCompleto,
   onSuccess,
 }: RegistrarInteracaoDialogProps) {
   const { registrarInteracao } = useCrmMutations(processoId);
@@ -58,6 +63,7 @@ export default function RegistrarInteracaoDialog({
   const [proximaAcao, setProximaAcao] = useState("");
   const [novoEstagioId, setNovoEstagioId] = useState<number | "">(estagioAtualId);
   const [subestagio, setSubestagio] = useState("");
+  const [avisoIncompleto, setAvisoIncompleto] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -71,20 +77,30 @@ export default function RegistrarInteracaoDialog({
   }, [open, estagioAtualId]);
 
   async function confirmar() {
+    const moveuParaEstagioId = novoEstagioId !== estagioAtualId ? Number(novoEstagioId) : undefined;
     const dados: CadastroInteracaoRequest = {
       tipo,
       resultado,
       observacoes: observacoes || undefined,
       proximaAcao: proximaAcao ? new Date(proximaAcao).toISOString() : undefined,
-      moverParaEstagioId: novoEstagioId !== estagioAtualId ? Number(novoEstagioId) : undefined,
+      moverParaEstagioId: moveuParaEstagioId,
       subestagio: subestagio || undefined,
     };
     await registrarInteracao.mutateAsync(dados);
     onSuccess?.();
     onClose();
+
+    const ultimoEstagioId = estagios.reduce(
+      (maior, e) => (e.ordem > maior.ordem ? e : maior),
+      estagios[0],
+    )?.id;
+    if (moveuParaEstagioId !== undefined && moveuParaEstagioId === ultimoEstagioId && !cadastroCompleto) {
+      setAvisoIncompleto(true);
+    }
   }
 
   return (
+    <>
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Registrar interação</DialogTitle>
       <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
@@ -182,5 +198,12 @@ export default function RegistrarInteracaoDialog({
         </Button>
       </DialogActions>
     </Dialog>
+
+    <AvisoCadastroIncompletoDialog
+      open={avisoIncompleto}
+      onClose={() => setAvisoIncompleto(false)}
+      alunoId={alunoId}
+    />
+    </>
   );
 }

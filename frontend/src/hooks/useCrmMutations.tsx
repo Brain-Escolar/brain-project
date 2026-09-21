@@ -25,10 +25,23 @@ export function useCrmMutations(processoId?: string | number) {
     return queryClient.invalidateQueries({ queryKey: QUERY_KEYS.crm.all });
   }
 
+  /**
+   * criarLead cria um Aluno (com dado minimo) e avancar/registrar interacao
+   * pode efetivar a matricula dele (ver ProcessoMatriculaService.moverEstagio)
+   * — sem isso as telas de Matriculas/lista de alunos ficam com cache velho,
+   * sem saber que um Aluno mudou por baixo do CRM.
+   */
+  function invalidarListasEAlunos() {
+    return Promise.all([
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.crm.all }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.alunos.all }),
+    ]);
+  }
+
   const criarLead = useMutation({
     mutationFn: (dados: CadastroLeadCrmRequest) => crmApi.criarLead(dados),
     onSuccess: async () => {
-      await invalidarListas();
+      await invalidarListasEAlunos();
       toast.success("Lead criado com sucesso!");
     },
     onError: () => toast.error("Erro ao criar lead. Tente novamente."),
@@ -40,7 +53,7 @@ export function useCrmMutations(processoId?: string | number) {
       return crmApi.registrarInteracao(processoId, dados);
     },
     onSuccess: async () => {
-      await invalidarListas();
+      await invalidarListasEAlunos();
       toast.success("Interação registrada com sucesso!");
     },
     onError: () => toast.error("Erro ao registrar interação. Tente novamente."),
@@ -52,7 +65,7 @@ export function useCrmMutations(processoId?: string | number) {
       return crmApi.avancarEstagio(processoId);
     },
     onSuccess: async () => {
-      await invalidarListas();
+      await invalidarListasEAlunos();
       toast.success("Processo avançou de estágio!");
     },
     onError: () => toast.error("Erro ao avançar estágio. Tente novamente."),

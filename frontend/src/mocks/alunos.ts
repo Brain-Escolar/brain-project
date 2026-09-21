@@ -16,6 +16,7 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
   {
     id: 2,
@@ -32,6 +33,7 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
   {
     id: 3,
@@ -48,6 +50,7 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
   {
     id: 4,
@@ -64,6 +67,7 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
   {
     id: 5,
@@ -80,6 +84,7 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
   {
     id: 6,
@@ -96,6 +101,7 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
   {
     id: 7,
@@ -112,6 +118,7 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
   {
     id: 8,
@@ -128,6 +135,7 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
   {
     id: 9,
@@ -144,6 +152,7 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
   {
     id: 10,
@@ -160,5 +169,6 @@ export const mockAlunos: AlunoListaResponse[] = [
     serie: "6º Ano",
     turma: "6º Ano A",
     matriculado: true,
+    cadastroCompleto: true,
   },
 ];
