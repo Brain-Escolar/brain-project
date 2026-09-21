@@ -7,6 +7,7 @@ import br.com.brain.crm.dto.MoverFunilEstagioDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,6 +50,12 @@ public class FunilEstagioController {
     @PostMapping("/{id}/mover")
     public ResponseEntity<Void> mover(@PathVariable("id") Long id, @RequestBody MoverFunilEstagioDto direcao) {
         service.mover(id, direcao);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable("id") Long id) {
+        service.excluir(id);
         return ResponseEntity.noContent().build();
     }
 }

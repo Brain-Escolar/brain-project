@@ -45,7 +45,13 @@ export class CrmApi {
   }
 
   moverEstagio(id: number, direcao: "CIMA" | "BAIXO"): Promise<void> {
-    return httpClient.post(`${BASE_ROUTE}/estagios/${id}/mover`, direcao);
+    return httpClient.post(`${BASE_ROUTE}/estagios/${id}/mover`, JSON.stringify(direcao), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  excluirEstagio(id: number): Promise<void> {
+    return httpClient.delete(`${BASE_ROUTE}/estagios/${id}`);
   }
 
   getProcessos(params?: ListarProcessosCrmParams): Promise<ListagemProcessoCrmResponse[]> {

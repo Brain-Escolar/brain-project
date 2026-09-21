@@ -42,10 +42,6 @@ const GlobalStyle = createGlobalStyle`
     display: none;
   }
 
-  p, span, h1, h2, h3, h4, h5, h6 {
-    color: var(--colors-text);
-  }
-
   /* Escala tipográfica Brain (proporção 1.2) */
   h1 {
     font-family: var(--fonts-heading);

@@ -316,7 +316,6 @@ export default function ComunicadosPage() {
                                 color: "#fff",
                                 fontWeight: 500,
                                 flexShrink: 0,
-                                "& .MuiChip-label": { color: "#fff" },
                               }}
                             />
                           </Box>

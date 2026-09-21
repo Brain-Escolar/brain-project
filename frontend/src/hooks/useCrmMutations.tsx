@@ -22,13 +22,13 @@ export function useCrmMutations(processoId?: string | number) {
   const queryClient = useQueryClient();
 
   function invalidarListas() {
-    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.crm.all });
+    return queryClient.invalidateQueries({ queryKey: QUERY_KEYS.crm.all });
   }
 
   const criarLead = useMutation({
     mutationFn: (dados: CadastroLeadCrmRequest) => crmApi.criarLead(dados),
-    onSuccess: () => {
-      invalidarListas();
+    onSuccess: async () => {
+      await invalidarListas();
       toast.success("Lead criado com sucesso!");
     },
     onError: () => toast.error("Erro ao criar lead. Tente novamente."),
@@ -39,8 +39,8 @@ export function useCrmMutations(processoId?: string | number) {
       if (!processoId) throw new Error("processoId é obrigatório");
       return crmApi.registrarInteracao(processoId, dados);
     },
-    onSuccess: () => {
-      invalidarListas();
+    onSuccess: async () => {
+      await invalidarListas();
       toast.success("Interação registrada com sucesso!");
     },
     onError: () => toast.error("Erro ao registrar interação. Tente novamente."),
@@ -51,8 +51,8 @@ export function useCrmMutations(processoId?: string | number) {
       if (!processoId) throw new Error("processoId é obrigatório");
       return crmApi.avancarEstagio(processoId);
     },
-    onSuccess: () => {
-      invalidarListas();
+    onSuccess: async () => {
+      await invalidarListas();
       toast.success("Processo avançou de estágio!");
     },
     onError: () => toast.error("Erro ao avançar estágio. Tente novamente."),
@@ -63,8 +63,8 @@ export function useCrmMutations(processoId?: string | number) {
       if (!processoId) throw new Error("processoId é obrigatório");
       return crmApi.marcarPerdido(processoId, dados);
     },
-    onSuccess: () => {
-      invalidarListas();
+    onSuccess: async () => {
+      await invalidarListas();
       toast.success("Processo marcado como perdido.");
     },
     onError: () => toast.error("Erro ao marcar como perdido. Tente novamente."),
@@ -75,8 +75,8 @@ export function useCrmMutations(processoId?: string | number) {
       if (!processoId) throw new Error("processoId é obrigatório");
       return crmApi.reatribuir(processoId, dados);
     },
-    onSuccess: () => {
-      invalidarListas();
+    onSuccess: async () => {
+      await invalidarListas();
       toast.success("Processo reatribuído com sucesso!");
     },
     onError: () => toast.error("Erro ao reatribuir processo. Tente novamente."),
@@ -84,8 +84,8 @@ export function useCrmMutations(processoId?: string | number) {
 
   const atribuirAMim = useMutation({
     mutationFn: (id: string | number) => crmApi.atribuirAMim(id),
-    onSuccess: () => {
-      invalidarListas();
+    onSuccess: async () => {
+      await invalidarListas();
       toast.success("Lead atribuído a você!");
     },
     onError: () => toast.error("Erro ao atribuir lead. Tente novamente."),
@@ -93,8 +93,8 @@ export function useCrmMutations(processoId?: string | number) {
 
   const distribuirFila = useMutation({
     mutationFn: () => crmApi.distribuirFila(),
-    onSuccess: () => {
-      invalidarListas();
+    onSuccess: async () => {
+      await invalidarListas();
       toast.success("Fila distribuída entre a equipe!");
     },
     onError: () => toast.error("Erro ao distribuir a fila. Tente novamente."),
@@ -102,8 +102,8 @@ export function useCrmMutations(processoId?: string | number) {
 
   const criarEstagio = useMutation({
     mutationFn: (dados: CadastroFunilEstagioRequest) => crmApi.criarEstagio(dados),
-    onSuccess: () => {
-      invalidarListas();
+    onSuccess: async () => {
+      await invalidarListas();
       toast.success("Estágio criado com sucesso!");
     },
     onError: () => toast.error("Erro ao criar estágio. Tente novamente."),
@@ -112,8 +112,8 @@ export function useCrmMutations(processoId?: string | number) {
   const atualizarEstagio = useMutation({
     mutationFn: ({ id, dados }: { id: number; dados: AtualizacaoFunilEstagioRequest }) =>
       crmApi.atualizarEstagio(id, dados),
-    onSuccess: () => {
-      invalidarListas();
+    onSuccess: async () => {
+      await invalidarListas();
       toast.success("Estágio atualizado com sucesso!");
     },
     onError: () => toast.error("Erro ao atualizar estágio. Tente novamente."),
@@ -124,6 +124,16 @@ export function useCrmMutations(processoId?: string | number) {
       crmApi.moverEstagio(id, direcao),
     onSuccess: () => invalidarListas(),
     onError: () => toast.error("Erro ao reordenar estágio. Tente novamente."),
+  });
+
+  const excluirEstagio = useMutation({
+    mutationFn: (id: number) => crmApi.excluirEstagio(id),
+    onSuccess: async () => {
+      await invalidarListas();
+      toast.success("Estágio excluído com sucesso!");
+    },
+    onError: (error: Error) =>
+      toast.error(error.message?.replace("HTTP Error: ", "") || "Erro ao excluir estágio. Tente novamente."),
   });
 
   return {
@@ -137,5 +147,6 @@ export function useCrmMutations(processoId?: string | number) {
     criarEstagio,
     atualizarEstagio,
     moverEstagio,
+    excluirEstagio,
   };
 }

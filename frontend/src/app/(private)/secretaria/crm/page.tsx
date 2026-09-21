@@ -28,6 +28,7 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import CallIcon from "@mui/icons-material/Call";
 import RotateRightIcon from "@mui/icons-material/RotateRight";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
@@ -118,13 +119,23 @@ export default function CrmPage() {
     nome: string;
     slaDias: string;
   } | null>(null);
+  const [estagioParaExcluir, setEstagioParaExcluir] = useState<{
+    id: number;
+    nome: string;
+  } | null>(null);
 
   const { processos, loading: loadingProcessos } = useCrmProcessos({ status: "ATIVO" });
   const { estagios } = useCrmEstagios();
   const { equipe } = useCrmEquipe();
   const { relatorio } = useCrmRelatorios(ANO_ATUAL);
-  const { distribuirFila, atribuirAMim, criarEstagio, atualizarEstagio, moverEstagio } =
-    useCrmMutations();
+  const {
+    distribuirFila,
+    atribuirAMim,
+    criarEstagio,
+    atualizarEstagio,
+    moverEstagio,
+    excluirEstagio,
+  } = useCrmMutations();
 
   const meus = useMemo(
     () => processos.filter((p) => p.funcionarioId === meuId),
@@ -385,12 +396,6 @@ export default function CrmPage() {
                     key={t}
                     label={t === "NOVA" ? "Novas" : t === "REMATRICULA" ? "Rematrícula" : "Todos"}
                     color={tipoFunil === t ? "primary" : "default"}
-                    sx={{
-                      ...(tipoFunil === t && {
-                        color: "white",
-                        "& .MuiChip-label": { color: "white" },
-                      }),
-                    }}
                     onClick={() => setTipoFunil(t)}
                   />
                 ))}
@@ -859,6 +864,13 @@ export default function CrmPage() {
                           >
                             <ArrowDownwardIcon fontSize="small" />
                           </IconButton>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => setEstagioParaExcluir({ id: e.id, nome: e.nome })}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -929,11 +941,17 @@ export default function CrmPage() {
             disabled={!novoEstagio?.nome.trim()}
             onClick={async () => {
               if (!novoEstagio) return;
-              await criarEstagio.mutateAsync({
+              const criado = await criarEstagio.mutateAsync({
                 nome: novoEstagio.nome,
                 ordem: estagiosOrdenados.length + 1,
                 slaDias: novoEstagio.slaDias ? Number(novoEstagio.slaDias) : undefined,
               });
+              // O estágio de maior ordem é o estágio terminal do funil (ex.: "Matriculado").
+              // Como o novo estágio é criado no final, ele precisa subir uma posição para
+              // ficar antes do estágio terminal, em vez de substituí-lo.
+              if (estagiosOrdenados.length > 0) {
+                await moverEstagio.mutateAsync({ id: criado.id, direcao: "CIMA" });
+              }
               setNovoEstagio(null);
             }}
           >
@@ -959,23 +977,65 @@ export default function CrmPage() {
             onChange={(e) => setEditandoEstagio((s) => (s ? { ...s, slaDias: e.target.value } : s))}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditandoEstagio(null)}>Cancelar</Button>
+        <DialogActions sx={{ justifyContent: "space-between" }}>
           <Button
-            variant="contained"
-            onClick={async () => {
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={() => {
               if (!editandoEstagio) return;
-              await atualizarEstagio.mutateAsync({
-                id: editandoEstagio.id,
-                dados: {
-                  nome: editandoEstagio.nome,
-                  slaDias: editandoEstagio.slaDias ? Number(editandoEstagio.slaDias) : undefined,
-                },
-              });
+              setEstagioParaExcluir({ id: editandoEstagio.id, nome: editandoEstagio.nome });
               setEditandoEstagio(null);
             }}
           >
-            Salvar
+            Excluir
+          </Button>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button onClick={() => setEditandoEstagio(null)}>Cancelar</Button>
+            <Button
+              variant="contained"
+              onClick={async () => {
+                if (!editandoEstagio) return;
+                await atualizarEstagio.mutateAsync({
+                  id: editandoEstagio.id,
+                  dados: {
+                    nome: editandoEstagio.nome,
+                    slaDias: editandoEstagio.slaDias ? Number(editandoEstagio.slaDias) : undefined,
+                  },
+                });
+                setEditandoEstagio(null);
+              }}
+            >
+              Salvar
+            </Button>
+          </Box>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={!!estagioParaExcluir} onClose={() => setEstagioParaExcluir(null)}>
+        <DialogTitle>Excluir estágio</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tem certeza que deseja excluir o estágio{" "}
+            <strong>{estagioParaExcluir?.nome}</strong>? Essa ação não pode ser desfeita. Estágios
+            com processos de matrícula ou histórico associados não podem ser excluídos.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEstagioParaExcluir(null)} disabled={excluirEstagio.isPending}>
+            Cancelar
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            disabled={excluirEstagio.isPending}
+            startIcon={excluirEstagio.isPending ? <CircularProgress size={16} /> : <DeleteIcon />}
+            onClick={async () => {
+              if (!estagioParaExcluir) return;
+              await excluirEstagio.mutateAsync(estagioParaExcluir.id);
+              setEstagioParaExcluir(null);
+            }}
+          >
+            {excluirEstagio.isPending ? "Excluindo..." : "Excluir"}
           </Button>
         </DialogActions>
       </Dialog>

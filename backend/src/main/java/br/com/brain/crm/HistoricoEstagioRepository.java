@@ -12,4 +12,6 @@ public interface HistoricoEstagioRepository extends JpaRepository<HistoricoEstag
     Optional<HistoricoEstagio> findByProcessoIdAndDataSaidaIsNull(Long processoId);
 
     List<HistoricoEstagio> findByEstagioId(Long estagioId);
+
+    boolean existsByEstagioId(Long estagioId);
 }

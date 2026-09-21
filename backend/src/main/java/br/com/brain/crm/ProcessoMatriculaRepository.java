@@ -16,4 +16,6 @@ public interface ProcessoMatriculaRepository extends JpaRepository<ProcessoMatri
     long countByStatusAndFuncionarioId(StatusProcessoMatricula status, Long funcionarioId);
 
     List<ProcessoMatricula> findByAlunoId(Long alunoId);
+
+    boolean existsByEstagioAtualId(Long estagioAtualId);
 }
