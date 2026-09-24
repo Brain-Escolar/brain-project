@@ -238,5 +238,13 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.responsavel.aluno(alunoId), "ficha-medica"] as const,
     financeiro: (alunoId: number) =>
       [...QUERY_KEYS.responsavel.aluno(alunoId), "financeiro"] as const,
+    documentos: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "documentos"] as const,
+  },
+  documentos: {
+    all: ["documentos"] as const,
+    aluno: (alunoId: number) => [...QUERY_KEYS.documentos.all, "aluno", alunoId] as const,
+    fila: (params?: unknown) => [...QUERY_KEYS.documentos.all, "fila", params ?? {}] as const,
+    detail: (id: number) => [...QUERY_KEYS.documentos.all, "detail", id] as const,
   },
 } as const;

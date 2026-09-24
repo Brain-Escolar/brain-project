@@ -94,7 +94,8 @@ public class Aluno extends EntidadeBase {
     @OneToMany(mappedBy = "aluno")
     private List<Chamada> chamadas;
 
-    public boolean isCadastroCompleto() {
+    /** Dados pessoais do aluno e ao menos um responsavel financeiro com cadastro completo. */
+    public boolean isDadosCompletos() {
         if (dadosPessoais == null) {
             return false;
         }
@@ -104,7 +105,11 @@ public class Aluno extends EntidadeBase {
                 && !dadosPessoais.getTelefonesNumeros().isEmpty();
         boolean temResponsavelFinanceiroCompleto = responsaveis != null && responsaveis.stream()
                 .anyMatch(r -> Boolean.TRUE.equals(r.getFinanceiro()) && responsavelCompleto(r));
-        return dadosOk && temResponsavelFinanceiroCompleto && isDocumentacaoCompleta();
+        return dadosOk && temResponsavelFinanceiroCompleto;
+    }
+
+    public boolean isCadastroCompleto() {
+        return isDadosCompletos() && isDocumentacaoCompleta();
     }
 
     /**

@@ -895,6 +895,8 @@ export default function CrmPage() {
           estagioAtualId={processoInteracao.estagioId}
           estagios={estagiosOrdenados}
           cadastroCompleto={processoInteracao.alunoCadastroCompleto}
+          dadosCompletos={processoInteracao.alunoDadosCompletos}
+          documentacaoCompleta={processoInteracao.alunoDocumentacaoCompleta}
         />
       )}
 

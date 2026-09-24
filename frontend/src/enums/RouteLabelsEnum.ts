@@ -99,4 +99,5 @@ export enum RouteLabelsEnum {
   // Responsavel labels
   OCORRENCIAS = "Ocorrências",
   FINANCEIRO = "Financeiro",
+  DOCUMENTOS = "Documentos",
 }

@@ -18,14 +18,22 @@ import {
   ResumoAlunoResponse,
 } from "./response";
 import { MedicacaoPostRequest } from "./request";
+import {
+  DocumentacaoAlunoResponse,
+  DocumentoResponse,
+  FotoResponse,
+  TipoDocumento,
+  montarFormDocumento,
+  montarFormFoto,
+} from "@/services/domains/documento";
 
 /**
  * Portal do Responsavel.
  *
  * Namespace proprio, separado de `/responsavel` (que e o CRUD da secretaria
  * sobre a entidade Responsavel). O backend valida o vinculo com o aluno a cada
- * chamada. Quase tudo aqui e leitura — as unicas escritas sao a inclusao de
- * medicacao e o anexo de laudo na ficha medica.
+ * chamada. Quase tudo aqui e leitura — as escritas sao inclusoes da familia:
+ * medicacao, laudo, documentos de matricula e foto do aluno.
  */
 const BASE_ROUTE = "portal-responsavel";
 
@@ -96,6 +104,33 @@ export class ResponsavelPortalApi {
     const formData = new FormData();
     formData.append("arquivo", arquivo);
     return httpClient.post(`${BASE_ROUTE}/aluno/${alunoId}/ficha-medica/laudos`, formData);
+  }
+
+  // ---- documentos de matricula ----
+
+  /** Checklist do aluno e do próprio responsável — nunca dos outros responsáveis. */
+  getDocumentacao(alunoId: number): Promise<DocumentacaoAlunoResponse> {
+    return httpClient.get(`${BASE_ROUTE}/aluno/${alunoId}/documentos`);
+  }
+
+  enviarDocumentoDoAluno(
+    alunoId: number,
+    tipo: TipoDocumento,
+    arquivos: File[],
+  ): Promise<DocumentoResponse> {
+    return httpClient.post(
+      `${BASE_ROUTE}/aluno/${alunoId}/documentos`,
+      montarFormDocumento(tipo, arquivos),
+    );
+  }
+
+  /** Documento do próprio responsável logado (identidade, CPF, comprovante). */
+  enviarMeuDocumento(tipo: TipoDocumento, arquivos: File[]): Promise<DocumentoResponse> {
+    return httpClient.post(`${BASE_ROUTE}/meus-documentos`, montarFormDocumento(tipo, arquivos));
+  }
+
+  atualizarFotoDoAluno(alunoId: number, foto: File): Promise<FotoResponse> {
+    return httpClient.put(`${BASE_ROUTE}/aluno/${alunoId}/foto`, montarFormFoto(foto));
   }
 
   /** Só responde 200 se o responsável tiver a flag financeiro no backend. */

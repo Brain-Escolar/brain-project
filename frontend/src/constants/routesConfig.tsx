@@ -30,6 +30,8 @@ import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -419,6 +421,13 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.RESPONSAVEL],
   },
   {
+    text: RouteLabelsEnum.DOCUMENTOS,
+    icon: <DescriptionOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.DOCUMENTOS_RESPONSAVEL,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
     text: RouteLabelsEnum.FINANCEIRO,
     icon: <RequestQuoteOutlinedIcon fontSize="small" />,
     router: RoutesEnum.FINANCEIRO,
@@ -602,6 +611,13 @@ export const ROUTES: RouteConfig[] = [
     text: RouteLabelsEnum.SECRETARIA_CRM,
     icon: <FilterAltIcon fontSize="small" />,
     router: RoutesEnum.SECRETARIA_CRM,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
+    text: RouteLabelsEnum.DOCUMENTOS,
+    icon: <FactCheckOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_DOCUMENTOS,
     isShowMenu: true,
     roles: [UserRoleEnum.SECRETARIO],
   },

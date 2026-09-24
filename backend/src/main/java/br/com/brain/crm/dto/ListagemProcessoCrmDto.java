@@ -25,7 +25,9 @@ public record ListagemProcessoCrmDto(
         Instant criadoEm,
         long diasNoEstagio,
         Instant proximaAcao,
-        Boolean alunoCadastroCompleto) {
+        Boolean alunoCadastroCompleto,
+        Boolean alunoDadosCompletos,
+        Boolean alunoDocumentacaoCompleta) {
 
     public ListagemProcessoCrmDto(ProcessoMatricula processo, Instant dataEntradaEstagioAtual, Instant proximaAcao) {
         this(
@@ -47,6 +49,8 @@ public record ListagemProcessoCrmDto(
                 dataEntradaEstagioAtual == null ? 0
                         : ChronoUnit.DAYS.between(dataEntradaEstagioAtual, Instant.now()),
                 proximaAcao,
-                processo.getAluno().isCadastroCompleto());
+                processo.getAluno().isCadastroCompleto(),
+                processo.getAluno().isDadosCompletos(),
+                processo.getAluno().isDocumentacaoCompleta());
     }
 }

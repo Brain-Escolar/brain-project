@@ -40,6 +40,8 @@ interface RegistrarInteracaoDialogProps {
   estagioAtualId: number;
   estagios: FunilEstagioResponse[];
   cadastroCompleto: boolean;
+  dadosCompletos: boolean;
+  documentacaoCompleta: boolean;
   onSuccess?: () => void;
 }
 
@@ -53,6 +55,8 @@ export default function RegistrarInteracaoDialog({
   estagioAtualId,
   estagios,
   cadastroCompleto,
+  dadosCompletos,
+  documentacaoCompleta,
   onSuccess,
 }: RegistrarInteracaoDialogProps) {
   const { registrarInteracao } = useCrmMutations(processoId);
@@ -203,6 +207,9 @@ export default function RegistrarInteracaoDialog({
       open={avisoIncompleto}
       onClose={() => setAvisoIncompleto(false)}
       alunoId={alunoId}
+      alunoNome={alunoNome}
+      dadosCompletos={dadosCompletos}
+      documentacaoCompleta={documentacaoCompleta}
     />
     </>
   );

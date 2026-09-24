@@ -360,12 +360,17 @@ export default function DetalheLeadCrmPage() {
         estagioAtualId={processo.estagioAtualId}
         estagios={estagiosOrdenados}
         cadastroCompleto={processo.alunoCadastroCompleto}
+        dadosCompletos={processo.alunoDadosCompletos}
+        documentacaoCompleta={processo.alunoDocumentacaoCompleta}
       />
 
       <AvisoCadastroIncompletoDialog
         open={avisoIncompleto}
         onClose={() => setAvisoIncompleto(false)}
         alunoId={processo.alunoId}
+        alunoNome={processo.alunoNome}
+        dadosCompletos={processo.alunoDadosCompletos}
+        documentacaoCompleta={processo.alunoDocumentacaoCompleta}
       />
 
       <Dialog open={modalPerdido} onClose={() => setModalPerdido(false)} maxWidth="xs" fullWidth>

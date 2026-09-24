@@ -100,9 +100,11 @@ export enum RoutesEnum {
   SECRETARIA_CRM = "/secretaria/crm",
   SECRETARIA_ENTURMACAO = "/secretaria/enturmacao",
   SECRETARIA_TURMA_GERENCIAR = "/secretaria/turmas",
+  SECRETARIA_DOCUMENTOS = "/secretaria/documentos",
 
   // Responsavel routes (as demais telas do portal reusam as rotas acima)
   OCORRENCIAS = "/ocorrencias",
   FINANCEIRO = "/financeiro",
   FICHA_MEDICA_RESPONSAVEL = "/responsavel/ficha-medica",
+  DOCUMENTOS_RESPONSAVEL = "/responsavel/documentos",
 }

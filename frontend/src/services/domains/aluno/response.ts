@@ -49,7 +49,12 @@ export interface AlunoListaResponse {
   motivoDesmatricula?: string;
   dataDesmatricula?: string;
   criadoEm?: string;
+  /** Dados completos E documentação completa. */
   cadastroCompleto: boolean;
+  /** CPF, nascimento, endereço, telefone e responsável financeiro. */
+  dadosCompletos: boolean;
+  /** Documentos obrigatórios do aluno e dos responsáveis aprovados e no prazo. */
+  documentacaoCompleta: boolean;
 }
 
 export interface ResponsavelResumoResponse {

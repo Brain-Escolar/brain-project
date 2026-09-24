@@ -31,7 +31,9 @@ public record DetalhamentoProcessoCrmDto(
         List<StepFunilDto> steps,
         List<ListagemInteracaoDto> interacoes,
         Instant proximaAcao,
-        Boolean alunoCadastroCompleto) {
+        Boolean alunoCadastroCompleto,
+        Boolean alunoDadosCompletos,
+        Boolean alunoDocumentacaoCompleta) {
 
     public DetalhamentoProcessoCrmDto(ProcessoMatricula processo, List<StepFunilDto> steps,
             List<ListagemInteracaoDto> interacoes, Instant funcionarioDesde) {
@@ -63,6 +65,8 @@ public record DetalhamentoProcessoCrmDto(
                         .filter(p -> p != null)
                         .findFirst()
                         .orElse(null),
-                processo.getAluno().isCadastroCompleto());
+                processo.getAluno().isCadastroCompleto(),
+                processo.getAluno().isDadosCompletos(),
+                processo.getAluno().isDocumentacaoCompleta());
     }
 }

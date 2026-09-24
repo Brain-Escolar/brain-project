@@ -40,6 +40,7 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import PersonOffIcon from "@mui/icons-material/PersonOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
+import DocumentacaoAlunoDialog from "@/components/documentacao/DocumentacaoAlunoDialog";
 import SegmentedControl from "@/components/segmentedControl/segmentedControl";
 import { RoutesEnum } from "@/enums";
 import { useLeads } from "@/hooks/useLeads";
@@ -137,6 +138,7 @@ export default function MatriculasPage() {
   const [credenciais, setCredenciais] = useState<AlunoDetalheResponse | null>(null);
   const [turmaSelecionada, setTurmaSelecionada] = useState<number | null>(null);
   const [motivo, setMotivo] = useState("");
+  const [alunoDocumentos, setAlunoDocumentos] = useState<AlunoListaResponse | null>(null);
 
   const { matricular, desmatricular, rematricular } = useAlunoMatriculaMutations(
     String(ctxAluno?.id ?? ""),
@@ -301,6 +303,7 @@ export default function MatriculasPage() {
               leads={leads}
               onEditar={(id) => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${id}`)}
               onMatricular={abrirMatricular}
+              onDocumentos={setAlunoDocumentos}
             />
           )}
           {tab === "matriculados" && (
@@ -309,6 +312,7 @@ export default function MatriculasPage() {
               onVerDetalhe={verDetalhe}
               onVincular={abrirVincular}
               onDesmatricular={abrirDesmatricular}
+              onDocumentos={setAlunoDocumentos}
             />
           )}
           {tab === "desmatriculados" && (
@@ -335,6 +339,13 @@ export default function MatriculasPage() {
           />
         </TableContainer>
       )}
+
+      <DocumentacaoAlunoDialog
+        open={!!alunoDocumentos}
+        alunoId={alunoDocumentos?.id ?? null}
+        alunoNome={alunoDocumentos?.nome}
+        onClose={() => setAlunoDocumentos(null)}
+      />
 
       {/* Modal Matricular (confirmação) */}
       <Dialog open={modal === "matricular"} onClose={fecharModal}>
@@ -523,14 +534,48 @@ function EmptyState({ mensagem }: { mensagem: string }) {
   );
 }
 
+/**
+ * Dois selos independentes: dados cadastrais (editados no cadastro do aluno)
+ * e documentos (enviados e validados no checklist). O de documentos abre o checklist.
+ */
+function SituacaoCadastro({
+  aluno,
+  onDocumentos,
+}: {
+  aluno: AlunoListaResponse;
+  onDocumentos: (aluno: AlunoListaResponse) => void;
+}) {
+  return (
+    <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }} onClick={(e) => e.stopPropagation()}>
+      <Chip
+        size="small"
+        variant="outlined"
+        label={aluno.dadosCompletos ? "Dados ok" : "Dados pendentes"}
+        color={aluno.dadosCompletos ? "success" : "warning"}
+      />
+      <Chip
+        size="small"
+        variant="outlined"
+        clickable
+        onClick={() => onDocumentos(aluno)}
+        label={aluno.documentacaoCompleta ? "Documentos ok" : "Documentos pendentes"}
+        color={aluno.documentacaoCompleta ? "success" : "warning"}
+        title="Ver e validar documentos"
+      />
+    </Box>
+  );
+}
+
 function LeadsTable({
   leads,
   onEditar,
   onMatricular,
+  onDocumentos,
 }: {
   leads: AlunoListaResponse[];
   onEditar: (id: number) => void;
   onMatricular: (aluno: AlunoListaResponse) => void;
+  onDocumentos: (aluno: AlunoListaResponse) => void;
 }) {
   if (leads.length === 0) {
     return <EmptyState mensagem="Nenhum lead encontrado." />;
@@ -543,6 +588,7 @@ function LeadsTable({
           <TableCell>CPF</TableCell>
           <TableCell>Série pretendida</TableCell>
           <TableCell>Cadastrado em</TableCell>
+          <TableCell>Cadastro</TableCell>
           <TableCell align="right" sx={{ width: COL_ACOES_WIDTH }}>
             Ações
           </TableCell>
@@ -564,6 +610,9 @@ function LeadsTable({
             <TableCell sx={{ fontFamily: "monospace" }}>{lead.cpf || "— sem CPF"}</TableCell>
             <TableCell>{lead.serie}</TableCell>
             <TableCell>{formatarData(lead.criadoEm)}</TableCell>
+            <TableCell>
+              <SituacaoCadastro aluno={lead} onDocumentos={onDocumentos} />
+            </TableCell>
             <TableCell align="right">
               <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
                 <Button size="small" onClick={() => onEditar(lead.id)}>
@@ -593,11 +642,13 @@ function MatriculadosTable({
   onVerDetalhe,
   onVincular,
   onDesmatricular,
+  onDocumentos,
 }: {
   alunos: AlunoListaResponse[];
   onVerDetalhe: (id: number) => void;
   onVincular: (aluno: AlunoListaResponse) => void;
   onDesmatricular: (aluno: AlunoListaResponse) => void;
+  onDocumentos: (aluno: AlunoListaResponse) => void;
 }) {
   if (alunos.length === 0) {
     return <EmptyState mensagem="Nenhum resultado para a busca atual." />;
@@ -611,6 +662,7 @@ function MatriculadosTable({
           <TableCell>Série</TableCell>
           <TableCell>Turma</TableCell>
           <TableCell>Situação</TableCell>
+          <TableCell>Cadastro</TableCell>
           <TableCell align="right" sx={{ width: COL_ACOES_WIDTH }}>
             Ações
           </TableCell>
@@ -654,6 +706,9 @@ function MatriculadosTable({
                 color={aluno.turmaId ? "success" : "warning"}
                 variant="outlined"
               />
+            </TableCell>
+            <TableCell>
+              <SituacaoCadastro aluno={aluno} onDocumentos={onDocumentos} />
             </TableCell>
             <TableCell align="right" onClick={(e) => e.stopPropagation()}>
               <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
