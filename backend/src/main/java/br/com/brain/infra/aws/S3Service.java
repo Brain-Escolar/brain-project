@@ -51,6 +51,25 @@ public class S3Service {
         }
     }
 
+    /** Upload de conteudo ja lido/processado, com content type definido pelo servidor. */
+    public String upload(String key, byte[] conteudo, String contentType) {
+        try {
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .contentType(contentType)
+                    .contentLength((long) conteudo.length)
+                    .build();
+
+            s3Client.putObject(request, RequestBody.fromBytes(conteudo));
+
+            return key;
+
+        } catch (SdkException e) {
+            throw new ErrosSistema.StorageException("Erro ao salvar arquivo no S3", e);
+        }
+    }
+
     public byte[] download(String key) {
         GetObjectRequest request = GetObjectRequest.builder()
                 .bucket(bucket)

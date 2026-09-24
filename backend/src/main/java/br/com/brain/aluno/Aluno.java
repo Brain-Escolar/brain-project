@@ -4,6 +4,7 @@ import br.com.brain.shared.EntidadeBase;
 import br.com.brain.anotacao.Anotacao;
 import br.com.brain.chamada.Chamada;
 import br.com.brain.dadosPessoais.DadosPessoais;
+import br.com.brain.documento.RequisitosDocumentacao;
 import br.com.brain.endereco.Endereco;
 import br.com.brain.notas.Notas;
 import br.com.brain.responsavel.Responsavel;
@@ -27,6 +28,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 import lombok.Data;
@@ -84,6 +86,7 @@ public class Aluno extends EntidadeBase {
     private List<Notas> notas;
 
     @NotAudited
+    @BatchSize(size = 50)
     @ManyToMany(mappedBy = "alunos", fetch = FetchType.LAZY)
     private List<Responsavel> responsaveis = new ArrayList<>();
 
@@ -101,7 +104,23 @@ public class Aluno extends EntidadeBase {
                 && !dadosPessoais.getTelefonesNumeros().isEmpty();
         boolean temResponsavelFinanceiroCompleto = responsaveis != null && responsaveis.stream()
                 .anyMatch(r -> Boolean.TRUE.equals(r.getFinanceiro()) && responsavelCompleto(r));
-        return dadosOk && temResponsavelFinanceiroCompleto;
+        return dadosOk && temResponsavelFinanceiroCompleto && isDocumentacaoCompleta();
+    }
+
+    /**
+     * Documentos obrigatorios do aluno e de cada responsavel aprovados e no
+     * prazo. Mesma regra do checklist (DocumentoService), via RequisitosDocumentacao.
+     */
+    public boolean isDocumentacaoCompleta() {
+        if (dadosPessoais == null
+                || !RequisitosDocumentacao.atendidos(RequisitosDocumentacao.doAluno(), dadosPessoais.getDocumentos())) {
+            return false;
+        }
+        return responsaveis == null || responsaveis.stream()
+                .filter(r -> r.getDadosPessoais() != null)
+                .allMatch(r -> RequisitosDocumentacao.atendidos(
+                        RequisitosDocumentacao.doResponsavel(Boolean.TRUE.equals(r.getFinanceiro())),
+                        r.getDadosPessoais().getDocumentos()));
     }
 
     private static boolean enderecoPreenchido(Endereco endereco) {

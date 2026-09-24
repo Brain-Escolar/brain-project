@@ -6,6 +6,10 @@ import br.com.brain.anotacao.dto.ListagemAnotacaoSemanaDto;
 import br.com.brain.aula.dto.ListagemAulaDto;
 import br.com.brain.arquivo.dto.ListagemArquivoDto;
 import br.com.brain.autenticacao.DadosAutenticacao;
+import br.com.brain.documento.dto.DetalhamentoDocumentoDto;
+import br.com.brain.documento.dto.DocumentacaoAlunoDto;
+import br.com.brain.documento.dto.FotoDto;
+import br.com.brain.enums.TipoDocumento;
 import br.com.brain.evento.dto.ListagemEventoDto;
 import br.com.brain.fichamedica.dto.DetalhamentoFichaMedicaDto;
 import br.com.brain.materialComplementar.dto.ListagemMaterialComplementarDto;
@@ -29,6 +33,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,7 +55,8 @@ import java.util.List;
  * Compartilhar o prefixo faria a regra de seguranca de um capturar as rotas
  * do outro.
  *
- * Todas as rotas sao somente leitura. A autorizacao tem duas camadas:
+ * Quase todas as rotas sao somente leitura; as escritas sao inclusoes da
+ * familia (medicacao, laudo, documentos de matricula, foto). A autorizacao tem duas camadas:
  * o perfil e barrado por URL matcher no SecurityConfigurations (padrao do
  * projeto), e o vinculo com aquele aluno especifico pelo
  * VinculoResponsavelGuard, dentro do service.
@@ -173,7 +179,7 @@ public class ResponsavelPortalController {
     }
 
     /**
-     * Inclusao de medicacao — uma das duas unicas escritas do portal.
+     * Inclusao de medicacao — escrita do portal.
      * O responsavel inclui; editar e desativar continua sendo da escola.
      */
     @PostMapping("/aluno/{alunoId}/ficha-medica/medicacoes")
@@ -191,6 +197,40 @@ public class ResponsavelPortalController {
             @PathVariable("alunoId") Long alunoId,
             @RequestPart("arquivo") MultipartFile arquivo) {
         return ResponseEntity.ok(service.anexarLaudo(usuario, alunoId, arquivo));
+    }
+
+    // ------------------------------------------------------------ documentos
+
+    @GetMapping("/aluno/{alunoId}/documentos")
+    public ResponseEntity<DocumentacaoAlunoDto> documentacao(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @PathVariable("alunoId") Long alunoId) {
+        return ResponseEntity.ok(service.documentacao(usuario, alunoId));
+    }
+
+    @PostMapping(value = "/aluno/{alunoId}/documentos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DetalhamentoDocumentoDto> enviarDocumentoDoAluno(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @PathVariable("alunoId") Long alunoId,
+            @RequestParam("tipo") TipoDocumento tipo,
+            @RequestPart("arquivos") List<MultipartFile> arquivos) {
+        return ResponseEntity.ok(service.enviarDocumentoDoAluno(usuario, alunoId, tipo, arquivos));
+    }
+
+    @PostMapping(value = "/meus-documentos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DetalhamentoDocumentoDto> enviarMeuDocumento(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @RequestParam("tipo") TipoDocumento tipo,
+            @RequestPart("arquivos") List<MultipartFile> arquivos) {
+        return ResponseEntity.ok(service.enviarMeuDocumento(usuario, tipo, arquivos));
+    }
+
+    @PutMapping(value = "/aluno/{alunoId}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<FotoDto> atualizarFotoDoAluno(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @PathVariable("alunoId") Long alunoId,
+            @RequestPart("foto") MultipartFile foto) {
+        return ResponseEntity.ok(service.atualizarFotoDoAluno(usuario, alunoId, foto));
     }
 
     @GetMapping("/aluno/{alunoId}/financeiro")

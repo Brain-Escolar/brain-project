@@ -65,6 +65,12 @@ public class SecurityConfigurations {
                             req.requestMatchers("/simulacoes/**")
                                     .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
 
+                            // Documentos de matricula - acima do permitAll para ja valer hoje.
+                            // Dado pessoal de menor: professor fica de fora. A
+                            // familia envia pelo /portal-responsavel.
+                            req.requestMatchers("/documentos/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 

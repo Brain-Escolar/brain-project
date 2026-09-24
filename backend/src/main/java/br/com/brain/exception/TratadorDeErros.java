@@ -15,6 +15,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import br.com.brain.exception.ErrosSistema.DataInvalidaException;
 import br.com.brain.exception.ErrosSistema.RecursoJaExisteException;
@@ -64,6 +65,14 @@ public class TratadorDeErros {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiError.of("STORAGE_ERROR", "Falha ao processar arquivo", request.getRequestURI()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleUploadGrande(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        log.warn("Upload acima do limite: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONTENT_TOO_LARGE)
+                .body(ApiError.of("ARQUIVO_MUITO_GRANDE", "Arquivo maior que o permitido.", request.getRequestURI()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

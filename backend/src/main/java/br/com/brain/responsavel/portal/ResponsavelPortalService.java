@@ -13,7 +13,12 @@ import br.com.brain.evento.dto.ListagemEventoDto;
 import br.com.brain.exception.ErrosSistema.OperacaoInvalidaException;
 import br.com.brain.fichamedica.FichaMedicaService;
 import br.com.brain.arquivo.dto.ListagemArquivoDto;
+import br.com.brain.documento.DocumentoService;
+import br.com.brain.documento.dto.DetalhamentoDocumentoDto;
+import br.com.brain.documento.dto.DocumentacaoAlunoDto;
+import br.com.brain.documento.dto.FotoDto;
 import br.com.brain.enums.PerfilNome;
+import br.com.brain.enums.TipoDocumento;
 import br.com.brain.fichamedica.dto.DetalhamentoFichaMedicaDto;
 import br.com.brain.medicacao.dto.CadastroMedicacaoDto;
 import br.com.brain.medicacao.dto.ListagemMedicacaoDto;
@@ -73,6 +78,7 @@ public class ResponsavelPortalService {
     private final AlunoProdutoService alunoProdutoService;
     private final EventoService eventoService;
     private final AlertaService alertaService;
+    private final DocumentoService documentoService;
 
     // ---------------------------------------------------------------- sessao
 
@@ -175,7 +181,7 @@ public class ResponsavelPortalService {
     /**
      * Inclui uma medicacao em uso na ficha do aluno.
      *
-     * Escrita — uma das duas unicas do portal. O responsavel so inclui; editar
+     * Escrita do portal. O responsavel so inclui; editar
      * e desativar e da escola, para que nada saia do historico de saude de um
      * menor sem a escola saber.
      */
@@ -213,6 +219,48 @@ public class ResponsavelPortalService {
     public List<ListagemAlunoProdutoDto> financeiro(DadosAutenticacao usuario, Long alunoId) {
         guard.assertPodeVerFinanceiro(usuario, alunoId);
         return alunoProdutoService.listarPorAluno(alunoId);
+    }
+
+    // ------------------------------------------------------------ documentos
+
+    /** Checklist do aluno e do proprio responsavel - nunca dos outros responsaveis. */
+    public DocumentacaoAlunoDto documentacao(DadosAutenticacao usuario, Long alunoId) {
+        var responsavel = guard.resolverResponsavel(usuario);
+        var aluno = guard.assertPodeVer(usuario, alunoId);
+        return documentoService.documentacaoParaResponsavel(aluno, responsavel);
+    }
+
+    @Transactional
+    public DetalhamentoDocumentoDto enviarDocumentoDoAluno(
+            DadosAutenticacao usuario, Long alunoId, TipoDocumento tipo, List<MultipartFile> arquivos) {
+        var aluno = guard.assertPodeVer(usuario, alunoId);
+        var documento = documentoService.enviarPeloPortal(aluno.getDadosPessoais(), tipo, arquivos);
+        avisarSecretaria(documento, aluno.getDadosPessoais().getNome());
+        return documento;
+    }
+
+    /** Documento do proprio responsavel (RG, CPF, comprovante de residencia). */
+    @Transactional
+    public DetalhamentoDocumentoDto enviarMeuDocumento(
+            DadosAutenticacao usuario, TipoDocumento tipo, List<MultipartFile> arquivos) {
+        var responsavel = guard.resolverResponsavel(usuario);
+        var documento = documentoService.enviarPeloPortal(responsavel.getDadosPessoais(), tipo, arquivos);
+        avisarSecretaria(documento, responsavel.getDadosPessoais().getNome());
+        return documento;
+    }
+
+    @Transactional
+    public FotoDto atualizarFotoDoAluno(DadosAutenticacao usuario, Long alunoId, MultipartFile foto) {
+        var aluno = guard.assertPodeVer(usuario, alunoId);
+        return documentoService.atualizarFoto(aluno.getDadosPessoais(), foto);
+    }
+
+    private void avisarSecretaria(DetalhamentoDocumentoDto documento, String nomePessoa) {
+        alertaService.notificarPerfil(
+                PerfilNome.SECRETARIO,
+                "Documento aguardando validação",
+                "%s de %s foi enviado pelo portal do responsável."
+                        .formatted(documento.tipoDescricao(), nomePessoa));
     }
 
     // --------------------------------------------------------------- helpers
