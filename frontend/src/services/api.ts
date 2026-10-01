@@ -33,6 +33,8 @@ import { ResponsavelPortalApi } from "./domains/responsavel-portal";
 import { CrmApi } from "./domains/crm";
 import { DocumentoApi } from "./domains/documento";
 import { DocumentoEscolarApi } from "./domains/documento-escolar";
+import { BolsaApi } from "./domains/bolsa";
+import { SimulacaoApi } from "./domains/simulacao";
 
 export const alunoApi = new AlunoApi();
 export const responsavelPortalApi = new ResponsavelPortalApi();
@@ -69,3 +71,5 @@ export const produtoApi = new ProdutoApi();
 export const crmApi = new CrmApi();
 export const documentoApi = new DocumentoApi();
 export const documentoEscolarApi = new DocumentoEscolarApi();
+export const bolsaApi = new BolsaApi();
+export const simulacaoApi = new SimulacaoApi();

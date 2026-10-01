@@ -254,4 +254,22 @@ export const QUERY_KEYS = {
     historico: (alunoId: number) =>
       [...QUERY_KEYS.documentosEscolares.all, "historico", alunoId] as const,
   },
+  bolsa: {
+    all: ["bolsa"] as const,
+    tipos: () => [...QUERY_KEYS.bolsa.all, "tipos"] as const,
+    // O teto depende de todas as dimensoes: trocar de serie ou de parcelas muda o
+    // valor cheio e, com ele, o percentual que cabe. Chave por objeto de params
+    // para o React Query refazer a conta quando qualquer uma mudar.
+    teto: (params?: unknown) =>
+      [...QUERY_KEYS.bolsa.all, "teto", params ?? {}] as const,
+    concessoes: (simulacaoId: number) =>
+      [...QUERY_KEYS.bolsa.all, "concessoes", simulacaoId] as const,
+  },
+  simulacoes: {
+    all: ["simulacoes"] as const,
+    detail: (id: number) => [...QUERY_KEYS.simulacoes.all, "detail", id] as const,
+    doProcesso: (processoMatriculaId: number) =>
+      [...QUERY_KEYS.simulacoes.all, "processo", processoMatriculaId] as const,
+    doAluno: (alunoId: number) => [...QUERY_KEYS.simulacoes.all, "aluno", alunoId] as const,
+  },
 } as const;
