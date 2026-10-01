@@ -215,8 +215,9 @@ class BolsaConfiguracaoServiceTest {
                 .thenReturn(Optional.of(matrizExistente(99L, null, null, "60.00", FUTURO, null)));
         when(matrizRepository.findByPoliticaIdAndTipoBolsaIdOrderByIdAsc(POLITICA, TIPO))
                 .thenReturn(List.of());
-        when(politicaRepository.findById(POLITICA)).thenReturn(Optional.of(politica()));
         when(tipoBolsaRepository.findById(TIPO)).thenReturn(Optional.of(tipo()));
+        // Sem stub de politicaRepository: atualizar NAO troca a politica da regra
+        // (so criar e substituir atribuem uma), entao o servico nunca a busca aqui.
 
         var dto = service.atualizarMatriz(99L, pedidoMatriz(null, null, "80.00", FUTURO, null));
 
