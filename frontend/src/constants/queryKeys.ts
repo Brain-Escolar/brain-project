@@ -247,4 +247,11 @@ export const QUERY_KEYS = {
     fila: (params?: unknown) => [...QUERY_KEYS.documentos.all, "fila", params ?? {}] as const,
     detail: (id: number) => [...QUERY_KEYS.documentos.all, "detail", id] as const,
   },
+  documentosEscolares: {
+    all: ["documentos-escolares"] as const,
+    boletim: (alunoId: number, params?: unknown) =>
+      [...QUERY_KEYS.documentosEscolares.all, "boletim", alunoId, params ?? {}] as const,
+    historico: (alunoId: number) =>
+      [...QUERY_KEYS.documentosEscolares.all, "historico", alunoId] as const,
+  },
 } as const;

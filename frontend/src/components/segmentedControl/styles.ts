@@ -1,9 +1,15 @@
 "use client";
-import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius, cssVarShadow } from "@/styles";
+import {
+  cssVarColor,
+  cssVarFontSize,
+  cssVarFontWeight,
+  cssVarRadius,
+  cssVarShadow,
+} from "@/styles";
 import styled from "styled-components";
 
-export const Group = styled.div`
-  display: inline-flex;
+export const Group = styled.div<{ $fullWidth?: boolean }>`
+  display: ${({ $fullWidth }) => ($fullWidth ? "flex" : "inline-flex")};
   gap: 2px;
   padding: 3px;
   background: ${cssVarColor("surfaceSunken")};
@@ -11,9 +17,12 @@ export const Group = styled.div`
   border-radius: ${cssVarRadius("md")};
 `;
 
-export const Segment = styled.button<{ $active?: boolean }>`
+export const Segment = styled.button<{ $active?: boolean; $fullWidth?: boolean }>`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex: ${({ $fullWidth }) => ($fullWidth ? "1 1 0" : "0 0 auto")};
+  white-space: nowrap;
   gap: 6px;
   border: none;
   cursor: pointer;

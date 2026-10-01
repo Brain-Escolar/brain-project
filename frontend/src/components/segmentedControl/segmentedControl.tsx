@@ -13,6 +13,8 @@ interface SegmentedControlProps<T extends string> {
   onChange: (value: T) => void;
   /** Rótulo acessível do grupo (role="tablist"). */
   ariaLabel?: string;
+  /** Ocupa a largura do container, dividindo-a igualmente entre as opções. */
+  fullWidth?: boolean;
 }
 
 /**
@@ -24,9 +26,10 @@ export default function SegmentedControl<T extends string>({
   options,
   onChange,
   ariaLabel,
+  fullWidth,
 }: SegmentedControlProps<T>) {
   return (
-    <S.Group role="tablist" aria-label={ariaLabel}>
+    <S.Group role="tablist" aria-label={ariaLabel} $fullWidth={fullWidth}>
       {options.map((opt) => {
         const active = opt.value === value;
         return (
@@ -36,6 +39,7 @@ export default function SegmentedControl<T extends string>({
             role="tab"
             aria-selected={active}
             $active={active}
+            $fullWidth={fullWidth}
             onClick={() => onChange(opt.value)}
           >
             {opt.label}

@@ -32,6 +32,7 @@ import { ProdutoApi } from "./domains/produto";
 import { ResponsavelPortalApi } from "./domains/responsavel-portal";
 import { CrmApi } from "./domains/crm";
 import { DocumentoApi } from "./domains/documento";
+import { DocumentoEscolarApi } from "./domains/documento-escolar";
 
 export const alunoApi = new AlunoApi();
 export const responsavelPortalApi = new ResponsavelPortalApi();
@@ -67,3 +68,4 @@ export const materialComplementarApi = new MaterialComplementarApi();
 export const produtoApi = new ProdutoApi();
 export const crmApi = new CrmApi();
 export const documentoApi = new DocumentoApi();
+export const documentoEscolarApi = new DocumentoEscolarApi();

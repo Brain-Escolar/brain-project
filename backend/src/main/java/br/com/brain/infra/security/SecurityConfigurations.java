@@ -71,6 +71,10 @@ public class SecurityConfigurations {
                             req.requestMatchers("/documentos/**")
                                     .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
 
+                            // Documentos escolares (boletim/historico) emitidos pela escola.
+                            req.requestMatchers("/documentos-escolares/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 
