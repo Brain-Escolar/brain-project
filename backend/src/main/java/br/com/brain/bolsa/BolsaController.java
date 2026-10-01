@@ -32,11 +32,17 @@ public class BolsaController {
     private final TipoBolsaRepository tipoBolsaRepository;
     private final ConcessaoBolsaRepository concessaoRepository;
 
-    /** Tipos de bolsa ativos, para o seletor da tela de matricula. */
+    /**
+     * Tipos de bolsa ativos, para o seletor da tela de matricula.
+     *
+     * listarAtivosComProdutos e nao findByAtivoTrueOrderByNomeAsc: TipoBolsaDto
+     * passou a expor produtoIds, e esta resposta e montada fora de transacao --
+     * sem o fetch da colecao, LazyInitializationException na serializacao.
+     */
     @GetMapping("/tipos")
     public ResponseEntity<List<TipoBolsaDto>> tipos() {
         return ResponseEntity.ok(
-                tipoBolsaRepository.findByAtivoTrueOrderByNomeAsc().stream()
+                tipoBolsaRepository.listarAtivosComProdutos().stream()
                         .map(TipoBolsaDto::new)
                         .toList());
     }

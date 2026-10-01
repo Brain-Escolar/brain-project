@@ -14,14 +14,26 @@ import java.util.List;
  * e o razao e append-only. O que nao esta declarado aqui nao existe para o
  * resto do sistema, entao a regra para de depender de alguem lembrar dela.
  *
- * `registrar` e o unico caminho de escrita, e MovimentoEnvelope nao tem setter,
- * entao nem por acidente se atualiza uma linha ja gravada.
+ * `save` e o unico caminho de escrita, e MovimentoEnvelope nao tem setter nem
+ * construtor publico -- so as fabricas estaticas por tipo de movimento. Entao
+ * nem por acidente se atualiza uma linha ja gravada.
  */
 public interface MovimentoEnvelopeRepository extends Repository<MovimentoEnvelope, Long> {
 
     MovimentoEnvelope save(MovimentoEnvelope movimento);
 
     List<MovimentoEnvelope> findByConcessaoIdOrderByIdAsc(Long concessaoId);
+
+    /**
+     * Se este envelope ja foi usado.
+     *
+     * E o que decide entre excluir e desativar: envelope sem movimento nenhum e
+     * configuracao errada e pode sair do banco; envelope com movimento e
+     * historico de renuncia. A FK de movimentos_envelope impediria o DELETE de
+     * qualquer forma -- melhor dizer isso em portugues do que deixar a constraint
+     * estourar como erro 500.
+     */
+    long countByEnvelopeId(Long envelopeId);
 
     /**
      * Saldo reservado segundo o razao. Existe para conferir o cache do envelope:

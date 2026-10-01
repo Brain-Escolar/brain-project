@@ -49,6 +49,24 @@ public class SecurityConfigurations {
                             // CRM de matriculas - acima do permitAll para ja valer hoje.
                             req.requestMatchers("/crm/**").hasRole("SECRETARIO");
 
+                            // Configuracao de bolsa - ANTES de /bolsas/** DE PROPOSITO.
+                            //
+                            // A ordem aqui e a propria regra: o Spring Security
+                            // casa o PRIMEIRO matcher que bate. Se /bolsas/**
+                            // viesse antes, ele casaria /bolsas/configuracao
+                            // tambem e uma secretaria poderia reescrever a matriz
+                            // de descontos -- as linhas abaixo nunca seriam
+                            // consultadas. Nao reordenar.
+                            //
+                            // Escrever configuracao decide quanto a escola deixa
+                            // de arrecadar no ano: e decisao de direcao. Ler e mais
+                            // largo, porque a tela de matricula precisa explicar
+                            // qual regra segurou a bolsa.
+                            req.requestMatchers(HttpMethod.GET, "/bolsas/configuracao/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                            req.requestMatchers("/bolsas/configuracao/**")
+                                    .hasAnyRole("DIRETOR", "ADMIN");
+
                             // Bolsas - acima do permitAll para ja valer hoje.
                             // FINANCEIRO ainda nao existe em PerfilNome; quando
                             // existir, entra aqui.

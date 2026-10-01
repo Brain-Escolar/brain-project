@@ -33,6 +33,20 @@ public interface EnvelopeBolsaRepository extends JpaRepository<EnvelopeBolsa, Lo
             @Param("serieId") Long serieId,
             @Param("tipoBolsaId") Long tipoBolsaId);
 
+    /**
+     * Listagem da tela de configuracao. Inclui envelope inativo de proposito:
+     * desativar e o caminho de "excluir" quando ja houve consumo, e um envelope
+     * que desaparecesse da tela deixaria renuncia passada sem explicacao.
+     */
+    @Query("""
+            SELECT e FROM EnvelopeBolsa e
+             WHERE e.politica.id = :politicaId
+             ORDER BY e.ativo DESC, e.nome, e.id
+            """)
+    List<EnvelopeBolsa> listarDaPolitica(@Param("politicaId") Long politicaId);
+
+    int countByPoliticaId(Long politicaId);
+
     /** Mesmo escopo, so os ids: e o que se precisa saber antes de travar. */
     @Query("""
             SELECT e.id FROM EnvelopeBolsa e
