@@ -33,6 +33,7 @@ import { useCrmEquipe } from "@/hooks/useCrmEquipe";
 import { useCrmMutations } from "@/hooks/useCrmMutations";
 import RegistrarInteracaoDialog from "../_components/RegistrarInteracaoDialog";
 import AvisoCadastroIncompletoDialog from "../_components/AvisoCadastroIncompletoDialog";
+import BlocoBolsaLead from "../_components/BlocoBolsaLead";
 
 function iniciais(nome: string): string {
   const partes = nome.trim().split(/\s+/);
@@ -206,7 +207,14 @@ export default function DetalheLeadCrmPage() {
       </Paper>
 
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "2fr 1fr" }, gap: 2.5 }}>
-        <Paper variant="outlined" sx={{ p: 2.5 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          <BlocoBolsaLead
+            processoMatriculaId={processo.id}
+            alunoId={processo.alunoId}
+            anoLetivo={processo.anoLetivo}
+          />
+
+          <Paper variant="outlined" sx={{ p: 2.5 }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
             <Typography variant="h6" fontWeight={600}>
               Timeline de interações
@@ -268,7 +276,8 @@ export default function DetalheLeadCrmPage() {
               Nenhuma interação registrada ainda.
             </Typography>
           )}
-        </Paper>
+          </Paper>
+        </Box>
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
           <Paper variant="outlined" sx={{ p: 2.5 }}>
