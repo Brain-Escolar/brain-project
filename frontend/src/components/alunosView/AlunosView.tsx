@@ -13,10 +13,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
   IconButton,
   InputAdornment,
   MenuItem,
   Paper,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -32,6 +34,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PersonSearchOutlinedIcon from "@mui/icons-material/PersonSearchOutlined";
 import FilterAltOffOutlinedIcon from "@mui/icons-material/FilterAltOffOutlined";
 import { Add, Delete, Edit } from "@mui/icons-material";
+import Badge from "@/components/badge";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { RoutesEnum } from "@/enums";
@@ -70,6 +73,16 @@ export interface ColunaAluno {
   render?: (aluno: AlunoListaResponse) => React.ReactNode;
 }
 
+/** Paginação feita no servidor por quem passa `alunos` já como a página atual. */
+export interface PaginacaoServidor {
+  total: number;
+  pagina: number;
+  linhasPorPagina: number;
+  opcoesLinhasPorPagina?: number[];
+  onPagina: (pagina: number) => void;
+  onLinhasPorPagina: (linhas: number) => void;
+}
+
 export interface AlunosViewProps {
   /** Sobrescreve as colunas do preset do perfil. */
   colunas?: ColunaAluno[];
@@ -91,6 +104,8 @@ export interface AlunosViewProps {
   larguraFixa?: boolean;
   /** Padrão: paginado nas páginas cheias, inteiro quando a lista vem por prop. */
   paginado?: boolean;
+  /** Rodapé de paginação controlado por quem já pagina no servidor. */
+  paginacaoServidor?: PaginacaoServidor;
   /** Modo card de dashboard: sem paginação e sem PageScaffold. */
   compacto?: boolean;
   /** Chips de série de um clique. */
@@ -154,11 +169,21 @@ const COLUNAS_POR_PERFIL: Record<UserRoleEnum, ColunaAluno[]> = {
   [UserRoleEnum.SECRETARIO]: COLUNAS_CONSULTA,
   [UserRoleEnum.PROFESSOR]: COLUNAS_CONSULTA,
   [UserRoleEnum.ESTUDANTE]: COLUNAS_CONSULTA,
+  [UserRoleEnum.RESPONSAVEL]: COLUNAS_CONSULTA,
   [UserRoleEnum.ADMIN]: [
     COLUNA_ALUNO,
     COLUNA_MATRICULA,
     { key: "cpf", label: "CPF" },
     { key: "email", label: "E-mail" },
+    {
+      key: "cadastroCompleto",
+      label: "Cadastro",
+      render: (aluno) => (
+        <Badge $tone={aluno.cadastroCompleto ? "success" : "warning"}>
+          {aluno.cadastroCompleto ? "Completo" : "Incompleto"}
+        </Badge>
+      ),
+    },
   ],
 };
 
@@ -181,6 +206,7 @@ export default function AlunosView({
   semFiltros,
   larguraFixa,
   paginado,
+  paginacaoServidor,
   compacto = false,
   atalhosSerie = false,
   titulo,
@@ -205,6 +231,7 @@ export default function AlunosView({
   const [turmaId, setTurmaId] = useState<number | undefined>();
   const [pagina, setPagina] = useState(0);
   const [linhasPorPagina, setLinhasPorPagina] = useState(LINHAS_POR_PAGINA[0]);
+  const [apenasIncompletos, setApenasIncompletos] = useState(false);
 
   // Exclusivo do ADMIN: CRUD da lista de cadastro.
   const isAdminCrud = role === UserRoleEnum.ADMIN && !listaExterna && !compacto;
@@ -232,7 +259,7 @@ export default function AlunosView({
   // pode cair numa página que não existe mais no resultado filtrado.
   useEffect(() => {
     setPagina(0);
-  }, [termoDebounced, unidadeId, serieId, turmaId]);
+  }, [termoDebounced, unidadeId, serieId, turmaId, apenasIncompletos]);
 
   const busca = useBuscaAlunosOrientacao(
     {
@@ -248,7 +275,7 @@ export default function AlunosView({
     { exigirCriterio: compacto },
   );
 
-  const lista = useAlunos({ enabled: !listaExterna && !usaBuscaServidor });
+  const lista = useAlunos(undefined, { enabled: !listaExterna && !usaBuscaServidor });
 
   // As turmas do filtro acompanham a série/unidade já escolhidas.
   const turmasDisponiveis = useMemo(
@@ -295,23 +322,48 @@ export default function AlunosView({
     turmaId,
   ]);
 
-  const total = usaBuscaServidor ? busca.totalElements : alunosFiltrados.length;
+  // Só o CRUD do ADMIN tem a lista inteira em memória — é onde o contador de
+  // cadastro incompleto faz sentido. Sem incompletos, o filtro não restringe,
+  // para a lista nunca ficar vazia com o interruptor escondido.
+  const totalIncompletos = useMemo(
+    () => (isAdminCrud ? alunosFiltrados.filter((aluno) => !aluno.cadastroCompleto).length : 0),
+    [isAdminCrud, alunosFiltrados],
+  );
+  const alunosExibidos = useMemo(
+    () =>
+      apenasIncompletos && totalIncompletos > 0
+        ? alunosFiltrados.filter((aluno) => !aluno.cadastroCompleto)
+        : alunosFiltrados,
+    [apenasIncompletos, totalIncompletos, alunosFiltrados],
+  );
+
+  const total = usaBuscaServidor ? busca.totalElements : alunosExibidos.length;
   const loading = listaExterna ? !!loadingProp : usaBuscaServidor ? busca.loading : lista.loading;
   const error = listaExterna ? errorProp ?? null : usaBuscaServidor ? busca.error : lista.error;
   const refetch = usaBuscaServidor ? busca.refetch : lista.refetch;
 
   // Quem recebe a lista pronta já decide o que mostrar; por isso o padrão ali é
   // exibir tudo, como as telas de Matrículas e Enturmação sempre fizeram.
-  const usaPaginacao = paginado ?? (!compacto && !listaExterna);
+  const usaPaginacao = paginacaoServidor != null || (paginado ?? (!compacto && !listaExterna));
 
   // A busca no servidor já devolve só a página pedida; as demais fatiam aqui.
   const alunosVisiveis = useMemo(() => {
-    if (usaBuscaServidor) return alunosFiltrados;
-    if (compacto) return alunosFiltrados.slice(0, LINHAS_MODO_COMPACTO);
-    if (!usaPaginacao) return alunosFiltrados;
+    if (usaBuscaServidor || paginacaoServidor) return alunosExibidos;
+    if (compacto) return alunosExibidos.slice(0, LINHAS_MODO_COMPACTO);
+    if (!usaPaginacao) return alunosExibidos;
     const inicio = pagina * linhasPorPagina;
-    return alunosFiltrados.slice(inicio, inicio + linhasPorPagina);
-  }, [usaBuscaServidor, compacto, usaPaginacao, alunosFiltrados, pagina, linhasPorPagina]);
+    return alunosExibidos.slice(inicio, inicio + linhasPorPagina);
+  }, [
+    usaBuscaServidor,
+    paginacaoServidor,
+    compacto,
+    usaPaginacao,
+    alunosExibidos,
+    pagina,
+    linhasPorPagina,
+  ]);
+
+  const temOutrasPaginas = (paginacaoServidor?.total ?? 0) > 0;
 
   // No card do dashboard nada é listado antes de o usuário pedir.
   const buscaAtiva =
@@ -569,15 +621,21 @@ export default function AlunosView({
       {usaPaginacao && (
         <TablePagination
           component="div"
-          count={total}
-          page={pagina}
-          onPageChange={(_, novaPagina) => setPagina(novaPagina)}
-          rowsPerPage={linhasPorPagina}
+          count={paginacaoServidor?.total ?? total}
+          page={paginacaoServidor?.pagina ?? pagina}
+          onPageChange={(_, novaPagina) =>
+            paginacaoServidor ? paginacaoServidor.onPagina(novaPagina) : setPagina(novaPagina)
+          }
+          rowsPerPage={paginacaoServidor?.linhasPorPagina ?? linhasPorPagina}
           onRowsPerPageChange={(e) => {
+            if (paginacaoServidor) {
+              paginacaoServidor.onLinhasPorPagina(Number(e.target.value));
+              return;
+            }
             setLinhasPorPagina(Number(e.target.value));
             setPagina(0);
           }}
-          rowsPerPageOptions={LINHAS_POR_PAGINA}
+          rowsPerPageOptions={paginacaoServidor?.opcoesLinhasPorPagina ?? LINHAS_POR_PAGINA}
           labelRowsPerPage="Linhas por página"
           labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
         />
@@ -601,6 +659,27 @@ export default function AlunosView({
       )}
       {error && compacto && <S.ErrorHint>{error}</S.ErrorHint>}
 
+      {!error && !loading && totalIncompletos > 0 && (
+        <Alert
+          severity="warning"
+          action={
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={apenasIncompletos}
+                  onChange={(e) => setApenasIncompletos(e.target.checked)}
+                />
+              }
+              label="Mostrar só incompletos"
+              sx={{ mr: 0 }}
+            />
+          }
+        >
+          {totalIncompletos} aluno{totalIncompletos > 1 ? "s" : ""} com cadastro incompleto
+        </Alert>
+      )}
+
       {!error && !buscaAtiva && (
         <S.EmptyHint>
           Digite ao menos {MIN_CARACTERES_BUSCA} caracteres ou escolha um filtro para localizar
@@ -618,7 +697,7 @@ export default function AlunosView({
         <S.EmptyHint>Nenhum aluno encontrado com esses critérios.</S.EmptyHint>
       )}
 
-      {!error && buscaAtiva && !loading && alunosVisiveis.length === 0 && !compacto && (
+      {!error && buscaAtiva && !loading && alunosVisiveis.length === 0 && !compacto && !temOutrasPaginas && (
         <BrainResultNotFound
           message={mensagemVazio ?? "Nenhum aluno encontrado"}
           description={
@@ -633,7 +712,7 @@ export default function AlunosView({
         />
       )}
 
-      {!error && buscaAtiva && !loading && alunosVisiveis.length > 0 && tabela}
+      {!error && buscaAtiva && !loading && (alunosVisiveis.length > 0 || temOutrasPaginas) && tabela}
 
       {isAdminCrud && (
         <Dialog

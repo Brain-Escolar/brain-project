@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -32,8 +32,9 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import PersonOffIcon from "@mui/icons-material/PersonOff";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
+import DocumentacaoAlunoDialog from "@/components/documentacao/DocumentacaoAlunoDialog";
 import SegmentedControl from "@/components/segmentedControl/segmentedControl";
-import AlunosView, { ColunaAluno } from "@/components/alunosView/AlunosView";
+import AlunosView, { ColunaAluno, PaginacaoServidor } from "@/components/alunosView/AlunosView";
 import { RoutesEnum } from "@/enums";
 import { useLeads } from "@/hooks/useLeads";
 import { useAlunos } from "@/hooks/useAlunos";
@@ -42,6 +43,7 @@ import { useTurmas } from "@/hooks/useTurmas";
 import { useSeries } from "@/hooks/useSeries";
 import { useUnidades } from "@/hooks/useUnidades";
 import { useAlunoMatriculaMutations } from "@/hooks/useAlunoMatriculaMutations";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { AlunoDetalheResponse, AlunoListaResponse } from "@/services/domains/aluno/response";
 import { TurmaListaResponse } from "@/services/domains/turma/response";
 import { alunoApi } from "@/services/api";
@@ -68,21 +70,69 @@ export default function MatriculasPage() {
 
   const [tab, setTab] = useState<TabValue>("leads");
   const [busca, setBusca] = useState("");
-  const [filtroSerie, setFiltroSerie] = useState("Todas");
-  const [filtroUnidade, setFiltroUnidade] = useState("Todas");
+  const [filtroSerie, setFiltroSerie] = useState<number | "Todas">("Todas");
+  const [filtroUnidade, setFiltroUnidade] = useState<number | "Todas">("Todas");
+  const buscaDebounced = useDebouncedValue(busca, 400);
 
-  const { leads, loading: loadingLeads } = useLeads();
-  const { alunos: matriculados, loading: loadingMatriculados } = useAlunos();
-  const { desmatriculados, loading: loadingDesmatriculados } = useDesmatriculados();
+  const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [pageLeads, setPageLeads] = useState(0);
+  const [pageMatriculados, setPageMatriculados] = useState(0);
+  const [pageDesmatriculados, setPageDesmatriculados] = useState(0);
+
+  useEffect(() => {
+    setPageLeads(0);
+    setPageMatriculados(0);
+    setPageDesmatriculados(0);
+  }, [buscaDebounced, filtroSerie, filtroUnidade]);
+
+  const filtrosComuns = {
+    busca: buscaDebounced || undefined,
+    serieId: filtroSerie === "Todas" ? undefined : filtroSerie,
+    unidadeId: filtroUnidade === "Todas" ? undefined : filtroUnidade,
+    size: rowsPerPage,
+  };
+
+  const { leads, totalElements: totalLeads, loading: loadingLeads } = useLeads({
+    ...filtrosComuns,
+    page: pageLeads,
+  });
+  const {
+    alunos: matriculados,
+    totalElements: totalMatriculados,
+    loading: loadingMatriculados,
+  } = useAlunos({ ...filtrosComuns, page: pageMatriculados });
+  const {
+    desmatriculados,
+    totalElements: totalDesmatriculados,
+    loading: loadingDesmatriculados,
+  } = useDesmatriculados({ ...filtrosComuns, page: pageDesmatriculados });
   const { turmas, loading: loadingTurmas } = useTurmas();
   const { series } = useSeries();
   const { unidades } = useUnidades();
+
+  // Cada aba pagina por conta própria; o rodapé da tabela só repassa a navegação.
+  function paginacao(total: number, page: number, setPage: (page: number) => void): PaginacaoServidor {
+    return {
+      total,
+      pagina: page,
+      linhasPorPagina: rowsPerPage,
+      opcoesLinhasPorPagina: [10, 20, 50],
+      onPagina: setPage,
+      onLinhasPorPagina: (linhas) => {
+        setRowsPerPage(linhas);
+        setPageLeads(0);
+        setPageMatriculados(0);
+        setPageDesmatriculados(0);
+      },
+    };
+  }
 
   const [modal, setModal] = useState<ModalType>(null);
   const [ctxAluno, setCtxAluno] = useState<AlunoListaResponse | null>(null);
   const [credenciais, setCredenciais] = useState<AlunoDetalheResponse | null>(null);
   const [turmaSelecionada, setTurmaSelecionada] = useState<number | null>(null);
   const [motivo, setMotivo] = useState("");
+  const [alunoDocumentos, setAlunoDocumentos] = useState<AlunoListaResponse | null>(null);
 
   const { matricular, desmatricular, rematricular } = useAlunoMatriculaMutations(
     String(ctxAluno?.id ?? ""),
@@ -164,34 +214,6 @@ export default function MatriculasPage() {
     fecharModal();
   }
 
-  const filtrar = (item: AlunoListaResponse) => {
-    const q = busca.trim().toLowerCase();
-    const matchBusca =
-      !q ||
-      item.nome.toLowerCase().includes(q) ||
-      (item.cpf ?? "").includes(q) ||
-      (item.matricula ?? "").toLowerCase().includes(q);
-    const matchSerie = filtroSerie === "Todas" || item.serie === filtroSerie;
-    const matchUnidade = filtroUnidade === "Todas" || item.unidade === filtroUnidade;
-    return matchBusca && matchSerie && matchUnidade;
-  };
-
-  const leadsFiltrados = useMemo(
-    () => leads.filter(filtrar),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [leads, busca, filtroSerie, filtroUnidade],
-  );
-  const matriculadosFiltrados = useMemo(
-    () => matriculados.filter(filtrar),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [matriculados, busca, filtroSerie, filtroUnidade],
-  );
-  const desmatriculadosFiltrados = useMemo(
-    () => desmatriculados.filter(filtrar),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [desmatriculados, busca, filtroSerie, filtroUnidade],
-  );
-
   const loading = loadingLeads || loadingMatriculados || loadingDesmatriculados;
 
   return (
@@ -214,9 +236,9 @@ export default function MatriculasPage() {
           value={tab}
           onChange={setTab}
           options={[
-            { value: "leads", label: `Leads · ${leads.length}` },
-            { value: "matriculados", label: `Matriculados · ${matriculados.length}` },
-            { value: "desmatriculados", label: `Desmatriculados · ${desmatriculados.length}` },
+            { value: "leads", label: `Leads · ${totalLeads}` },
+            { value: "matriculados", label: `Matriculados · ${totalMatriculados}` },
+            { value: "desmatriculados", label: `Desmatriculados · ${totalDesmatriculados}` },
           ]}
         />
       </Box>
@@ -238,18 +260,26 @@ export default function MatriculasPage() {
             },
           }}
         />
-        <Select size="small" value={filtroSerie} onChange={(e) => setFiltroSerie(e.target.value)}>
+        <Select
+          size="small"
+          value={filtroSerie}
+          onChange={(e) => setFiltroSerie(e.target.value === "Todas" ? "Todas" : Number(e.target.value))}
+        >
           <MenuItem value="Todas">Todas as séries</MenuItem>
           {series.map((s) => (
-            <MenuItem key={s.id} value={s.nome}>
+            <MenuItem key={s.id} value={s.id}>
               {s.nome}
             </MenuItem>
           ))}
         </Select>
-        <Select size="small" value={filtroUnidade} onChange={(e) => setFiltroUnidade(e.target.value)}>
+        <Select
+          size="small"
+          value={filtroUnidade}
+          onChange={(e) => setFiltroUnidade(e.target.value === "Todas" ? "Todas" : Number(e.target.value))}
+        >
           <MenuItem value="Todas">Todas as unidades</MenuItem>
           {unidades.map((u) => (
-            <MenuItem key={u.id} value={u.nome}>
+            <MenuItem key={u.id} value={u.id}>
               {u.nome}
             </MenuItem>
           ))}
@@ -258,29 +288,41 @@ export default function MatriculasPage() {
 
       {tab === "leads" && (
         <LeadsTable
-          leads={leadsFiltrados}
+          leads={leads}
           loading={loading}
+          paginacao={paginacao(totalLeads, pageLeads, setPageLeads)}
           onEditar={(id) => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${id}`)}
           onMatricular={abrirMatricular}
+          onDocumentos={setAlunoDocumentos}
         />
       )}
       {tab === "matriculados" && (
         <MatriculadosTable
-          alunos={matriculadosFiltrados}
+          alunos={matriculados}
           loading={loading}
+          paginacao={paginacao(totalMatriculados, pageMatriculados, setPageMatriculados)}
           onVerDetalhe={verDetalhe}
           onVincular={abrirVincular}
           onDesmatricular={abrirDesmatricular}
+          onDocumentos={setAlunoDocumentos}
         />
       )}
       {tab === "desmatriculados" && (
         <DesmatriculadosTable
-          alunos={desmatriculadosFiltrados}
+          alunos={desmatriculados}
           loading={loading}
+          paginacao={paginacao(totalDesmatriculados, pageDesmatriculados, setPageDesmatriculados)}
           onVerDetalhe={verDetalhe}
           onRematricular={abrirRematricular}
         />
       )}
+
+      <DocumentacaoAlunoDialog
+        open={!!alunoDocumentos}
+        alunoId={alunoDocumentos?.id ?? null}
+        alunoNome={alunoDocumentos?.nome}
+        onClose={() => setAlunoDocumentos(null)}
+      />
 
       {/* Modal Matricular (confirmação) */}
       <Dialog open={modal === "matricular"} onClose={fecharModal}>
@@ -490,6 +532,46 @@ function colunaAluno(subtitulo?: (aluno: AlunoListaResponse) => string): ColunaA
   };
 }
 
+/**
+ * Dois selos independentes: dados cadastrais (editados no cadastro do aluno)
+ * e documentos (enviados e validados no checklist). O de documentos abre o checklist.
+ */
+function SituacaoCadastro({
+  aluno,
+  onDocumentos,
+}: {
+  aluno: AlunoListaResponse;
+  onDocumentos: (aluno: AlunoListaResponse) => void;
+}) {
+  return (
+    <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }} onClick={(e) => e.stopPropagation()}>
+      <Chip
+        size="small"
+        variant="outlined"
+        label={aluno.dadosCompletos ? "Dados ok" : "Dados pendentes"}
+        color={aluno.dadosCompletos ? "success" : "warning"}
+      />
+      <Chip
+        size="small"
+        variant="outlined"
+        clickable
+        onClick={() => onDocumentos(aluno)}
+        label={aluno.documentacaoCompleta ? "Documentos ok" : "Documentos pendentes"}
+        color={aluno.documentacaoCompleta ? "success" : "warning"}
+        title="Ver e validar documentos"
+      />
+    </Box>
+  );
+}
+
+function colunaCadastro(onDocumentos: (aluno: AlunoListaResponse) => void): ColunaAluno {
+  return {
+    key: "cadastro",
+    label: "Cadastro",
+    render: (aluno) => <SituacaoCadastro aluno={aluno} onDocumentos={onDocumentos} />,
+  };
+}
+
 const COLUNA_MATRICULA: ColunaAluno = {
   key: "matricula",
   label: "Matrícula",
@@ -503,18 +585,23 @@ const COLUNA_MATRICULA: ColunaAluno = {
 function LeadsTable({
   leads,
   loading,
+  paginacao,
   onEditar,
   onMatricular,
+  onDocumentos,
 }: {
   leads: AlunoListaResponse[];
   loading: boolean;
+  paginacao: PaginacaoServidor;
   onEditar: (id: number) => void;
   onMatricular: (aluno: AlunoListaResponse) => void;
+  onDocumentos: (aluno: AlunoListaResponse) => void;
 }) {
   return (
     <AlunosView
       alunos={leads}
       loading={loading}
+      paginacaoServidor={paginacao}
       semFiltros
       larguraFixa
       // Leads ainda não têm detalhe para abrir — a linha não é clicável.
@@ -534,6 +621,7 @@ function LeadsTable({
         },
         { key: "serie", label: "Série pretendida" },
         { key: "criadoEm", label: "Cadastrado em", render: (lead) => formatarData(lead.criadoEm) },
+        colunaCadastro(onDocumentos),
       ]}
       acoes={(lead) => (
         <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
@@ -559,20 +647,25 @@ function LeadsTable({
 function MatriculadosTable({
   alunos,
   loading,
+  paginacao,
   onVerDetalhe,
   onVincular,
   onDesmatricular,
+  onDocumentos,
 }: {
   alunos: AlunoListaResponse[];
   loading: boolean;
+  paginacao: PaginacaoServidor;
   onVerDetalhe: (id: number) => void;
   onVincular: (aluno: AlunoListaResponse) => void;
   onDesmatricular: (aluno: AlunoListaResponse) => void;
+  onDocumentos: (aluno: AlunoListaResponse) => void;
 }) {
   return (
     <AlunosView
       alunos={alunos}
       loading={loading}
+      paginacaoServidor={paginacao}
       semFiltros
       larguraFixa
       onSelecionar={(aluno) => onVerDetalhe(aluno.id)}
@@ -599,6 +692,7 @@ function MatriculadosTable({
             />
           ),
         },
+        colunaCadastro(onDocumentos),
       ]}
       acoes={(aluno) => (
         <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
@@ -625,11 +719,13 @@ function MatriculadosTable({
 function DesmatriculadosTable({
   alunos,
   loading,
+  paginacao,
   onVerDetalhe,
   onRematricular,
 }: {
   alunos: AlunoListaResponse[];
   loading: boolean;
+  paginacao: PaginacaoServidor;
   onVerDetalhe: (id: number) => void;
   onRematricular: (aluno: AlunoListaResponse) => void;
 }) {
@@ -637,6 +733,7 @@ function DesmatriculadosTable({
     <AlunosView
       alunos={alunos}
       loading={loading}
+      paginacaoServidor={paginacao}
       semFiltros
       larguraFixa
       onSelecionar={(aluno) => onVerDetalhe(aluno.id)}

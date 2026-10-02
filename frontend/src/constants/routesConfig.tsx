@@ -26,8 +26,13 @@ import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined
 import RequestQuoteOutlinedIcon from "@mui/icons-material/RequestQuoteOutlined";
 import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import PersonSearchOutlinedIcon from "@mui/icons-material/PersonSearchOutlined";
+import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
+import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -388,6 +393,82 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
   },
+  // ========== PORTAL DO RESPONSÁVEL ==========
+  // A maioria destas rotas JÁ EXISTE e é reusada: o responsável entra nas
+  // telas do aluno, não em cópias. Só OCORRENCIAS e FINANCEIRO são novas.
+  // Este é o padrão do arquivo — CALENDARIO, COMUNICADOS, COMUNICACAO e
+  // MATERIAIS_COMPLEMENTARES já aparecem uma vez por perfil acima.
+  {
+    text: RouteLabelsEnum.HOME_DASHBOARD,
+    icon: <HomeIcon fontSize="small" />,
+    router: RoutesEnum.HOME,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.RELATORIOS,
+    icon: <SummarizeOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.RELATORIOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.OCORRENCIAS,
+    icon: <FlagOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.OCORRENCIAS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.FICHA_MEDICA,
+    icon: <HealthAndSafetyOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.FICHA_MEDICA_RESPONSAVEL,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.DOCUMENTOS,
+    icon: <DescriptionOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.DOCUMENTOS_RESPONSAVEL,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.FINANCEIRO,
+    icon: <RequestQuoteOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.FINANCEIRO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.CALENDARIO,
+    icon: <CalendarTodayOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.CALENDARIO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.COMUNICADOS,
+    icon: <CampaignOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICADOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
+  {
+    text: RouteLabelsEnum.COMUNICACAO,
+    icon: <ChatBubbleOutlineOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICACAO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+    showBadge: true,
+  },
+  {
+    text: RouteLabelsEnum.MATERIAIS_COMPLEMENTARES,
+    icon: <FolderOpenOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.MATERIAIS_COMPLEMENTARES,
+    isShowMenu: true,
+    roles: [UserRoleEnum.RESPONSAVEL],
+  },
   // ========== USO OPERACIONAL - PROFESSOR ==========
   {
     text: RouteLabelsEnum.MINHAS_TURMAS,
@@ -534,6 +615,20 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.SECRETARIO],
   },
   {
+    text: RouteLabelsEnum.SECRETARIA_CRM,
+    icon: <FilterAltIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_CRM,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
+    text: RouteLabelsEnum.DOCUMENTOS,
+    icon: <FactCheckOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_DOCUMENTOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
     text: RouteLabelsEnum.SECRETARIA_ENTURMACAO,
     icon: <GroupAddIcon fontSize="small" />,
     router: RoutesEnum.SECRETARIA_ENTURMACAO,
@@ -611,13 +706,25 @@ export function getMenuRoutes(role: UserRoleEnum): RouteConfig[] {
 /**
  * Gera dinamicamente os módulos baseados nas rotas disponíveis para o role
  */
-export function getMenuModules(role: UserRoleEnum): MenuModule[] {
+/** Aceita um perfil ou a lista de perfis de quem acumula mais de um. */
+type PerfilOuPerfis = UserRoleEnum | UserRoleEnum[];
+
+function comoLista(role: PerfilOuPerfis): UserRoleEnum[] {
+  return Array.isArray(role) ? role : [role];
+}
+
+/** A rota aparece se QUALQUER perfil da pessoa a autoriza. */
+function autorizada(rotaRoles: UserRoleEnum[], role: PerfilOuPerfis): boolean {
+  return comoLista(role).some((perfil) => rotaRoles.includes(perfil));
+}
+
+export function getMenuModules(role: PerfilOuPerfis): MenuModule[] {
   // Obtém todos os módulos únicos das rotas visíveis para o role
   const modulesSet = new Set<RoutesModuleEnum>();
 
   ROUTES.forEach((route) => {
     if (
-      route.roles.includes(role) &&
+      autorizada(route.roles, role) &&
       route.isShowMenu &&
       route.moduleMenu !== null &&
       route.moduleMenu !== undefined
@@ -653,22 +760,31 @@ function getUniqueRolesForModule(moduleId: RoutesModuleEnum): UserRoleEnum[] {
 /**
  * Obtém as rotas de um módulo específico para um role
  */
-export function getRoutesByModule(role: UserRoleEnum, moduleId: RoutesModuleEnum): RouteConfig[] {
+export function getRoutesByModule(role: PerfilOuPerfis, moduleId: RoutesModuleEnum): RouteConfig[] {
   return ROUTES.filter(
-    (route) => route.roles.includes(role) && route.isShowMenu && route.moduleMenu === moduleId,
+    (route) => autorizada(route.roles, role) && route.isShowMenu && route.moduleMenu === moduleId,
   );
 }
 
 /**
  * Obtém as rotas que não pertencem a nenhum módulo
  */
-export function getRoutesWithoutModule(role: UserRoleEnum): RouteConfig[] {
-  return ROUTES.filter(
+export function getRoutesWithoutModule(role: PerfilOuPerfis): RouteConfig[] {
+  const visiveis = ROUTES.filter(
     (route) =>
-      route.roles.includes(role) &&
+      autorizada(route.roles, role) &&
       route.isShowMenu &&
       (route.moduleMenu === null || route.moduleMenu === undefined),
   );
+
+  // A mesma rota e registrada uma vez por perfil (padrao do arquivo). Quem
+  // acumula perfis veria o item repetido no menu — deduplica por destino.
+  const vistos = new Set<string>();
+  return visiveis.filter((route) => {
+    if (vistos.has(route.router)) return false;
+    vistos.add(route.router);
+    return true;
+  });
 }
 
 /**

@@ -49,6 +49,12 @@ export interface AlunoListaResponse {
   motivoDesmatricula?: string;
   dataDesmatricula?: string;
   criadoEm?: string;
+  /** Dados completos E documentação completa. */
+  cadastroCompleto: boolean;
+  /** CPF, nascimento, endereço, telefone e responsável financeiro. */
+  dadosCompletos: boolean;
+  /** Documentos obrigatórios do aluno e dos responsáveis aprovados e no prazo. */
+  documentacaoCompleta: boolean;
 }
 
 export interface ResponsavelResumoResponse {
@@ -114,22 +120,29 @@ export interface LaudoMedicoResponse {
   arquivo?: ArquivoResponse;
 }
 
+/** Medicação em uso — a mesma que a família inclui pelo portal do responsável. */
 export interface MedicacaoResponse {
   id: number;
-  /** "PERIODO" ou "CONTINUO". */
-  tipoUso: string;
-  tipoUsoDescricao: string;
+  nome: string;
+  dosagem?: string | null;
+  horario?: string | null;
+  observacao?: string | null;
+  /** Instant do backend — ISO-8601 com timezone. */
+  registradaEm?: string | null;
+  /** "PERIODO" ou "CONTINUO". Nulo no que veio do portal e ainda não foi classificado. */
+  tipoUso?: string | null;
+  tipoUsoDescricao?: string | null;
   /** Preenchidos só quando tipoUso é PERIODO. */
-  dataInicio?: string;
-  dataFim?: string;
-  medicamentos?: string;
-  observacao?: string;
-  receita?: ArquivoResponse;
+  dataInicio?: string | null;
+  dataFim?: string | null;
+  receita?: ArquivoResponse | null;
 }
 
 export interface FichaMedicaAlunoResponse {
   id: number;
   nome: string;
+  /** LocalDate — "yyyy-MM-dd". */
+  dataDeNascimento?: string | null;
   tipoSanguineo: string;
   necessidadesEspeciais?: string;
   doencasRespiratorias?: string;

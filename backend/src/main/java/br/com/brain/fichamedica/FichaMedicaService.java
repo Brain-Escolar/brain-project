@@ -8,13 +8,13 @@ import br.com.brain.laudoMedico.LaudoMedico;
 import br.com.brain.laudoMedico.LaudoMedicoRepository;
 import br.com.brain.medicacao.Medicacao;
 import br.com.brain.medicacao.MedicacaoRepository;
+import br.com.brain.medicacao.dto.CadastroMedicacaoDto;
+import br.com.brain.medicacao.dto.ListagemMedicacaoDto;
 import br.com.brain.arquivo.dto.ListagemArquivoDto;
 import br.com.brain.fichamedica.dto.AtualizacaoFichaMedicaDto;
 import br.com.brain.fichamedica.dto.CadastroFichaMedicaDto;
 import br.com.brain.fichamedica.dto.CadastroLaudoDto;
-import br.com.brain.fichamedica.dto.CadastroMedicacaoDto;
 import br.com.brain.fichamedica.dto.LaudoMedicoDto;
-import br.com.brain.fichamedica.dto.MedicacaoDto;
 import br.com.brain.fichamedica.dto.DetalhamentoFichaMedicaDto;
 import br.com.brain.fichamedica.dto.ListagemFichaMedicaDto;
 import br.com.brain.enums.TipoLaudo;
@@ -115,13 +115,59 @@ public class FichaMedicaService {
     }
 
     /**
-     * Anexa um laudo à ficha do aluno, criando a ficha se ele ainda não tiver
-     * uma — assim a aba de ficha médica funciona mesmo para aluno sem cadastro
+     * Recupera a ficha medica de um aluno, criando uma vazia se ainda nao
+     * existir.
+     *
+     * O responsavel precisa poder anexar um laudo ou registrar uma medicacao
+     * mesmo antes da secretaria ter preenchido a ficha — caso contrario a
+     * primeira inclusao falharia com 404 e a familia nao teria como agir. Pelo
+     * mesmo motivo a aba de ficha médica funciona para aluno sem cadastro
      * clínico prévio.
      */
     @Transactional
+    public FichaMedica recuperarOuCriarPorAluno(Long alunoId) {
+        var aluno = alunoRepository.findById(alunoId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
+
+        return repository.findByDadosPessoaisId(aluno.getDadosPessoais().getId())
+                .orElseGet(() -> {
+                    var ficha = new FichaMedica();
+                    ficha.setDadosPessoais(aluno.getDadosPessoais());
+                    return repository.save(ficha);
+                });
+    }
+
+    /**
+     * Inclui uma medicacao em uso pelo portal do responsavel. Nao ha remocao
+     * pelo responsavel de proposito — ver a migration V99.
+     */
+    @Transactional
+    public ListagemMedicacaoDto incluirMedicacao(Long alunoId, CadastroMedicacaoDto dados) {
+        var medicacao = novaMedicacao(recuperarOuCriarPorAluno(alunoId), dados, null);
+        return new ListagemMedicacaoDto(medicacao, urlDownload(medicacao.getArquivo()));
+    }
+
+    /**
+     * Anexa um laudo enviado pelo responsavel no portal. A familia nao
+     * classifica o laudo: ele entra como OUTRO, o valor neutro do enum.
+     */
+    @Transactional
+    public ListagemArquivoDto anexarLaudo(Long alunoId, MultipartFile arquivoEnviado) {
+        var ficha = recuperarOuCriarPorAluno(alunoId);
+
+        var laudo = new LaudoMedico();
+        laudo.setFichaMedica(ficha);
+        laudo.setTipo(TipoLaudo.OUTRO);
+        laudo.setArquivo(salvarArquivo(arquivoEnviado, "fichas-medicas/laudos/"));
+        laudoMedicoRepository.save(laudo);
+
+        return new ListagemArquivoDto(laudo.getArquivo(), urlDownload(laudo.getArquivo()));
+    }
+
+    /** Anexa um laudo já classificado por tipo, com observação. */
+    @Transactional
     public DetalhamentoFichaMedicaDto anexarLaudo(Long alunoId, MultipartFile arquivo, CadastroLaudoDto dados) {
-        var fichaMedica = obterOuCriarPorAluno(alunoId);
+        var fichaMedica = recuperarOuCriarPorAluno(alunoId);
 
         var laudo = new LaudoMedico();
         laudo.setFichaMedica(fichaMedica);
@@ -137,7 +183,7 @@ public class FichaMedicaService {
 
     @Transactional
     public DetalhamentoFichaMedicaDto removerLaudo(Long alunoId, Long laudoId) {
-        var fichaMedica = obterOuCriarPorAluno(alunoId);
+        var fichaMedica = recuperarOuCriarPorAluno(alunoId);
         var laudo = laudoMedicoRepository.findById(laudoId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("LaudoMedico", laudoId));
 
@@ -152,17 +198,8 @@ public class FichaMedicaService {
     @Transactional
     public DetalhamentoFichaMedicaDto anexarMedicacao(Long alunoId, MultipartFile receita,
             CadastroMedicacaoDto dados) {
-        var fichaMedica = obterOuCriarPorAluno(alunoId);
-
-        var medicacao = new Medicacao();
-        medicacao.setFichaMedica(fichaMedica);
-        aplicarDados(medicacao, dados);
-        if (receita != null && !receita.isEmpty()) {
-            medicacao.setArquivo(salvarArquivo(receita, "fichas-medicas/receitas/"));
-        }
-
-        fichaMedica.getMedicacoes().add(medicacao);
-        repository.save(fichaMedica);
+        var fichaMedica = recuperarOuCriarPorAluno(alunoId);
+        novaMedicacao(fichaMedica, dados, receita);
 
         return montarDetalhamento(fichaMedica);
     }
@@ -170,7 +207,7 @@ public class FichaMedicaService {
     @Transactional
     public DetalhamentoFichaMedicaDto atualizarMedicacao(Long alunoId, Long medicacaoId,
             CadastroMedicacaoDto dados) {
-        var fichaMedica = obterOuCriarPorAluno(alunoId);
+        var fichaMedica = recuperarOuCriarPorAluno(alunoId);
         var medicacao = medicacaoRepository.findById(medicacaoId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Medicacao", medicacaoId));
 
@@ -182,16 +219,20 @@ public class FichaMedicaService {
         return montarDetalhamento(fichaMedica);
     }
 
+    /**
+     * Tira a medicação da ficha sem apagar o registro: é histórico de saúde de
+     * menor. A ficha só lista as ativas.
+     */
     @Transactional
-    public DetalhamentoFichaMedicaDto removerMedicacao(Long alunoId, Long medicacaoId) {
-        var fichaMedica = obterOuCriarPorAluno(alunoId);
+    public DetalhamentoFichaMedicaDto desativarMedicacao(Long alunoId, Long medicacaoId) {
+        var fichaMedica = recuperarOuCriarPorAluno(alunoId);
         var medicacao = medicacaoRepository.findById(medicacaoId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Medicacao", medicacaoId));
 
         validarPertenceAFicha(medicacao.getFichaMedica().getId(), fichaMedica.getId(), "Medicacao", medicacaoId);
 
-        fichaMedica.getMedicacoes().remove(medicacao);
-        repository.save(fichaMedica);
+        medicacao.setAtiva(false);
+        medicacaoRepository.save(medicacao);
 
         return montarDetalhamento(fichaMedica);
     }
@@ -199,7 +240,7 @@ public class FichaMedicaService {
     /** Dados clínicos e alergias — as alergias seguem nas colunas da própria ficha. */
     @Transactional
     public DetalhamentoFichaMedicaDto atualizarPorAluno(Long alunoId, AtualizacaoFichaMedicaDto dados) {
-        var fichaMedica = obterOuCriarPorAluno(alunoId);
+        var fichaMedica = recuperarOuCriarPorAluno(alunoId);
         aplicarDados(fichaMedica, dados);
         repository.save(fichaMedica);
 
@@ -207,18 +248,6 @@ public class FichaMedicaService {
     }
 
     // ─── Apoio ───────────────────────────────────────────────────────────────
-
-    private FichaMedica obterOuCriarPorAluno(Long alunoId) {
-        var aluno = alunoRepository.findById(alunoId)
-                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
-
-        return repository.findByDadosPessoaisId(aluno.getDadosPessoais().getId())
-                .orElseGet(() -> {
-                    var nova = new FichaMedica();
-                    nova.setDadosPessoais(aluno.getDadosPessoais());
-                    return repository.save(nova);
-                });
-    }
 
     private void validarPertenceAFicha(Long fichaDoRegistro, Long fichaEsperada, String recurso, Long recursoId) {
         if (!fichaEsperada.equals(fichaDoRegistro)) {
@@ -239,11 +268,28 @@ public class FichaMedicaService {
         return arquivoRepository.save(arquivo);
     }
 
+    private Medicacao novaMedicacao(FichaMedica fichaMedica, CadastroMedicacaoDto dados, MultipartFile receita) {
+        var medicacao = new Medicacao();
+        medicacao.setFichaMedica(fichaMedica);
+        medicacao.setAtiva(true);
+        aplicarDados(medicacao, dados);
+        if (receita != null && !receita.isEmpty()) {
+            medicacao.setArquivo(salvarArquivo(receita, "fichas-medicas/receitas/"));
+        }
+
+        return medicacaoRepository.save(medicacao);
+    }
+
     private void aplicarDados(Medicacao medicacao, CadastroMedicacaoDto dados) {
-        var tipoUso = TipoUsoMedicacao.valueOf(dados.tipoUso());
-        medicacao.setTipoUso(tipoUso);
-        medicacao.setMedicamentos(dados.medicamentos());
+        // O portal não envia tipo de uso — classificar é da escola.
+        var tipoUso = dados.tipoUso() == null || dados.tipoUso().isBlank()
+                ? null
+                : TipoUsoMedicacao.valueOf(dados.tipoUso());
+        medicacao.setNome(dados.nome());
+        medicacao.setDosagem(dados.dosagem());
+        medicacao.setHorario(dados.horario());
         medicacao.setObservacao(dados.observacao());
+        medicacao.setTipoUso(tipoUso);
         // Uso contínuo não tem janela de administração; limpar evita datas órfãs
         // de um registro que era por período e passou a ser contínuo.
         medicacao.setDataInicio(tipoUso == TipoUsoMedicacao.CONTINUO ? null : dados.dataInicio());
@@ -273,8 +319,10 @@ public class FichaMedicaService {
                 .map(laudo -> new LaudoMedicoDto(laudo, urlDownload(laudo.getArquivo())))
                 .toList();
 
-        var medicacoes = fichaMedica.getMedicacoes().stream()
-                .map(medicacao -> new MedicacaoDto(medicacao, urlDownload(medicacao.getArquivo())))
+        var medicacoes = medicacaoRepository
+                .findByFichaMedicaIdAndAtivaTrueOrderByNomeAsc(fichaMedica.getId())
+                .stream()
+                .map(medicacao -> new ListagemMedicacaoDto(medicacao, urlDownload(medicacao.getArquivo())))
                 .toList();
 
         var tipoSanguineo = fichaMedica.getTipoSanguineo() != null
@@ -284,6 +332,7 @@ public class FichaMedicaService {
         return new DetalhamentoFichaMedicaDto(
                 fichaMedica.getId(),
                 fichaMedica.getDadosPessoais().getNome(),
+                fichaMedica.getDadosPessoais().getDataDeNascimento(),
                 tipoSanguineo,
                 fichaMedica.getNecessidadesEspeciais(),
                 fichaMedica.getDoencasRespiratorias(),

@@ -2,11 +2,14 @@
 
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { alunoApi } from "@/services/api";
+import { AlunoListaParams } from "@/services/domains/aluno/request";
 import { AlunoListaResponse } from "@/services/domains/aluno/response";
 import { useQuery } from "@tanstack/react-query";
 
 interface UseDesmatriculadosReturn {
   desmatriculados: AlunoListaResponse[];
+  totalElements: number;
+  totalPages: number;
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -14,16 +17,13 @@ interface UseDesmatriculadosReturn {
 }
 
 /**
- * Hook para buscar a lista de alunos desmatriculados usando React Query
+ * Hook para buscar a lista paginada de alunos desmatriculados usando React Query
  * @returns {UseDesmatriculadosReturn} Estado dos desmatriculados e funções de controle
  */
-export function useDesmatriculados(): UseDesmatriculadosReturn {
+export function useDesmatriculados(params?: AlunoListaParams): UseDesmatriculadosReturn {
   const { data, isLoading, error, refetch, isSuccess } = useQuery({
-    queryKey: QUERY_KEYS.alunos.desmatriculados(),
-    queryFn: async () => {
-      const response = await alunoApi.getDesmatriculados();
-      return response.content || [];
-    },
+    queryKey: QUERY_KEYS.alunos.desmatriculados(params),
+    queryFn: () => alunoApi.getDesmatriculados(params),
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
     retry: 2,
@@ -34,7 +34,9 @@ export function useDesmatriculados(): UseDesmatriculadosReturn {
   });
 
   return {
-    desmatriculados: data ?? [],
+    desmatriculados: data?.content ?? [],
+    totalElements: data?.totalElements ?? 0,
+    totalPages: data?.totalPages ?? 0,
     loading: isLoading,
     error: error ? "Erro ao carregar a lista de desmatriculados. Tente novamente." : null,
     refetch: () => {

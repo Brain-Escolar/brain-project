@@ -10,6 +10,10 @@ import MenuRounded from "@mui/icons-material/MenuRounded";
 import { useAuth } from "@/hooks/useAuth";
 import { useUnreadConversas } from "@/hooks/useConversas";
 import { NotificationMenu } from "@/components/appBar/notificationMenu";
+import SeletorAluno from "@/components/seletorAluno";
+import SeletorPerfil from "@/components/seletorPerfil";
+import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import { useTheme } from "@mui/material/styles";
 import { UserMenu } from "@/components/appBar/userMenu";
 import { DynamicModuleMenu } from "@/components/appBar/dynamicModuleMenu/DynamicModuleMenu";
@@ -22,19 +26,24 @@ export default function AppBar() {
   const theme = useTheme();
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
+  const { perfilAtivo } = usePerfilAtivo();
+  const { atuarPorAlunoVinculado } = usePermissoes();
+  const unreadConversas = useUnreadConversas();
+
+  // O menu segue o perfil ATIVO, nao a uniao dos perfis: quem acumula troca no
+  // SeletorPerfil e ve um mundo por vez.
   const directRoutes = React.useMemo(
-    () => (user ? getRoutesWithoutModule(user.role) : []),
-    [user],
+    () => (perfilAtivo ? getRoutesWithoutModule(perfilAtivo) : []),
+    [perfilAtivo],
   );
 
   const moduleMenus = React.useMemo(
-    () => (user ? getMenuModules(user.role) : []),
-    [user],
+    () => (perfilAtivo ? getMenuModules(perfilAtivo) : []),
+    [perfilAtivo],
   );
 
-  const unreadConversas = useUnreadConversas();
-
-  if (!user) {
+  // perfilAtivo resolve no primeiro efeito; ate la nao ha menu a montar.
+  if (!user || !perfilAtivo) {
     return null;
   }
 
@@ -134,7 +143,7 @@ export default function AppBar() {
             {moduleMenus.map((mod) => (
               <DynamicModuleMenu
                 key={mod.id}
-                role={user.role}
+                role={perfilAtivo}
                 moduleId={mod.id}
                 moduleText={mod.text}
                 moduleIcon={mod.icon}
@@ -151,9 +160,11 @@ export default function AppBar() {
           <Box sx={{ flexGrow: 1 }} />
 
           <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center", gap: 1.5 }}>
+            <SeletorPerfil />
+            {atuarPorAlunoVinculado && <SeletorAluno />}
             <NotificationMenu />
             <UserMenu
-              user={{ email: user.email, name: user.name, role: user.role }}
+              user={{ email: user.email, name: user.name, role: perfilAtivo }}
               menuBg={menuBg}
               menuHoverBg={menuHoverBg}
               textColor={appBarText}
@@ -168,7 +179,7 @@ export default function AppBar() {
       <MobileNavDrawer
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
-        role={user.role}
+        role={perfilAtivo}
         directRoutes={directRoutes}
         moduleMenus={moduleMenus}
         unreadConversas={unreadConversas}

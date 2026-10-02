@@ -22,28 +22,30 @@ public class EnderecoService {
 
     public Endereco atualizarEndereco(Endereco endereco, EnderecoDto dados) {
 
+        var alvo = endereco != null ? endereco : new Endereco();
+
         if (dados.logradouro() != null) {
-            endereco.setLogradouro(dados.logradouro());
+            alvo.setLogradouro(dados.logradouro());
         }
         if (dados.bairro() != null) {
-            endereco.setBairro(dados.bairro());
+            alvo.setBairro(dados.bairro());
         }
         if (dados.cep() != null) {
-            endereco.setCep(dados.cep());
+            alvo.setCep(dados.cep());
         }
         if (dados.uf() != null) {
-            endereco.setUf(dados.uf());
+            alvo.setUf(dados.uf());
         }
         if (dados.cidade() != null) {
-            endereco.setCidade(dados.cidade());
+            alvo.setCidade(dados.cidade());
         }
         if (dados.numero() != null) {
-            endereco.setNumero(dados.numero());
+            alvo.setNumero(dados.numero());
         }
         if (dados.complemento() != null) {
-            endereco.setComplemento(dados.complemento());
+            alvo.setComplemento(dados.complemento());
         }
 
-        return endereco;
+        return alvo;
     }
 }

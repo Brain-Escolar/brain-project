@@ -3,6 +3,7 @@ import { AlunoDetalheResponse, AlunoListaResponse, AnotacaoAlunoDisciplinaRespon
 import { IBrainResult } from "@/services/commoResponse";
 import {
   AlunoDesmatricularRequest,
+  AlunoListaParams,
   AlunoPostRequest,
   AlunoPutRequest,
   AlunoVincularSerieRequest,
@@ -18,11 +19,13 @@ const BASE_ROUTE = "aluno";
 /** Corpo JSON da medicação — o arquivo, quando existe, vai à parte no FormData. */
 function corpoMedicacao(dados: MedicacaoRequest) {
   return {
+    nome: dados.nome,
+    dosagem: dados.dosagem || null,
+    horario: dados.horario || null,
     tipoUso: dados.tipoUso,
     dataInicio: dados.dataInicio || null,
     dataFim: dados.dataFim || null,
-    medicamentos: dados.medicamentos,
-    observacao: dados.observacao,
+    observacao: dados.observacao || null,
   };
 }
 
@@ -31,8 +34,8 @@ export class AlunoApi {
     return httpClient.post(`${BASE_ROUTE}`, request);
   }
 
-  getListaAlunos(): Promise<IBrainResult<AlunoListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
+  getListaAlunos(params?: AlunoListaParams): Promise<IBrainResult<AlunoListaResponse>> {
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500, ...params } });
   }
 
   getAlunoById(id: string): Promise<AlunoDetalheResponse> {
@@ -47,12 +50,12 @@ export class AlunoApi {
     return httpClient.delete(`${BASE_ROUTE}/${id}`);
   }
 
-  getLeads(): Promise<IBrainResult<AlunoListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}/leads`);
+  getLeads(params?: AlunoListaParams): Promise<IBrainResult<AlunoListaResponse>> {
+    return httpClient.get(`${BASE_ROUTE}/leads`, { params });
   }
 
-  getDesmatriculados(): Promise<IBrainResult<AlunoListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}/desmatriculados`);
+  getDesmatriculados(params?: AlunoListaParams): Promise<IBrainResult<AlunoListaResponse>> {
+    return httpClient.get(`${BASE_ROUTE}/desmatriculados`, { params });
   }
 
   matricularAluno(id: string): Promise<AlunoDetalheResponse> {
@@ -132,7 +135,8 @@ export class AlunoApi {
     );
   }
 
-  removerMedicacao(alunoId: string, medicacaoId: number): Promise<FichaMedicaAlunoResponse> {
+  /** Desativa: a medicação sai da ficha, mas fica no histórico. */
+  desativarMedicacao(alunoId: string, medicacaoId: number): Promise<FichaMedicaAlunoResponse> {
     return httpClient.delete(`${BASE_ROUTE}/${alunoId}/ficha-medica/medicacoes/${medicacaoId}`);
   }
 

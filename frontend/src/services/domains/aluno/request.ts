@@ -65,12 +65,14 @@ export interface LaudoMedicoRequest {
 export interface MedicacaoRequest {
   /** Receita — opcional, nem toda medicação chega com documento. */
   arquivo?: File | null;
+  nome: string;
+  dosagem?: string;
+  horario?: string;
   /** "PERIODO" ou "CONTINUO". */
   tipoUso: string;
   /** Ignorados pelo backend quando tipoUso é CONTINUO. */
   dataInicio?: string | null;
   dataFim?: string | null;
-  medicamentos?: string;
   observacao?: string;
 }
 
@@ -87,4 +89,12 @@ export interface AtendimentoPsicologicoRequest {
   descricao: string;
   /** Id de um laudo da ficha médica do próprio aluno. */
   laudoId?: number | null;
+}
+
+export interface AlunoListaParams {
+  page?: number;
+  size?: number;
+  busca?: string;
+  serieId?: number;
+  unidadeId?: number;
 }

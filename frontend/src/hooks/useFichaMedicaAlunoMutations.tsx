@@ -68,13 +68,13 @@ export function useFichaMedicaAlunoMutations(alunoId: string) {
     onError: () => toast.error("Erro ao atualizar a medicação. Tente novamente."),
   });
 
-  const removerMedicacao = useMutation({
-    mutationFn: (medicacaoId: number) => alunoApi.removerMedicacao(alunoId, medicacaoId),
+  const desativarMedicacao = useMutation({
+    mutationFn: (medicacaoId: number) => alunoApi.desativarMedicacao(alunoId, medicacaoId),
     onSuccess: () => {
       invalidar();
-      toast.success("Medicação removida.");
+      toast.success("Medicação desativada.");
     },
-    onError: () => toast.error("Erro ao remover a medicação. Tente novamente."),
+    onError: () => toast.error("Erro ao desativar a medicação. Tente novamente."),
   });
 
   return {
@@ -83,6 +83,6 @@ export function useFichaMedicaAlunoMutations(alunoId: string) {
     removerLaudo,
     anexarMedicacao,
     atualizarMedicacao,
-    removerMedicacao,
+    desativarMedicacao,
   };
 }

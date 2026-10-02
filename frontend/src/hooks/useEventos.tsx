@@ -8,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 interface UseEventosProps {
   dataInicio: string;
   dataFim: string;
+  /** Escopa os eventos a uma turma. Usado pelo responsável; omitido, traz a escola toda. */
+  turmaId?: number | null;
 }
 
 interface UseEventosReturn {
@@ -16,11 +18,11 @@ interface UseEventosReturn {
   error: string | null;
 }
 
-export function useEventos({ dataInicio, dataFim }: UseEventosProps): UseEventosReturn {
+export function useEventos({ dataInicio, dataFim, turmaId }: UseEventosProps): UseEventosReturn {
   const { data, isLoading, error } = useQuery({
-    queryKey: QUERY_KEYS.eventos.periodo(dataInicio, dataFim),
+    queryKey: [...QUERY_KEYS.eventos.periodo(dataInicio, dataFim), turmaId ?? "todas"],
     queryFn: async () => {
-      const response = await eventoApi.listar(dataInicio, dataFim);
+      const response = await eventoApi.listar(dataInicio, dataFim, turmaId);
       return response.content;
     },
     enabled: !!dataInicio && !!dataFim,

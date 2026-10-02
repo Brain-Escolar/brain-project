@@ -4,6 +4,8 @@ import br.com.brain.shared.EntidadeBase;
 import br.com.brain.anotacao.Anotacao;
 import br.com.brain.chamada.Chamada;
 import br.com.brain.dadosPessoais.DadosPessoais;
+import br.com.brain.documento.RequisitosDocumentacao;
+import br.com.brain.endereco.Endereco;
 import br.com.brain.notas.Notas;
 import br.com.brain.responsavel.Responsavel;
 import br.com.brain.serie.Serie;
@@ -26,6 +28,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 import lombok.Data;
@@ -83,10 +86,64 @@ public class Aluno extends EntidadeBase {
     private List<Notas> notas;
 
     @NotAudited
+    @BatchSize(size = 50)
     @ManyToMany(mappedBy = "alunos", fetch = FetchType.LAZY)
     private List<Responsavel> responsaveis = new ArrayList<>();
 
     @NotAudited
     @OneToMany(mappedBy = "aluno")
     private List<Chamada> chamadas;
+
+    /** Dados pessoais do aluno e ao menos um responsavel financeiro com cadastro completo. */
+    public boolean isDadosCompletos() {
+        if (dadosPessoais == null) {
+            return false;
+        }
+        boolean dadosOk = !isBlank(dadosPessoais.getCpf())
+                && dadosPessoais.getDataDeNascimento() != null
+                && enderecoPreenchido(dadosPessoais.getEndereco())
+                && !dadosPessoais.getTelefonesNumeros().isEmpty();
+        boolean temResponsavelFinanceiroCompleto = responsaveis != null && responsaveis.stream()
+                .anyMatch(r -> Boolean.TRUE.equals(r.getFinanceiro()) && responsavelCompleto(r));
+        return dadosOk && temResponsavelFinanceiroCompleto;
+    }
+
+    public boolean isCadastroCompleto() {
+        return isDadosCompletos() && isDocumentacaoCompleta();
+    }
+
+    /**
+     * Documentos obrigatorios do aluno e de cada responsavel aprovados e no
+     * prazo. Mesma regra do checklist (DocumentoService), via RequisitosDocumentacao.
+     */
+    public boolean isDocumentacaoCompleta() {
+        if (dadosPessoais == null
+                || !RequisitosDocumentacao.atendidos(RequisitosDocumentacao.doAluno(), dadosPessoais.getDocumentos())) {
+            return false;
+        }
+        return responsaveis == null || responsaveis.stream()
+                .filter(r -> r.getDadosPessoais() != null)
+                .allMatch(r -> RequisitosDocumentacao.atendidos(
+                        RequisitosDocumentacao.doResponsavel(Boolean.TRUE.equals(r.getFinanceiro())),
+                        r.getDadosPessoais().getDocumentos()));
+    }
+
+    private static boolean enderecoPreenchido(Endereco endereco) {
+        return endereco != null
+                && !isBlank(endereco.getLogradouro())
+                && !isBlank(endereco.getCep())
+                && !isBlank(endereco.getNumero());
+    }
+
+    private static boolean responsavelCompleto(Responsavel responsavel) {
+        var dp = responsavel.getDadosPessoais();
+        return dp != null
+                && !isBlank(dp.getNome())
+                && !isBlank(dp.getCpf())
+                && !dp.getTelefonesNumeros().isEmpty();
+    }
+
+    private static boolean isBlank(String valor) {
+        return valor == null || valor.isBlank();
+    }
 }

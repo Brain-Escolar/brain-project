@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +57,16 @@ public class EscolaService {
         } catch (EmptyResultDataAccessException e) {
             throw ErrosSistema.RecursoNaoEncontradoException.para("Escola", codigo);
         }
+    }
+
+    /** Escola dona do schema (tenant) informado — usada no cabeçalho dos documentos emitidos. */
+    public Optional<DetalhamentoEscolaDto> buscarPorSchema(String schema) {
+        return jdbcTemplate.queryForList(
+                        "SELECT id, nome, cnpj, codigo, ativa, criada_em FROM public.escolas WHERE schema_name = ?",
+                        schema)
+                .stream()
+                .findFirst()
+                .map(this::mapToDto);
     }
 
     public void cadastrarPrimeiroAdmin(String codigoEscola, CadastroPrimeiroAdminDto dto) {

@@ -108,7 +108,7 @@ export default function FichaMedicaAluno({
     removerLaudo,
     anexarMedicacao,
     atualizarMedicacao,
-    removerMedicacao,
+    desativarMedicacao,
   } = useFichaMedicaAlunoMutations(alunoId);
 
   const [dados, setDados] = useState<DadosClinicos>(() => paraDadosClinicos(fichaMedica));
@@ -229,7 +229,7 @@ export default function FichaMedicaAluno({
 
       <ContainerSection
         title="Medicações"
-        description="Receitas, período de administração e remédios em uso."
+        description="Remédios em uso, inclusive os informados pela família no portal, com receita e período."
         actions={
           podeEditar && (
             <Button
@@ -254,12 +254,12 @@ export default function FichaMedicaAluno({
                 key={medicacao.id}
                 medicacao={medicacao}
                 podeEditar={podeEditar}
-                removendo={removerMedicacao.isPending}
+                desativando={desativarMedicacao.isPending}
                 onEditar={() => {
                   setMedicacaoEmEdicao(medicacao);
                   setDialogMedicacao(true);
                 }}
-                onRemover={() => removerMedicacao.mutate(medicacao.id)}
+                onDesativar={() => desativarMedicacao.mutate(medicacao.id)}
               />
             ))}
           </S.ItemList>
@@ -349,30 +349,36 @@ function LinhaLaudo({
 function LinhaMedicacao({
   medicacao,
   podeEditar,
-  removendo,
+  desativando,
   onEditar,
-  onRemover,
+  onDesativar,
 }: {
   medicacao: MedicacaoResponse;
   podeEditar: boolean;
-  removendo: boolean;
+  desativando: boolean;
   onEditar: () => void;
-  onRemover: () => void;
+  onDesativar: () => void;
 }) {
+  const posologia = [medicacao.dosagem, medicacao.horario].filter(Boolean).join(" · ");
+
   return (
     <S.ItemRow>
       <MedicationOutlinedIcon fontSize="small" color="action" sx={{ mt: 0.4 }} />
       <S.ItemBody>
         <S.ItemTitulo>
-          {medicacao.medicamentos || "Medicação sem descrição"}
-          <Chip
-            size="small"
-            label={medicacao.tipoUsoDescricao}
-            color={medicacao.tipoUso === TIPO_USO_CONTINUO ? "warning" : "default"}
-            variant="outlined"
-          />
+          {medicacao.nome}
+          {medicacao.tipoUsoDescricao && (
+            <Chip
+              size="small"
+              label={medicacao.tipoUsoDescricao}
+              color={medicacao.tipoUso === TIPO_USO_CONTINUO ? "warning" : "default"}
+              variant="outlined"
+            />
+          )}
         </S.ItemTitulo>
-        <S.ItemMeta>{descreverPeriodo(medicacao)}</S.ItemMeta>
+        {posologia && <S.ItemMeta>{posologia}</S.ItemMeta>}
+        {/* O que veio do portal chega sem tipo de uso: não há período a descrever. */}
+        {medicacao.tipoUso && <S.ItemMeta>{descreverPeriodo(medicacao)}</S.ItemMeta>}
         {medicacao.receita && <S.ItemMeta>Receita: {medicacao.receita.nome}</S.ItemMeta>}
         {medicacao.observacao && <S.ItemObservacao>{medicacao.observacao}</S.ItemObservacao>}
       </S.ItemBody>
@@ -385,8 +391,8 @@ function LinhaMedicacao({
                 <EditOutlinedIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Remover medicação">
-              <IconButton size="small" color="error" disabled={removendo} onClick={onRemover}>
+            <Tooltip title="Desativar medicação (sai da ficha, fica no histórico)">
+              <IconButton size="small" color="error" disabled={desativando} onClick={onDesativar}>
                 <DeleteOutlineIcon fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -490,19 +496,24 @@ function DialogMedicacao({
   onSalvar: (dados: MedicacaoRequest) => void;
 }) {
   const [arquivos, setArquivos] = useState<File[]>([]);
+  const [nome, setNome] = useState("");
+  const [dosagem, setDosagem] = useState("");
+  const [horario, setHorario] = useState("");
   const [tipoUso, setTipoUso] = useState(TIPO_USO_PERIODO);
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
-  const [medicamentos, setMedicamentos] = useState("");
   const [observacao, setObservacao] = useState("");
 
   useEffect(() => {
     if (!aberto) return;
     setArquivos([]);
+    setNome(medicacao?.nome ?? "");
+    setDosagem(medicacao?.dosagem ?? "");
+    setHorario(medicacao?.horario ?? "");
+    // O que a família incluiu pelo portal chega sem tipo de uso; editar é classificar.
     setTipoUso(medicacao?.tipoUso ?? TIPO_USO_PERIODO);
     setDataInicio(medicacao?.dataInicio ?? "");
     setDataFim(medicacao?.dataFim ?? "");
-    setMedicamentos(medicacao?.medicamentos ?? "");
     setObservacao(medicacao?.observacao ?? "");
   }, [aberto, medicacao]);
 
@@ -523,6 +534,37 @@ function DialogMedicacao({
               label="Clique para anexar a receita (opcional)"
             />
           )}
+
+          <TextField
+            size="small"
+            fullWidth
+            required
+            label="Medicação"
+            placeholder="Ex.: Ritalina LA"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            inputProps={{ maxLength: 255 }}
+          />
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <TextField
+              size="small"
+              fullWidth
+              label="Dosagem"
+              placeholder="Ex.: 20 mg"
+              value={dosagem}
+              onChange={(e) => setDosagem(e.target.value)}
+              inputProps={{ maxLength: 255 }}
+            />
+            <TextField
+              size="small"
+              fullWidth
+              label="Horário"
+              placeholder="Ex.: 07h, antes da aula"
+              value={horario}
+              onChange={(e) => setHorario(e.target.value)}
+              inputProps={{ maxLength: 255 }}
+            />
+          </Box>
 
           <Box>
             <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -568,19 +610,10 @@ function DialogMedicacao({
             fullWidth
             multiline
             minRows={2}
-            label="Remédios que o aluno toma"
-            placeholder="Ex: Ritalina 10mg — 1 comprimido pela manhã"
-            value={medicamentos}
-            onChange={(e) => setMedicamentos(e.target.value)}
-          />
-          <TextField
-            size="small"
-            fullWidth
-            multiline
-            minRows={2}
             label="Observação"
             value={observacao}
             onChange={(e) => setObservacao(e.target.value)}
+            inputProps={{ maxLength: 500 }}
           />
         </Box>
       </DialogContent>
@@ -590,14 +623,16 @@ function DialogMedicacao({
         </Button>
         <Button
           variant="contained"
-          disabled={salvando}
+          disabled={salvando || !nome.trim()}
           onClick={() =>
             onSalvar({
               arquivo: arquivos[0] ?? null,
+              nome: nome.trim(),
+              dosagem,
+              horario,
               tipoUso,
               dataInicio: porPeriodo ? dataInicio : null,
               dataFim: porPeriodo ? dataFim : null,
-              medicamentos,
               observacao,
             })
           }

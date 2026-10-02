@@ -7,4 +7,11 @@ public interface DadosAutenticacaoRepository extends JpaRepository<DadosAutentic
     Optional<DadosAutenticacao> findByEmailIgnoreCaseAndVerificadoTrue(String email);
 
     Optional<DadosAutenticacao> findByToken(String codigo);
+
+    /**
+     * Um mesmo DadosPessoais nao pode ter dois logins. Usado antes de criar o
+     * acesso de um responsavel: ele passa por aqui uma vez por filho vinculado,
+     * e a partir do segundo o login ja existe.
+     */
+    boolean existsByDadosPessoaisId(Long dadosPessoaisId);
 }

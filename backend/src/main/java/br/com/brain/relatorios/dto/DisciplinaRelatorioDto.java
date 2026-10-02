@@ -5,7 +5,8 @@ import java.util.List;
 
 /**
  * Linha de relatório de uma disciplina: notas/faltas por período, média anual,
- * recuperação (quando houver), nota final, faltas totais, frequência e situação.
+ * recuperação (quando houver), nota final, faltas e aulas registradas,
+ * frequência e situação.
  */
 public record DisciplinaRelatorioDto(
         Long disciplinaId,
@@ -15,6 +16,7 @@ public record DisciplinaRelatorioDto(
         BigDecimal recuperacao,
         BigDecimal notaFinal,
         Integer totalFaltas,
+        Integer totalAulas,
         BigDecimal frequencia,
         String situacao) {
 }

@@ -16,8 +16,8 @@ import br.com.brain.tarefa.dto.ListagemTarefaAlunoDto;
 import java.util.List;
 import br.com.brain.fichamedica.dto.AtualizacaoFichaMedicaDto;
 import br.com.brain.fichamedica.dto.CadastroLaudoDto;
-import br.com.brain.fichamedica.dto.CadastroMedicacaoDto;
 import br.com.brain.fichamedica.dto.DetalhamentoFichaMedicaDto;
+import br.com.brain.medicacao.dto.CadastroMedicacaoDto;
 import br.com.brain.atendimentoPsicologico.dto.CadastroAtendimentoPsicologicoDto;
 import br.com.brain.atendimentoPsicologico.dto.ListagemAtendimentoPsicologicoDto;
 import br.com.brain.situacaoFamiliar.dto.AtualizacaoSituacaoFamiliarDto;
@@ -67,15 +67,21 @@ public class AlunoController {
 
     @GetMapping("leads")
     public ResponseEntity<Page<ListagemAlunoDto>> listarLeads(
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) Long serieId,
+            @RequestParam(required = false) Long unidadeId,
             @PageableDefault(size = 10, sort = { "dadosPessoais.nome" }) Pageable paginacao) {
-        var page = service.listarLeads(paginacao);
+        var page = service.listarLeads(busca, serieId, unidadeId, paginacao);
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("desmatriculados")
     public ResponseEntity<Page<ListagemAlunoDto>> listarDesmatriculados(
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) Long serieId,
+            @RequestParam(required = false) Long unidadeId,
             @PageableDefault(size = 10, sort = { "dadosPessoais.nome" }) Pageable paginacao) {
-        var page = service.listarDesmatriculados(paginacao);
+        var page = service.listarDesmatriculados(busca, serieId, unidadeId, paginacao);
         return ResponseEntity.ok(page);
     }
 
@@ -87,8 +93,11 @@ public class AlunoController {
 
     @GetMapping
     public ResponseEntity<Page<ListagemAlunoDto>> listarAlunos(
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) Long serieId,
+            @RequestParam(required = false) Long unidadeId,
             @PageableDefault(size = 10, sort = { "dadosPessoais.nome" }) Pageable paginacao) {
-        var page = service.listarAlunos(paginacao);
+        var page = service.listarAlunos(busca, serieId, unidadeId, paginacao);
         return ResponseEntity.ok(page);
     }
 
@@ -166,10 +175,11 @@ public class AlunoController {
         return ResponseEntity.ok(fichaMedicaService.atualizarMedicacao(id, medicacaoId, dados));
     }
 
+    /** Desativa, não apaga: a medicação sai da ficha e fica no histórico. */
     @DeleteMapping("/{id}/ficha-medica/medicacoes/{medicacaoId}")
-    public ResponseEntity<DetalhamentoFichaMedicaDto> removerMedicacao(
+    public ResponseEntity<DetalhamentoFichaMedicaDto> desativarMedicacao(
             @PathVariable Long id, @PathVariable Long medicacaoId) {
-        return ResponseEntity.ok(fichaMedicaService.removerMedicacao(id, medicacaoId));
+        return ResponseEntity.ok(fichaMedicaService.desativarMedicacao(id, medicacaoId));
     }
 
     @GetMapping("/{id}/situacao-familiar")
