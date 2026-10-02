@@ -88,3 +88,11 @@ export interface AtendimentoPsicologicoRequest {
   /** Id de um laudo da ficha médica do próprio aluno. */
   laudoId?: number | null;
 }
+
+export interface AlunoListaParams {
+  page?: number;
+  size?: number;
+  busca?: string;
+  serieId?: number;
+  unidadeId?: number;
+}

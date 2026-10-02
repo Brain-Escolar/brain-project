@@ -3,6 +3,7 @@ package br.com.brain.orientador;
 
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.shared.EntidadeBase;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -27,7 +28,7 @@ public class Orientador extends EntidadeBase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "dados_pessoais_id", referencedColumnName = "id")
     private DadosPessoais dadosPessoais;
 }

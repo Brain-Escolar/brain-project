@@ -12,6 +12,7 @@ import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { useProfessorDisciplinas } from "@/hooks/useProfessorDisciplinas";
 import { useUnidades } from "@/hooks/useUnidades";
 import { useAuth } from "@/hooks/useAuth";
+import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { RoutesEnum } from "@/enums/RoutesEnum";
 import { UserRoleEnum } from "@/enums/UserRoleEnum";
 import { AlunoDetalheResponse, FichaMedicaAlunoResponse, ResponsavelResumoResponse } from "@/services/domains/aluno/response";
@@ -90,6 +91,10 @@ const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
   [UserRoleEnum.ESTUDANTE]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.SECRETARIO]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.ORIENTADOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
+  // O responsável não acessa esta tela — ela é o detalhe administrativo do
+  // aluno. Ele vê os dados do filho pelo portal (/portal-responsavel/**),
+  // que valida o vínculo. Entrada vazia só para satisfazer o Record.
+  [UserRoleEnum.RESPONSAVEL]: [],
 };
 
 const LABEL_ABA: Record<TabKey, string> = {
@@ -366,9 +371,10 @@ export default function AlunoDetalhePage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
+  const { perfilAtivo } = usePerfilAtivo();
 
   const alunoId = params.id as string;
-  const role = user?.role ?? UserRoleEnum.ADMIN;
+  const role = perfilAtivo ?? user?.role ?? UserRoleEnum.ADMIN;
   const isAdmin = role === UserRoleEnum.ADMIN;
   const secoesDoRole = SECOES_POR_PERFIL[role] ?? SECOES_POR_PERFIL[UserRoleEnum.ADMIN];
   const temProdutos = PRODUTOS_ROLES.includes(role);

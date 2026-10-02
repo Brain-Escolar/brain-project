@@ -8,6 +8,7 @@ import br.com.brain.laudoMedico.LaudoMedico;
 import br.com.brain.laudoMedico.LaudoMedicoRepository;
 import br.com.brain.medicacao.Medicacao;
 import br.com.brain.medicacao.MedicacaoRepository;
+import br.com.brain.medicacao.dto.ListagemMedicacaoDto;
 import br.com.brain.arquivo.dto.ListagemArquivoDto;
 import br.com.brain.fichamedica.dto.AtualizacaoFichaMedicaDto;
 import br.com.brain.fichamedica.dto.CadastroFichaMedicaDto;
@@ -190,10 +191,37 @@ public class FichaMedicaService {
 
         validarPertenceAFicha(medicacao.getFichaMedica().getId(), fichaMedica.getId(), "Medicacao", medicacaoId);
 
-        fichaMedica.getMedicacoes().remove(medicacao);
-        repository.save(fichaMedica);
+        medicacao.setAtiva(false);
+        medicacaoRepository.save(medicacao);
 
         return montarDetalhamento(fichaMedica);
+    }
+
+    @Transactional
+    public ListagemMedicacaoDto incluirMedicacao(
+            Long alunoId, br.com.brain.medicacao.dto.CadastroMedicacaoDto dados) {
+        var fichaMedica = obterOuCriarPorAluno(alunoId);
+        var medicacao = new Medicacao();
+        medicacao.setFichaMedica(fichaMedica);
+        medicacao.setNome(dados.nome());
+        medicacao.setDosagem(dados.dosagem());
+        medicacao.setHorario(dados.horario());
+        medicacao.setObservacao(dados.observacao());
+        medicacao.setAtiva(true);
+
+        return new ListagemMedicacaoDto(medicacaoRepository.save(medicacao));
+    }
+
+    @Transactional
+    public ListagemArquivoDto anexarLaudo(Long alunoId, MultipartFile arquivo) {
+        var fichaMedica = obterOuCriarPorAluno(alunoId);
+        var laudo = new LaudoMedico();
+        laudo.setFichaMedica(fichaMedica);
+        laudo.setTipo(TipoLaudo.OUTRO);
+        laudo.setArquivo(salvarArquivo(arquivo, "fichas-medicas/laudos/"));
+        laudoMedicoRepository.save(laudo);
+
+        return new ListagemArquivoDto(laudo.getArquivo(), urlDownload(laudo.getArquivo()));
     }
 
     /** Dados clínicos e alergias — as alergias seguem nas colunas da própria ficha. */
@@ -243,6 +271,9 @@ public class FichaMedicaService {
         var tipoUso = TipoUsoMedicacao.valueOf(dados.tipoUso());
         medicacao.setTipoUso(tipoUso);
         medicacao.setMedicamentos(dados.medicamentos());
+        medicacao.setNome(dados.medicamentos() == null || dados.medicamentos().isBlank()
+                ? "Não informado"
+                : dados.medicamentos().strip());
         medicacao.setObservacao(dados.observacao());
         // Uso contínuo não tem janela de administração; limpar evita datas órfãs
         // de um registro que era por período e passou a ser contínuo.
@@ -274,6 +305,7 @@ public class FichaMedicaService {
                 .toList();
 
         var medicacoes = fichaMedica.getMedicacoes().stream()
+                .filter(medicacao -> Boolean.TRUE.equals(medicacao.getAtiva()))
                 .map(medicacao -> new MedicacaoDto(medicacao, urlDownload(medicacao.getArquivo())))
                 .toList();
 
@@ -284,6 +316,7 @@ public class FichaMedicaService {
         return new DetalhamentoFichaMedicaDto(
                 fichaMedica.getId(),
                 fichaMedica.getDadosPessoais().getNome(),
+                fichaMedica.getDadosPessoais().getDataDeNascimento(),
                 tipoSanguineo,
                 fichaMedica.getNecessidadesEspeciais(),
                 fichaMedica.getDoencasRespiratorias(),

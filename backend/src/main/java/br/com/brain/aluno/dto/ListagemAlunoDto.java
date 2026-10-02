@@ -25,7 +25,10 @@ public record ListagemAlunoDto(
         Boolean matriculado,
         String motivoDesmatricula,
         LocalDate dataDesmatricula,
-        Instant criadoEm) {
+        Instant criadoEm,
+        Boolean cadastroCompleto,
+        Boolean dadosCompletos,
+        Boolean documentacaoCompleta) {
 
     public ListagemAlunoDto(Aluno aluno) {
         this(
@@ -47,6 +50,9 @@ public record ListagemAlunoDto(
                 aluno.getMatriculado(),
                 aluno.getMotivoDesmatricula(),
                 aluno.getDataDesmatricula(),
-                aluno.getCriadoEm());
+                aluno.getCriadoEm(),
+                aluno.isCadastroCompleto(),
+                aluno.isDadosCompletos(),
+                aluno.isDocumentacaoCompleta());
     }
 }

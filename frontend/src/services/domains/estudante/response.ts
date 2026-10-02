@@ -54,7 +54,8 @@ export interface RelatorioNotaPeriodoResponse {
   periodoId: number;
   sequence: number;
   nota: number | null;
-  faltas: number;
+  /** Nulo nos períodos fora do recorte (ex.: boletim "até o 2º bimestre"). */
+  faltas: number | null;
 }
 
 export type RelatorioSituacao = "APROVADO" | "REPROVADO" | "EM_ANDAMENTO";
@@ -67,6 +68,8 @@ export interface RelatorioDisciplinaResponse {
   recuperacao: number | null;
   notaFinal: number | null;
   totalFaltas: number;
+  /** Aulas com chamada registrada nos períodos considerados. */
+  totalAulas: number;
   frequencia: number | null;
   situacao: RelatorioSituacao;
 }

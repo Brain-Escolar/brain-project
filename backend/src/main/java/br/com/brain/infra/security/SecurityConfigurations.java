@@ -43,6 +43,56 @@ public class SecurityConfigurations {
                             // Paginas de login
                             req.requestMatchers("/login/**", "/atualizar-token", "/usuario/**").permitAll();
 
+                            // Portal do Responsavel - acima do permitAll para ja valer hoje.
+                            req.requestMatchers("/portal-responsavel/**").hasRole("RESPONSAVEL");
+
+                            // CRM de matriculas - acima do permitAll para ja valer hoje.
+                            req.requestMatchers("/crm/**").hasRole("SECRETARIO");
+
+                            // Configuracao de bolsa - ANTES de /bolsas/** DE PROPOSITO.
+                            //
+                            // A ordem aqui e a propria regra: o Spring Security
+                            // casa o PRIMEIRO matcher que bate. Se /bolsas/**
+                            // viesse antes, ele casaria /bolsas/configuracao
+                            // tambem e uma secretaria poderia reescrever a matriz
+                            // de descontos -- as linhas abaixo nunca seriam
+                            // consultadas. Nao reordenar.
+                            //
+                            // Escrever configuracao decide quanto a escola deixa
+                            // de arrecadar no ano: e decisao de direcao. Ler e mais
+                            // largo, porque a tela de matricula precisa explicar
+                            // qual regra segurou a bolsa.
+                            req.requestMatchers(HttpMethod.GET, "/bolsas/configuracao/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                            req.requestMatchers("/bolsas/configuracao/**")
+                                    .hasAnyRole("DIRETOR", "ADMIN");
+
+                            // Bolsas - acima do permitAll para ja valer hoje.
+                            // FINANCEIRO ainda nao existe em PerfilNome; quando
+                            // existir, entra aqui.
+                            req.requestMatchers("/bolsas/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
+                            // Simulacoes financeiras - acima do permitAll para ja valer hoje.
+                            // Escrita e da secretaria; a leitura inclui o
+                            // responsavel, que precisa ver a propria proposta.
+                            // Que seja a DELE e regra do servico, nao daqui:
+                            // perfil diz quem entra, nao o que e de quem.
+                            req.requestMatchers(HttpMethod.GET, "/simulacoes/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN", "RESPONSAVEL");
+                            req.requestMatchers("/simulacoes/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
+                            // Documentos de matricula - acima do permitAll para ja valer hoje.
+                            // Dado pessoal de menor: professor fica de fora. A
+                            // familia envia pelo /portal-responsavel.
+                            req.requestMatchers("/documentos/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
+                            // Documentos escolares (boletim/historico) emitidos pela escola.
+                            req.requestMatchers("/documentos-escolares/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 

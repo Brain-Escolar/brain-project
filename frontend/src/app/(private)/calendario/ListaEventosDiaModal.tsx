@@ -23,7 +23,8 @@ interface ListaEventosDiaModalProps {
   eventos: EventoResponse[];
   onClose: () => void;
   onSelecionarEvento: (evento: EventoResponse) => void;
-  onNovoEvento: () => void;
+  /** Ausente quando o perfil não pode criar eventos (ex.: responsável). */
+  onNovoEvento?: () => void;
 }
 
 export default function ListaEventosDiaModal({
@@ -124,9 +125,11 @@ export default function ListaEventosDiaModal({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pt: 1.5, pb: 2.25, borderTop: `1px solid ${cssVarColor("borderSubtle")}` }}>
-        <Button variant="outlined" startIcon={<AddIcon />} onClick={onNovoEvento} fullWidth>
+{onNovoEvento && (
+                <Button variant="outlined" startIcon={<AddIcon />} onClick={onNovoEvento} fullWidth>
           Novo evento
         </Button>
+        )}
       </DialogActions>
     </Dialog>
   );

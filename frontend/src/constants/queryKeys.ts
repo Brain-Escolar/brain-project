@@ -69,10 +69,11 @@ export const QUERY_KEYS = {
   },
   alunos: {
     all: ["alunos"] as const,
-    lists: () => [...QUERY_KEYS.alunos.all, "list"] as const,
-    leads: () => [...QUERY_KEYS.alunos.all, "leads"] as const,
+    lists: (params?: unknown) => [...QUERY_KEYS.alunos.all, "list", params ?? {}] as const,
+    leads: (params?: unknown) => [...QUERY_KEYS.alunos.all, "leads", params ?? {}] as const,
     matriculados: () => [...QUERY_KEYS.alunos.all, "matriculados"] as const,
-    desmatriculados: () => [...QUERY_KEYS.alunos.all, "desmatriculados"] as const,
+    desmatriculados: (params?: unknown) =>
+      [...QUERY_KEYS.alunos.all, "desmatriculados", params ?? {}] as const,
     details: () => [...QUERY_KEYS.alunos.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.alunos.details(), id] as const,
     fichaMedica: (id: string | number) => [...QUERY_KEYS.alunos.all, "ficha-medica", id] as const,
@@ -97,6 +98,16 @@ export const QUERY_KEYS = {
     lists: () => [...QUERY_KEYS.unidades.all, "list"] as const,
     details: () => [...QUERY_KEYS.unidades.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.unidades.details(), id] as const,
+  },
+  crm: {
+    all: ["crm"] as const,
+    origens: () => [...QUERY_KEYS.crm.all, "origens"] as const,
+    equipe: () => [...QUERY_KEYS.crm.all, "equipe"] as const,
+    estagios: () => [...QUERY_KEYS.crm.all, "estagios"] as const,
+    relatorios: (anoLetivo?: number) => [...QUERY_KEYS.crm.all, "relatorios", anoLetivo] as const,
+    processos: (filtros?: Record<string, unknown>) =>
+      [...QUERY_KEYS.crm.all, "processos", "list", filtros ?? {}] as const,
+    processo: (id: string | number) => [...QUERY_KEYS.crm.all, "processos", "detail", id] as const,
   },
   avaliacoes: {
     all: ["avaliacoes"] as const,
@@ -211,5 +222,64 @@ export const QUERY_KEYS = {
   materiaisComplementares: {
     all: ["materiaisComplementares"] as const,
     professor: () => [...QUERY_KEYS.materiaisComplementares.all, "professor"] as const,
+  },
+  /**
+   * Portal do Responsável.
+   *
+   * Toda chave inclui o alunoId — é isso que faz a troca de aluno no seletor
+   * invalidar e refazer as queries sozinha, sem refetch manual nas telas.
+   */
+  responsavel: {
+    all: ["responsavel"] as const,
+    me: () => [...QUERY_KEYS.responsavel.all, "me"] as const,
+    alunos: () => [...QUERY_KEYS.responsavel.all, "alunos"] as const,
+    aluno: (alunoId: number) => [...QUERY_KEYS.responsavel.all, "aluno", alunoId] as const,
+    resumo: (alunoId: number) => [...QUERY_KEYS.responsavel.aluno(alunoId), "resumo"] as const,
+    relatorio: (alunoId: number) => [...QUERY_KEYS.responsavel.aluno(alunoId), "relatorio"] as const,
+    ocorrencias: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "ocorrencias"] as const,
+    gradeHoraria: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "grade-horaria"] as const,
+    tarefas: (alunoId: number) => [...QUERY_KEYS.responsavel.aluno(alunoId), "tarefas"] as const,
+    materiais: (alunoId: number) => [...QUERY_KEYS.responsavel.aluno(alunoId), "materiais"] as const,
+    calendario: (alunoId: number, mes: string) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "calendario", mes] as const,
+    fichaMedica: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "ficha-medica"] as const,
+    financeiro: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "financeiro"] as const,
+    documentos: (alunoId: number) =>
+      [...QUERY_KEYS.responsavel.aluno(alunoId), "documentos"] as const,
+  },
+  documentos: {
+    all: ["documentos"] as const,
+    aluno: (alunoId: number) => [...QUERY_KEYS.documentos.all, "aluno", alunoId] as const,
+    fila: (params?: unknown) => [...QUERY_KEYS.documentos.all, "fila", params ?? {}] as const,
+    detail: (id: number) => [...QUERY_KEYS.documentos.all, "detail", id] as const,
+  },
+  documentosEscolares: {
+    all: ["documentos-escolares"] as const,
+    boletim: (alunoId: number, params?: unknown) =>
+      [...QUERY_KEYS.documentosEscolares.all, "boletim", alunoId, params ?? {}] as const,
+    historico: (alunoId: number) =>
+      [...QUERY_KEYS.documentosEscolares.all, "historico", alunoId] as const,
+  },
+  bolsa: {
+    all: ["bolsa"] as const,
+    tipos: () => [...QUERY_KEYS.bolsa.all, "tipos"] as const,
+    // O teto depende de todas as dimensoes: trocar de serie ou de parcelas muda o
+    // valor cheio e, com ele, o percentual que cabe. Chave por objeto de params
+    // para o React Query refazer a conta quando qualquer uma mudar.
+    teto: (params?: unknown) =>
+      [...QUERY_KEYS.bolsa.all, "teto", params ?? {}] as const,
+    concessoes: (simulacaoId: number) =>
+      [...QUERY_KEYS.bolsa.all, "concessoes", simulacaoId] as const,
+  },
+  simulacoes: {
+    all: ["simulacoes"] as const,
+    detail: (id: number) => [...QUERY_KEYS.simulacoes.all, "detail", id] as const,
+    doProcesso: (processoMatriculaId: number) =>
+      [...QUERY_KEYS.simulacoes.all, "processo", processoMatriculaId] as const,
+    doAluno: (alunoId: number) => [...QUERY_KEYS.simulacoes.all, "aluno", alunoId] as const,
   },
 } as const;

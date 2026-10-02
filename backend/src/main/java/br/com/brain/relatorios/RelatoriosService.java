@@ -66,16 +66,29 @@ public class RelatoriosService {
         if (turma == null || turma.getSerie() == null) {
             throw ErrosSistema.OperacaoInvalidaException.com("Aluno não está vinculado a uma turma/série.");
         }
+        return gerarRelatorio(aluno, turma, null);
+    }
 
+    /**
+     * Relatório do aluno no ano letivo de {@code turma} — não necessariamente a
+     * turma atual, o que permite montar boletins de anos anteriores e o
+     * histórico escolar. Com {@code ateSequencia}, os períodos posteriores são
+     * ignorados (sem nota e sem faltas), como num boletim "até o 2º bimestre".
+     */
+    @Transactional(readOnly = true)
+    public RelatorioDto gerarRelatorio(Aluno aluno, Turma turma, Integer ateSequencia) {
         int anoLetivo = turma.getAnoLetivo();
         ConfiguracaoRelatorio config = configuracaoService.obterOuPadrao(anoLetivo);
         EscalaAvaliacao escala = config.escala();
         List<PeriodoLetivo> periodos = config.periodos();
+        List<PeriodoLetivo> considerados = ateSequencia == null ? periodos : periodos.stream()
+                .filter(p -> p.getSequencia() <= ateSequencia)
+                .toList();
         LocalDate hoje = LocalDate.now();
 
         var disciplinas = disciplinaRepository.findBySerieIdOrderByNomeAsc(turma.getSerie().getId());
         var disciplinasDto = disciplinas.stream()
-                .map(disciplina -> montarDisciplina(aluno.getId(), disciplina, periodos, escala))
+                .map(disciplina -> montarDisciplina(aluno.getId(), disciplina, periodos, considerados, escala))
                 .toList();
 
         var periodosDto = periodos.stream()
@@ -96,7 +109,7 @@ public class RelatoriosService {
     }
 
     private DisciplinaRelatorioDto montarDisciplina(Long alunoId, Disciplina disciplina,
-            List<PeriodoLetivo> periodos, EscalaAvaliacao escala) {
+            List<PeriodoLetivo> periodos, List<PeriodoLetivo> considerados, EscalaAvaliacao escala) {
         var notas = notasRepository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(alunoId, disciplina.getId());
 
         var regulares = notas.stream().filter(n -> tipo(n) != TipoAvaliacao.RECUPERACAO).toList();
@@ -105,8 +118,13 @@ public class RelatoriosService {
         List<NotaPeriodoDto> notasPorPeriodo = new ArrayList<>();
         List<BigDecimal> mediasDosPeriodos = new ArrayList<>();
         int totalFaltas = 0;
+        int totalAulas = 0;
 
         for (PeriodoLetivo periodo : periodos) {
+            if (!considerados.contains(periodo)) {
+                notasPorPeriodo.add(new NotaPeriodoDto(periodo.getId(), periodo.getSequencia(), null, null));
+                continue;
+            }
             var pontuacoes = regulares.stream()
                     .filter(n -> periodo.contem(n.getPeriodoReferencia()))
                     .map(Notas::getPontuacao)
@@ -119,12 +137,15 @@ public class RelatoriosService {
             Integer faltas = zeroSeNulo(chamadaRepository.countFaltasByAlunoAndDisciplinaAndPeriodo(
                     alunoId, disciplina.getId(), periodo.getDataInicio(), periodo.getDataFim()));
             totalFaltas += faltas;
+            totalAulas += zeroSeNulo(chamadaRepository.countTotalByAlunoAndDisciplinaAndPeriodo(
+                    alunoId, disciplina.getId(), periodo.getDataInicio(), periodo.getDataFim()));
 
             notasPorPeriodo.add(new NotaPeriodoDto(periodo.getId(), periodo.getSequencia(), notaPeriodo, faltas));
         }
 
         BigDecimal notaAnual = mediasDosPeriodos.isEmpty() ? null : media(mediasDosPeriodos, escala);
-        BigDecimal recuperacao = recuperacoes.stream()
+        // Recuperação só conta no ano completo; num recorte parcial ainda não aconteceu.
+        BigDecimal recuperacao = considerados.size() < periodos.size() ? null : recuperacoes.stream()
                 .map(Notas::getPontuacao)
                 .filter(Objects::nonNull)
                 .max(Comparator.naturalOrder())
@@ -137,7 +158,7 @@ public class RelatoriosService {
         }
 
         String situacao = situacaoDisciplina(notaFinal, escala);
-        BigDecimal frequencia = calcularFrequencia(alunoId, disciplina.getId());
+        BigDecimal frequencia = calcularFrequencia(totalAulas, totalFaltas);
 
         return new DisciplinaRelatorioDto(
                 disciplina.getId(),
@@ -147,6 +168,7 @@ public class RelatoriosService {
                 recuperacao,
                 notaFinal,
                 totalFaltas,
+                totalAulas,
                 frequencia,
                 situacao);
     }
@@ -192,14 +214,12 @@ public class RelatoriosService {
                 unidade != null ? unidade.getNome() : null);
     }
 
-    /** Frequência geral da disciplina no ano: (total - faltas) / total * 100. */
-    private BigDecimal calcularFrequencia(Long alunoId, Long disciplinaId) {
-        Integer total = chamadaRepository.countTotalByAlunoAndDisciplina(alunoId, disciplinaId);
-        if (total == null || total == 0) {
+    /** Frequência da disciplina nos períodos considerados: (aulas - faltas) / aulas * 100. */
+    private BigDecimal calcularFrequencia(int totalAulas, int faltas) {
+        if (totalAulas == 0) {
             return null;
         }
-        int faltas = zeroSeNulo(chamadaRepository.countFaltasByAlunoAndDisciplina(alunoId, disciplinaId));
-        return BigDecimal.valueOf((total - faltas) * 100.0 / total).setScale(ESCALA_FREQUENCIA, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf((totalAulas - faltas) * 100.0 / totalAulas).setScale(ESCALA_FREQUENCIA, RoundingMode.HALF_UP);
     }
 
     private String situacaoDisciplina(BigDecimal notaFinal, EscalaAvaliacao escala) {

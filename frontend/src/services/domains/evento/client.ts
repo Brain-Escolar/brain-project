@@ -6,8 +6,18 @@ import { IBrainResult } from "@/services/commoResponse";
 const BASE_ROUTE = "evento";
 
 export class EventoApi {
-  listar(dataInicio: string, dataFim: string): Promise<IBrainResult<EventoResponse>> {
-    return httpClient.get(`${BASE_ROUTE}?dataInicio=${dataInicio}&dataFim=${dataFim}`);
+  /**
+   * O backend ja aceita turmaId/serieId/unidadeId — o filtro por turma existe
+   * para o responsavel ver o calendario do aluno dele, nao o da escola toda.
+   */
+  listar(
+    dataInicio: string,
+    dataFim: string,
+    turmaId?: number | null,
+  ): Promise<IBrainResult<EventoResponse>> {
+    const params = new URLSearchParams({ dataInicio, dataFim });
+    if (turmaId != null) params.set("turmaId", String(turmaId));
+    return httpClient.get(`${BASE_ROUTE}?${params.toString()}`);
   }
 
   detalhar(id: number): Promise<EventoDetalheResponse> {

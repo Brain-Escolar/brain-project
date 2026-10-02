@@ -4,6 +4,7 @@ import LoadingComponent from "@/components/loadingComponent/loadingComponent";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useMateriaisComplementaresAluno } from "@/hooks/useMateriaisComplementaresAluno";
+import { useContextoAluno } from "@/hooks/useContextoAluno";
 import { MaterialComplementarResponse } from "@/services/domains/material-complementar";
 import { getDisciplinaIcon } from "@/utils/disciplinaUtils";
 import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
@@ -45,7 +46,8 @@ function MaterialCard({ material }: { material: MaterialComplementarResponse }) 
 }
 
 export default function MateriaisComplementaresAlunoPage() {
-  const { materiais, loading } = useMateriaisComplementaresAluno();
+  const { alunoId, pronto } = useContextoAluno();
+  const { materiais, loading } = useMateriaisComplementaresAluno(alunoId, pronto);
 
   const disciplinas = useMemo(() => {
     const mapa = new Map<number, string>();

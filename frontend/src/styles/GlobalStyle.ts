@@ -42,10 +42,6 @@ const GlobalStyle = createGlobalStyle`
     display: none;
   }
 
-  p, span, h1, h2, h3, h4, h5, h6 {
-    color: var(--colors-text);
-  }
-
   /* Escala tipográfica Brain (proporção 1.2) */
   h1 {
     font-family: var(--fonts-heading);
@@ -73,6 +69,18 @@ const GlobalStyle = createGlobalStyle`
     font-size: var(--fontSizes-h4);
     font-weight: var(--fontWeights-medium);
     line-height: 1.35;
+  }
+
+  /* Componentes MUI com fundo sólido azul/verde/vermelho (primary/success/error) devem
+     ter texto branco. O MUI calcula o contrastText automaticamente e pode escolher preto
+     nos tons mais claros do dark mode (success/error), por isso forçamos aqui. */
+  .MuiButton-containedPrimary:not(.Mui-disabled),
+  .MuiButton-containedSuccess:not(.Mui-disabled),
+  .MuiButton-containedError:not(.Mui-disabled),
+  .MuiChip-filled.MuiChip-colorPrimary:not(.Mui-disabled),
+  .MuiChip-filled.MuiChip-colorSuccess:not(.Mui-disabled),
+  .MuiChip-filled.MuiChip-colorError:not(.Mui-disabled) {
+    color: #fff !important;
   }
 `;
 export default GlobalStyle;

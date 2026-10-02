@@ -10,6 +10,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,8 +22,12 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.envers.Audited;
 
 /**
- * Medicação que o aluno faz uso, com a receita anexada e o período em que deve
- * ser administrada. Quando o uso é contínuo, dataInicio/dataFim ficam nulos.
+ * Medicacao em uso do aluno.
+ *
+ * Cadastrada pelo responsavel no portal e consultada pela Orientacao. O
+ * responsavel so inclui — desativar e da escola, para que nada saia do
+ * historico de saude de um menor sem que a escola saiba. A Orientacao tambem
+ * registra o tipo e o periodo de uso, alem da receita quando disponivel.
  */
 @Entity
 @Audited
@@ -35,16 +40,15 @@ public class Medicacao extends EntidadeBase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ficha_medica_id", nullable = false)
     private FichaMedica fichaMedica;
 
-    /** Receita anexada. Opcional — nem toda medicação chega com documento. */
     @ManyToOne
     @JoinColumn(name = "arquivo_id")
     private Arquivo arquivo;
 
-    @Column(name = "tipo_uso", nullable = false)
+    @Column(name = "tipo_uso")
     @Enumerated(EnumType.STRING)
     private TipoUsoMedicacao tipoUso;
 
@@ -54,9 +58,19 @@ public class Medicacao extends EntidadeBase {
     @Column(name = "data_fim")
     private LocalDate dataFim;
 
+    @Column(nullable = false)
+    private String nome;
+
+    private String dosagem;
+
+    private String horario;
+
+    @Column(length = 500)
+    private String observacao;
+
+    @Column(nullable = false)
+    private Boolean ativa = true;
+
     @Column(name = "medicamentos")
     private String medicamentos;
-
-    @Column(name = "observacao")
-    private String observacao;
 }

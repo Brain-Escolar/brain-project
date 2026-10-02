@@ -1,6 +1,7 @@
 package br.com.brain.dadosPessoais;
 
 import br.com.brain.dependente.Dependente;
+import br.com.brain.documento.Documento;
 import br.com.brain.endereco.Endereco;
 import br.com.brain.fichamedica.FichaMedica;
 import br.com.brain.perfil.Perfil;
@@ -12,6 +13,7 @@ import br.com.brain.telefone.Telefone;
 import br.com.brain.shared.EntidadeBase;
 import br.com.brain.alerta.AlertaUsuario;
 import br.com.brain.aluno.Aluno;
+import br.com.brain.arquivo.Arquivo;
 import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.coordenador.Coordenador;
 import br.com.brain.diretor.Diretor;
@@ -27,11 +29,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import org.hibernate.envers.Audited;
@@ -46,8 +51,8 @@ import java.util.stream.Collectors;
 @Audited
 @Table(name = "dados_pessoais")
 @Data
-@EqualsAndHashCode(callSuper = false, exclude = { "professor", "aluno", "responsavel", "rhs", "diretores",
-        "coordenadores", "orientadores", "secretarios", "dependentes", "fichaMedica" })
+@EqualsAndHashCode(callSuper = false, exclude = { "professor", "aluno", "responsavel", "rh", "diretor",
+        "coordenador", "orientador", "secretario", "dependentes", "fichaMedica", "foto", "documentos" })
 public class DadosPessoais extends EntidadeBase {
 
     @Id
@@ -83,6 +88,22 @@ public class DadosPessoais extends EntidadeBase {
     @Column(name = "carteira_de_trabalho")
     private String carteiraDeTrabalho;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "foto_arquivo_id")
+    private Arquivo foto;
+
+    /**
+     * Lido por Aluno.isCadastroCompleto, que roda em listagens: o BatchSize
+     * carrega os documentos de varias pessoas por query, em vez de uma por aluno.
+     */
+    @NotAudited
+    @JsonIgnore
+    @ToString.Exclude
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    private List<Documento> documentos = new ArrayList<>();
+
     @NotAudited
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "dados_pessoais_perfis", joinColumns = @JoinColumn(name = "dados_pessoais_id"), inverseJoinColumns = @JoinColumn(name = "perfil_id"))
@@ -107,30 +128,25 @@ public class DadosPessoais extends EntidadeBase {
     @JsonIgnore
     private FichaMedica fichaMedica;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Rh> rhs = new ArrayList<>();
+    private Rh rh;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Diretor> diretores = new ArrayList<>();
+    private Diretor diretor;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Coordenador> coordenadores = new ArrayList<>();
+    private Coordenador coordenador;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Orientador> orientadores = new ArrayList<>();
+    private Orientador orientador;
 
-    @NotAudited
-    @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Secretario> secretarios = new ArrayList<>();
+    private Secretario secretario;
 
     @NotAudited
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY)
@@ -221,7 +237,11 @@ public class DadosPessoais extends EntidadeBase {
     }
 
     public void setTelefones(List<String> numeros) {
-        this.telefones = new ArrayList<>();
+        if (this.telefones == null) {
+            this.telefones = new ArrayList<>();
+        } else {
+            this.telefones.clear();
+        }
         if (numeros == null) return;
         for (String numero : numeros) {
             Telefone telefone = new Telefone();

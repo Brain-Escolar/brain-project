@@ -62,6 +62,6 @@ public class FichaMedica extends EntidadeBase {
     private List<LaudoMedico> laudos = new ArrayList<>();
 
     @NotAudited
-    @OneToMany(mappedBy = "fichaMedica", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "fichaMedica", cascade = CascadeType.ALL)
     private List<Medicacao> medicacoes = new ArrayList<>();
 }

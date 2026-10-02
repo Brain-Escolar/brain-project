@@ -1,6 +1,7 @@
 package br.com.brain.fichamedica.dto;
 
 import java.time.LocalDate;
+import java.time.Instant;
 
 import br.com.brain.arquivo.dto.ListagemArquivoDto;
 import br.com.brain.medicacao.Medicacao;
@@ -13,7 +14,12 @@ public record MedicacaoDto(
         LocalDate dataFim,
         String medicamentos,
         String observacao,
-        ListagemArquivoDto receita) {
+        ListagemArquivoDto receita,
+        String nome,
+        String dosagem,
+        String horario,
+        Boolean ativa,
+        Instant registradaEm) {
 
     public MedicacaoDto(Medicacao medicacao, String downloadUrl) {
         this(
@@ -26,6 +32,11 @@ public record MedicacaoDto(
                 medicacao.getObservacao(),
                 medicacao.getArquivo() != null
                         ? new ListagemArquivoDto(medicacao.getArquivo(), downloadUrl)
-                        : null);
+                        : null,
+                medicacao.getNome(),
+                medicacao.getDosagem(),
+                medicacao.getHorario(),
+                medicacao.getAtiva(),
+                medicacao.getCriadoEm());
     }
 }
