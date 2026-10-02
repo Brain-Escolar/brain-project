@@ -96,12 +96,19 @@ public class SecurityConfigurations {
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 
+                            // Orientacao
+                            req.requestMatchers("/orientacao/**").hasRole("ORIENTADOR");
+
                             // Comunicado
                             req.requestMatchers(HttpMethod.GET, "/comunicado/**")
-                                    .hasAnyRole("ESTUDANTE", "PROFESSOR", "SECRETARIO", "ADMIN");
-                            req.requestMatchers(HttpMethod.POST, "/comunicado/**").hasRole("SECRETARIO");
-                            req.requestMatchers(HttpMethod.PUT, "/comunicado/**").hasRole("SECRETARIO");
-                            req.requestMatchers(HttpMethod.DELETE, "/comunicado/**").hasRole("SECRETARIO");
+                                    .hasAnyRole("ESTUDANTE", "RESPONSAVEL", "PROFESSOR", "SECRETARIO", "ORIENTADOR",
+                                            "ADMIN");
+                            req.requestMatchers(HttpMethod.POST, "/comunicado/**")
+                                    .hasAnyRole("SECRETARIO", "ORIENTADOR");
+                            req.requestMatchers(HttpMethod.PUT, "/comunicado/**")
+                                    .hasAnyRole("SECRETARIO", "ORIENTADOR");
+                            req.requestMatchers(HttpMethod.DELETE, "/comunicado/**")
+                                    .hasAnyRole("SECRETARIO", "ORIENTADOR");
 
                             // Holerite / Informe de rendimentos (contracheque e declarações)
                             req.requestMatchers(HttpMethod.POST, "/holerite/**")
@@ -119,7 +126,7 @@ public class SecurityConfigurations {
                             // Aluno
                             req.requestMatchers(HttpMethod.POST, "/aluno/**").hasRole("SECRETARIO");
                             req.requestMatchers(HttpMethod.GET, "/aluno/**")
-                                    .hasAnyRole("SECRETARIO", "PROFESSOR", "ESTUDANTE");
+                                    .hasAnyRole("SECRETARIO", "PROFESSOR", "ESTUDANTE", "ORIENTADOR");
                             req.requestMatchers(HttpMethod.PUT, "/aluno/**")
                                     .hasAnyRole("SECRETARIO", "ESTUDANTE");
                             req.requestMatchers(HttpMethod.DELETE, "/aluno/**").hasRole("SECRETARIO");
@@ -182,6 +189,7 @@ public class SecurityConfigurations {
         String hierarquia = "ROLE_ADMIN > ROLE_DIRETOR\n"
                 + "ROLE_DIRETOR > ROLE_SECRETARIO\n"
                 + "ROLE_SECRETARIO > ROLE_COORDENADOR\n"
+                + "ROLE_DIRETOR > ROLE_ORIENTADOR\n"
                 + "ROLE_ADMIN > ROLE_PROFESSOR\n"
                 + "ROLE_ADMIN > ROLE_ESTUDANTE\n"
                 + "ROLE_ADMIN > ROLE_RECURSOS_HUMANOS\n";

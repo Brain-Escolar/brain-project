@@ -2,8 +2,12 @@ package br.com.brain.laudoMedico;
 
 import br.com.brain.shared.EntidadeBase;
 import br.com.brain.arquivo.Arquivo;
+import br.com.brain.enums.TipoLaudo;
 import br.com.brain.fichamedica.FichaMedica;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,4 +36,11 @@ public class LaudoMedico extends EntidadeBase {
     @ManyToOne
     @JoinColumn(name = "ficha_medica_id")
     private FichaMedica fichaMedica;
+
+    @Column(name = "tipo")
+    @Enumerated(EnumType.STRING)
+    private TipoLaudo tipo;
+
+    @Column(name = "observacao")
+    private String observacao;
 }

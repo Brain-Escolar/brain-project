@@ -51,4 +51,8 @@ public class Comunicado extends EntidadeBase {
     @NotAudited
     @OneToMany(mappedBy = "comunicadoId", fetch = FetchType.LAZY)
     private List<ComunicadoUsuario> usuarios;
+
+    @NotAudited
+    @OneToMany(mappedBy = "comunicado", fetch = FetchType.LAZY)
+    private List<ComunicadoDestinatario> destinatarios;
 }

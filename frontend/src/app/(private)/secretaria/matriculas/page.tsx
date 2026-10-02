@@ -19,17 +19,9 @@ import {
   FormControlLabel,
   IconButton,
   MenuItem,
-  Paper,
   Radio,
   RadioGroup,
   Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
   TextField,
   Typography,
   InputAdornment,
@@ -42,6 +34,7 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import DocumentacaoAlunoDialog from "@/components/documentacao/DocumentacaoAlunoDialog";
 import SegmentedControl from "@/components/segmentedControl/segmentedControl";
+import AlunosView, { ColunaAluno, PaginacaoServidor } from "@/components/alunosView/AlunosView";
 import { RoutesEnum } from "@/enums";
 import { useLeads } from "@/hooks/useLeads";
 import { useAlunos } from "@/hooks/useAlunos";
@@ -55,6 +48,7 @@ import { AlunoDetalheResponse, AlunoListaResponse } from "@/services/domains/alu
 import { TurmaListaResponse } from "@/services/domains/turma/response";
 import { alunoApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { iniciais } from "@/utils/utils";
 
 type TabValue = "leads" | "matriculados" | "desmatriculados";
 type ModalType = "matricular" | "matriculado" | "vincular" | "desmatricular" | "rematricular" | null;
@@ -64,13 +58,6 @@ type ModalType = "matricular" | "matriculado" | "vincular" | "desmatricular" | "
 // tem uma Ação a mais (Vincular + Ver detalhe + Desmatricular) que as outras duas.
 const COL_ALUNO_WIDTH = 260;
 const COL_ACOES_WIDTH = 320;
-
-function iniciais(nome: string): string {
-  const partes = nome.trim().split(/\s+/);
-  const primeira = partes[0]?.[0] ?? "";
-  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
-  return (primeira + ultima).toUpperCase();
-}
 
 function formatarData(iso?: string): string {
   if (!iso) return "—";
@@ -123,15 +110,22 @@ export default function MatriculasPage() {
   const { series } = useSeries();
   const { unidades } = useUnidades();
 
-  const paginacaoAtual = {
-    leads: { page: pageLeads, total: totalLeads, setPage: setPageLeads },
-    matriculados: { page: pageMatriculados, total: totalMatriculados, setPage: setPageMatriculados },
-    desmatriculados: {
-      page: pageDesmatriculados,
-      total: totalDesmatriculados,
-      setPage: setPageDesmatriculados,
-    },
-  }[tab];
+  // Cada aba pagina por conta própria; o rodapé da tabela só repassa a navegação.
+  function paginacao(total: number, page: number, setPage: (page: number) => void): PaginacaoServidor {
+    return {
+      total,
+      pagina: page,
+      linhasPorPagina: rowsPerPage,
+      opcoesLinhasPorPagina: [10, 20, 50],
+      onPagina: setPage,
+      onLinhasPorPagina: (linhas) => {
+        setRowsPerPage(linhas);
+        setPageLeads(0);
+        setPageMatriculados(0);
+        setPageDesmatriculados(0);
+      },
+    };
+  }
 
   const [modal, setModal] = useState<ModalType>(null);
   const [ctxAluno, setCtxAluno] = useState<AlunoListaResponse | null>(null);
@@ -292,52 +286,35 @@ export default function MatriculasPage() {
         </Select>
       </Box>
 
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          {tab === "leads" && (
-            <LeadsTable
-              leads={leads}
-              onEditar={(id) => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${id}`)}
-              onMatricular={abrirMatricular}
-              onDocumentos={setAlunoDocumentos}
-            />
-          )}
-          {tab === "matriculados" && (
-            <MatriculadosTable
-              alunos={matriculados}
-              onVerDetalhe={verDetalhe}
-              onVincular={abrirVincular}
-              onDesmatricular={abrirDesmatricular}
-              onDocumentos={setAlunoDocumentos}
-            />
-          )}
-          {tab === "desmatriculados" && (
-            <DesmatriculadosTable
-              alunos={desmatriculados}
-              onVerDetalhe={verDetalhe}
-              onRematricular={abrirRematricular}
-            />
-          )}
-          <TablePagination
-            component="div"
-            count={paginacaoAtual.total}
-            page={paginacaoAtual.page}
-            onPageChange={(_, novaPagina) => paginacaoAtual.setPage(novaPagina)}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[10, 20, 50]}
-            labelRowsPerPage="Linhas por página"
-            onRowsPerPageChange={(e) => {
-              setRowsPerPage(parseInt(e.target.value, 10));
-              setPageLeads(0);
-              setPageMatriculados(0);
-              setPageDesmatriculados(0);
-            }}
-          />
-        </TableContainer>
+      {tab === "leads" && (
+        <LeadsTable
+          leads={leads}
+          loading={loading}
+          paginacao={paginacao(totalLeads, pageLeads, setPageLeads)}
+          onEditar={(id) => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${id}`)}
+          onMatricular={abrirMatricular}
+          onDocumentos={setAlunoDocumentos}
+        />
+      )}
+      {tab === "matriculados" && (
+        <MatriculadosTable
+          alunos={matriculados}
+          loading={loading}
+          paginacao={paginacao(totalMatriculados, pageMatriculados, setPageMatriculados)}
+          onVerDetalhe={verDetalhe}
+          onVincular={abrirVincular}
+          onDesmatricular={abrirDesmatricular}
+          onDocumentos={setAlunoDocumentos}
+        />
+      )}
+      {tab === "desmatriculados" && (
+        <DesmatriculadosTable
+          alunos={desmatriculados}
+          loading={loading}
+          paginacao={paginacao(totalDesmatriculados, pageDesmatriculados, setPageDesmatriculados)}
+          onVerDetalhe={verDetalhe}
+          onRematricular={abrirRematricular}
+        />
       )}
 
       <DocumentacaoAlunoDialog
@@ -524,14 +501,35 @@ export default function MatriculasPage() {
   );
 }
 
-function EmptyState({ mensagem }: { mensagem: string }) {
-  return (
-    <Box sx={{ p: 4, textAlign: "center" }}>
-      <Typography variant="body2" color="text.secondary">
-        {mensagem}
-      </Typography>
-    </Box>
-  );
+/** Coluna "Aluno" comum às três abas, com um subtítulo opcional. */
+function colunaAluno(subtitulo?: (aluno: AlunoListaResponse) => string): ColunaAluno {
+  return {
+    key: "nome",
+    label: "Aluno",
+    width: COL_ALUNO_WIDTH,
+    render: (aluno) => (
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+        <Avatar sx={{ width: 32, height: 32, fontSize: 12, flexShrink: 0 }}>
+          {iniciais(aluno.nome)}
+        </Avatar>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="body2" fontWeight={600} noWrap>
+            {aluno.nome}
+          </Typography>
+          {subtitulo && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              noWrap
+              sx={{ fontFamily: "monospace", display: "block" }}
+            >
+              {subtitulo(aluno)}
+            </Typography>
+          )}
+        </Box>
+      </Box>
+    ),
+  };
 }
 
 /**
@@ -566,236 +564,206 @@ function SituacaoCadastro({
   );
 }
 
+function colunaCadastro(onDocumentos: (aluno: AlunoListaResponse) => void): ColunaAluno {
+  return {
+    key: "cadastro",
+    label: "Cadastro",
+    render: (aluno) => <SituacaoCadastro aluno={aluno} onDocumentos={onDocumentos} />,
+  };
+}
+
+const COLUNA_MATRICULA: ColunaAluno = {
+  key: "matricula",
+  label: "Matrícula",
+  render: (aluno) => (
+    <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+      {aluno.matricula}
+    </Typography>
+  ),
+};
+
 function LeadsTable({
   leads,
+  loading,
+  paginacao,
   onEditar,
   onMatricular,
   onDocumentos,
 }: {
   leads: AlunoListaResponse[];
+  loading: boolean;
+  paginacao: PaginacaoServidor;
   onEditar: (id: number) => void;
   onMatricular: (aluno: AlunoListaResponse) => void;
   onDocumentos: (aluno: AlunoListaResponse) => void;
 }) {
-  if (leads.length === 0) {
-    return <EmptyState mensagem="Nenhum lead encontrado." />;
-  }
   return (
-    <Table sx={{ tableLayout: "fixed" }}>
-      <TableHead>
-        <TableRow>
-          <TableCell sx={{ width: COL_ALUNO_WIDTH }}>Aluno</TableCell>
-          <TableCell>CPF</TableCell>
-          <TableCell>Série pretendida</TableCell>
-          <TableCell>Cadastrado em</TableCell>
-          <TableCell>Cadastro</TableCell>
-          <TableCell align="right" sx={{ width: COL_ACOES_WIDTH }}>
-            Ações
-          </TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {leads.map((lead) => (
-          <TableRow key={lead.id} hover>
-            <TableCell>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
-                <Avatar sx={{ width: 32, height: 32, fontSize: 12, flexShrink: 0 }}>
-                  {iniciais(lead.nome)}
-                </Avatar>
-                <Typography variant="body2" fontWeight={600} noWrap>
-                  {lead.nome}
-                </Typography>
-              </Box>
-            </TableCell>
-            <TableCell sx={{ fontFamily: "monospace" }}>{lead.cpf || "— sem CPF"}</TableCell>
-            <TableCell>{lead.serie}</TableCell>
-            <TableCell>{formatarData(lead.criadoEm)}</TableCell>
-            <TableCell>
-              <SituacaoCadastro aluno={lead} onDocumentos={onDocumentos} />
-            </TableCell>
-            <TableCell align="right">
-              <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-                <Button size="small" onClick={() => onEditar(lead.id)}>
-                  Editar cadastro
-                </Button>
-                <Button
-                  size="small"
-                  variant="contained"
-                  startIcon={<HowToRegIcon fontSize="small" />}
-                  disabled={!lead.cpf}
-                  title={!lead.cpf ? "Cadastro incompleto — falta CPF" : "Gerar matrícula e credenciais"}
-                  onClick={() => onMatricular(lead)}
-                >
-                  Matricular
-                </Button>
-              </Box>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <AlunosView
+      alunos={leads}
+      loading={loading}
+      paginacaoServidor={paginacao}
+      semFiltros
+      larguraFixa
+      // Leads ainda não têm detalhe para abrir — a linha não é clicável.
+      onSelecionar={null}
+      mensagemVazio="Nenhum lead encontrado."
+      larguraAcoes={COL_ACOES_WIDTH}
+      colunas={[
+        colunaAluno(),
+        {
+          key: "cpf",
+          label: "CPF",
+          render: (lead) => (
+            <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+              {lead.cpf || "— sem CPF"}
+            </Typography>
+          ),
+        },
+        { key: "serie", label: "Série pretendida" },
+        { key: "criadoEm", label: "Cadastrado em", render: (lead) => formatarData(lead.criadoEm) },
+        colunaCadastro(onDocumentos),
+      ]}
+      acoes={(lead) => (
+        <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+          <Button size="small" onClick={() => onEditar(lead.id)}>
+            Editar cadastro
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={<HowToRegIcon fontSize="small" />}
+            disabled={!lead.cpf}
+            title={!lead.cpf ? "Cadastro incompleto — falta CPF" : "Gerar matrícula e credenciais"}
+            onClick={() => onMatricular(lead)}
+          >
+            Matricular
+          </Button>
+        </Box>
+      )}
+    />
   );
 }
 
 function MatriculadosTable({
   alunos,
+  loading,
+  paginacao,
   onVerDetalhe,
   onVincular,
   onDesmatricular,
   onDocumentos,
 }: {
   alunos: AlunoListaResponse[];
+  loading: boolean;
+  paginacao: PaginacaoServidor;
   onVerDetalhe: (id: number) => void;
   onVincular: (aluno: AlunoListaResponse) => void;
   onDesmatricular: (aluno: AlunoListaResponse) => void;
   onDocumentos: (aluno: AlunoListaResponse) => void;
 }) {
-  if (alunos.length === 0) {
-    return <EmptyState mensagem="Nenhum resultado para a busca atual." />;
-  }
   return (
-    <Table sx={{ tableLayout: "fixed" }}>
-      <TableHead>
-        <TableRow>
-          <TableCell sx={{ width: COL_ALUNO_WIDTH }}>Aluno</TableCell>
-          <TableCell>Matrícula</TableCell>
-          <TableCell>Série</TableCell>
-          <TableCell>Turma</TableCell>
-          <TableCell>Situação</TableCell>
-          <TableCell>Cadastro</TableCell>
-          <TableCell align="right" sx={{ width: COL_ACOES_WIDTH }}>
-            Ações
-          </TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {alunos.map((aluno) => (
-          <TableRow
-            key={aluno.id}
-            hover
-            sx={{ cursor: "pointer" }}
-            onClick={() => onVerDetalhe(aluno.id)}
+    <AlunosView
+      alunos={alunos}
+      loading={loading}
+      paginacaoServidor={paginacao}
+      semFiltros
+      larguraFixa
+      onSelecionar={(aluno) => onVerDetalhe(aluno.id)}
+      mensagemVazio="Nenhum resultado para a busca atual."
+      larguraAcoes={COL_ACOES_WIDTH}
+      colunas={[
+        colunaAluno((aluno) => aluno.cpf),
+        COLUNA_MATRICULA,
+        { key: "serie", label: "Série" },
+        {
+          key: "turma",
+          label: "Turma",
+          render: (aluno) => (aluno.turmaId ? aluno.turma : "— sem turma"),
+        },
+        {
+          key: "situacao",
+          label: "Situação",
+          render: (aluno) => (
+            <Chip
+              size="small"
+              label={aluno.turmaId ? "Matriculado" : "Matrícula incompleta"}
+              color={aluno.turmaId ? "success" : "warning"}
+              variant="outlined"
+            />
+          ),
+        },
+        colunaCadastro(onDocumentos),
+      ]}
+      acoes={(aluno) => (
+        <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+          <Button size="small" onClick={() => onVincular(aluno)}>
+            {aluno.turmaId ? "Alterar turma" : "Vincular turma"}
+          </Button>
+          <Button size="small" onClick={() => onVerDetalhe(aluno.id)}>
+            Ver detalhe
+          </Button>
+          <IconButton
+            size="small"
+            color="error"
+            title="Desmatricular"
+            onClick={() => onDesmatricular(aluno)}
           >
-            <TableCell>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
-                <Avatar sx={{ width: 32, height: 32, fontSize: 12, flexShrink: 0 }}>
-                  {iniciais(aluno.nome)}
-                </Avatar>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" fontWeight={600} noWrap>
-                    {aluno.nome}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    noWrap
-                    sx={{ fontFamily: "monospace", display: "block" }}
-                  >
-                    {aluno.cpf}
-                  </Typography>
-                </Box>
-              </Box>
-            </TableCell>
-            <TableCell sx={{ fontFamily: "monospace" }}>{aluno.matricula}</TableCell>
-            <TableCell>{aluno.serie}</TableCell>
-            <TableCell>{aluno.turmaId ? aluno.turma : "— sem turma"}</TableCell>
-            <TableCell>
-              <Chip
-                size="small"
-                label={aluno.turmaId ? "Matriculado" : "Matrícula incompleta"}
-                color={aluno.turmaId ? "success" : "warning"}
-                variant="outlined"
-              />
-            </TableCell>
-            <TableCell>
-              <SituacaoCadastro aluno={aluno} onDocumentos={onDocumentos} />
-            </TableCell>
-            <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-              <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-                <Button size="small" onClick={() => onVincular(aluno)}>
-                  {aluno.turmaId ? "Alterar turma" : "Vincular turma"}
-                </Button>
-                <Button size="small" onClick={() => onVerDetalhe(aluno.id)}>
-                  Ver detalhe
-                </Button>
-                <IconButton
-                  size="small"
-                  color="error"
-                  title="Desmatricular"
-                  onClick={() => onDesmatricular(aluno)}
-                >
-                  <PersonOffIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+            <PersonOffIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )}
+    />
   );
 }
 
 function DesmatriculadosTable({
   alunos,
+  loading,
+  paginacao,
   onVerDetalhe,
   onRematricular,
 }: {
   alunos: AlunoListaResponse[];
+  loading: boolean;
+  paginacao: PaginacaoServidor;
   onVerDetalhe: (id: number) => void;
   onRematricular: (aluno: AlunoListaResponse) => void;
 }) {
-  if (alunos.length === 0) {
-    return <EmptyState mensagem="Nenhum aluno desmatriculado." />;
-  }
   return (
-    <Table sx={{ tableLayout: "fixed" }}>
-      <TableHead>
-        <TableRow>
-          <TableCell sx={{ width: COL_ALUNO_WIDTH }}>Aluno</TableCell>
-          <TableCell>Matrícula</TableCell>
-          <TableCell>Série</TableCell>
-          <TableCell>Desligado em</TableCell>
-          <TableCell>Motivo</TableCell>
-          <TableCell align="right" sx={{ width: COL_ACOES_WIDTH }}>
-            Ações
-          </TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {alunos.map((aluno) => (
-          <TableRow
-            key={aluno.id}
-            hover
-            sx={{ cursor: "pointer" }}
-            onClick={() => onVerDetalhe(aluno.id)}
-          >
-            <TableCell>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
-                <Avatar sx={{ width: 32, height: 32, fontSize: 12, flexShrink: 0 }}>
-                  {iniciais(aluno.nome)}
-                </Avatar>
-                <Typography variant="body2" fontWeight={600} noWrap>
-                  {aluno.nome}
-                </Typography>
-              </Box>
-            </TableCell>
-            <TableCell sx={{ fontFamily: "monospace" }}>{aluno.matricula}</TableCell>
-            <TableCell>{aluno.serie}</TableCell>
-            <TableCell sx={{ fontFamily: "monospace" }}>{formatarData(aluno.dataDesmatricula)}</TableCell>
-            <TableCell>{aluno.motivoDesmatricula}</TableCell>
-            <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-              <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
-                <Button size="small" onClick={() => onVerDetalhe(aluno.id)}>
-                  Ver detalhe
-                </Button>
-                <Button size="small" variant="outlined" onClick={() => onRematricular(aluno)}>
-                  Rematricular
-                </Button>
-              </Box>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <AlunosView
+      alunos={alunos}
+      loading={loading}
+      paginacaoServidor={paginacao}
+      semFiltros
+      larguraFixa
+      onSelecionar={(aluno) => onVerDetalhe(aluno.id)}
+      mensagemVazio="Nenhum aluno desmatriculado."
+      larguraAcoes={COL_ACOES_WIDTH}
+      colunas={[
+        colunaAluno(),
+        COLUNA_MATRICULA,
+        { key: "serie", label: "Série" },
+        {
+          key: "dataDesmatricula",
+          label: "Desligado em",
+          render: (aluno) => (
+            <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+              {formatarData(aluno.dataDesmatricula)}
+            </Typography>
+          ),
+        },
+        { key: "motivoDesmatricula", label: "Motivo" },
+      ]}
+      acoes={(aluno) => (
+        <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+          <Button size="small" onClick={() => onVerDetalhe(aluno.id)}>
+            Ver detalhe
+          </Button>
+          <Button size="small" variant="outlined" onClick={() => onRematricular(aluno)}>
+            Rematricular
+          </Button>
+        </Box>
+      )}
+    />
   );
 }

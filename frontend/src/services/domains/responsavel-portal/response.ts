@@ -3,6 +3,7 @@ import {
   EstudanteTarefaResponse,
   RelatorioResponse,
 } from "@/services/domains/estudante";
+import { ArquivoResponse } from "@/services/domains/aluno/response";
 
 /**
  * Aluno vinculado ao responsavel logado — item do seletor.
@@ -86,7 +87,8 @@ export interface AlunoProdutoResponse {
 }
 
 /**
- * Medicacao em uso, declarada pelo responsavel. Espelha ListagemMedicacaoDto.
+ * Medicacao em uso. Espelha ListagemMedicacaoDto — o mesmo registro que a
+ * Orientacao consulta e complementa com receita, tipo de uso e periodo.
  *
  * `dosagem`, `horario` e `observacao` sao opcionais de proposito: o
  * CadastroMedicacaoDto so exige o nome, porque a familia nem sempre sabe a
@@ -101,22 +103,30 @@ export interface MedicacaoResponse {
   observacao: string | null;
   /** Instant do backend — ISO-8601 com timezone. */
   registradaEm: string;
-}
-
-/** Laudo anexado a ficha. Espelha ListagemArquivoDto. */
-export interface LaudoResponse {
-  id: number;
-  nome: string;
-  contentType: string;
-  tamanho: number;
-  downloadUrl: string;
+  /** Preenchidos pela Orientacao; nulos no que a familia acabou de incluir. */
+  tipoUso: string | null;
+  tipoUsoDescricao: string | null;
+  dataInicio: string | null;
+  dataFim: string | null;
+  receita: ArquivoResponse | null;
 }
 
 /**
- * Ficha medica como o portal a entrega. Espelha DetalhamentoFichaMedicaDto.
- *
- * NAO e o mesmo shape de FichaMedicaAlunoResponse (`domains/aluno`), que e
- * anterior a inclusao de `dataDeNascimento`, `laudos` e `medicacoes`.
+ * Laudo anexado a ficha. Espelha LaudoMedicoDto: o arquivo vem aninhado, e
+ * tipo/observacao sao da Orientacao (o que a familia envia entra como OUTRO).
+ */
+export interface LaudoResponse {
+  id: number;
+  tipo: string | null;
+  tipoDescricao: string | null;
+  observacao: string | null;
+  arquivo: ArquivoResponse | null;
+}
+
+/**
+ * Ficha medica como o portal a entrega. Espelha DetalhamentoFichaMedicaDto —
+ * o mesmo DTO que a ficha da Orientacao consome como FichaMedicaAlunoResponse
+ * (`domains/aluno`); aqui os nulos ficam explicitos.
  */
 export interface FichaMedicaPortalResponse {
   id: number;

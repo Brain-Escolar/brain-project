@@ -5,6 +5,7 @@ import { UserRoleEnum } from "@/enums";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import DashProfessorPage from "./dashProfessor/dashProfessor";
 import DashAlunoPage from "./dashAluno/dashAluno";
+import DashOrientadorPage from "./dashOrientador/dashOrientador";
 import DashResponsavelPage from "./dashResponsavel/dashResponsavel";
 
 export default function Dashboard() {
@@ -34,6 +35,10 @@ export default function Dashboard() {
 
   if (perfilAtivo === UserRoleEnum.ESTUDANTE) {
     return <DashAlunoPage />;
+  }
+
+  if (perfilAtivo === UserRoleEnum.ORIENTADOR) {
+    return <DashOrientadorPage />;
   }
 
   if (perfilAtivo === UserRoleEnum.RESPONSAVEL) {

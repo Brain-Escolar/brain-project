@@ -102,12 +102,77 @@ export interface AnotacaoAlunoDisciplinaResponse {
   observacao: string;
 }
 
+export interface ArquivoResponse {
+  id: number;
+  nome: string;
+  contentType: string;
+  tamanho: number;
+  downloadUrl: string;
+}
+
+export interface LaudoMedicoResponse {
+  id: number;
+  /** Valor do enum TipoLaudo (ex: "NEUROPSICOLOGICO"). */
+  tipo: string;
+  /** Rótulo pronto para exibição, vindo do backend. */
+  tipoDescricao: string;
+  observacao?: string;
+  arquivo?: ArquivoResponse;
+}
+
+/** Medicação em uso — a mesma que a família inclui pelo portal do responsável. */
+export interface MedicacaoResponse {
+  id: number;
+  nome: string;
+  dosagem?: string | null;
+  horario?: string | null;
+  observacao?: string | null;
+  /** Instant do backend — ISO-8601 com timezone. */
+  registradaEm?: string | null;
+  /** "PERIODO" ou "CONTINUO". Nulo no que veio do portal e ainda não foi classificado. */
+  tipoUso?: string | null;
+  tipoUsoDescricao?: string | null;
+  /** Preenchidos só quando tipoUso é PERIODO. */
+  dataInicio?: string | null;
+  dataFim?: string | null;
+  receita?: ArquivoResponse | null;
+}
+
 export interface FichaMedicaAlunoResponse {
   id: number;
   nome: string;
+  /** LocalDate — "yyyy-MM-dd". */
+  dataDeNascimento?: string | null;
   tipoSanguineo: string;
   necessidadesEspeciais?: string;
   doencasRespiratorias?: string;
+  /** As alergias do aluno vivem aqui — não há campo separado por medicação. */
   alergiasAlimentares?: string;
   alergiasMedicamentosas?: string;
+  laudos: LaudoMedicoResponse[];
+  medicacoes: MedicacaoResponse[];
+}
+
+export interface SituacaoFamiliarOpcaoResponse {
+  id: number;
+  descricao: string;
+}
+
+export interface SituacaoFamiliarResponse {
+  /** Null enquanto o aluno não tem registro — a aba abre vazia, pronta para preencher. */
+  id: number | null;
+  descricao?: string | null;
+  opcoesMarcadas: number[];
+  /** Catálogo ativo, já enviado junto para a tela montar os checkboxes. */
+  opcoesDisponiveis: SituacaoFamiliarOpcaoResponse[];
+}
+
+export interface AtendimentoPsicologicoResponse {
+  id: number;
+  /** ISO "AAAA-MM-DD". */
+  data: string;
+  profissional?: string | null;
+  descricao: string;
+  /** Laudo da ficha médica citado no atendimento, quando houver. */
+  laudo?: LaudoMedicoResponse | null;
 }

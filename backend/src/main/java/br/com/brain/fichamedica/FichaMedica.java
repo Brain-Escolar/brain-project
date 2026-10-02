@@ -58,9 +58,10 @@ public class FichaMedica extends EntidadeBase {
     private String alergiasMedicamentosas;
 
     @NotAudited
-    @OneToMany(mappedBy = "fichaMedica", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "fichaMedica", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LaudoMedico> laudos = new ArrayList<>();
 
+    // Sem orphanRemoval: medicação não sai da ficha, é desativada (ver Medicacao).
     @NotAudited
     @OneToMany(mappedBy = "fichaMedica", cascade = CascadeType.ALL)
     private List<Medicacao> medicacoes = new ArrayList<>();

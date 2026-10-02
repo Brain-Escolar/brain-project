@@ -16,6 +16,7 @@ const HOME_PATHS: Record<UserRoleEnum, RoutesEnum> = {
   [UserRoleEnum.PROFESSOR]: RoutesEnum.HOME,
   [UserRoleEnum.ESTUDANTE]: RoutesEnum.HOME_ESTUDANTE,
   [UserRoleEnum.SECRETARIO]: RoutesEnum.SECRETARIA_MATRICULAS,
+  [UserRoleEnum.ORIENTADOR]: RoutesEnum.HOME,
   // O responsável cai na HOME, que ramifica por perfil e monta o dashboard dele.
   [UserRoleEnum.RESPONSAVEL]: RoutesEnum.HOME,
 };
@@ -57,7 +58,7 @@ export function buildBreadcrumbs(
 
   const matched = findRouteByPath(pathname);
   const moduleSource: RouteConfig | undefined =
-    matched?.moduleMenu != null ? matched : findListSibling(pathname);
+    matched?.moduleMenu != null ? matched : findListSibling(pathname, role);
 
   if (moduleSource?.moduleMenu != null) {
     items.push({

@@ -92,18 +92,23 @@ function LinhaMedicacao({ medicacao }: { medicacao: MedicacaoResponse }) {
 }
 
 function LinhaLaudo({ laudo }: { laudo: LaudoResponse }) {
+  const arquivo = laudo.arquivo;
   return (
     <S.Linha>
       <Box sx={{ minWidth: 0 }}>
-        <S.LinhaNome>{laudo.nome}</S.LinhaNome>
-        <S.LinhaMeta>
-          <span>{formatarTamanho(laudo.tamanho)}</span>
-        </S.LinhaMeta>
+        <S.LinhaNome>{arquivo?.nome ?? "Laudo"}</S.LinhaNome>
+        {arquivo && (
+          <S.LinhaMeta>
+            <span>{formatarTamanho(arquivo.tamanho)}</span>
+          </S.LinhaMeta>
+        )}
       </Box>
-      <S.LinkArquivo href={laudo.downloadUrl} target="_blank" rel="noreferrer">
-        <DownloadRoundedIcon />
-        Baixar
-      </S.LinkArquivo>
+      {arquivo && (
+        <S.LinkArquivo href={arquivo.downloadUrl} target="_blank" rel="noreferrer">
+          <DownloadRoundedIcon />
+          Baixar
+        </S.LinkArquivo>
+      )}
     </S.Linha>
   );
 }

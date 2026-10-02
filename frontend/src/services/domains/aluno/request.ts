@@ -47,6 +47,50 @@ export interface AlunoDesmatricularRequest {
   motivo: string;
 }
 
+export interface FichaMedicaDadosClinicosRequest {
+  tipoSanguineo?: string;
+  necessidadesEspeciais?: string;
+  doencasRespiratorias?: string;
+  alergiasAlimentares?: string;
+  alergiasMedicamentosas?: string;
+}
+
+export interface LaudoMedicoRequest {
+  arquivo: File;
+  /** Valor do enum TipoLaudo; use "OUTRO" quando nenhum tipo servir. */
+  tipo: string;
+  observacao?: string;
+}
+
+export interface MedicacaoRequest {
+  /** Receita — opcional, nem toda medicação chega com documento. */
+  arquivo?: File | null;
+  nome: string;
+  dosagem?: string;
+  horario?: string;
+  /** "PERIODO" ou "CONTINUO". */
+  tipoUso: string;
+  /** Ignorados pelo backend quando tipoUso é CONTINUO. */
+  dataInicio?: string | null;
+  dataFim?: string | null;
+  observacao?: string;
+}
+
+export interface SituacaoFamiliarRequest {
+  descricao?: string;
+  /** Substitui o conjunto atual de marcações. */
+  opcoesMarcadas: number[];
+}
+
+export interface AtendimentoPsicologicoRequest {
+  /** ISO "AAAA-MM-DD". */
+  data: string;
+  profissional?: string;
+  descricao: string;
+  /** Id de um laudo da ficha médica do próprio aluno. */
+  laudoId?: number | null;
+}
+
 export interface AlunoListaParams {
   page?: number;
   size?: number;

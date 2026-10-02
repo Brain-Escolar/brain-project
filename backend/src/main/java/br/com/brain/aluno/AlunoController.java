@@ -14,11 +14,20 @@ import br.com.brain.anotacao.dto.ListagemAnotacaoSemanaDto;
 import br.com.brain.aula.dto.ListagemAulaAlunoDto;
 import br.com.brain.tarefa.dto.ListagemTarefaAlunoDto;
 import java.util.List;
+import br.com.brain.fichamedica.dto.AtualizacaoFichaMedicaDto;
+import br.com.brain.fichamedica.dto.CadastroLaudoDto;
 import br.com.brain.fichamedica.dto.DetalhamentoFichaMedicaDto;
+import br.com.brain.medicacao.dto.CadastroMedicacaoDto;
+import br.com.brain.atendimentoPsicologico.dto.CadastroAtendimentoPsicologicoDto;
+import br.com.brain.atendimentoPsicologico.dto.ListagemAtendimentoPsicologicoDto;
+import br.com.brain.situacaoFamiliar.dto.AtualizacaoSituacaoFamiliarDto;
+import br.com.brain.situacaoFamiliar.dto.DetalhamentoSituacaoFamiliarDto;
 import br.com.brain.serie.dto.SerieUnidadeTurmaDto;
 import br.com.brain.anotacao.AnotacaoService;
 import br.com.brain.aula.AulaService;
 import br.com.brain.fichamedica.FichaMedicaService;
+import br.com.brain.atendimentoPsicologico.AtendimentoPsicologicoService;
+import br.com.brain.situacaoFamiliar.SituacaoFamiliarService;
 import br.com.brain.materialComplementar.MaterialComplementarService;
 import br.com.brain.materialComplementar.dto.ListagemMaterialComplementarDto;
 import br.com.brain.tarefa.TarefaService;
@@ -27,9 +36,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
@@ -43,6 +54,8 @@ public class AlunoController {
     private final AulaService aulaService;
     private final TarefaService tarefaService;
     private final MaterialComplementarService materialComplementarService;
+    private final SituacaoFamiliarService situacaoFamiliarService;
+    private final AtendimentoPsicologicoService atendimentoPsicologicoService;
 
     @PostMapping
     public ResponseEntity<DetalhamentoAlunoDto> cadastrar(
@@ -125,6 +138,72 @@ public class AlunoController {
     @GetMapping("/{id}/ficha-medica")
     public ResponseEntity<DetalhamentoFichaMedicaDto> buscarFichaMedica(@PathVariable Long id) {
         return ResponseEntity.ok(fichaMedicaService.buscarPorAluno(id));
+    }
+
+    @PutMapping("/{id}/ficha-medica")
+    public ResponseEntity<DetalhamentoFichaMedicaDto> atualizarFichaMedica(
+            @PathVariable Long id, @RequestBody @Valid AtualizacaoFichaMedicaDto dados) {
+        return ResponseEntity.ok(fichaMedicaService.atualizarPorAluno(id, dados));
+    }
+
+    @PostMapping(path = "/{id}/ficha-medica/laudos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DetalhamentoFichaMedicaDto> anexarLaudo(
+            @PathVariable Long id,
+            @RequestPart("arquivo") MultipartFile arquivo,
+            @RequestPart("dados") @Valid CadastroLaudoDto dados) {
+        return ResponseEntity.ok(fichaMedicaService.anexarLaudo(id, arquivo, dados));
+    }
+
+    @DeleteMapping("/{id}/ficha-medica/laudos/{laudoId}")
+    public ResponseEntity<DetalhamentoFichaMedicaDto> removerLaudo(
+            @PathVariable Long id, @PathVariable Long laudoId) {
+        return ResponseEntity.ok(fichaMedicaService.removerLaudo(id, laudoId));
+    }
+
+    @PostMapping(path = "/{id}/ficha-medica/medicacoes", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DetalhamentoFichaMedicaDto> anexarMedicacao(
+            @PathVariable Long id,
+            @RequestPart(name = "arquivo", required = false) MultipartFile arquivo,
+            @RequestPart("dados") @Valid CadastroMedicacaoDto dados) {
+        return ResponseEntity.ok(fichaMedicaService.anexarMedicacao(id, arquivo, dados));
+    }
+
+    @PutMapping("/{id}/ficha-medica/medicacoes/{medicacaoId}")
+    public ResponseEntity<DetalhamentoFichaMedicaDto> atualizarMedicacao(
+            @PathVariable Long id, @PathVariable Long medicacaoId,
+            @RequestBody @Valid CadastroMedicacaoDto dados) {
+        return ResponseEntity.ok(fichaMedicaService.atualizarMedicacao(id, medicacaoId, dados));
+    }
+
+    /** Desativa, não apaga: a medicação sai da ficha e fica no histórico. */
+    @DeleteMapping("/{id}/ficha-medica/medicacoes/{medicacaoId}")
+    public ResponseEntity<DetalhamentoFichaMedicaDto> desativarMedicacao(
+            @PathVariable Long id, @PathVariable Long medicacaoId) {
+        return ResponseEntity.ok(fichaMedicaService.desativarMedicacao(id, medicacaoId));
+    }
+
+    @GetMapping("/{id}/situacao-familiar")
+    public ResponseEntity<DetalhamentoSituacaoFamiliarDto> buscarSituacaoFamiliar(@PathVariable Long id) {
+        return ResponseEntity.ok(situacaoFamiliarService.buscarPorAluno(id));
+    }
+
+    @PutMapping("/{id}/situacao-familiar")
+    public ResponseEntity<DetalhamentoSituacaoFamiliarDto> salvarSituacaoFamiliar(
+            @PathVariable Long id, @RequestBody @Valid AtualizacaoSituacaoFamiliarDto dados) {
+        return ResponseEntity.ok(situacaoFamiliarService.salvar(id, dados));
+    }
+
+    @GetMapping("/{id}/atendimentos-psicologicos")
+    public ResponseEntity<List<ListagemAtendimentoPsicologicoDto>> listarAtendimentosPsicologicos(
+            @PathVariable Long id) {
+        return ResponseEntity.ok(atendimentoPsicologicoService.listarPorAluno(id));
+    }
+
+    /** Atendimento é histórico clínico: só acrescenta, não há PUT nem DELETE. */
+    @PostMapping("/{id}/atendimentos-psicologicos")
+    public ResponseEntity<ListagemAtendimentoPsicologicoDto> registrarAtendimentoPsicologico(
+            @PathVariable Long id, @RequestBody @Valid CadastroAtendimentoPsicologicoDto dados) {
+        return ResponseEntity.ok(atendimentoPsicologicoService.registrar(id, dados));
     }
 
     @GetMapping("/{id}/anotacoes/{disciplinaId}")

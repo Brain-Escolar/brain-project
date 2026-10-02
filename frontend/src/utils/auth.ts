@@ -10,7 +10,7 @@ export interface JWTPayload {
   iss: string;
   sub: string;
   id: number;
-  name: string;
+  name: string | null;
   role: string;
   dadosPessoaisId?: number;
   exp: number;
@@ -18,7 +18,7 @@ export interface JWTPayload {
 
 export interface UserData {
   id: number;
-  name: string;
+  name: string | null;
   email: string;
   /**
    * Perfil principal — usado para despachar dashboard, breadcrumb e rota padrão.
@@ -145,6 +145,15 @@ export const ROLE_ROUTES: Record<UserRoleEnum, string[]> = {
     "/planejamento-anual", "/aluno", "/calendario", "/minhas-aulas", "/perfil",
   ],
   SECRETARIO: ["/secretaria", "/aluno", "/perfil"],
+  ORIENTADOR: [
+    "/",
+    "/orientacao",
+    "/aluno",
+    "/comunicados",
+    "/comunicacao",
+    "/calendario",
+    "/perfil",
+  ],
   RESPONSAVEL: [
     "/",
     "/relatorios",
@@ -192,6 +201,8 @@ export function getDefaultRoute(userRole: UserRoleEnum): string {
       return "/";
     case "ADMIN":
       return "/admin";
+    case "ORIENTADOR":
+      return "/";
     default:
       return "/";
   }

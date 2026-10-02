@@ -12,8 +12,15 @@ export function useComunicadoMutations() {
   const queryClient = useQueryClient();
 
   const createComunicado = useMutation({
-    mutationFn: ({ data, imagem }: { data: ComunicadoCreateRequest; imagem?: File }) =>
-      comunicadoApi.criarComunicado(data, imagem),
+    mutationFn: ({
+      data,
+      imagem,
+      anexo,
+    }: {
+      data: ComunicadoCreateRequest;
+      imagem?: File;
+      anexo?: File;
+    }) => comunicadoApi.criarComunicado(data, imagem, anexo),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.comunicados.all });
       toast.success("Comunicado criado com sucesso!");
@@ -25,8 +32,13 @@ export function useComunicadoMutations() {
   });
 
   const updateComunicado = useMutation({
-    mutationFn: ({ id, ...data }: ComunicadoUpdateRequest & { id: number }) =>
-      comunicadoApi.atualizarComunicado(id, data),
+    mutationFn: ({
+      id,
+      imagem,
+      anexo,
+      ...data
+    }: ComunicadoUpdateRequest & { id: number; imagem?: File; anexo?: File }) =>
+      comunicadoApi.atualizarComunicado(id, data, imagem, anexo),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.comunicados.all });
       toast.success("Comunicado atualizado com sucesso!");

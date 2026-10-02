@@ -1,6 +1,5 @@
 package br.com.brain.fichamedica.dto;
 
-import br.com.brain.arquivo.dto.ListagemArquivoDto;
 import br.com.brain.medicacao.dto.ListagemMedicacaoDto;
 
 import java.time.LocalDate;
@@ -15,6 +14,6 @@ public record DetalhamentoFichaMedicaDto(
         String doencasRespiratorias,
         String alergiasAlimentares,
         String alergiasMedicamentosas,
-        List<ListagemArquivoDto> laudos,
+        List<LaudoMedicoDto> laudos,
         List<ListagemMedicacaoDto> medicacoes) {
 }

@@ -44,22 +44,52 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import FichaMedicaAluno from "@/components/fichaMedicaAluno/FichaMedicaAluno";
+import SituacaoFamiliarAluno from "@/components/situacaoFamiliarAluno/SituacaoFamiliarAluno";
+import AtendimentoAluno from "@/components/atendimentoAluno/AtendimentoAluno";
+import { iniciais } from "@/utils/utils";
 import * as S from "./styles";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type TabKey = "geral" | "produtos";
+type TabKey = "geral" | "fichaMedica" | "situacaoFamiliar" | "atendimento" | "produtos";
 type SecaoKey = "dadosCadastrais" | "responsaveis" | "ocorrencias" | "boletimResumo" | "fichaMedica";
 
 // ─── Configuração por perfil ──────────────────────────────────────────────────
 
 const PRODUTOS_ROLES: UserRoleEnum[] = [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO];
 
+/** Quem enxerga a aba de ficha médica. */
+const FICHA_MEDICA_ROLES: UserRoleEnum[] = [
+  UserRoleEnum.ADMIN,
+  UserRoleEnum.SECRETARIO,
+  UserRoleEnum.ORIENTADOR,
+];
+
+/** Quem também pode anexar laudos/medicações e editar os dados clínicos. */
+const FICHA_MEDICA_EDICAO_ROLES: UserRoleEnum[] = [
+  UserRoleEnum.ADMIN,
+  UserRoleEnum.SECRETARIO,
+  UserRoleEnum.ORIENTADOR,
+];
+
+/**
+ * Situação familiar é registro sensível de acompanhamento socioemocional —
+ * exclusivo da orientação, que também é quem edita.
+ */
+const SITUACAO_FAMILIAR_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
+const SITUACAO_FAMILIAR_EDICAO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
+
+/** Atendimento psicológico — mesmo tratamento sensível da situação familiar. */
+const ATENDIMENTO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
+const ATENDIMENTO_EDICAO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
+
 const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
   [UserRoleEnum.PROFESSOR]: ["ocorrencias", "boletimResumo"],
   [UserRoleEnum.ADMIN]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.ESTUDANTE]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.SECRETARIO]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
+  [UserRoleEnum.ORIENTADOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   // O responsável não acessa esta tela — ela é o detalhe administrativo do
   // aluno. Ele vê os dados do filho pelo portal (/portal-responsavel/**),
   // que valida o vínculo. Entrada vazia só para satisfazer o Record.
@@ -68,6 +98,9 @@ const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
 
 const LABEL_ABA: Record<TabKey, string> = {
   geral: "Visão geral",
+  fichaMedica: "Ficha médica",
+  situacaoFamiliar: "Situação familiar",
+  atendimento: "Atendimento",
   produtos: "Produtos e Contratos",
 };
 
@@ -75,13 +108,6 @@ const SECAO_COLUNA_ESQUERDA: SecaoKey[] = ["dadosCadastrais", "responsaveis", "o
 const SECAO_COLUNA_DIREITA: SecaoKey[] = ["boletimResumo", "fichaMedica"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function iniciais(nome: string): string {
-  const partes = nome.trim().split(/\s+/);
-  const primeira = partes[0]?.[0] ?? "";
-  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
-  return (primeira + ultima).toUpperCase();
-}
 
 function formatBRL(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -350,10 +376,23 @@ export default function AlunoDetalhePage() {
   const isAdmin = role === UserRoleEnum.ADMIN;
   const secoesDoRole = SECOES_POR_PERFIL[role] ?? SECOES_POR_PERFIL[UserRoleEnum.ADMIN];
   const temProdutos = PRODUTOS_ROLES.includes(role);
-  const abasDoRole: TabKey[] = ["geral", ...(temProdutos ? (["produtos"] as TabKey[]) : [])];
+  const temFichaMedica = FICHA_MEDICA_ROLES.includes(role);
+  const podeEditarFichaMedica = FICHA_MEDICA_EDICAO_ROLES.includes(role);
+  const temSituacaoFamiliar = SITUACAO_FAMILIAR_ROLES.includes(role);
+  const podeEditarSituacaoFamiliar = SITUACAO_FAMILIAR_EDICAO_ROLES.includes(role);
+  const temAtendimento = ATENDIMENTO_ROLES.includes(role);
+  const podeEditarAtendimento = ATENDIMENTO_EDICAO_ROLES.includes(role);
+  const abasDoRole: TabKey[] = [
+    "geral",
+    ...(temFichaMedica ? (["fichaMedica"] as TabKey[]) : []),
+    ...(temSituacaoFamiliar ? (["situacaoFamiliar"] as TabKey[]) : []),
+    ...(temAtendimento ? (["atendimento"] as TabKey[]) : []),
+    ...(temProdutos ? (["produtos"] as TabKey[]) : []),
+  ];
 
   const { aluno, loading, error } = useAluno(alunoId);
-  const precisaFichaMedica = secoesDoRole.includes("fichaMedica");
+  // A aba de Atendimento também consome os laudos, no popup de vínculo.
+  const precisaFichaMedica = secoesDoRole.includes("fichaMedica") || temFichaMedica || temAtendimento;
   const { fichaMedica, loading: loadingFicha } = useAlunoFichaMedica(alunoId, !!user && precisaFichaMedica);
   const { produtos, loading: loadingProdutos } = useAlunoProdutos(alunoId, !!user && temProdutos);
   const { disciplinas: todasDisciplinas } = useDisciplinas();
@@ -378,7 +417,7 @@ export default function AlunoDetalhePage() {
     responsaveis: <ResponsaveisCard responsaveis={aluno?.responsaveis} loading={loading} />,
     ocorrencias: <OcorrenciasCard anotacoes={todasAnotacoes} loading={loadingAnotacoes} />,
     boletimResumo: <BoletimResumoCard notas={todasNotas} loading={loadingNotas} onAbrirRelatorio={() => router.push(RoutesEnum.RELATORIOS)} />,
-    fichaMedica: <FichaMedicaResumoCard fichaMedica={fichaMedica} loading={loadingFicha} onAbrirFicha={() => router.push(RoutesEnum.FICHA_MEDICA_LISTA)} />,
+    fichaMedica: <FichaMedicaResumoCard fichaMedica={fichaMedica} loading={loadingFicha} onAbrirFicha={() => { const i = abasDoRole.indexOf("fichaMedica"); if (i >= 0) setActiveTab(i); }} />,
   };
 
   const colunaEsquerda = SECAO_COLUNA_ESQUERDA.filter((k) => secoesDoRole.includes(k));
@@ -398,6 +437,25 @@ export default function AlunoDetalhePage() {
           </div>
         )}
       </S.TwoColumnGrid>
+    ),
+    fichaMedica: (
+      <FichaMedicaAluno
+        alunoId={alunoId}
+        fichaMedica={fichaMedica}
+        loading={loadingFicha}
+        podeEditar={podeEditarFichaMedica}
+      />
+    ),
+    situacaoFamiliar: (
+      <SituacaoFamiliarAluno alunoId={alunoId} podeEditar={podeEditarSituacaoFamiliar} />
+    ),
+    atendimento: (
+      <AtendimentoAluno
+        alunoId={alunoId}
+        laudos={fichaMedica?.laudos ?? []}
+        loadingLaudos={loadingFicha}
+        podeEditar={podeEditarAtendimento}
+      />
     ),
     produtos: <ProdutosPanel produtos={produtos} loading={loadingProdutos} formatDate={formatDate} />,
   };

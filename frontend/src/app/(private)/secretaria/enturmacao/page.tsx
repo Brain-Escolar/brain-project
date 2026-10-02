@@ -38,6 +38,7 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import GroupsIcon from "@mui/icons-material/Groups";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import SegmentedControl from "@/components/segmentedControl/segmentedControl";
+import AlunosView from "@/components/alunosView/AlunosView";
 import { RoutesEnum } from "@/enums";
 import { useAlunos } from "@/hooks/useAlunos";
 import { useTurmas } from "@/hooks/useTurmas";
@@ -47,16 +48,10 @@ import { AlunoListaResponse } from "@/services/domains/aluno/response";
 import { TurmaListaResponse } from "@/services/domains/turma/response";
 import { alunoApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+import { iniciais } from "@/utils/utils";
 
 type View = "porAluno" | "porTurma";
 type Situacao = "Todos" | "Sem turma" | "Enturmado";
-
-function iniciais(nome: string): string {
-  const partes = nome.trim().split(/\s+/);
-  const primeira = partes[0]?.[0] ?? "";
-  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
-  return (primeira + ultima).toUpperCase();
-}
 
 export default function EnturmacaoPage() {
   const router = useRouter();
@@ -227,73 +222,79 @@ export default function EnturmacaoPage() {
             </Select>
           </Box>
 
-          <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-            {alunosFiltrados.length === 0 ? (
-              <EmptyState mensagem="Nenhum aluno encontrado." />
-            ) : (
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Aluno</TableCell>
-                    <TableCell>Matrícula</TableCell>
-                    <TableCell>Série</TableCell>
-                    <TableCell>Turma atual</TableCell>
-                    <TableCell>Situação</TableCell>
-                    <TableCell align="right">Ação</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {alunosFiltrados.map((aluno) => {
-                    const semTurma = !aluno.turmaId;
-                    return (
-                      <TableRow
-                        key={aluno.id}
-                        hover
-                        sx={{ cursor: "pointer" }}
-                        onClick={() => router.push(`${RoutesEnum.ALUNO_DETALHE}/${aluno.id}`)}
-                      >
-                        <TableCell>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
-                            <Avatar sx={{ width: 32, height: 32, fontSize: 12, flexShrink: 0 }}>
-                              {iniciais(aluno.nome)}
-                            </Avatar>
-                            <Typography variant="body2" fontWeight={600} noWrap>
-                              {aluno.nome}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ fontFamily: "monospace" }}>{aluno.matricula}</TableCell>
-                        <TableCell>{aluno.serie}</TableCell>
-                        <TableCell sx={{ color: semTurma ? "text.secondary" : "text.primary" }}>
-                          {semTurma ? "— sem turma" : aluno.turma}
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            size="small"
-                            label={semTurma ? "Sem turma" : "Enturmado"}
-                            color={semTurma ? "warning" : "success"}
-                            variant="outlined"
-                          />
-                        </TableCell>
-                        <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="small"
-                            variant={semTurma ? "contained" : "outlined"}
-                            startIcon={
-                              semTurma ? <GroupAddIcon fontSize="small" /> : <SwapHorizIcon fontSize="small" />
-                            }
-                            onClick={() => abrirVincular(aluno)}
-                          >
-                            {semTurma ? "Enturmar" : "Alterar turma"}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+          <AlunosView
+            alunos={alunosFiltrados}
+            loading={loadingAlunos}
+            semFiltros
+            labelAcoes="Ação"
+            mensagemVazio="Nenhum aluno encontrado."
+            colunas={[
+              {
+                key: "nome",
+                label: "Aluno",
+                render: (aluno) => (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+                    <Avatar sx={{ width: 32, height: 32, fontSize: 12, flexShrink: 0 }}>
+                      {iniciais(aluno.nome)}
+                    </Avatar>
+                    <Typography variant="body2" fontWeight={600} noWrap>
+                      {aluno.nome}
+                    </Typography>
+                  </Box>
+                ),
+              },
+              {
+                key: "matricula",
+                label: "Matrícula",
+                render: (aluno) => (
+                  <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+                    {aluno.matricula}
+                  </Typography>
+                ),
+              },
+              { key: "serie", label: "Série" },
+              {
+                key: "turma",
+                label: "Turma atual",
+                render: (aluno) => (
+                  <Typography
+                    variant="body2"
+                    sx={{ color: aluno.turmaId ? "text.primary" : "text.secondary" }}
+                  >
+                    {aluno.turmaId ? aluno.turma : "— sem turma"}
+                  </Typography>
+                ),
+              },
+              {
+                key: "situacao",
+                label: "Situação",
+                render: (aluno) => (
+                  <Chip
+                    size="small"
+                    label={aluno.turmaId ? "Enturmado" : "Sem turma"}
+                    color={aluno.turmaId ? "success" : "warning"}
+                    variant="outlined"
+                  />
+                ),
+              },
+            ]}
+            acoes={(aluno) => (
+              <Button
+                size="small"
+                variant={aluno.turmaId ? "outlined" : "contained"}
+                startIcon={
+                  aluno.turmaId ? (
+                    <SwapHorizIcon fontSize="small" />
+                  ) : (
+                    <GroupAddIcon fontSize="small" />
+                  )
+                }
+                onClick={() => abrirVincular(aluno)}
+              >
+                {aluno.turmaId ? "Alterar turma" : "Enturmar"}
+              </Button>
             )}
-          </TableContainer>
+          />
         </>
       ) : (
         <>

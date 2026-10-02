@@ -16,6 +16,14 @@ interface UseAlunosReturn {
   isSuccess: boolean;
 }
 
+interface UseAlunosOptions {
+  /**
+   * Quando `false`, a consulta não é disparada. Serve para telas que escolhem a
+   * fonte de dados por perfil e não devem buscar a lista inteira à toa.
+   */
+  enabled?: boolean;
+}
+
 /**
  * Hook para buscar a lista de alunos matriculados usando React Query.
  *
@@ -25,10 +33,14 @@ interface UseAlunosReturn {
  * `params` (page/size/busca/serieId/unidadeId), pagina de verdade no backend.
  * @returns {UseAlunosReturn} Estado dos alunos e funções de controle
  */
-export function useAlunos(params?: AlunoListaParams): UseAlunosReturn {
+export function useAlunos(
+  params?: AlunoListaParams,
+  { enabled = true }: UseAlunosOptions = {},
+): UseAlunosReturn {
   const { data, isLoading, error, refetch, isSuccess } = useQuery({
     queryKey: QUERY_KEYS.alunos.lists(params),
     queryFn: () => alunoApi.getListaAlunos(params),
+    enabled,
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
     retry: 2,
@@ -42,7 +54,7 @@ export function useAlunos(params?: AlunoListaParams): UseAlunosReturn {
     alunos: data?.content ?? [],
     totalElements: data?.totalElements ?? 0,
     totalPages: data?.totalPages ?? 0,
-    loading: isLoading,
+    loading: enabled && isLoading,
     error: error ? "Erro ao carregar a lista de alunos. Tente novamente." : null,
     refetch: () => {
       refetch();

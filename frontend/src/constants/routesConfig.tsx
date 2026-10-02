@@ -28,6 +28,7 @@ import FolderOpenOutlinedIcon from "@mui/icons-material/FolderOpenOutlined";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import PersonSearchOutlinedIcon from "@mui/icons-material/PersonSearchOutlined";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
@@ -124,7 +125,12 @@ export const ROUTES: RouteConfig[] = [
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_DETALHE,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN, UserRoleEnum.PROFESSOR, UserRoleEnum.SECRETARIO],
+    roles: [
+      UserRoleEnum.ADMIN,
+      UserRoleEnum.PROFESSOR,
+      UserRoleEnum.SECRETARIO,
+      UserRoleEnum.ORIENTADOR,
+    ],
   },
   {
     text: RouteLabelsEnum.TURMAS,
@@ -302,7 +308,7 @@ export const ROUTES: RouteConfig[] = [
     icon: <CampaignIcon fontSize="small" />,
     router: RoutesEnum.COMUNICADOS_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO, UserRoleEnum.ORIENTADOR],
   },
   {
     text: RouteLabelsEnum.FICHA_MEDICA_LISTA,
@@ -597,6 +603,7 @@ export const ROUTES: RouteConfig[] = [
       UserRoleEnum.PROFESSOR,
       UserRoleEnum.ADMIN,
       UserRoleEnum.SECRETARIO,
+      UserRoleEnum.ORIENTADOR,
     ],
   },
   // ========== SECRETARIA ==========
@@ -648,6 +655,43 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.COMUNICADOS,
     isShowMenu: true,
     roles: [UserRoleEnum.SECRETARIO],
+  },
+  // ========== ORIENTACAO ==========
+  {
+    text: RouteLabelsEnum.HOME_DASHBOARD,
+    icon: <HomeIcon fontSize="small" />,
+    router: RoutesEnum.HOME,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
+  },
+  {
+    text: RouteLabelsEnum.ALUNOS,
+    icon: <PersonSearchOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.ORIENTACAO_ALUNOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
+  },
+  {
+    text: RouteLabelsEnum.COMUNICACAO,
+    icon: <ChatBubbleOutlineOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICACAO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
+    showBadge: true,
+  },
+  {
+    text: RouteLabelsEnum.COMUNICADOS,
+    icon: <CampaignOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICADOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
+  },
+  {
+    text: RouteLabelsEnum.CALENDARIO,
+    icon: <CalendarTodayOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.CALENDARIO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ORIENTADOR],
   },
 ];
 
@@ -764,8 +808,11 @@ export function findRouteByPath(pathname: string): RouteConfig | undefined {
 /**
  * Dada uma rota de detalhe (sem moduleMenu), tenta encontrar a rota-irmã
  * "lista" que compartilha o mesmo primeiro segmento e tem moduleMenu definido.
+ * Só considera rotas que o perfil pode acessar — senão o breadcrumb ofereceria
+ * um link que o middleware rejeita (ex.: `/aluno/lista`, que é só do ADMIN,
+ * aparecendo para quem abre `/aluno/detalhe/:id`).
  */
-export function findListSibling(pathname: string): RouteConfig | undefined {
+export function findListSibling(pathname: string, role?: UserRoleEnum): RouteConfig | undefined {
   const firstSegment = pathname.split("/").filter(Boolean)[0];
   if (!firstSegment) return undefined;
 
@@ -773,6 +820,7 @@ export function findListSibling(pathname: string): RouteConfig | undefined {
     (r) =>
       r.isShowMenu &&
       r.moduleMenu != null &&
-      r.router.split("/").filter(Boolean)[0] === firstSegment,
+      r.router.split("/").filter(Boolean)[0] === firstSegment &&
+      (role == null || r.roles.includes(role)),
   );
 }

@@ -9,6 +9,7 @@ import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import CoPresentOutlinedIcon from "@mui/icons-material/CoPresentOutlined";
 import FamilyRestroomOutlinedIcon from "@mui/icons-material/FamilyRestroomOutlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
+import PsychologyOutlinedIcon from "@mui/icons-material/PsychologyOutlined";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
 
 import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
@@ -22,6 +23,7 @@ const ICONE: Record<UserRoleEnum, React.ReactNode> = {
   [UserRoleEnum.PROFESSOR]: <CoPresentOutlinedIcon />,
   [UserRoleEnum.RESPONSAVEL]: <FamilyRestroomOutlinedIcon />,
   [UserRoleEnum.SECRETARIO]: <BadgeOutlinedIcon />,
+  [UserRoleEnum.ORIENTADOR]: <PsychologyOutlinedIcon />,
   [UserRoleEnum.ADMIN]: <AdminPanelSettingsOutlinedIcon />,
 };
 

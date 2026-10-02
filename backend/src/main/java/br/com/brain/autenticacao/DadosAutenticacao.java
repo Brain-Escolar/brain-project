@@ -91,7 +91,8 @@ public class DadosAutenticacao extends EntidadeBase implements UserDetails {
     }
 
     public String getSocialName() {
-        return this.dadosPessoais.getNomeSocial();
+        var nomeSocial = this.dadosPessoais.getNomeSocial();
+        return (nomeSocial != null && !nomeSocial.isBlank()) ? nomeSocial : this.dadosPessoais.getNome();
     }
 
     @Override

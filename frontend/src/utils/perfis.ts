@@ -19,6 +19,7 @@ export const PRECEDENCIA_PERFIL: UserRoleEnum[] = [
   UserRoleEnum.ADMIN,
   UserRoleEnum.SECRETARIO,
   UserRoleEnum.PROFESSOR,
+  UserRoleEnum.ORIENTADOR,
   UserRoleEnum.RESPONSAVEL,
   UserRoleEnum.ESTUDANTE,
 ];

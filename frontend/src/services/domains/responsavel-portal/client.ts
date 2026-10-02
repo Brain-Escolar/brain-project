@@ -12,12 +12,12 @@ import {
   AlunoVinculadoResponse,
   AulaGradeResponse,
   FichaMedicaPortalResponse,
-  LaudoResponse,
   MedicacaoResponse,
   ResponsavelLogadoResponse,
   ResumoAlunoResponse,
 } from "./response";
 import { MedicacaoPostRequest } from "./request";
+import { ArquivoResponse } from "@/services/domains/aluno/response";
 import {
   DocumentacaoAlunoResponse,
   DocumentoResponse,
@@ -100,7 +100,7 @@ export class ResponsavelPortalApi {
    * Anexa um laudo. O backend avisa a Orientacao Educacional por alerta.
    * O nome da parte precisa ser "arquivo" — e o @RequestPart do controller.
    */
-  anexarLaudo(alunoId: number, arquivo: File): Promise<LaudoResponse> {
+  anexarLaudo(alunoId: number, arquivo: File): Promise<ArquivoResponse> {
     const formData = new FormData();
     formData.append("arquivo", arquivo);
     return httpClient.post(`${BASE_ROUTE}/aluno/${alunoId}/ficha-medica/laudos`, formData);

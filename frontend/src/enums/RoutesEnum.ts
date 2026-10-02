@@ -102,6 +102,9 @@ export enum RoutesEnum {
   SECRETARIA_TURMA_GERENCIAR = "/secretaria/turmas",
   SECRETARIA_DOCUMENTOS = "/secretaria/documentos",
 
+  // Orientacao routes
+  ORIENTACAO_ALUNOS = "/orientacao/alunos",
+
   // Responsavel routes (as demais telas do portal reusam as rotas acima)
   OCORRENCIAS = "/ocorrencias",
   FINANCEIRO = "/financeiro",

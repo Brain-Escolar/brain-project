@@ -27,29 +27,32 @@ public class ComunicadoController {
     public ResponseEntity<ListagemComunicadoDto> cadastrar(
             @RequestPart("dados") @Valid CadastroComunicadoDto dados,
             @RequestPart(value = "imagem", required = false) MultipartFile imagem,
+            @RequestPart(value = "anexo", required = false) MultipartFile anexo,
             UriComponentsBuilder uriBuilder) {
-        var comunicado = service.cadastrarComunicado(dados, imagem);
-        var uri = uriBuilder.path("/comunicado/{id}").buildAndExpand(comunicado.getId()).toUri();
-        return ResponseEntity.created(uri).body(new ListagemComunicadoDto(comunicado));
+        var comunicado = service.cadastrarComunicado(dados, imagem, anexo);
+        var uri = uriBuilder.path("/comunicado/{id}").buildAndExpand(comunicado.id()).toUri();
+        return ResponseEntity.created(uri).body(comunicado);
     }
 
     @GetMapping
     public ResponseEntity<Page<ListagemComunicadoDto>> listar(
-            @PageableDefault(size = 10, sort = { "nome" }) Pageable paginacao) {
-        var page = service.listar(paginacao);
+            @PageableDefault(size = 10, sort = { "data" }) Pageable paginacao,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        var page = service.listar(paginacao, usuario);
         return ResponseEntity.ok(page);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(path = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ListagemComunicadoDto> atualizar(@PathVariable("id") Long id,
-            @RequestBody @Valid AtualizacaoComunicadoDto dados,
+            @RequestPart("dados") @Valid AtualizacaoComunicadoDto dados,
+            @RequestPart(value = "imagem", required = false) MultipartFile imagem,
+            @RequestPart(value = "anexo", required = false) MultipartFile anexo,
             @AuthenticationPrincipal DadosAutenticacao usuario) {
-        var comunicado = service.atualizar(dados, id, usuario);
-        return ResponseEntity.ok(new ListagemComunicadoDto(comunicado));
+        return ResponseEntity.ok(service.atualizar(dados, id, usuario, imagem, anexo));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ListagemComunicadoDto> excluir(@PathVariable("id") Long id,
+    public ResponseEntity<Void> excluir(@PathVariable("id") Long id,
             @AuthenticationPrincipal DadosAutenticacao usuario) {
         service.excluir(id, usuario);
         return ResponseEntity.noContent().build();
@@ -57,7 +60,6 @@ public class ComunicadoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ListagemComunicadoDto> detalhar(@PathVariable("id") Long id) {
-        var comunicado = service.detalhar(id);
-        return ResponseEntity.ok(new ListagemComunicadoDto(comunicado));
+        return ResponseEntity.ok(service.detalhar(id));
     }
 }

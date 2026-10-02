@@ -77,6 +77,10 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.alunos.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.alunos.details(), id] as const,
     fichaMedica: (id: string | number) => [...QUERY_KEYS.alunos.all, "ficha-medica", id] as const,
+    situacaoFamiliar: (id: string | number) =>
+      [...QUERY_KEYS.alunos.all, "situacao-familiar", id] as const,
+    atendimentosPsicologicos: (id: string | number) =>
+      [...QUERY_KEYS.alunos.all, "atendimentos-psicologicos", id] as const,
     produtos: (id: string | number) => [...QUERY_KEYS.alunos.all, "produtos", id] as const,
     anotacoesDisciplina: (alunoId: string | number, disciplinaId: string | number) =>
       [...QUERY_KEYS.alunos.all, "anotacoes-disciplina", alunoId, disciplinaId] as const,
@@ -195,6 +199,12 @@ export const QUERY_KEYS = {
     detail: (id: number) => [...["conversas"], "detail", id] as const,
     mensagens: (conversaId: number, page?: number) => [...["conversas"], "mensagens", conversaId, page] as const,
     destinatariosDisponiveis: () => [...["conversas"], "destinatarios-disponiveis"] as const,
+  },
+  orientacao: {
+    all: ["orientacao"] as const,
+    inicio: () => [...QUERY_KEYS.orientacao.all, "inicio"] as const,
+    buscaAlunos: (filtros?: Record<string, unknown>) =>
+      [...QUERY_KEYS.orientacao.all, "busca-alunos", filtros] as const,
   },
   eventos: {
     all: ["eventos"] as const,

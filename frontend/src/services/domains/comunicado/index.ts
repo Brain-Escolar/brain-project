@@ -4,4 +4,8 @@ export type {
   ComunicadoCreateRequest,
   ComunicadoUpdateRequest,
   ComunicadoCategoria,
+  ComunicadoPublico,
+  ComunicadoAbrangencia,
+  ComunicadoDestinatario,
+  ComunicadoDestinatarioRequest,
 } from "./response";
