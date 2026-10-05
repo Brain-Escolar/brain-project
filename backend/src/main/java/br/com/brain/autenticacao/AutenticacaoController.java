@@ -6,16 +6,20 @@ import br.com.brain.autenticacao.dto.AccessTokenDto;
 import br.com.brain.usuario.dto.AutenticacaoDto;
 import br.com.brain.infra.multitenancy.TenantContext;
 import br.com.brain.escola.EscolaService;
+import br.com.brain.escola.dto.EscolaLoginDto;
 import br.com.brain.usuario.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,6 +42,13 @@ public class AutenticacaoController {
         var refreshToken = tokenService.gerarRefreshToken((DadosAutenticacao) authentication.getPrincipal(), tenantId);
 
         return ResponseEntity.ok(new AccessTokenDto(tokenAcesso, refreshToken));
+    }
+
+    // TEMPORARIO: seletor de escola da tela de login. Remover quando a escola
+    // for identificada automaticamente.
+    @GetMapping("/escolas")
+    public ResponseEntity<List<EscolaLoginDto>> listarEscolas() {
+        return ResponseEntity.ok(escolaService.listarAtivasParaLogin());
     }
 
     @PostMapping("/esqueci-minha-senha")

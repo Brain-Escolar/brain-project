@@ -58,8 +58,7 @@ function LoginContent() {
   );
   const { data: escolas = [], isLoading: carregandoEscolas } = useQuery({
     queryKey: ["escolas-login"],
-    queryFn: () => escolaApi.listar(),
-    select: (lista) => lista.filter((escola) => escola.ativa),
+    queryFn: () => escolaApi.listarParaLogin(),
   });
   const escolaValida = escolas.some((escola) => escola.codigo === codigoEscola);
 

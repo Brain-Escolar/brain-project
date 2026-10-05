@@ -7,6 +7,7 @@ import br.com.brain.endereco.Endereco;
 import br.com.brain.escola.dto.CadastroEscolaDto;
 import br.com.brain.escola.dto.CadastroPrimeiroAdminDto;
 import br.com.brain.escola.dto.DetalhamentoEscolaDto;
+import br.com.brain.escola.dto.EscolaLoginDto;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.infra.multitenancy.TenantContext;
@@ -98,6 +99,13 @@ public class EscolaService {
                 .stream()
                 .map(this::mapToDto)
                 .toList();
+    }
+
+    /** TEMPORARIO: alimenta o seletor de escola do login. Remover junto com ele. */
+    public List<EscolaLoginDto> listarAtivasParaLogin() {
+        return jdbcTemplate.query(
+                "SELECT codigo, nome FROM public.escolas WHERE ativa = true ORDER BY nome",
+                (rs, rowNum) -> new EscolaLoginDto(rs.getString("codigo"), rs.getString("nome")));
     }
 
     private DetalhamentoEscolaDto mapToDto(Map<String, Object> row) {

@@ -5,7 +5,6 @@ import br.com.brain.exception.ApiError;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.infra.multitenancy.TenantContext;
 import br.com.brain.autenticacao.TokenService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,16 +17,18 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private final TokenService tokenService;
 
     private final DadosAutenticacaoRepository repository;
+
+    // Mapper do Spring (Jackson 3): ja serializa java.time, como o Instant do ApiError.
+    private final JsonMapper jsonMapper;
 
     @Override
     protected void doFilterInternal(
@@ -62,7 +63,8 @@ public class SecurityFilter extends OncePerRequestFilter {
             String path) throws IOException {
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(OBJECT_MAPPER.writeValueAsString(ApiError.of(codigo, mensagem, path)));
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(jsonMapper.writeValueAsString(ApiError.of(codigo, mensagem, path)));
     }
 
     private String recuperarToken(HttpServletRequest request) {
