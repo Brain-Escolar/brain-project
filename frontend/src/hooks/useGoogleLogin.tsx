@@ -62,6 +62,7 @@ export function useGoogleLogin(): UseGoogleLoginReturn {
             redirectPath = "/";
             break;
           case "ADMIN":
+          case "DIRETOR":
             redirectPath = "/admin";
             break;
         }
