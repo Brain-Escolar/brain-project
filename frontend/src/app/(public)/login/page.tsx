@@ -1,7 +1,7 @@
 "use client";
 import { GoogleIcon } from "@/components/GoogleIcon";
 import { useGoogleLogin } from "@/hooks/useGoogleLogin";
-import { loginApi } from "@/services/api";
+import { escolaApi, loginApi } from "@/services/api";
 import { setAccessToken } from "@/utils/auth";
 import {
   Button,
@@ -10,11 +10,14 @@ import {
   Divider,
   FormControlLabel,
   InputAdornment,
+  MenuItem,
   TextField,
 } from "@mui/material";
 import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
 import LockOutlined from "@mui/icons-material/LockOutlined";
 import MailOutlineRounded from "@mui/icons-material/MailOutlineRounded";
+import SchoolOutlined from "@mui/icons-material/SchoolOutlined";
+import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { useTheme } from "next-themes";
 import { useSearchParams } from "next/navigation";
@@ -48,7 +51,17 @@ function LoginContent() {
   const [password, setPassword] = useState("");
   const { loginWithGoogle, isLoading: googleLoading } = useGoogleLogin();
 
-  const codigoEscola = searchParams.get("codigoEscola") || "sigma";
+  // TEMPORÁRIO: seleção manual da escola no login. Remover quando a escola
+  // passar a ser identificada automaticamente (ex.: subdomínio).
+  const [codigoEscola, setCodigoEscola] = useState(
+    searchParams.get("codigoEscola") || "sigma",
+  );
+  const { data: escolas = [], isLoading: carregandoEscolas } = useQuery({
+    queryKey: ["escolas-login"],
+    queryFn: () => escolaApi.listar(),
+    select: (lista) => lista.filter((escola) => escola.ativa),
+  });
+  const escolaValida = escolas.some((escola) => escola.codigo === codigoEscola);
 
   useEffect(() => {
     setTheme("light");
@@ -56,6 +69,10 @@ function LoginContent() {
 
   async function onSubmitLogin(e: React.FormEvent) {
     e.preventDefault();
+    if (!escolaValida) {
+      toast.error("Selecione a escola");
+      return;
+    }
     try {
       setIsLoading(true);
       const response = await loginApi.login({
@@ -142,6 +159,32 @@ function LoginContent() {
           </div>
 
           <form onSubmit={onSubmitLogin}>
+            {/* TEMPORÁRIO: seleção manual da escola — remover junto com o state codigoEscola. */}
+            <TextField
+              select
+              fullWidth
+              label="Escola"
+              margin="normal"
+              variant="outlined"
+              value={escolaValida ? codigoEscola : ""}
+              onChange={(e) => setCodigoEscola(e.target.value)}
+              disabled={disabled || carregandoEscolas}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SchoolOutlined fontSize="small" />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            >
+              {escolas.map((escola) => (
+                <MenuItem key={escola.codigo} value={escola.codigo}>
+                  {escola.nome}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               fullWidth
               label="E-mail"
