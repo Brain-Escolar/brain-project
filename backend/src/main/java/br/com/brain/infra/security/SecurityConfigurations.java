@@ -67,6 +67,12 @@ public class SecurityConfigurations {
                             req.requestMatchers("/bolsas/configuracao/**")
                                     .hasAnyRole("DIRETOR", "ADMIN");
 
+                            // Contratos e efetivacao de matricula - acima do permitAll.
+                            // Efetivar gera cobranca: e operacao de secretaria,
+                            // nao de quem so consulta.
+                            req.requestMatchers("/contratos/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
                             // Bolsas - acima do permitAll para ja valer hoje.
                             // FINANCEIRO ainda nao existe em PerfilNome; quando
                             // existir, entra aqui.
