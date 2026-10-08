@@ -90,8 +90,13 @@ class RateioFinanceiroTest {
         @Test
         @DisplayName("parcela única leva o total")
         void parcelaUnica() {
-            assertThat(RateioFinanceiro.dividirEmParcelas(new BigDecimal("450.00"), 1))
-                    .singleElement().isEqualByComparingTo("450.00");
+            // Direto no elemento, e nao via singleElement(): aquele devolve
+            // ObjectAssert<BigDecimal>, o assert genérico, que não tem
+            // isEqualByComparingTo. assertThat(BigDecimal) resolve no assert certo.
+            var divisao = RateioFinanceiro.dividirEmParcelas(new BigDecimal("450.00"), 1);
+
+            assertThat(divisao).hasSize(1);
+            assertThat(divisao.getFirst()).isEqualByComparingTo("450.00");
         }
 
         @Test
@@ -142,9 +147,11 @@ class RateioFinanceiroTest {
         @Test
         @DisplayName("responsável único leva tudo")
         void responsavelUnico() {
-            assertThat(RateioFinanceiro.ratear(new BigDecimal("1387.58"),
-                    List.of(new BigDecimal("100.00"))))
-                    .singleElement().isEqualByComparingTo("1387.58");
+            var partes = RateioFinanceiro.ratear(new BigDecimal("1387.58"),
+                    List.of(new BigDecimal("100.00")));
+
+            assertThat(partes).hasSize(1);
+            assertThat(partes.getFirst()).isEqualByComparingTo("1387.58");
         }
 
         /**
