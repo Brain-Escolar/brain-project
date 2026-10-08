@@ -86,6 +86,7 @@ export enum RouteLabelsEnum {
   // Admin labels
   USUARIOS = "Usuários",
   CONFIGURACOES = "Configurações",
+  GRUPOS_USUARIOS = "Grupos de acesso",
 
   UNIDADE = "Unidade",
   UNIDADE_LISTA = "Unidades",

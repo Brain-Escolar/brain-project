@@ -33,6 +33,7 @@ import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
 
@@ -552,6 +553,14 @@ export const ROUTES: RouteConfig[] = [
     text: RouteLabelsEnum.USUARIOS,
     icon: <GroupIcon fontSize="small" />,
     router: RoutesEnum.USUARIOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ADMIN],
+  },
+  {
+    // O DIRETOR também entra: o parseRoles o trata como ADMIN (provisório).
+    text: RouteLabelsEnum.GRUPOS_USUARIOS,
+    icon: <ManageAccountsIcon fontSize="small" />,
+    router: RoutesEnum.GRUPOS_USUARIOS,
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN],
   },

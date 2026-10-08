@@ -94,6 +94,7 @@ export enum RoutesEnum {
   // Admin routes
   USUARIOS = "/usuarios",
   CONFIGURACOES = "/configuracoes",
+  GRUPOS_USUARIOS = "/grupos-usuarios",
 
   // Secretaria routes
   SECRETARIA_MATRICULAS = "/secretaria/matriculas",

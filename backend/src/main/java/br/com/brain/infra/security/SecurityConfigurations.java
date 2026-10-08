@@ -93,6 +93,13 @@ public class SecurityConfigurations {
                             req.requestMatchers("/documentos-escolares/**")
                                     .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
 
+                            // Grupos de acesso - acima do permitAll para ja valer hoje.
+                            // Diretor e Admin montam os grupos. Os acessos configurados
+                            // ainda nao sao consultados pelo resto do sistema
+                            // (docs/permissoes.md, fases F2 e F3).
+                            req.requestMatchers("/grupos-usuarios", "/grupos-usuarios/**", "/permissoes/catalogo")
+                                    .hasAnyRole("DIRETOR", "ADMIN");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 
