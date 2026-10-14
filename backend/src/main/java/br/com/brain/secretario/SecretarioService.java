@@ -29,7 +29,6 @@ public class SecretarioService {
         dadosPessoais.setNome(dados.nome());
         dadosPessoais.setNomeSocial(dados.nomeSocial());
         dadosPessoais.setEmail(dados.email());
-        dadosPessoais.setEmailProfissional(dados.cpf() + "@escola.com");
         dadosPessoais.setDataDeNascimento(dados.dataDeNascimento());
         dadosPessoais.setEndereco(enderecoService.preencherEnderco(dados.endereco()));
         dadosPessoais.setGenero(dados.genero());

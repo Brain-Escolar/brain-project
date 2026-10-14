@@ -167,8 +167,7 @@ public class ResponsavelService {
         usuarioService.cadastrarUsuario(
                 dadosPessoais,
                 PerfilNome.RESPONSAVEL,
-                senhaInicial(dadosPessoais),
-                dadosPessoais.getEmail());
+                senhaInicial(dadosPessoais));
     }
 
     /**

@@ -86,7 +86,6 @@ public class EscolaService {
         dadosPessoais.setNome(dto.nome());
         dadosPessoais.setNomeSocial(dto.nome());
         dadosPessoais.setEmail(dto.email());
-        dadosPessoais.setEmailProfissional(dto.email());
         dadosPessoais.setCpf(dto.cpf());
         dadosPessoais.setDataDeNascimento(dto.dataDeNascimento());
         dadosPessoais.setEndereco(endereco);

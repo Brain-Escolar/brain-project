@@ -151,7 +151,6 @@ public class AlunoService {
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
         var dadosPessoais = aluno.getDadosPessoais();
         dadosPessoais.setMatricula("M" + aluno.getId());
-        dadosPessoais.setEmailProfissional(dadosPessoais.getMatricula() + "@escola.com");
         aluno.setMatriculado(true);
         usuarioService.cadastrarUsuario(dadosPessoais,
                 PerfilNome.ESTUDANTE,
@@ -165,7 +164,7 @@ public class AlunoService {
         var aluno = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
-        usuarioService.desativarUsuario(aluno.getDadosPessoais().getEmailProfissional());
+        usuarioService.desativarUsuario(aluno.getDadosPessoais().getId());
         aluno.setMatriculado(false);
         aluno.setMotivoDesmatricula(motivo != null && !motivo.isBlank() ? motivo : "Não informado");
         aluno.setDataDesmatricula(LocalDate.now());
@@ -178,7 +177,7 @@ public class AlunoService {
         var aluno = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
-        usuarioService.reativarUsuario(aluno.getDadosPessoais().getEmailProfissional());
+        usuarioService.reativarUsuario(aluno.getDadosPessoais().getId());
         aluno.setMatriculado(true);
         aluno.setMotivoDesmatricula(null);
         aluno.setDataDesmatricula(null);

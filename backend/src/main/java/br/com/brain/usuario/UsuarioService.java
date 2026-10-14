@@ -38,24 +38,19 @@ public class UsuarioService {
     private EntityManager em;
 
     /**
-     * Cadastra o login usando o e-mail institucional como identificador.
-     * Comportamento historico, usado por quem tem vinculo com a escola
-     * (aluno e professor recebem emailProfissional na matricula/admissao).
+     * Cadastra o login de qualquer perfil usando o e-mail cadastrado em
+     * dados_pessoais como identificador. A senha inicial e o link de ativacao
+     * vao para esse mesmo e-mail; a conta so fica ativa apos a confirmacao.
      */
     @Transactional
     public Long cadastrarUsuario(DadosPessoais dadosPessoais, PerfilNome nomePerfil, String senha) {
-        return cadastrarUsuario(dadosPessoais, nomePerfil, senha, dadosPessoais.getEmailProfissional());
-    }
+        var login = dadosPessoais.getEmail();
+        if (login == null || login.isBlank()) {
+            // Sem e-mail nao ha login nem para onde mandar a ativacao.
+            throw ErrosSistema.OperacaoInvalidaException
+                    .com("É necessário informar um e-mail no cadastro para gerar o acesso.");
+        }
 
-    /**
-     * Cadastra o login com um identificador explicito.
-     *
-     * Existe para o responsavel, que e externo a escola e por isso nao tem
-     * emailProfissional — o login dele e o e-mail pessoal. Sem este overload o
-     * username sairia null e o acesso seria impossivel.
-     */
-    @Transactional
-    public Long cadastrarUsuario(DadosPessoais dadosPessoais, PerfilNome nomePerfil, String senha, String login) {
         var senhaCriptografada = passwordEncoder.encode(senha);
 
         var perfil = perfilRepository.findByNome(nomePerfil);
@@ -110,20 +105,30 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    /**
+     * Busca o login pelo DadosPessoais e nao pelo e-mail: logins antigos usam o
+     * e-mail institucional e os novos o e-mail cadastrado.
+     */
     @Transactional
-    public DadosAutenticacao desativarUsuario(String username) {
-        var usuario = usuarioRepository.findByEmailIgnoreCaseAndVerificadoTrue(username).orElseThrow();
+    public DadosAutenticacao desativarUsuario(Long dadosPessoaisId) {
+        var usuario = recuperarUsuarioPorDadosPessoais(dadosPessoaisId);
         usuario.desativar();
         usuarioRepository.save(usuario);
         return usuario;
     }
 
     @Transactional
-    public DadosAutenticacao reativarUsuario(String username) {
-        var usuario = usuarioRepository.findByEmailIgnoreCaseAndVerificadoTrue(username).orElseThrow();
+    public DadosAutenticacao reativarUsuario(Long dadosPessoaisId) {
+        var usuario = recuperarUsuarioPorDadosPessoais(dadosPessoaisId);
         usuario.reativar();
         usuarioRepository.save(usuario);
         return usuario;
+    }
+
+    private DadosAutenticacao recuperarUsuarioPorDadosPessoais(Long dadosPessoaisId) {
+        return usuarioRepository.findByDadosPessoaisId(dadosPessoaisId)
+                .orElseThrow(() -> new ErrosSistema.RecursoNaoEncontradoException(
+                        "Usuário não encontrado para os dados pessoais " + dadosPessoaisId));
     }
 
     @Transactional

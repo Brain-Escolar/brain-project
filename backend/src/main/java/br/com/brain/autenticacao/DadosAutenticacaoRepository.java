@@ -14,4 +14,6 @@ public interface DadosAutenticacaoRepository extends JpaRepository<DadosAutentic
      * e a partir do segundo o login ja existe.
      */
     boolean existsByDadosPessoaisId(Long dadosPessoaisId);
+
+    Optional<DadosAutenticacao> findByDadosPessoaisId(Long dadosPessoaisId);
 }

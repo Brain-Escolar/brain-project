@@ -330,7 +330,8 @@ export default function MatriculasPage() {
         <DialogContent>
           <DialogContentText>
             Confirma a matrícula de <strong>{ctxAluno?.nome}</strong>? A matrícula e as
-            credenciais de acesso serão geradas automaticamente.
+            credenciais de acesso serão geradas automaticamente e o link de ativação será enviado
+            para o e-mail cadastrado.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -360,7 +361,7 @@ export default function MatriculasPage() {
               <strong>Matrícula:</strong> {credenciais?.matricula}
             </Typography>
             <Typography variant="body2">
-              <strong>E-mail escolar:</strong> {credenciais?.emailEscolar}
+              <strong>Login:</strong> {credenciais?.email}
             </Typography>
             <Typography variant="body2">
               <strong>Senha inicial:</strong> {ctxAluno?.cpf}

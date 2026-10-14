@@ -104,7 +104,6 @@ export default function ProfessorPage() {
                 <TableCell sx={{ fontWeight: "bold" }}>Nome</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>CPF</TableCell>
                 <TableCell sx={{ fontWeight: "bold" }}>E-mail</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>E-mail Profissional</TableCell>
                 <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Ações</TableCell>
               </TableRow>
             </TableHead>
@@ -129,7 +128,6 @@ export default function ProfessorPage() {
                   </TableCell>
                   <TableCell>{professor.cpf}</TableCell>
                   <TableCell>{professor.email}</TableCell>
-                  <TableCell>{professor.emailProfissional}</TableCell>
                   <TableCell>
                     <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                       <IconButton
