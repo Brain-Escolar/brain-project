@@ -9,6 +9,10 @@ export enum RoutesEnum {
   PROFESSOR_LISTA = "/professor/lista",
   PROFESSOR_CADASTRO = "/professor/cadastro",
 
+  // Secretario routes
+  SECRETARIO_LISTA = "/secretario/lista",
+  SECRETARIO_CADASTRO = "/secretario/cadastro",
+
   // Aluno routes
   ALUNO_LISTA = "/aluno/lista",
   ALUNO_CADASTRO = "/aluno/cadastro",

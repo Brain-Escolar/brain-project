@@ -49,6 +49,10 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.fichasMedicas.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.fichasMedicas.details(), id] as const,
   },
+  secretarios: {
+    all: ["secretarios"] as const,
+    lists: () => [...QUERY_KEYS.secretarios.all, "list"] as const,
+  },
   professores: {
     all: ["professores"] as const,
     lists: () => [...QUERY_KEYS.professores.all, "list"] as const,

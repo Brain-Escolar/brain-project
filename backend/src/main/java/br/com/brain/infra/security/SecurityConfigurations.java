@@ -99,6 +99,12 @@ public class SecurityConfigurations {
                             req.requestMatchers("/documentos-escolares/**")
                                     .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
 
+                            // Cadastro de secretarios - acima do permitAll para ja valer hoje.
+                            // Criar secretario gera login com acesso a dados de
+                            // alunos: e decisao de direcao.
+                            req.requestMatchers("/secretario/**")
+                                    .hasAnyRole("DIRETOR", "ADMIN");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 
