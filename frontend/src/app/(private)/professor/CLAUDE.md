@@ -47,7 +47,7 @@ Todos os campos de formulário devem usar os componentes BrainForms em vez de ca
 | Componente | Caso de uso |
 |---|---|
 | `BrainTextFieldControlled` | Input de texto genérico (suporta `multiline`, `rows`, `type`) |
-| `BrainDropdownControlled` | Select simples |
+| `BrainDropdownControlled` | Select simples com busca (digitar filtra as opções) |
 | `BrainMultiSelectControlled` | Multi-select com autocomplete e checkboxes |
 | `BrainDateTextControlled` | Data no formato `dd/mm/aaaa` com máscara |
 | `BrainTextCPFControlled` | CPF com máscara `000.000.000-00` |

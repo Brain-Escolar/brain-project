@@ -11,7 +11,6 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
-  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -20,6 +19,7 @@ import { useEventoMutations } from "@/hooks/useEventoMutations";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { EventoResponse, TipoEvento } from "@/services/domains/evento";
 import { TIPO_OPTIONS } from "./eventoTipos";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 interface NovoEventoModalProps {
   open: boolean;
@@ -135,19 +135,14 @@ export default function NovoEventoModal({
             autoFocus
           />
 
-          <TextField
+          <BrainDropdownField<TipoEvento>
             label="Tipo"
-            select
+            size="medium"
+            disableClearable
             value={tipo}
-            onChange={(e) => setTipo(e.target.value as TipoEvento)}
-            fullWidth
-          >
-            {tipoOptions.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </TextField>
+            onChange={(v) => v && setTipo(v)}
+            options={tipoOptions.map((opt) => ({ key: opt.value, value: opt.label }))}
+          />
 
           <TextField
             label="Data"

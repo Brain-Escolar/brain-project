@@ -3,7 +3,13 @@
 import FileUploadArea from "@/components/fileUploadArea";
 import { DisciplinaTurmasProfessorResponse } from "@/services/domains/professor/response";
 import { TipoMaterial } from "@/services/domains/material-complementar";
-import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius, cssVarShadow } from "@/styles";
+import {
+  cssVarColor,
+  cssVarFontSize,
+  cssVarFontWeight,
+  cssVarRadius,
+  cssVarShadow,
+} from "@/styles";
 import AttachFileRounded from "@mui/icons-material/AttachFileRounded";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import LinkRounded from "@mui/icons-material/LinkRounded";
@@ -14,11 +20,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -26,6 +28,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useMaterialComplementarMutations } from "../../useMaterialComplementarMutations";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 interface ModalAdicionarMaterialProps {
   open: boolean;
@@ -91,7 +94,11 @@ export default function ModalAdicionarMaterial({
       fullWidth
       maxWidth="sm"
       PaperProps={{
-        sx: { borderRadius: cssVarRadius("xl"), boxShadow: cssVarShadow("level3"), overflow: "hidden" },
+        sx: {
+          borderRadius: cssVarRadius("xl"),
+          boxShadow: cssVarShadow("level3"),
+          overflow: "hidden",
+        },
       }}
     >
       <Box
@@ -107,10 +114,18 @@ export default function ModalAdicionarMaterial({
         }}
       >
         <Box>
-          <Typography sx={{ fontSize: cssVarFontSize("h3"), fontWeight: cssVarFontWeight("semibold"), color: cssVarColor("text") }}>
+          <Typography
+            sx={{
+              fontSize: cssVarFontSize("h3"),
+              fontWeight: cssVarFontWeight("semibold"),
+              color: cssVarColor("text"),
+            }}
+          >
             Novo material complementar
           </Typography>
-          <Typography sx={{ fontSize: cssVarFontSize("body2"), color: cssVarColor("textSecondary"), mt: 0.5 }}>
+          <Typography
+            sx={{ fontSize: cssVarFontSize("body2"), color: cssVarColor("textSecondary"), mt: 0.5 }}
+          >
             Anexe um arquivo ou compartilhe um link de apoio para a disciplina.
           </Typography>
         </Box>
@@ -130,16 +145,17 @@ export default function ModalAdicionarMaterial({
               required
               fullWidth
             />
-            <FormControl fullWidth required>
-              <InputLabel>Disciplina</InputLabel>
-              <Select value={disciplinaId} label="Disciplina" onChange={(e) => setDisciplinaId(e.target.value)}>
-                {disciplinas.map((d) => (
-                  <MenuItem key={d.disciplinaId} value={String(d.disciplinaId)}>
-                    {d.nomeDisciplina}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <BrainDropdownField
+              label="Disciplina"
+              size="medium"
+              required
+              value={disciplinaId}
+              onChange={(v) => setDisciplinaId(v ?? "")}
+              options={disciplinas.map((d) => ({
+                key: String(d.disciplinaId),
+                value: d.nomeDisciplina,
+              }))}
+            />
           </Box>
 
           <ToggleButtonGroup
@@ -188,7 +204,13 @@ export default function ModalAdicionarMaterial({
         </DialogContent>
 
         <DialogActions
-          sx={{ px: 3, pt: 2, pb: 2.75, gap: 1.25, borderTop: `1px solid ${cssVarColor("borderSubtle")}` }}
+          sx={{
+            px: 3,
+            pt: 2,
+            pb: 2.75,
+            gap: 1.25,
+            borderTop: `1px solid ${cssVarColor("borderSubtle")}`,
+          }}
         >
           <Button variant="outlined" onClick={handleClose} disabled={createMaterial.isPending}>
             Cancelar

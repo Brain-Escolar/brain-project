@@ -55,15 +55,33 @@ import {
 // ─── Opções de select ────────────────────────────────────────────────────────
 
 const OPTIONS_UF: KeyValue[] = [
-  { key: "AC", value: "AC" }, { key: "AL", value: "AL" }, { key: "AP", value: "AP" },
-  { key: "AM", value: "AM" }, { key: "BA", value: "BA" }, { key: "CE", value: "CE" },
-  { key: "DF", value: "DF" }, { key: "ES", value: "ES" }, { key: "GO", value: "GO" },
-  { key: "MA", value: "MA" }, { key: "MT", value: "MT" }, { key: "MS", value: "MS" },
-  { key: "MG", value: "MG" }, { key: "PA", value: "PA" }, { key: "PB", value: "PB" },
-  { key: "PR", value: "PR" }, { key: "PE", value: "PE" }, { key: "PI", value: "PI" },
-  { key: "RJ", value: "RJ" }, { key: "RN", value: "RN" }, { key: "RS", value: "RS" },
-  { key: "RO", value: "RO" }, { key: "RR", value: "RR" }, { key: "SC", value: "SC" },
-  { key: "SP", value: "SP" }, { key: "SE", value: "SE" }, { key: "TO", value: "TO" },
+  { key: "AC", value: "AC" },
+  { key: "AL", value: "AL" },
+  { key: "AP", value: "AP" },
+  { key: "AM", value: "AM" },
+  { key: "BA", value: "BA" },
+  { key: "CE", value: "CE" },
+  { key: "DF", value: "DF" },
+  { key: "ES", value: "ES" },
+  { key: "GO", value: "GO" },
+  { key: "MA", value: "MA" },
+  { key: "MT", value: "MT" },
+  { key: "MS", value: "MS" },
+  { key: "MG", value: "MG" },
+  { key: "PA", value: "PA" },
+  { key: "PB", value: "PB" },
+  { key: "PR", value: "PR" },
+  { key: "PE", value: "PE" },
+  { key: "PI", value: "PI" },
+  { key: "RJ", value: "RJ" },
+  { key: "RN", value: "RN" },
+  { key: "RS", value: "RS" },
+  { key: "RO", value: "RO" },
+  { key: "RR", value: "RR" },
+  { key: "SC", value: "SC" },
+  { key: "SP", value: "SP" },
+  { key: "SE", value: "SE" },
+  { key: "TO", value: "TO" },
 ];
 
 const OPTIONS_GENDER: KeyValue[] = [
@@ -159,11 +177,7 @@ function DependenteRow({ index, control, onRemove }: DependenteRowProps) {
         label="Nome Completo"
         placeholder="Nome completo"
       />
-      <BrainTextCPFControlled
-        name={`dependentes.${index}.cpf`}
-        control={control}
-        label="CPF"
-      />
+      <BrainTextCPFControlled name={`dependentes.${index}.cpf`} control={control} label="CPF" />
       <BrainDateTextControlled
         name={`dependentes.${index}.dataNascimento`}
         control={control}
@@ -176,12 +190,7 @@ function DependenteRow({ index, control, onRemove }: DependenteRowProps) {
         options={OPTIONS_PARENTESCO}
         placeholder="Selecione"
       />
-      <IconButton
-        onClick={onRemove}
-        color="error"
-        sx={{ mt: 1 }}
-        aria-label="Remover dependente"
-      >
+      <IconButton onClick={onRemove} color="error" sx={{ mt: 1 }} aria-label="Remover dependente">
         <DeleteIcon />
       </IconButton>
     </Box>
@@ -264,8 +273,11 @@ function ProfessorPageContent() {
     mode: "all",
   });
 
-  const { fields: dependentesFields, append: appendDependente, remove: removeDependente } =
-    useFieldArray({ control, name: "dependentes" });
+  const {
+    fields: dependentesFields,
+    append: appendDependente,
+    remove: removeDependente,
+  } = useFieldArray({ control, name: "dependentes" });
 
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [exameFileName, setExameFileName] = useState<string | null>(null);
@@ -353,7 +365,6 @@ function ProfessorPageContent() {
         </Alert>
       ) : (
         <>
-
           <BrainFormProvider
             methodsHookForm={methodsHookForm}
             onSubmit={handleSubmit(onFormSubmit)}
@@ -427,20 +438,10 @@ function ProfessorPageContent() {
                 placeholder="Cidade onde nasceu"
                 required
               />
-              <BrainTextCPFControlled
-                name="cpf"
-                control={control}
-                label="CPF"
-                required={true}
-              />
+              <BrainTextCPFControlled name="cpf" control={control} label="CPF" required={true} />
 
               {/* RG | Carteira de Trabalho */}
-              <BrainTextRGControlled
-                name="rg"
-                control={control}
-                label="RG"
-                required={true}
-              />
+              <BrainTextRGControlled name="rg" control={control} label="RG" required={true} />
               <BrainTextFieldControlled
                 name="carteiraTrabalho"
                 control={control}
@@ -474,12 +475,7 @@ function ProfessorPageContent() {
             >
               {/* CEP com spinner de busca */}
               <Box sx={{ position: "relative" }}>
-                <BrainTextCEPControlled
-                  name="cep"
-                  control={control}
-                  label="CEP"
-                  required={true}
-                />
+                <BrainTextCEPControlled name="cep" control={control} label="CEP" required={true} />
                 {buscandoCep && (
                   <Box
                     sx={{
@@ -688,7 +684,11 @@ function ProfessorPageContent() {
               {/* Upload do exame (condicional) */}
               {watchExameRealizado && (
                 <Box sx={{ gridColumn: "1 / -1" }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 0.5, display: "block" }}
+                  >
                     Upload do Exame Admissional
                   </Typography>
                   <ExameUpload
@@ -741,9 +741,7 @@ function ProfessorPageContent() {
                         }
                         label={
                           <Typography variant="body2">
-                            Aceito o{" "}
-                            <strong>termo de consentimento LGPD</strong>
-                            {" "}*
+                            Aceito o <strong>termo de consentimento LGPD</strong> *
                           </Typography>
                         }
                       />
@@ -758,9 +756,7 @@ function ProfessorPageContent() {
               </S.LgpdContainer>
 
               <S.FooterActions>
-                <BrainButtonSecondary onClick={handleCancel}>
-                  Cancelar
-                </BrainButtonSecondary>
+                <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
                 <BrainButtonPrimary
                   type="submit"
                   disabled={isSubmitting || isSaving}

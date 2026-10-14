@@ -13,9 +13,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  MenuItem,
   Paper,
-  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -34,6 +32,7 @@ import { useCrmMutations } from "@/hooks/useCrmMutations";
 import RegistrarInteracaoDialog from "../_components/RegistrarInteracaoDialog";
 import AvisoCadastroIncompletoDialog from "../_components/AvisoCadastroIncompletoDialog";
 import BlocoBolsaLead from "../_components/BlocoBolsaLead";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 function iniciais(nome: string): string {
   const partes = nome.trim().split(/\s+/);
@@ -121,9 +120,14 @@ export default function DetalheLeadCrmPage() {
         Voltar para o CRM
       </Button>
 
-      <Paper variant="outlined" sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2, mb: 2.5 }}>
+      <Paper
+        variant="outlined"
+        sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2, mb: 2.5 }}
+      >
         <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, flexWrap: "wrap" }}>
-          <Avatar sx={{ width: 60, height: 60, fontSize: 20 }}>{iniciais(processo.alunoNome)}</Avatar>
+          <Avatar sx={{ width: 60, height: 60, fontSize: 20 }}>
+            {iniciais(processo.alunoNome)}
+          </Avatar>
           <Box sx={{ flex: 1, minWidth: 200 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.2, flexWrap: "wrap" }}>
               <Typography variant="h5" fontWeight={600}>
@@ -151,7 +155,8 @@ export default function DetalheLeadCrmPage() {
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                 <FamilyRestroomIcon fontSize="small" color="action" />
                 <Typography variant="body2" color="text.secondary">
-                  {processo.responsavelNome ?? "—"} {processo.responsavelTelefone ? `· ${processo.responsavelTelefone}` : ""}
+                  {processo.responsavelNome ?? "—"}{" "}
+                  {processo.responsavelTelefone ? `· ${processo.responsavelTelefone}` : ""}
                 </Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -186,7 +191,9 @@ export default function DetalheLeadCrmPage() {
         <Box sx={{ display: "flex", gap: 0.5 }}>
           {estagiosOrdenados.map((e) => {
             const atual = e.id === processo.estagioAtualId;
-            const concluido = e.ordem < (estagiosOrdenados.find((x) => x.id === processo.estagioAtualId)?.ordem ?? 0);
+            const concluido =
+              e.ordem <
+              (estagiosOrdenados.find((x) => x.id === processo.estagioAtualId)?.ordem ?? 0);
             return (
               <Box key={e.id} sx={{ flex: 1, minWidth: 100 }}>
                 <Box
@@ -197,7 +204,11 @@ export default function DetalheLeadCrmPage() {
                     bgcolor: concluido || atual ? "primary.main" : "action.disabledBackground",
                   }}
                 />
-                <Typography variant="caption" fontWeight={atual ? 600 : 400} color={atual ? "text.primary" : "text.secondary"}>
+                <Typography
+                  variant="caption"
+                  fontWeight={atual ? 600 : 400}
+                  color={atual ? "text.primary" : "text.secondary"}
+                >
                   {e.nome}
                 </Typography>
               </Box>
@@ -215,67 +226,68 @@ export default function DetalheLeadCrmPage() {
           />
 
           <Paper variant="outlined" sx={{ p: 2.5 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-            <Typography variant="h6" fontWeight={600}>
-              Timeline de interações
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {processo.interacoes.length} registros
-            </Typography>
-          </Box>
-          {processo.interacoes.map((i) => (
-            <Box key={i.id} sx={{ display: "flex", gap: 1.5, pb: 2 }}>
-              <Box
-                sx={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: "50%",
-                  bgcolor: "primary.light",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <CallIcon sx={{ fontSize: 16 }} />
-              </Box>
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                  <Typography variant="body2" fontWeight={600}>
-                    {i.tipo === "SISTEMA" ? "Sistema" : i.tipo} {i.resultado ? `— ${i.resultado}` : ""}
-                  </Typography>
-                  {i.resultado && RESULTADO_COR[i.resultado] && (
-                    <Chip size="small" label={i.resultado} color={RESULTADO_COR[i.resultado]} />
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
+              <Typography variant="h6" fontWeight={600}>
+                Timeline de interações
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {processo.interacoes.length} registros
+              </Typography>
+            </Box>
+            {processo.interacoes.map((i) => (
+              <Box key={i.id} sx={{ display: "flex", gap: 1.5, pb: 2 }}>
+                <Box
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: "50%",
+                    bgcolor: "primary.light",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <CallIcon sx={{ fontSize: 16 }} />
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                    <Typography variant="body2" fontWeight={600}>
+                      {i.tipo === "SISTEMA" ? "Sistema" : i.tipo}{" "}
+                      {i.resultado ? `— ${i.resultado}` : ""}
+                    </Typography>
+                    {i.resultado && RESULTADO_COR[i.resultado] && (
+                      <Chip size="small" label={i.resultado} color={RESULTADO_COR[i.resultado]} />
+                    )}
+                    <Typography variant="caption" color="text.secondary">
+                      {formatarDataHora(i.criadoEm)}
+                    </Typography>
+                  </Box>
+                  {i.observacoes && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                      {i.observacoes}
+                    </Typography>
                   )}
                   <Typography variant="caption" color="text.secondary">
-                    {formatarDataHora(i.criadoEm)}
+                    {i.autorNome}
                   </Typography>
+                  {i.proximaAcao && (
+                    <Chip
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      label={`Próxima ação: ${formatarDataHora(i.proximaAcao)}`}
+                      sx={{ display: "block", mt: 0.5, width: "fit-content" }}
+                    />
+                  )}
                 </Box>
-                {i.observacoes && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    {i.observacoes}
-                  </Typography>
-                )}
-                <Typography variant="caption" color="text.secondary">
-                  {i.autorNome}
-                </Typography>
-                {i.proximaAcao && (
-                  <Chip
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    label={`Próxima ação: ${formatarDataHora(i.proximaAcao)}`}
-                    sx={{ display: "block", mt: 0.5, width: "fit-content" }}
-                  />
-                )}
               </Box>
-            </Box>
-          ))}
-          {processo.interacoes.length === 0 && (
-            <Typography variant="body2" color="text.secondary">
-              Nenhuma interação registrada ainda.
-            </Typography>
-          )}
+            ))}
+            {processo.interacoes.length === 0 && (
+              <Typography variant="body2" color="text.secondary">
+                Nenhuma interação registrada ainda.
+              </Typography>
+            )}
           </Paper>
         </Box>
 
@@ -285,7 +297,11 @@ export default function DetalheLeadCrmPage() {
               Próxima ação
             </Typography>
             {processo.proximaAcao ? (
-              <Chip label={formatarDataHora(processo.proximaAcao)} color="primary" variant="outlined" />
+              <Chip
+                label={formatarDataHora(processo.proximaAcao)}
+                color="primary"
+                variant="outlined"
+              />
             ) : (
               <Typography variant="body2" color="text.secondary">
                 Nenhuma próxima ação agendada.
@@ -307,7 +323,11 @@ export default function DetalheLeadCrmPage() {
             {[
               ["Tipo de processo", processo.tipo],
               ["Status", processo.status],
-              ["Estágio atual", processo.estagioAtualNome + (processo.subestagio ? ` · ${processo.subestagio}` : "")],
+              [
+                "Estágio atual",
+                processo.estagioAtualNome +
+                  (processo.subestagio ? ` · ${processo.subestagio}` : ""),
+              ],
               ["Ciclo letivo", String(processo.anoLetivo)],
               ["Origem", processo.origemNome],
               ["Criado em", formatarData(processo.criadoEm)],
@@ -413,22 +433,21 @@ export default function DetalheLeadCrmPage() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={modalReatribuir} onClose={() => setModalReatribuir(false)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={modalReatribuir}
+        onClose={() => setModalReatribuir(false)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>Reatribuir processo</DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
-          <Select<number | "">
-            fullWidth
-            displayEmpty
+          <BrainDropdownField<number>
+            size="medium"
+            placeholder="Selecione um atendente"
             value={novoFuncionarioId}
-            onChange={(e) => setNovoFuncionarioId(e.target.value === "" ? "" : Number(e.target.value))}
-          >
-            <MenuItem value="">Selecione um atendente</MenuItem>
-            {equipe.map((f) => (
-              <MenuItem key={f.funcionarioId} value={f.funcionarioId}>
-                {f.nome}
-              </MenuItem>
-            ))}
-          </Select>
+            onChange={(v) => setNovoFuncionarioId(v ?? "")}
+            options={equipe.map((f) => ({ key: f.funcionarioId, value: f.nome }))}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setModalReatribuir(false)}>Cancelar</Button>

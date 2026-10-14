@@ -213,9 +213,7 @@ function AulaPageContent() {
               <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
               <BrainButtonPrimary
                 type="submit"
-                disabled={
-                  isSubmitting || createAula.isPending || updateAula.isPending || isLoading
-                }
+                disabled={isSubmitting || createAula.isPending || updateAula.isPending || isLoading}
               >
                 {createAula.isPending || updateAula.isPending ? "Salvando..." : "Salvar"}
               </BrainButtonPrimary>

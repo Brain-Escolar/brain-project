@@ -10,7 +10,6 @@ import {
   Divider,
   FormControlLabel,
   InputAdornment,
-  MenuItem,
   TextField,
 } from "@mui/material";
 import ArrowForwardRounded from "@mui/icons-material/ArrowForwardRounded";
@@ -24,6 +23,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import * as S from "./styles";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 /** Painel da marca (esquerda) — wordmark, pitch e mascote Brainy. */
 function BrandAside() {
@@ -32,10 +32,7 @@ function BrandAside() {
       <S.AsideLogo src="/brand/logo/brain-wordmark-branco.svg" alt="Brain" />
       <S.Pitch>
         <h2>A gestão escolar inteligente da sua instituição.</h2>
-        <p>
-          Acompanhe desempenho, frequência e comunicação — tudo em um só lugar,
-          todos os dias.
-        </p>
+        <p>Acompanhe desempenho, frequência e comunicação — tudo em um só lugar, todos os dias.</p>
       </S.Pitch>
       <S.AsideFoot>© 2026 Brain · Gestão Escolar</S.AsideFoot>
       <S.Mascot src="/brand/brainy/brainy-front-rgb.png" alt="" aria-hidden />
@@ -53,9 +50,7 @@ function LoginContent() {
 
   // TEMPORÁRIO: seleção manual da escola no login. Remover quando a escola
   // passar a ser identificada automaticamente (ex.: subdomínio).
-  const [codigoEscola, setCodigoEscola] = useState(
-    searchParams.get("codigoEscola") || "sigma",
-  );
+  const [codigoEscola, setCodigoEscola] = useState(searchParams.get("codigoEscola") || "sigma");
   const { data: escolas = [], isLoading: carregandoEscolas } = useQuery({
     queryKey: ["escolas-login"],
     queryFn: () => escolaApi.listarParaLogin(),
@@ -159,31 +154,20 @@ function LoginContent() {
 
           <form onSubmit={onSubmitLogin}>
             {/* TEMPORÁRIO: seleção manual da escola — remover junto com o state codigoEscola. */}
-            <TextField
-              select
-              fullWidth
+            <BrainDropdownField
               label="Escola"
+              size="medium"
               margin="normal"
-              variant="outlined"
               value={escolaValida ? codigoEscola : ""}
-              onChange={(e) => setCodigoEscola(e.target.value)}
+              onChange={(v) => setCodigoEscola(v ?? "")}
               disabled={disabled || carregandoEscolas}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SchoolOutlined fontSize="small" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            >
-              {escolas.map((escola) => (
-                <MenuItem key={escola.codigo} value={escola.codigo}>
-                  {escola.nome}
-                </MenuItem>
-              ))}
-            </TextField>
+              startAdornment={
+                <InputAdornment position="start">
+                  <SchoolOutlined fontSize="small" />
+                </InputAdornment>
+              }
+              options={escolas.map((escola) => ({ key: escola.codigo, value: escola.nome }))}
+            />
             <TextField
               fullWidth
               label="E-mail"

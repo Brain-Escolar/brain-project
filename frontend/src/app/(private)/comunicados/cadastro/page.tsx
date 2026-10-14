@@ -25,14 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useComunicado } from "@/hooks/useComunicado";
 import { useComunicadoMutations } from "@/hooks/useComunicadoMutations";
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  FormHelperText,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, CircularProgress, FormHelperText, Typography } from "@mui/material";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import CloseIcon from "@mui/icons-material/Close";
@@ -53,7 +46,11 @@ function ComunicadoPageContent() {
   const comunicadoId = searchParams.get("id");
   const { user } = useAuth();
 
-  const { comunicado, loading: loadingComunicado, error: errorComunicado } = useComunicado(comunicadoId);
+  const {
+    comunicado,
+    loading: loadingComunicado,
+    error: errorComunicado,
+  } = useComunicado(comunicadoId);
   const { createComunicado, updateComunicado } = useComunicadoMutations();
 
   // Secretaria não publica na categoria "Atualização RH" — restrita a Admin/RH.
@@ -303,7 +300,9 @@ function ComunicadoPageContent() {
                 onChange={handleAnexoSelect}
               />
 
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1, alignItems: "flex-start" }}>
+              <Box
+                sx={{ display: "flex", flexDirection: "column", gap: 1, alignItems: "flex-start" }}
+              >
                 <Button
                   variant="outlined"
                   startIcon={<AttachFileIcon />}
@@ -357,7 +356,9 @@ function ComunicadoPageContent() {
                 type="submit"
                 disabled={isSubmitting || createComunicado.isPending || updateComunicado.isPending}
               >
-                {createComunicado.isPending || updateComunicado.isPending ? "Salvando..." : "Salvar"}
+                {createComunicado.isPending || updateComunicado.isPending
+                  ? "Salvando..."
+                  : "Salvar"}
               </BrainButtonPrimary>
             </Box>
           </BrainFormProvider>

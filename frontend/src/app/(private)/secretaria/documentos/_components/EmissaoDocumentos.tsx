@@ -16,7 +16,6 @@ import {
   List,
   ListItemButton,
   ListItemText,
-  MenuItem,
   Paper,
   TextField,
   Typography,
@@ -38,6 +37,7 @@ import { TipoDocumentoEscolar } from "@/services/domains/documento-escolar";
 import FolhaBoletim, { boletimEhFinal } from "./FolhaBoletim";
 import FolhaHistorico from "./FolhaHistorico";
 import { ALTURA_FOLHA, LARGURA_FOLHA } from "./FolhaDocumento";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 interface AlunoEscolhido {
   id: number;
@@ -328,43 +328,40 @@ export default function EmissaoDocumentos({ alunoIdInicial, tipoInicial }: Emiss
           {isBoletim ? (
             <>
               <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}>
-                <TextField
-                  select
-                  size="small"
+                <BrainDropdownField<number>
                   label="Ano letivo"
-                  value={boletim?.anoLetivo ?? ""}
+                  disableClearable
+                  value={boletim?.anoLetivo}
                   disabled={!boletim || boletim.anosDisponiveis.length === 0}
-                  onChange={(e) => {
-                    setAnoLetivo(Number(e.target.value));
+                  onChange={(ano) => {
+                    if (ano === null) return;
+                    setAnoLetivo(ano);
                     setPeriodoAte(undefined);
                   }}
-                >
-                  {boletim && !boletim.anosDisponiveis.includes(boletim.anoLetivo) && (
-                    <MenuItem value={boletim.anoLetivo}>{boletim.anoLetivo}</MenuItem>
-                  )}
-                  {(boletim?.anosDisponiveis ?? []).map((ano) => (
-                    <MenuItem key={ano} value={ano}>
-                      {ano}
-                      {ano === new Date().getFullYear() ? " (em curso)" : ""}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  select
-                  size="small"
+                  options={[
+                    ...(boletim && !boletim.anosDisponiveis.includes(boletim.anoLetivo)
+                      ? [{ key: boletim.anoLetivo, value: String(boletim.anoLetivo) }]
+                      : []),
+                    ...(boletim?.anosDisponiveis ?? []).map((ano) => ({
+                      key: ano,
+                      value: ano === new Date().getFullYear() ? `${ano} (em curso)` : String(ano),
+                    })),
+                  ]}
+                />
+                <BrainDropdownField<number>
                   label="Período"
-                  value={boletim?.periodoAte ?? ""}
+                  disableClearable
+                  value={boletim?.periodoAte}
                   disabled={periodoTravado}
-                  onChange={(e) => setPeriodoAte(Number(e.target.value))}
-                >
-                  {opcoesPeriodo.map((p) => (
-                    <MenuItem key={p.id} value={p.sequence}>
-                      {p.sequence === periodos.length && !p.isCurrent
+                  onChange={(seq) => seq !== null && setPeriodoAte(seq)}
+                  options={opcoesPeriodo.map((p) => ({
+                    key: p.sequence,
+                    value:
+                      p.sequence === periodos.length && !p.isCurrent
                         ? "Ano completo"
-                        : `Até o ${p.name}`}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                        : `Até o ${p.name}`,
+                  }))}
+                />
               </Box>
               <Box sx={{ display: "flex", flexDirection: "column" }}>
                 <FormControlLabel

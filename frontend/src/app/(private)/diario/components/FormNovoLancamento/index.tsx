@@ -7,22 +7,12 @@ import { ProfessorAulaSemanalResponse } from "@/services/domains/professor";
 import { TarefaLotePostRequest } from "@/services/domains/tarefa/request";
 import { useTarefaMutations } from "../../../tarefa/useTarefaMutations";
 import EventAvailableRounded from "@mui/icons-material/EventAvailableRounded";
-import {
-  Button,
-  Checkbox,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Switch,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Button, Checkbox, CircularProgress, Switch, TextField, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import * as S from "./styles";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 const DIA_ORDEM: Record<string, number> = {
@@ -64,7 +54,10 @@ interface TurmaGrupo {
   aulasOrdenadas: ProfessorAulaSemanalResponse[];
 }
 
-function prazoPreview(turma: TurmaGrupo, numeroAula: number): { label: string; when: string } | null {
+function prazoPreview(
+  turma: TurmaGrupo,
+  numeroAula: number,
+): { label: string; when: string } | null {
   const total = turma.aulasOrdenadas.length;
   if (!numeroAula || numeroAula > total) return null;
   if (numeroAula < total) {
@@ -162,7 +155,9 @@ export default function FormNovoLancamento() {
   }
 
   function toggleTodas() {
-    setSelecionadas(selecionadas.size === turmas.length ? new Set() : new Set(turmas.map((t) => t.turmaId)));
+    setSelecionadas(
+      selecionadas.size === turmas.length ? new Set() : new Set(turmas.map((t) => t.turmaId)),
+    );
   }
 
   const turmasAtivas = turmas.filter((t) => selecionadas.has(t.turmaId));
@@ -206,7 +201,10 @@ export default function FormNovoLancamento() {
       turmaIds: Array.from(selecionadas),
     };
 
-    const resultado = await createTarefaLote.mutateAsync({ dados, arquivo: selectedFile ?? undefined });
+    const resultado = await createTarefaLote.mutateAsync({
+      dados,
+      arquivo: selectedFile ?? undefined,
+    });
     toast.success(
       `Diário lançado em ${resultado.turmasRegistradas} turma${resultado.turmasRegistradas === 1 ? "" : "s"}${
         addTarefa ? ` · ${resultado.tarefasCriadas} tarefa(s) com prazo definido` : ""
@@ -220,61 +218,46 @@ export default function FormNovoLancamento() {
       <S.Grid>
         <S.MainPanel>
           <S.SelectRow>
-            <FormControl required fullWidth>
-              <InputLabel>Série</InputLabel>
-              <Select value={serieId} label="Série" onChange={(e) => handleSerieChange(e.target.value)}>
-                {series.map((s) => (
-                  <MenuItem key={s.id} value={String(s.id)}>
-                    {s.nome}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <BrainDropdownField
+              label="Série"
+              size="medium"
+              required
+              value={serieId}
+              onChange={(v) => handleSerieChange(v ?? "")}
+              options={series.map((s) => ({ key: String(s.id), value: s.nome }))}
+            />
 
-            <FormControl required fullWidth disabled={!serieId}>
-              <InputLabel>Disciplina</InputLabel>
-              <Select
-                value={disciplinaId}
-                label="Disciplina"
-                onChange={(e) => handleDisciplinaChange(e.target.value)}
-              >
-                {disciplinas.map((d) => (
-                  <MenuItem key={d.id} value={String(d.id)}>
-                    {d.nome}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <BrainDropdownField
+              label="Disciplina"
+              size="medium"
+              required
+              disabled={!serieId}
+              value={disciplinaId}
+              onChange={(v) => handleDisciplinaChange(v ?? "")}
+              options={disciplinas.map((d) => ({ key: String(d.id), value: d.nome }))}
+            />
 
-            <FormControl required fullWidth>
-              <InputLabel>Semana</InputLabel>
-              <Select
-                value={semanaInicio}
-                label="Semana"
-                onChange={(e) => setSemanaInicio(e.target.value)}
-              >
-                {SEMANAS.map((s) => (
-                  <MenuItem key={s.value} value={s.value}>
-                    {s.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <BrainDropdownField
+              label="Semana"
+              size="medium"
+              required
+              value={semanaInicio}
+              onChange={(v) => setSemanaInicio(v ?? "")}
+              options={SEMANAS.map((s) => ({ key: s.value, value: s.label }))}
+            />
 
-            <FormControl required fullWidth disabled={!disciplinaId || maxAulas === 0}>
-              <InputLabel>Aula da semana</InputLabel>
-              <Select
-                value={numeroAula}
-                label="Aula da semana"
-                onChange={(e) => setNumeroAula(e.target.value)}
-              >
-                {Array.from({ length: maxAulas }, (_, i) => (
-                  <MenuItem key={i + 1} value={String(i + 1)}>
-                    {i + 1}ª aula
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <BrainDropdownField
+              label="Aula da semana"
+              size="medium"
+              required
+              disabled={!disciplinaId || maxAulas === 0}
+              value={numeroAula}
+              onChange={(v) => setNumeroAula(v ?? "")}
+              options={Array.from({ length: maxAulas }, (_, i) => ({
+                key: String(i + 1),
+                value: `${i + 1}ª aula`,
+              }))}
+            />
           </S.SelectRow>
 
           <TextField
@@ -368,13 +351,16 @@ export default function FormNovoLancamento() {
 
           {turmas.length === 0 ? (
             <S.EmptyTurmas>
-              {disciplinaId ? "Nenhuma turma encontrada." : "Selecione série e disciplina para ver as turmas."}
+              {disciplinaId
+                ? "Nenhuma turma encontrada."
+                : "Selecione série e disciplina para ver as turmas."}
             </S.EmptyTurmas>
           ) : (
             <S.TurmaList>
               {turmas.map((t) => {
                 const selecionada = selecionadas.has(t.turmaId);
-                const semAulaSuficiente = !!numeroAula && Number(numeroAula) > t.aulasOrdenadas.length;
+                const semAulaSuficiente =
+                  !!numeroAula && Number(numeroAula) > t.aulasOrdenadas.length;
                 const prazo = numeroAula ? prazoPreview(t, Number(numeroAula)) : null;
 
                 return (

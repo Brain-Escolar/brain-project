@@ -158,9 +158,7 @@ function DisciplinaPageContent() {
               <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
               <BrainButtonPrimary
                 type="submit"
-                disabled={
-                  isSubmitting || createDisciplina.isPending || updateDisciplina.isPending
-                }
+                disabled={isSubmitting || createDisciplina.isPending || updateDisciplina.isPending}
               >
                 {createDisciplina.isPending || updateDisciplina.isPending
                   ? "Salvando..."

@@ -16,10 +16,7 @@ import {
   Grid,
   IconButton,
   InputAdornment,
-  MenuItem,
   Paper,
-  Select,
-  SelectChangeEvent,
   TextField,
   Typography,
 } from "@mui/material";
@@ -42,6 +39,7 @@ import {
 } from "@/services/domains/comunicado/response";
 import { descreverDestinatario } from "@/app/(private)/comunicados/comunicadoUtils";
 import { RoutesEnum, UserRoleEnum } from "@/enums";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -108,7 +106,11 @@ export default function ComunicadosPage() {
   function toggleExpand(id: string) {
     setExpandedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) { next.delete(id); } else { next.add(id); }
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }
@@ -191,335 +193,349 @@ export default function ComunicadosPage() {
         ) : undefined
       }
     >
+      {/* Loading state */}
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
 
-        {/* Loading state */}
-        {loading && (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <CircularProgress />
-          </Box>
-        )}
+      {/* Error state */}
+      {!loading && error && (
+        <Typography color="error" textAlign="center" sx={{ py: 8 }}>
+          Erro ao carregar os comunicados. Tente recarregar a página.
+        </Typography>
+      )}
 
-        {/* Error state */}
-        {!loading && error && (
-          <Typography color="error" textAlign="center" sx={{ py: 8 }}>
-            Erro ao carregar os comunicados. Tente recarregar a página.
-          </Typography>
-        )}
-
-        {/* Main content */}
-        {!loading && !error && (
-          <>
-            {/* Search + filter row */}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", md: "row" },
-                gap: 2,
-                mb: 3,
+      {/* Main content */}
+      {!loading && !error && (
+        <>
+          {/* Search + filter row */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 2,
+              mb: 3,
+            }}
+          >
+            <TextField
+              fullWidth
+              placeholder="Buscar comunicados..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              size="small"
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 20, color: "text.disabled" }} />
+                    </InputAdornment>
+                  ),
+                },
               }}
-            >
-              <TextField
-                fullWidth
-                placeholder="Buscar comunicados..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                size="small"
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ fontSize: 20, color: "text.disabled" }} />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-                sx={{ bgcolor: "background.paper", borderRadius: 1 }}
-              />
+              sx={{ bgcolor: "background.paper", borderRadius: 1 }}
+            />
 
-              <Select
-                value={categoriaFiltro}
-                onChange={(e: SelectChangeEvent) => setCategoriaFiltro(e.target.value)}
-                displayEmpty
-                size="small"
-                sx={{
-                  bgcolor: "background.paper",
-                  minWidth: { md: 220 },
-                  width: { xs: "100%", md: "auto" },
-                }}
-              >
-                <MenuItem value="">Todas as categorias</MenuItem>
-                {Object.entries(CATEGORIAS_CONFIG).map(([key, config]) => (
-                  <MenuItem key={key} value={key}>
-                    {config.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </Box>
+            <BrainDropdownField
+              placeholder="Todas as categorias"
+              fullWidth={false}
+              value={categoriaFiltro}
+              onChange={(v) => setCategoriaFiltro(v ?? "")}
+              options={Object.entries(CATEGORIAS_CONFIG).map(([key, config]) => ({
+                key,
+                value: config.label,
+              }))}
+              sx={{
+                bgcolor: "background.paper",
+                minWidth: { md: 220 },
+                width: { xs: "100%", md: "auto" },
+              }}
+            />
+          </Box>
 
-            {/* Two-column grid */}
-            <Grid container spacing={3}>
-              {/* ── Left: comunicado cards ─────────────────────────────── */}
-              <Grid size={{ xs: 12, lg: 8 }}>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {avisosFiltrados.length === 0 ? (
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        border: "1px solid",
-                        borderColor: "divider",
-                        borderRadius: 2,
-                        p: 6,
-                        textAlign: "center",
-                      }}
-                    >
-                      <DescriptionIcon sx={{ fontSize: 64, color: "text.disabled", mb: 2 }} />
-                      <Typography variant="h6" fontWeight={600} gutterBottom>
-                        Nenhum comunicado encontrado
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {hasActiveFilter
-                          ? "Tente ajustar os filtros de busca"
-                          : "Não há comunicados disponíveis no momento"}
-                      </Typography>
-                    </Paper>
-                  ) : (
-                    avisosFiltrados.map((aviso) => {
-                      const config = CATEGORIAS_CONFIG[aviso.categoria];
-                      return (
-                        <Paper
-                          key={aviso.id}
-                          elevation={0}
-                          sx={{
-                            border: "1px solid",
-                            borderColor: "divider",
-                            borderRadius: 2,
-                            overflow: "hidden",
-                            transition: "box-shadow 0.2s",
-                            "&:hover": { boxShadow: 2 },
-                          }}
-                        >
-                          {/* Optional image banner */}
-                          {aviso.imagemUrl && (
-                            <Box sx={{ position: "relative", height: 180, overflow: "hidden" }}>
-                              <Image
-                                src={aviso.imagemUrl}
-                                alt={aviso.titulo}
-                                fill
-                                style={{ objectFit: "cover" }}
-                                sizes="(max-width: 1200px) 100vw, 800px"
-                              />
-                            </Box>
-                          )}
-
-                          {/* Card header */}
-                          <Box
-                            sx={{
-                              px: 3,
-                              py: 2,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              gap: 2,
-                              borderBottom: "1px solid",
-                              borderColor: "divider",
-                            }}
-                          >
-                            <Typography variant="h6" fontWeight={500} sx={{ flex: 1 }}>
-                              {aviso.titulo}
-                            </Typography>
-                            <Chip
-                              label={config.label}
-                              size="small"
-                              sx={{
-                                bgcolor: config.cor,
-                                color: "#fff",
-                                fontWeight: 500,
-                                flexShrink: 0,
-                              }}
+          {/* Two-column grid */}
+          <Grid container spacing={3}>
+            {/* ── Left: comunicado cards ─────────────────────────────── */}
+            <Grid size={{ xs: 12, lg: 8 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {avisosFiltrados.length === 0 ? (
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      border: "1px solid",
+                      borderColor: "divider",
+                      borderRadius: 2,
+                      p: 6,
+                      textAlign: "center",
+                    }}
+                  >
+                    <DescriptionIcon sx={{ fontSize: 64, color: "text.disabled", mb: 2 }} />
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      Nenhum comunicado encontrado
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {hasActiveFilter
+                        ? "Tente ajustar os filtros de busca"
+                        : "Não há comunicados disponíveis no momento"}
+                    </Typography>
+                  </Paper>
+                ) : (
+                  avisosFiltrados.map((aviso) => {
+                    const config = CATEGORIAS_CONFIG[aviso.categoria];
+                    return (
+                      <Paper
+                        key={aviso.id}
+                        elevation={0}
+                        sx={{
+                          border: "1px solid",
+                          borderColor: "divider",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          transition: "box-shadow 0.2s",
+                          "&:hover": { boxShadow: 2 },
+                        }}
+                      >
+                        {/* Optional image banner */}
+                        {aviso.imagemUrl && (
+                          <Box sx={{ position: "relative", height: 180, overflow: "hidden" }}>
+                            <Image
+                              src={aviso.imagemUrl}
+                              alt={aviso.titulo}
+                              fill
+                              style={{ objectFit: "cover" }}
+                              sizes="(max-width: 1200px) 100vw, 800px"
                             />
                           </Box>
+                        )}
 
-                          {/* Card body */}
-                          <Box sx={{ px: 3, py: 2 }}>
-                            <RichTextContent
-                              html={aviso.descricao}
-                              sx={expandedIds.has(aviso.id) ? { WebkitLineClamp: "unset", display: "block" } : {}}
-                            />
-                            <Button
-                              size="small"
-                              onClick={() => toggleExpand(aviso.id)}
-                              sx={{ textTransform: "none", px: 0, mt: 0.5, minWidth: 0, color: "text.secondary", fontSize: "0.75rem" }}
-                            >
-                              {expandedIds.has(aviso.id) ? "Ver menos" : "Ver mais"}
-                            </Button>
-
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                mt: 1,
-                              }}
-                            >
-                              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                                <Typography variant="caption" color="text.secondary">
-                                  {[aviso.data, aviso.autorNome].filter(Boolean).join(" · ")}
-                                </Typography>
-                                {!!aviso.destinatarios?.length && (
-                                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                                    {aviso.destinatarios.map((destinatario, indice) => (
-                                      <Chip
-                                        key={`${aviso.id}-dest-${indice}`}
-                                        size="small"
-                                        variant="outlined"
-                                        icon={<GroupOutlinedIcon />}
-                                        label={descreverDestinatario(destinatario)}
-                                      />
-                                    ))}
-                                  </Box>
-                                )}
-                              </Box>
-
-                              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                {aviso.anexoUrl && (
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    color="primary"
-                                    startIcon={<DownloadIcon />}
-                                    href={aviso.anexoUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    sx={{ textTransform: "none" }}
-                                  >
-                                    Baixar
-                                  </Button>
-                                )}
-                                {podeGerenciar(aviso) && (
-                                  <>
-                                    <IconButton
-                                      size="small"
-                                      title="Editar"
-                                      onClick={() =>
-                                        router.push(`${RoutesEnum.COMUNICADOS_CADASTRO}?id=${aviso.rawId}`)
-                                      }
-                                    >
-                                      <EditOutlined fontSize="small" />
-                                    </IconButton>
-                                    <IconButton
-                                      size="small"
-                                      color="error"
-                                      title="Excluir"
-                                      onClick={() => setAvisoParaExcluir(aviso)}
-                                    >
-                                      <DeleteOutline fontSize="small" />
-                                    </IconButton>
-                                  </>
-                                )}
-                              </Box>
-                            </Box>
-                          </Box>
-                        </Paper>
-                      );
-                    })
-                  )}
-                </Box>
-              </Grid>
-
-              {/* ── Right: Visão geral sidebar ─────────────────────────── */}
-              <Grid size={{ xs: 12, lg: 4 }}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 2,
-                    p: 3,
-                    position: "sticky",
-                    top: 88,
-                  }}
-                >
-                  <Typography variant="h6" fontWeight={600} gutterBottom>
-                    Visão geral
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    Resumo de todos os comunicados
-                  </Typography>
-
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                    {Object.entries(CATEGORIAS_CONFIG).map(([categoria, config]) => {
-                      const count = contagemPorCategoria[categoria] || 0;
-                      const isActive = categoriaFiltro === categoria;
-                      return (
+                        {/* Card header */}
                         <Box
-                          key={categoria}
-                          onClick={() => setCategoriaFiltro(isActive ? "" : categoria)}
                           sx={{
+                            px: 3,
+                            py: 2,
                             display: "flex",
                             alignItems: "center",
-                            gap: 1.5,
-                            px: 1.5,
-                            py: 1,
-                            borderRadius: 1,
-                            cursor: "pointer",
-                            bgcolor: isActive ? "action.selected" : "transparent",
-                            "&:hover": { bgcolor: "action.hover" },
-                            transition: "background-color 0.15s",
+                            justifyContent: "space-between",
+                            gap: 2,
+                            borderBottom: "1px solid",
+                            borderColor: "divider",
                           }}
                         >
-                          <Box
+                          <Typography variant="h6" fontWeight={500} sx={{ flex: 1 }}>
+                            {aviso.titulo}
+                          </Typography>
+                          <Chip
+                            label={config.label}
+                            size="small"
                             sx={{
-                              width: 14,
-                              height: 14,
-                              borderRadius: 0.5,
                               bgcolor: config.cor,
+                              color: "#fff",
+                              fontWeight: 500,
                               flexShrink: 0,
                             }}
                           />
-                          <Typography variant="body2" color="text.primary" sx={{ flex: 1 }}>
-                            {config.label}
-                          </Typography>
-                          <Typography variant="body2" fontWeight={500} color="text.primary">
-                            {count}
-                          </Typography>
                         </Box>
-                      );
-                    })}
-                  </Box>
 
-                  {/* Clear filters */}
-                  {hasActiveFilter && (
-                    <Button
-                      fullWidth
-                      variant="text"
-                      color="inherit"
-                      startIcon={<CloseIcon />}
-                      onClick={() => {
-                        setSearchTerm("");
-                        setCategoriaFiltro("");
-                      }}
-                      sx={{
-                        mt: 3,
-                        bgcolor: "action.hover",
-                        textTransform: "none",
-                        "&:hover": { bgcolor: "action.selected" },
-                      }}
-                    >
-                      Limpar filtros
-                    </Button>
-                  )}
-                </Paper>
-              </Grid>
+                        {/* Card body */}
+                        <Box sx={{ px: 3, py: 2 }}>
+                          <RichTextContent
+                            html={aviso.descricao}
+                            sx={
+                              expandedIds.has(aviso.id)
+                                ? { WebkitLineClamp: "unset", display: "block" }
+                                : {}
+                            }
+                          />
+                          <Button
+                            size="small"
+                            onClick={() => toggleExpand(aviso.id)}
+                            sx={{
+                              textTransform: "none",
+                              px: 0,
+                              mt: 0.5,
+                              minWidth: 0,
+                              color: "text.secondary",
+                              fontSize: "0.75rem",
+                            }}
+                          >
+                            {expandedIds.has(aviso.id) ? "Ver menos" : "Ver mais"}
+                          </Button>
+
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              mt: 1,
+                            }}
+                          >
+                            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                              <Typography variant="caption" color="text.secondary">
+                                {[aviso.data, aviso.autorNome].filter(Boolean).join(" · ")}
+                              </Typography>
+                              {!!aviso.destinatarios?.length && (
+                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                                  {aviso.destinatarios.map((destinatario, indice) => (
+                                    <Chip
+                                      key={`${aviso.id}-dest-${indice}`}
+                                      size="small"
+                                      variant="outlined"
+                                      icon={<GroupOutlinedIcon />}
+                                      label={descreverDestinatario(destinatario)}
+                                    />
+                                  ))}
+                                </Box>
+                              )}
+                            </Box>
+
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                              {aviso.anexoUrl && (
+                                <Button
+                                  size="small"
+                                  variant="outlined"
+                                  color="primary"
+                                  startIcon={<DownloadIcon />}
+                                  href={aviso.anexoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  sx={{ textTransform: "none" }}
+                                >
+                                  Baixar
+                                </Button>
+                              )}
+                              {podeGerenciar(aviso) && (
+                                <>
+                                  <IconButton
+                                    size="small"
+                                    title="Editar"
+                                    onClick={() =>
+                                      router.push(
+                                        `${RoutesEnum.COMUNICADOS_CADASTRO}?id=${aviso.rawId}`,
+                                      )
+                                    }
+                                  >
+                                    <EditOutlined fontSize="small" />
+                                  </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    title="Excluir"
+                                    onClick={() => setAvisoParaExcluir(aviso)}
+                                  >
+                                    <DeleteOutline fontSize="small" />
+                                  </IconButton>
+                                </>
+                              )}
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Paper>
+                    );
+                  })
+                )}
+              </Box>
             </Grid>
-          </>
-        )}
 
-      <Dialog open={!!avisoParaExcluir} onClose={() => setAvisoParaExcluir(null)} maxWidth="xs" fullWidth>
+            {/* ── Right: Visão geral sidebar ─────────────────────────── */}
+            <Grid size={{ xs: 12, lg: 4 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  border: "1px solid",
+                  borderColor: "divider",
+                  borderRadius: 2,
+                  p: 3,
+                  position: "sticky",
+                  top: 88,
+                }}
+              >
+                <Typography variant="h6" fontWeight={600} gutterBottom>
+                  Visão geral
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  Resumo de todos os comunicados
+                </Typography>
+
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                  {Object.entries(CATEGORIAS_CONFIG).map(([categoria, config]) => {
+                    const count = contagemPorCategoria[categoria] || 0;
+                    const isActive = categoriaFiltro === categoria;
+                    return (
+                      <Box
+                        key={categoria}
+                        onClick={() => setCategoriaFiltro(isActive ? "" : categoria)}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.5,
+                          px: 1.5,
+                          py: 1,
+                          borderRadius: 1,
+                          cursor: "pointer",
+                          bgcolor: isActive ? "action.selected" : "transparent",
+                          "&:hover": { bgcolor: "action.hover" },
+                          transition: "background-color 0.15s",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: 0.5,
+                            bgcolor: config.cor,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <Typography variant="body2" color="text.primary" sx={{ flex: 1 }}>
+                          {config.label}
+                        </Typography>
+                        <Typography variant="body2" fontWeight={500} color="text.primary">
+                          {count}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
+
+                {/* Clear filters */}
+                {hasActiveFilter && (
+                  <Button
+                    fullWidth
+                    variant="text"
+                    color="inherit"
+                    startIcon={<CloseIcon />}
+                    onClick={() => {
+                      setSearchTerm("");
+                      setCategoriaFiltro("");
+                    }}
+                    sx={{
+                      mt: 3,
+                      bgcolor: "action.hover",
+                      textTransform: "none",
+                      "&:hover": { bgcolor: "action.selected" },
+                    }}
+                  >
+                    Limpar filtros
+                  </Button>
+                )}
+              </Paper>
+            </Grid>
+          </Grid>
+        </>
+      )}
+
+      <Dialog
+        open={!!avisoParaExcluir}
+        onClose={() => setAvisoParaExcluir(null)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>Excluir comunicado</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Tem certeza que deseja excluir <strong>{avisoParaExcluir?.titulo}</strong>? Esta ação não
-            pode ser desfeita.
+            Tem certeza que deseja excluir <strong>{avisoParaExcluir?.titulo}</strong>? Esta ação
+            não pode ser desfeita.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -531,7 +547,11 @@ export default function ComunicadosPage() {
             color="error"
             onClick={handleConfirmarExclusao}
             disabled={deleteComunicado.isPending}
-            startIcon={deleteComunicado.isPending ? <CircularProgress size={16} color="inherit" /> : undefined}
+            startIcon={
+              deleteComunicado.isPending ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : undefined
+            }
           >
             {deleteComunicado.isPending ? "Excluindo..." : "Excluir"}
           </Button>

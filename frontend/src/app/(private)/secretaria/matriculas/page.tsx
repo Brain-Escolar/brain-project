@@ -18,10 +18,8 @@ import {
   DialogTitle,
   FormControlLabel,
   IconButton,
-  MenuItem,
   Radio,
   RadioGroup,
-  Select,
   TextField,
   Typography,
   InputAdornment,
@@ -49,9 +47,16 @@ import { TurmaListaResponse } from "@/services/domains/turma/response";
 import { alunoApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { iniciais } from "@/utils/utils";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 type TabValue = "leads" | "matriculados" | "desmatriculados";
-type ModalType = "matricular" | "matriculado" | "vincular" | "desmatricular" | "rematricular" | null;
+type ModalType =
+  | "matricular"
+  | "matriculado"
+  | "vincular"
+  | "desmatricular"
+  | "rematricular"
+  | null;
 
 // Larguras fixas e iguais nas 3 tabelas (leads/matriculados/desmatriculados) para que a
 // coluna Aluno e a coluna Ações não mudem de posição ao trocar de aba — a de Matriculados
@@ -92,7 +97,11 @@ export default function MatriculasPage() {
     size: rowsPerPage,
   };
 
-  const { leads, totalElements: totalLeads, loading: loadingLeads } = useLeads({
+  const {
+    leads,
+    totalElements: totalLeads,
+    loading: loadingLeads,
+  } = useLeads({
     ...filtrosComuns,
     page: pageLeads,
   });
@@ -111,7 +120,11 @@ export default function MatriculasPage() {
   const { unidades } = useUnidades();
 
   // Cada aba pagina por conta própria; o rodapé da tabela só repassa a navegação.
-  function paginacao(total: number, page: number, setPage: (page: number) => void): PaginacaoServidor {
+  function paginacao(
+    total: number,
+    page: number,
+    setPage: (page: number) => void,
+  ): PaginacaoServidor {
     return {
       total,
       pagina: page,
@@ -260,30 +273,26 @@ export default function MatriculasPage() {
             },
           }}
         />
-        <Select
-          size="small"
+        <BrainDropdownField<number | "Todas">
+          label="Série"
+          fullWidth={false}
           value={filtroSerie}
-          onChange={(e) => setFiltroSerie(e.target.value === "Todas" ? "Todas" : Number(e.target.value))}
-        >
-          <MenuItem value="Todas">Todas as séries</MenuItem>
-          {series.map((s) => (
-            <MenuItem key={s.id} value={s.id}>
-              {s.nome}
-            </MenuItem>
-          ))}
-        </Select>
-        <Select
-          size="small"
+          onChange={(v) => setFiltroSerie(v ?? "Todas")}
+          options={[
+            { key: "Todas", value: "Todas as séries" },
+            ...series.map((s) => ({ key: s.id, value: s.nome })),
+          ]}
+        />
+        <BrainDropdownField<number | "Todas">
+          label="Unidade"
+          fullWidth={false}
           value={filtroUnidade}
-          onChange={(e) => setFiltroUnidade(e.target.value === "Todas" ? "Todas" : Number(e.target.value))}
-        >
-          <MenuItem value="Todas">Todas as unidades</MenuItem>
-          {unidades.map((u) => (
-            <MenuItem key={u.id} value={u.id}>
-              {u.nome}
-            </MenuItem>
-          ))}
-        </Select>
+          onChange={(v) => setFiltroUnidade(v ?? "Todas")}
+          options={[
+            { key: "Todas", value: "Todas as unidades" },
+            ...unidades.map((u) => ({ key: u.id, value: u.nome })),
+          ]}
+        />
       </Box>
 
       {tab === "leads" && (
@@ -329,9 +338,9 @@ export default function MatriculasPage() {
         <DialogTitle>Matricular aluno</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Confirma a matrícula de <strong>{ctxAluno?.nome}</strong>? A matrícula e as
-            credenciais de acesso serão geradas automaticamente e o link de ativação será enviado
-            para o e-mail cadastrado.
+            Confirma a matrícula de <strong>{ctxAluno?.nome}</strong>? A matrícula e as credenciais
+            de acesso serão geradas automaticamente e o link de ativação será enviado para o e-mail
+            cadastrado.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -417,7 +426,14 @@ export default function MatriculasPage() {
                       py: 0.5,
                     }}
                     label={
-                      <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", gap: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          width: "100%",
+                          gap: 2,
+                        }}
+                      >
                         <span>
                           {t.nome}
                           {isAtual ? " (atual)" : ""} — {t.serie} · {t.unidade} · {t.turno}
@@ -493,7 +509,11 @@ export default function MatriculasPage() {
           <Button onClick={fecharModal} disabled={rematricular.isPending}>
             Cancelar
           </Button>
-          <Button variant="contained" onClick={confirmarRematricular} disabled={rematricular.isPending}>
+          <Button
+            variant="contained"
+            onClick={confirmarRematricular}
+            disabled={rematricular.isPending}
+          >
             {rematricular.isPending ? "Rematriculando..." : "Rematricular"}
           </Button>
         </DialogActions>

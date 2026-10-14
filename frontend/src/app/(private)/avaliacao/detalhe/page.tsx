@@ -12,13 +12,9 @@ import {
   Button,
   Checkbox,
   CircularProgress,
-  FormControl,
   FormControlLabel,
   IconButton,
-  InputLabel,
   Link,
-  MenuItem,
-  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -34,6 +30,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useAvaliacaoMutations } from "../useAvaliacaoMutations";
 import { useAvaliacaoTurmaMutations } from "./useAvaliacaoTurmaMutations";
 import * as S from "./styles";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 const TIPOS: { value: TipoAvaliacao; label: string }[] = [
   { value: "PROVA", label: "Prova" },
@@ -51,7 +48,8 @@ function AvaliacaoDetalheContent() {
   const { turmas, loading: loadingTurmas } = useAvaliacaoTurmas(avaliacaoId);
   const { disciplinas: minhasTurmas } = useMinhasTurmas();
   const { updateAvaliacao } = useAvaliacaoMutations();
-  const { adicionarTurma, atualizarDatasTurma, removerTurma } = useAvaliacaoTurmaMutations(avaliacaoId);
+  const { adicionarTurma, atualizarDatasTurma, removerTurma } =
+    useAvaliacaoTurmaMutations(avaliacaoId);
 
   const [nome, setNome] = useState("");
   const [disciplinaId, setDisciplinaId] = useState("");
@@ -60,9 +58,9 @@ function AvaliacaoDetalheContent() {
   const [conteudo, setConteudo] = useState("");
   const [notaExtra, setNotaExtra] = useState(false);
   const [salvo, setSalvo] = useState(false);
-  const [datasEdicao, setDatasEdicao] = useState<Record<number, { dataAplicacao: string; dataEntregaNotas: string }>>(
-    {},
-  );
+  const [datasEdicao, setDatasEdicao] = useState<
+    Record<number, { dataAplicacao: string; dataEntregaNotas: string }>
+  >({});
   const [turmaEditandoDatas, setTurmaEditandoDatas] = useState<number | null>(null);
   const [novaTurmaId, setNovaTurmaId] = useState("");
 
@@ -151,7 +149,9 @@ function AvaliacaoDetalheContent() {
   }
 
   if (error || !avaliacao) {
-    return <Alert severity="error">Erro ao carregar a avaliação. Por favor, tente novamente.</Alert>;
+    return (
+      <Alert severity="error">Erro ao carregar a avaliação. Por favor, tente novamente.</Alert>
+    );
   }
 
   return (
@@ -174,36 +174,45 @@ function AvaliacaoDetalheContent() {
         <S.EditPanel>
           <S.PanelTitle>Editar avaliação</S.PanelTitle>
 
-          <TextField label="Nome da avaliação" value={nome} onChange={(e) => setNome(e.target.value)} fullWidth />
+          <TextField
+            label="Nome da avaliação"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            fullWidth
+          />
 
           <S.FormRow>
-            <FormControl fullWidth>
-              <InputLabel>Disciplina</InputLabel>
-              <Select value={disciplinaId} label="Disciplina" onChange={(e) => setDisciplinaId(e.target.value)}>
-                {minhasTurmas.map((d) => (
-                  <MenuItem key={d.disciplinaId} value={String(d.disciplinaId)}>
-                    {d.nomeDisciplina}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <BrainDropdownField
+              label="Disciplina"
+              size="medium"
+              value={disciplinaId}
+              onChange={(v) => setDisciplinaId(v ?? "")}
+              options={minhasTurmas.map((d) => ({
+                key: String(d.disciplinaId),
+                value: d.nomeDisciplina,
+              }))}
+            />
 
-            <FormControl fullWidth>
-              <InputLabel>Tipo</InputLabel>
-              <Select value={tipo} label="Tipo" onChange={(e) => setTipo(e.target.value as TipoAvaliacao)}>
-                {TIPOS.map((t) => (
-                  <MenuItem key={t.value} value={t.value}>
-                    {t.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <BrainDropdownField<TipoAvaliacao>
+              label="Tipo"
+              size="medium"
+              disableClearable
+              value={tipo}
+              onChange={(v) => v && setTipo(v)}
+              options={TIPOS.map((t) => ({ key: t.value, value: t.label }))}
+            />
           </S.FormRow>
 
           <S.FormRow>
-            <TextField label="Nota máxima" value={notaMaxima} onChange={(e) => setNotaMaxima(e.target.value)} />
+            <TextField
+              label="Nota máxima"
+              value={notaMaxima}
+              onChange={(e) => setNotaMaxima(e.target.value)}
+            />
             <FormControlLabel
-              control={<Checkbox checked={notaExtra} onChange={(e) => setNotaExtra(e.target.checked)} />}
+              control={
+                <Checkbox checked={notaExtra} onChange={(e) => setNotaExtra(e.target.checked)} />
+              }
               label="Nota extra"
             />
           </S.FormRow>
@@ -277,7 +286,8 @@ function AvaliacaoDetalheContent() {
                           {avaliacao.disciplina} — {t.turma}
                         </S.TurmaName>
                         <S.TurmaSub>
-                          {t.totalAlunos} alunos · {t.alunosCorrigidos}/{t.totalAlunos} notas lançadas
+                          {t.totalAlunos} alunos · {t.alunosCorrigidos}/{t.totalAlunos} notas
+                          lançadas
                         </S.TurmaSub>
                       </S.TurmaMain>
                       <S.TurmaRight>
@@ -316,7 +326,10 @@ function AvaliacaoDetalheContent() {
                           }}
                           disabled={removerTurma.isPending}
                         >
-                          <DeleteOutlineRounded fontSize="small" sx={{ color: cssVarColor("error") }} />
+                          <DeleteOutlineRounded
+                            fontSize="small"
+                            sx={{ color: cssVarColor("error") }}
+                          />
                         </IconButton>
                         <ChevronRightRounded sx={{ color: cssVarColor("textTertiary") }} />
                       </S.TurmaRight>
@@ -367,7 +380,11 @@ function AvaliacaoDetalheContent() {
                 );
               })}
               {turmas.length === 0 && (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 3 }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ textAlign: "center", py: 3 }}
+                >
                   Nenhuma turma vinculada a esta avaliação.
                 </Typography>
               )}
@@ -376,20 +393,17 @@ function AvaliacaoDetalheContent() {
 
           {turmasDisponiveisParaAdicionar.length > 0 && (
             <S.AddTurmaRow>
-              <FormControl size="small" sx={{ minWidth: 220 }}>
-                <InputLabel>Adicionar turma</InputLabel>
-                <Select
-                  value={novaTurmaId}
-                  label="Adicionar turma"
-                  onChange={(e) => setNovaTurmaId(e.target.value)}
-                >
-                  {turmasDisponiveisParaAdicionar.map((t) => (
-                    <MenuItem key={t.turmaId} value={String(t.turmaId)}>
-                      {t.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <BrainDropdownField
+                label="Adicionar turma"
+                fullWidth={false}
+                sx={{ minWidth: 220 }}
+                value={novaTurmaId}
+                onChange={(v) => setNovaTurmaId(v ?? "")}
+                options={turmasDisponiveisParaAdicionar.map((t) => ({
+                  key: String(t.turmaId),
+                  value: t.label,
+                }))}
+              />
               <Button
                 variant="outlined"
                 onClick={handleAdicionarTurma}
