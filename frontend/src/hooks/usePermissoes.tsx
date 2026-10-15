@@ -14,7 +14,7 @@ import { UserRoleEnum } from "@/enums";
  * gateado.
  */
 export interface Permissoes {
-  /** Cria e edita eventos no calendario. */
+  /** Cria, edita e exclui eventos no calendario. Sem ela, o calendario e so leitura. */
   criarEvento: boolean;
   /** Publica e remove materiais complementares. */
   gerenciarMateriais: boolean;
@@ -34,15 +34,7 @@ export interface Permissoes {
  * nao quebra a compilacao de um Record exaustivo.
  */
 const QUEM_PODE: Record<keyof Permissoes, UserRoleEnum[]> = {
-  // ATENCAO: o ESTUDANTE esta aqui porque e o comportamento de hoje — o botao
-  // "Novo evento" sempre apareceu para ele. Provavelmente e bug; tirar e so
-  // remover ESTUDANTE desta linha.
-  criarEvento: [
-    UserRoleEnum.PROFESSOR,
-    UserRoleEnum.ADMIN,
-    UserRoleEnum.SECRETARIO,
-    UserRoleEnum.ESTUDANTE,
-  ],
+  criarEvento: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
   gerenciarMateriais: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
   criarComunicado: [UserRoleEnum.SECRETARIO, UserRoleEnum.ADMIN],
   atuarPorAlunoVinculado: [UserRoleEnum.RESPONSAVEL],

@@ -3,6 +3,7 @@
 import TarefaCard from "@/components/tarefaCard/TarefaCard";
 import { useAulaTarefa } from "@/hooks/useAulaTarefa";
 import { useMateriaisComplementaresAluno } from "@/hooks/useMateriaisComplementaresAluno";
+import { useTarefasAluno } from "@/hooks/useTarefasAluno";
 import { aulaApi, conteudoApi } from "@/services/api";
 import { AulaInfoResponse } from "@/services/domains/aula/response";
 import { ConteudoResponse } from "@/services/domains/conteudo";
@@ -29,8 +30,8 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import "dayjs/locale/pt-br";
 import dayjs, { Dayjs } from "dayjs";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -38,8 +39,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import PictureAsPdfOutlinedIcon from "@mui/icons-material/PictureAsPdfOutlined";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
@@ -178,8 +178,6 @@ function SectionMateriais({ disciplina }: { disciplina?: string }) {
 }
 
 function SectionProfessor({ aula }: { aula: AulaInfoResponse }) {
-  const router = useRouter();
-
   return (
     <Paper variant="outlined" sx={{ ...cardSx, p: 2.5 }}>
       <Typography sx={{ fontSize: 16, fontWeight: 600, mb: 1.75 }}>Professor(a)</Typography>
@@ -196,24 +194,136 @@ function SectionProfessor({ aula }: { aula: AulaInfoResponse }) {
           </Typography>
         </Box>
       </Box>
-      <Button
-        variant="outlined"
-        size="small"
-        fullWidth
-        startIcon={<ChatBubbleOutlineOutlinedIcon sx={{ fontSize: 16 }} />}
-        sx={{ mt: 1.75, textTransform: "none", fontWeight: 600 }}
-        onClick={() => router.push(RoutesEnum.COMUNICACAO)}
-      >
-        Enviar dúvida
-      </Button>
+    </Paper>
+  );
+}
+
+const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Data inicial da página: `?data=AAAA-MM-DD` (vinda de "Próximas tarefas") ou hoje. */
+function dataInicial(param: string | null): Dayjs {
+  if (param && DATA_ISO.test(param)) {
+    const data = dayjs(param);
+    if (data.isValid()) return data;
+  }
+  return dayjs();
+}
+
+function formatPrazo(prazo: string): string {
+  const data = dayjs(prazo);
+  const dias = data.startOf("day").diff(dayjs().startOf("day"), "day");
+  if (dias === 0) return "Hoje";
+  if (dias === 1) return "Amanhã";
+  const texto = data.format("ddd, DD/MM");
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/**
+ * Tarefas desta disciplina com prazo de hoje em diante, independente do dia
+ * selecionado. Clicar leva o seletor para o dia do prazo.
+ */
+function SectionTarefasPendentes({
+  disciplina,
+  dataSelecionada,
+  onSelecionarData,
+}: {
+  disciplina?: string;
+  dataSelecionada: string;
+  onSelecionarData: (data: Dayjs) => void;
+}) {
+  const { tarefas, loading } = useTarefasAluno();
+
+  const pendentes = disciplina
+    ? tarefas
+        .filter((t) => t.disciplina === disciplina)
+        .sort((a, b) => a.prazo.localeCompare(b.prazo))
+    : [];
+
+  return (
+    <Paper variant="outlined" sx={{ ...cardSx, p: 2.5 }}>
+      <Typography sx={{ fontSize: 16, fontWeight: 600 }}>Tarefas pendentes</Typography>
+
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+          <CircularProgress size={18} />
+        </Box>
+      ) : pendentes.length === 0 ? (
+        <Typography sx={{ mt: 1.5, fontSize: 13.5, color: "var(--colors-textTertiary)" }}>
+          Nenhuma tarefa pendente nesta disciplina.
+        </Typography>
+      ) : (
+        <Stack spacing={0.75} sx={{ mt: 1.5 }}>
+          {pendentes.map((tarefa) => {
+            const selecionada = tarefa.prazo === dataSelecionada;
+            return (
+              <Box
+                key={tarefa.id}
+                component="button"
+                onClick={() => onSelecionarData(dayjs(tarefa.prazo))}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.5,
+                  p: 1.25,
+                  borderRadius: "10px",
+                  border: "none",
+                  background: selecionada ? "var(--colors-primarySubtle)" : "transparent",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  width: "100%",
+                  fontFamily: "inherit",
+                  "&:hover": {
+                    background: selecionada
+                      ? "var(--colors-primarySubtle)"
+                      : "var(--colors-backgroundHover)",
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.5,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "var(--colors-textSecondary)",
+                  }}
+                >
+                  <CalendarTodayOutlinedIcon sx={{ fontSize: 14 }} />
+                  {formatPrazo(tarefa.prazo)}
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: 13.5,
+                    lineHeight: 1.35,
+                    color: "var(--colors-text)",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {tarefa.conteudo}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Stack>
+      )}
     </Paper>
   );
 }
 
 export default function DetalheAulaAlunoPage() {
-  const router = useRouter();
   const { id: aulaId } = useParams<{ id: string }>();
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
+  const searchParams = useSearchParams();
+  const dataParam = searchParams.get("data");
+  const [selectedDate, setSelectedDate] = useState<Dayjs>(() => dataInicial(dataParam));
+
+  // Mesma aula, outra tarefa: só a query muda e a página não remonta.
+  useEffect(() => {
+    if (dataParam) setSelectedDate(dataInicial(dataParam));
+  }, [dataParam]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const dataSelecionada = selectedDate.format(DATE_FORMAT);
@@ -252,27 +362,6 @@ export default function DetalheAulaAlunoPage() {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
       <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1080, mx: "auto" }}>
-        {/* ── Back link ── */}
-        <Box
-          component="button"
-          onClick={() => router.back()}
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5,
-            mb: 1.75,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "text.secondary",
-            p: 0,
-            "&:hover": { color: "text.primary" },
-          }}
-        >
-          <ArrowBackIcon sx={{ fontSize: 16 }} />
-          <Typography variant="body2">Página inicial</Typography>
-        </Box>
-
         {/* ── Header: tile da disciplina + título + meta ── */}
         {loadingAula ? (
           <Box sx={{ display: "flex", alignItems: "center", py: 1, mb: 2 }}>
@@ -428,7 +517,7 @@ export default function DetalheAulaAlunoPage() {
             {/* Tarefas desta aula */}
             <Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
-                <Typography sx={{ fontSize: 16, fontWeight: 600 }}>Tarefas desta aula</Typography>
+                <Typography sx={{ fontSize: 16, fontWeight: 600 }}>Tarefas para este dia</Typography>
                 <Box
                   component="span"
                   sx={{
@@ -478,6 +567,11 @@ export default function DetalheAulaAlunoPage() {
 
           {/* Sidebar */}
           <Stack spacing={2.5}>
+            <SectionTarefasPendentes
+              disciplina={aula?.disciplina}
+              dataSelecionada={dataSelecionada}
+              onSelecionarData={setSelectedDate}
+            />
             <SectionMateriais disciplina={aula?.disciplina} />
             {aula && <SectionProfessor aula={aula} />}
           </Stack>

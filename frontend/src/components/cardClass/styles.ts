@@ -1,13 +1,16 @@
 "use client";
 import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius } from "@/styles";
 import { BrainBoxShadow } from "@/utils/utilsCss";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 /**
  * Painel que agrupa as linhas de aula (CardClass) num único cartão,
  * conforme o protótipo do Design System (`.bk-classpanel`).
+ *
+ * Com `$divided`, as linhas ocupam a largura toda e são separadas por um
+ * divisor, sem espaçamento entre elas (lista de aulas do aluno).
  */
-export const Panel = styled.div`
+export const Panel = styled.div<{ $divided?: boolean }>`
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -17,6 +20,22 @@ export const Panel = styled.div`
   border: 1px solid ${cssVarColor("borderSubtle")};
   border-radius: ${cssVarRadius("xl")};
   ${BrainBoxShadow}
+
+  ${({ $divided }) =>
+    $divided &&
+    css`
+      gap: 0;
+      padding: 0;
+      overflow: hidden;
+
+      & > * {
+        border-radius: 0;
+      }
+
+      & > * + * {
+        border-top: 1px solid ${cssVarColor("borderSubtle")};
+      }
+    `}
 `;
 
 export const Container = styled.div<{ $clickable?: boolean; $highlight?: boolean }>`

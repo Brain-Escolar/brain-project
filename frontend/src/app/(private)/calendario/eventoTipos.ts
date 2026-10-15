@@ -22,6 +22,12 @@ export const TIPO_OPTIONS: { value: TipoEvento; label: string }[] = (
  */
 export const TIPOS_EVENTO_AVALIACAO: TipoEvento[] = ["PROVA", "ENTREGA_PROVA", "ENTREGA_NOTAS"];
 
+/**
+ * Prazos internos dos professores (ex.: lançamento de notas). Não aparecem
+ * para quem só consulta o calendário pelo lado do aluno.
+ */
+export const TIPOS_EVENTO_INTERNOS: TipoEvento[] = ["ENTREGA_NOTAS"];
+
 /** Tipos que a Secretaria pode criar/editar: Reunião, Feriado e Outro. */
 export const TIPO_OPTIONS_SECRETARIA = TIPO_OPTIONS.filter(
   (opt) => !TIPOS_EVENTO_AVALIACAO.includes(opt.value),

@@ -2,21 +2,17 @@
 
 import { useEffect, useState } from "react";
 import {
-  Box,
   Button,
-  Checkbox,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
 import { useEventoMutations } from "@/hooks/useEventoMutations";
-import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import { EventoResponse, TipoEvento } from "@/services/domains/evento";
 import { TIPO_OPTIONS } from "./eventoTipos";
 import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
@@ -32,11 +28,6 @@ interface NovoEventoModalProps {
   tipoOptions?: { value: TipoEvento; label: string }[];
 }
 
-/** Monta um ISO date-time no fuso de São Paulo (sem horário de verão = -03:00). */
-function toIsoSaoPaulo(data: string, hora: string): string {
-  return `${data}T${hora}:00-03:00`;
-}
-
 export default function NovoEventoModal({
   open,
   onClose,
@@ -45,16 +36,12 @@ export default function NovoEventoModal({
   tipoOptions = TIPO_OPTIONS,
 }: NovoEventoModalProps) {
   const { criarEvento, atualizarEvento } = useEventoMutations();
-  const { adicionarEventos } = useGoogleCalendar();
   const isEdicao = !!evento;
 
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [dataEvento, setDataEvento] = useState("");
   const [tipo, setTipo] = useState<TipoEvento>("OUTRO");
-  const [sincronizarGoogle, setSincronizarGoogle] = useState(false);
-  const [horaInicio, setHoraInicio] = useState("08:00");
-  const [horaFim, setHoraFim] = useState("09:00");
 
   useEffect(() => {
     if (open) {
@@ -62,13 +49,10 @@ export default function NovoEventoModal({
       setDescricao(evento?.descricao ?? "");
       setDataEvento(evento?.dataEvento ?? dataInicial ?? new Date().toISOString().slice(0, 10));
       setTipo(evento?.tipo ?? "OUTRO");
-      setSincronizarGoogle(false);
-      setHoraInicio("08:00");
-      setHoraFim("09:00");
     }
   }, [open, dataInicial, evento]);
 
-  const isSaving = criarEvento.isPending || atualizarEvento.isPending || adicionarEventos.isPending;
+  const isSaving = criarEvento.isPending || atualizarEvento.isPending;
   const podeSalvar = titulo.trim().length > 0 && !!dataEvento && !isSaving;
 
   const handleSalvar = async () => {
@@ -95,21 +79,6 @@ export default function NovoEventoModal({
       tipo,
     });
 
-    if (sincronizarGoogle) {
-      try {
-        await adicionarEventos.mutateAsync([
-          {
-            titulo: titulo.trim(),
-            descricao: descricao.trim() || undefined,
-            dataInicio: toIsoSaoPaulo(dataEvento, horaInicio),
-            dataFim: toIsoSaoPaulo(dataEvento, horaFim),
-          },
-        ]);
-      } catch {
-        // erro já tratado/notificado no hook; o evento interno foi criado mesmo assim
-      }
-    }
-
     onClose();
   };
 
@@ -120,7 +89,7 @@ export default function NovoEventoModal({
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {isEdicao
             ? "Altere os dados do evento"
-            : "Cadastre um evento no calendário e, opcionalmente, no seu Google Agenda"}
+            : "Cadastre um evento no calendário"}
         </Typography>
       </DialogTitle>
 
@@ -162,39 +131,6 @@ export default function NovoEventoModal({
             multiline
             minRows={2}
           />
-
-          {!isEdicao && (
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={sincronizarGoogle}
-                  onChange={(e) => setSincronizarGoogle(e.target.checked)}
-                />
-              }
-              label="Adicionar ao Google Agenda"
-            />
-          )}
-
-          {!isEdicao && sincronizarGoogle && (
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <TextField
-                label="Hora início"
-                type="time"
-                value={horaInicio}
-                onChange={(e) => setHoraInicio(e.target.value)}
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-              />
-              <TextField
-                label="Hora fim"
-                type="time"
-                value={horaFim}
-                onChange={(e) => setHoraFim(e.target.value)}
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-              />
-            </Box>
-          )}
         </Stack>
       </DialogContent>
 

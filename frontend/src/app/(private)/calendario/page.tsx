@@ -23,12 +23,18 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEventos } from "@/hooks/useEventos";
 import { useContextoAluno } from "@/hooks/useContextoAluno";
 import { usePermissoes } from "@/hooks/usePermissoes";
+import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { EventoResponse, TipoEvento } from "@/services/domains/evento";
 import { UserRoleEnum } from "@/enums";
 import NovoEventoModal from "./NovoEventoModal";
 import DetalheEventoModal from "./DetalheEventoModal";
 import ListaEventosDiaModal from "./ListaEventosDiaModal";
-import { TIPO_CONFIG, TIPO_OPTIONS_SECRETARIA, TIPOS_EVENTO_AVALIACAO } from "./eventoTipos";
+import {
+  TIPO_CONFIG,
+  TIPO_OPTIONS_SECRETARIA,
+  TIPOS_EVENTO_AVALIACAO,
+  TIPOS_EVENTO_INTERNOS,
+} from "./eventoTipos";
 
 const MESES_PT = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -121,8 +127,23 @@ export default function Calendario() {
   // escola inteira. A permissao de criar evento vem de usePermissoes, nao de
   // um teste de perfil espalhado pela tela.
   const { turmaId, ehResponsavel } = useContextoAluno();
-  const { eventos, loading } = useEventos({ dataInicio, dataFim, turmaId });
+  const { eventos: eventosRecebidos, loading } = useEventos({ dataInicio, dataFim, turmaId });
   const { criarEvento: podeCriarEvento } = usePermissoes();
+  const { perfilAtivo } = usePerfilAtivo();
+
+  // Aluno e responsavel nao veem prazos internos dos professores (ex.: entrega de notas).
+  const visaoDoAluno = perfilAtivo === UserRoleEnum.ESTUDANTE || ehResponsavel;
+  const tiposVisiveis = useMemo(
+    () =>
+      (Object.keys(TIPO_CONFIG) as TipoEvento[]).filter(
+        (tipo) => !(visaoDoAluno && TIPOS_EVENTO_INTERNOS.includes(tipo)),
+      ),
+    [visaoDoAluno],
+  );
+  const eventos = useMemo(
+    () => eventosRecebidos.filter((e) => tiposVisiveis.includes(e.tipo)),
+    [eventosRecebidos, tiposVisiveis],
+  );
 
   const calendarDays = useMemo(() => buildCalendarDays(currentYear, currentMonth), [currentYear, currentMonth]);
 
@@ -212,9 +233,12 @@ export default function Calendario() {
 
   const tituloMes = `${MESES_PT[currentMonth]} ${currentYear}`;
 
+  const eventoDeAvaliacaoParaSecretaria =
+    isSecretario && !!eventoDetalhe && TIPOS_EVENTO_AVALIACAO.includes(eventoDetalhe.tipo);
+
   const filtrosSidebar = (
     <Stack spacing={0.75}>
-      {(Object.keys(TIPO_CONFIG) as TipoEvento[]).map((tipo) => {
+      {tiposVisiveis.map((tipo) => {
         const cfg = TIPO_CONFIG[tipo];
         const count = contagemPorTipo[tipo] ?? 0;
         return (
@@ -494,7 +518,9 @@ export default function Calendario() {
       description={
         ehResponsavel
           ? "Provas, prazos e eventos da turma do aluno"
-          : "Gerencie seu calendário e seus compromissos"
+          : podeCriarEvento
+            ? "Gerencie seu calendário e seus compromissos"
+            : "Provas, feriados e eventos da escola"
       }
       actions={
         podeCriarEvento ? (
@@ -557,7 +583,12 @@ export default function Calendario() {
         evento={eventoDetalhe}
         onClose={() => setEventoDetalhe(null)}
         onEditar={handleEditarEvento}
-        somenteLeitura={isSecretario && !!eventoDetalhe && TIPOS_EVENTO_AVALIACAO.includes(eventoDetalhe.tipo)}
+        somenteLeitura={!podeCriarEvento || eventoDeAvaliacaoParaSecretaria}
+        avisoSomenteLeitura={
+          podeCriarEvento && eventoDeAvaliacaoParaSecretaria
+            ? "Gerado pelo fluxo de avaliação — somente leitura."
+            : undefined
+        }
       />
 
       <ListaEventosDiaModal
