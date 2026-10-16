@@ -71,6 +71,26 @@ export interface GrupoDaPessoaResponse {
   ativo: boolean;
 }
 
+/** Tela do catálogo, para a busca da aba "Por tela" (independe de perfil). */
+export interface TelaResumoResponse {
+  codigo: string;
+  nome: string;
+  rota: string;
+}
+
+/**
+ * Grupo ou acesso individual que libera uma tela. Com individual=true, nome
+ * é o da pessoa, e não do grupo.
+ */
+export interface AcessoATelaResponse {
+  grupoId: number;
+  nome: string;
+  perfil: PerfilNomeEnum;
+  individual: boolean;
+  ativo: boolean;
+  quantidadeMembros: number;
+}
+
 /**
  * Acessos individuais de uma pessoa num perfil. telas e controles são os
  * individuais; herdados vai de cada código que os grupos ativos dela já dão

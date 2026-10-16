@@ -10,11 +10,13 @@ import {
   DuplicacaoGrupoUsuarioRequest,
 } from "./request";
 import {
+  AcessoATelaResponse,
   AcessosIndividuaisResponse,
   CatalogoPermissoesResponse,
   GrupoUsuarioDetalheResponse,
   GrupoUsuarioListaResponse,
   PessoaGrupoResponse,
+  TelaResumoResponse,
 } from "./response";
 
 const BASE_ROUTE = "grupos-usuarios";
@@ -100,5 +102,15 @@ export class GrupoUsuarioApi {
   /** O teto do perfil; com individual, o sistema inteiro, com o que é de fora marcado. */
   catalogo(perfil: PerfilNomeEnum, individual = false): Promise<CatalogoPermissoesResponse> {
     return httpClient.get("permissoes/catalogo", { params: { perfil, individual } });
+  }
+
+  /** Catálogo de telas para a busca da aba "Por tela" (independe de perfil). */
+  listarTelas(): Promise<TelaResumoResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/telas`);
+  }
+
+  /** Grupos e acessos individuais, de qualquer perfil, que concedem a tela. */
+  porTela(codigo: string): Promise<AcessoATelaResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/por-tela`, { params: { codigo } });
   }
 }

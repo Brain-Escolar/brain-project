@@ -71,6 +71,36 @@ export function useAcessosIndividuais(
   };
 }
 
+/** Catálogo de telas para a busca da aba "Por tela". Só muda por migration. */
+export function useTelasCatalogo() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: QUERY_KEYS.gruposUsuarios.telas(),
+    queryFn: () => grupoUsuarioApi.listarTelas(),
+    staleTime: 30 * 60 * 1000,
+  });
+
+  return {
+    telas: data ?? [],
+    loading: isLoading,
+    error: error ? "Erro ao carregar as telas." : null,
+  };
+}
+
+/** Grupos e acessos individuais, de qualquer perfil, que concedem a tela escolhida. */
+export function useAcessoPorTela(codigoTela: string | null) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: QUERY_KEYS.gruposUsuarios.porTela(codigoTela ?? ""),
+    queryFn: () => grupoUsuarioApi.porTela(codigoTela!),
+    enabled: !!codigoTela,
+  });
+
+  return {
+    acessos: data ?? [],
+    loading: isLoading,
+    error: error ? "Erro ao carregar quem tem acesso a essa tela." : null,
+  };
+}
+
 interface UsePessoasDoGrupoParams {
   grupoId: number;
   /** membros = quem está no grupo; candidatos = quem pode entrar. */

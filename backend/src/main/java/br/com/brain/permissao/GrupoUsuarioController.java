@@ -1,6 +1,7 @@
 package br.com.brain.permissao;
 
 import br.com.brain.enums.PerfilNome;
+import br.com.brain.permissao.dto.AcessoATelaDto;
 import br.com.brain.permissao.dto.AcessosGrupoUsuarioDto;
 import br.com.brain.permissao.dto.AcessosIndividuaisDto;
 import br.com.brain.permissao.dto.AdicaoMembrosDto;
@@ -11,6 +12,7 @@ import br.com.brain.permissao.dto.DuplicacaoGrupoUsuarioDto;
 import br.com.brain.permissao.dto.ListagemGrupoUsuarioDto;
 import br.com.brain.permissao.dto.MembroGrupoDto;
 import br.com.brain.permissao.dto.PessoaGrupoDto;
+import br.com.brain.permissao.dto.TelaResumoDto;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -48,6 +50,18 @@ public class GrupoUsuarioController {
     @GetMapping("/{id}")
     public ResponseEntity<DetalhamentoGrupoUsuarioDto> detalhar(@PathVariable("id") Long id) {
         return ResponseEntity.ok(service.detalhar(id));
+    }
+
+    /** Catálogo de telas para a busca da aba "Por tela" (independe de perfil). */
+    @GetMapping("/telas")
+    public ResponseEntity<List<TelaResumoDto>> telas() {
+        return ResponseEntity.ok(service.telas());
+    }
+
+    /** Grupos e acessos individuais, de qualquer perfil, que concedem a tela. */
+    @GetMapping("/por-tela")
+    public ResponseEntity<List<AcessoATelaDto>> porTela(@RequestParam("codigo") String codigo) {
+        return ResponseEntity.ok(service.buscarPorTela(codigo));
     }
 
     @PostMapping

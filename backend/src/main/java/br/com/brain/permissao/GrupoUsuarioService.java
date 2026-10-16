@@ -5,6 +5,7 @@ import br.com.brain.enums.PerfilNome;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.perfil.Perfil;
 import br.com.brain.perfil.PerfilRepository;
+import br.com.brain.permissao.dto.AcessoATelaDto;
 import br.com.brain.permissao.dto.AcessosGrupoUsuarioDto;
 import br.com.brain.permissao.dto.AcessosIndividuaisDto;
 import br.com.brain.permissao.dto.AdicaoMembrosDto;
@@ -16,6 +17,7 @@ import br.com.brain.permissao.dto.GrupoDaPessoaDto;
 import br.com.brain.permissao.dto.ListagemGrupoUsuarioDto;
 import br.com.brain.permissao.dto.MembroGrupoDto;
 import br.com.brain.permissao.dto.PessoaGrupoDto;
+import br.com.brain.permissao.dto.TelaResumoDto;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -88,6 +90,32 @@ public class GrupoUsuarioService {
     @Transactional(readOnly = true)
     public DetalhamentoGrupoUsuarioDto detalhar(Long id) {
         return detalhamento(buscar(id));
+    }
+
+    /** Catálogo de telas para a busca da aba "Por tela": independe de perfil. */
+    @Transactional(readOnly = true)
+    public List<TelaResumoDto> telas() {
+        return catalogoService.telas();
+    }
+
+    /**
+     * Grupos e acessos individuais, de qualquer perfil, que concedem a tela
+     * (aba "Por tela"). Não aplica a RP1 inteira: mostra também grupo inativo
+     * ou grupo de um perfil que a pessoa já perdeu, para a tela avisar que a
+     * concessão existe mas não produz efeito.
+     */
+    @Transactional(readOnly = true)
+    public List<AcessoATelaDto> buscarPorTela(String codigoTela) {
+        var membros = porGrupo(membroRepository.contarPorGrupo());
+        return grupoRepository.findComTelaConcedida(codigoTela).stream()
+                .map(grupo -> new AcessoATelaDto(
+                        grupo.getId(),
+                        grupo.getDadosPessoais() != null ? grupo.getDadosPessoais().getNome() : grupo.getNome(),
+                        grupo.getPerfil().getNome(),
+                        grupo.getDadosPessoais() != null,
+                        Boolean.TRUE.equals(grupo.getAtivo()),
+                        membros.getOrDefault(grupo.getId(), 0L)))
+                .toList();
     }
 
     @Transactional

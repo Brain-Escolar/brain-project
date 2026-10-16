@@ -38,6 +38,23 @@ public interface GrupoUsuarioRepository extends JpaRepository<GrupoUsuario, Long
     @Query("select g from GrupoUsuario g where g.perfil.id = :perfilId and g.dadosPessoais.id in :ids")
     List<GrupoUsuario> findIndividuaisEntre(@Param("perfilId") Long perfilId, @Param("ids") Collection<Long> ids);
 
+    /**
+     * Grupos normais e individuais (de qualquer perfil) que concedem a tela,
+     * para a aba "Por tela" de /grupos-usuarios. Normais primeiro, depois
+     * individuais, cada bloco por nome.
+     */
+    @Query("""
+            select g from GrupoUsuario g
+            join fetch g.perfil
+            left join fetch g.dadosPessoais
+            where exists (
+                select 1 from GrupoUsuarioTela gt
+                where gt.grupoUsuario = g and gt.tela.codigo = :codigoTela
+            )
+            order by case when g.dadosPessoais is null then 0 else 1 end, g.nome
+            """)
+    List<GrupoUsuario> findComTelaConcedida(@Param("codigoTela") String codigoTela);
+
     boolean existsByPerfilIdAndNomeIgnoreCase(Long perfilId, String nome);
 
     boolean existsByPerfilIdAndNomeIgnoreCaseAndIdNot(Long perfilId, String nome, Long id);

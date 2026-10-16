@@ -4,6 +4,7 @@ import br.com.brain.enums.PerfilNome;
 import br.com.brain.permissao.dto.CatalogoPermissaoDto;
 import br.com.brain.permissao.dto.ControleCatalogoDto;
 import br.com.brain.permissao.dto.TelaCatalogoDto;
+import br.com.brain.permissao.dto.TelaResumoDto;
 
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -46,6 +47,14 @@ public class CatalogoPermissaoService {
         return new Teto(
                 indexar(telaRepository.findAtivas(), Tela::getCodigo),
                 indexar(controleRepository.findAtivos(), Controle::getCodigo));
+    }
+
+    /** Telas ativas do catálogo, de qualquer perfil: a busca da aba "Por tela". */
+    @Transactional(readOnly = true)
+    public List<TelaResumoDto> telas() {
+        return telaRepository.findAtivas().stream()
+                .map(t -> new TelaResumoDto(t.getCodigo(), t.getNome(), t.getRota()))
+                .toList();
     }
 
     /** O que um grupo do perfil pode receber: o teto. */
