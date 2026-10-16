@@ -126,7 +126,18 @@ export function DynamicModuleMenu({
             <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>{route.icon}</ListItemIcon>
             <ListItemText
               primary={
-                <Typography sx={{ fontSize: 14, color: "inherit" }}>{route.text}</Typography>
+                <Typography
+                  sx={{ fontSize: 14, color: "inherit", fontWeight: route.caption ? 600 : 400 }}
+                >
+                  {route.text}
+                </Typography>
+              }
+              secondary={
+                route.caption ? (
+                  <Typography sx={{ fontSize: 12, color: mutedTextColor, mt: 0.25 }}>
+                    {route.caption}
+                  </Typography>
+                ) : undefined
               }
             />
           </MenuItem>

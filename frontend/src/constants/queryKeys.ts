@@ -204,6 +204,13 @@ export const QUERY_KEYS = {
     mensagens: (conversaId: number, page?: number) => [...["conversas"], "mensagens", conversaId, page] as const,
     destinatariosDisponiveis: () => [...["conversas"], "destinatarios-disponiveis"] as const,
   },
+  diretor: {
+    all: ["diretor"] as const,
+    inicio: () => [...QUERY_KEYS.diretor.all, "inicio"] as const,
+    filtrosAcompanhamento: () => [...QUERY_KEYS.diretor.all, "acompanhamento", "filtros"] as const,
+    acompanhamentoTurma: (turmaId?: number, filtros?: Record<string, unknown>) =>
+      [...QUERY_KEYS.diretor.all, "acompanhamento", turmaId, filtros] as const,
+  },
   orientacao: {
     all: ["orientacao"] as const,
     inicio: () => [...QUERY_KEYS.orientacao.all, "inicio"] as const,

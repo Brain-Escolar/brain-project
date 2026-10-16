@@ -19,6 +19,8 @@ public interface ProfessorRepository extends JpaRepository<Professor, Long> {
 
     Page<Professor> findByAtivoTrue(Pageable pageable);
 
+    long countByAtivoTrue();
+
     Optional<Professor> findByDadosPessoaisId(Long dadosPessoaisId);
 
     @Query("""

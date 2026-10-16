@@ -105,6 +105,11 @@ public class SecurityConfigurations {
                             req.requestMatchers("/secretario/**")
                                     .hasAnyRole("DIRETOR", "ADMIN");
 
+                            // Telas da Direcao - acima do permitAll para ja valer hoje.
+                            // Desempenho e comportamento da escola inteira.
+                            req.requestMatchers("/diretor/**")
+                                    .hasAnyRole("DIRETOR", "ADMIN");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 

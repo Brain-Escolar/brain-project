@@ -31,6 +31,7 @@ import { InformeRendimentoApi } from "./domains/informe-rendimento";
 import { MaterialComplementarApi } from "./domains/material-complementar";
 import { ProdutoApi } from "./domains/produto";
 import { OrientacaoApi } from "./domains/orientacao";
+import { DiretorApi } from "./domains/diretor";
 import { ResponsavelPortalApi } from "./domains/responsavel-portal";
 import { CrmApi } from "./domains/crm";
 import { DocumentoApi } from "./domains/documento";
@@ -40,6 +41,7 @@ import { SimulacaoApi } from "./domains/simulacao";
 
 export const alunoApi = new AlunoApi();
 export const orientacaoApi = new OrientacaoApi();
+export const diretorApi = new DiretorApi();
 export const responsavelPortalApi = new ResponsavelPortalApi();
 export const estudanteApi = new EstudanteApi();
 export const aulaApi = new AulaApi();

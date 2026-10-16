@@ -11,6 +11,7 @@ import FamilyRestroomOutlinedIcon from "@mui/icons-material/FamilyRestroomOutlin
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import PsychologyOutlinedIcon from "@mui/icons-material/PsychologyOutlined";
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
+import CorporateFareOutlinedIcon from "@mui/icons-material/CorporateFareOutlined";
 
 import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { UserRoleEnum } from "@/enums";
@@ -25,6 +26,7 @@ const ICONE: Record<UserRoleEnum, React.ReactNode> = {
   [UserRoleEnum.SECRETARIO]: <BadgeOutlinedIcon />,
   [UserRoleEnum.ORIENTADOR]: <PsychologyOutlinedIcon />,
   [UserRoleEnum.ADMIN]: <AdminPanelSettingsOutlinedIcon />,
+  [UserRoleEnum.DIRETOR]: <CorporateFareOutlinedIcon />,
 };
 
 /**

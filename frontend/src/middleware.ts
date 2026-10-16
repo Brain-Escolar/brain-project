@@ -66,6 +66,8 @@ function getDefaultRoute(userRole: UserRoleEnum): string {
       return "/";
     case "ADMIN":
       return "/admin";
+    case "DIRETOR":
+      return "/";
     case "SECRETARIO":
       return "/secretaria/matriculas";
     case "ORIENTADOR":

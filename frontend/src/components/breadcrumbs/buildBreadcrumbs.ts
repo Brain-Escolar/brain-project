@@ -13,6 +13,8 @@ export interface BreadcrumbItem {
 
 const HOME_PATHS: Record<UserRoleEnum, RoutesEnum> = {
   [UserRoleEnum.ADMIN]: RoutesEnum.HOME_ADMIN,
+  // O diretor cai na HOME, que ramifica por perfil e monta o painel dele.
+  [UserRoleEnum.DIRETOR]: RoutesEnum.HOME,
   [UserRoleEnum.PROFESSOR]: RoutesEnum.HOME,
   [UserRoleEnum.ESTUDANTE]: RoutesEnum.HOME_ESTUDANTE,
   [UserRoleEnum.SECRETARIO]: RoutesEnum.SECRETARIA_MATRICULAS,

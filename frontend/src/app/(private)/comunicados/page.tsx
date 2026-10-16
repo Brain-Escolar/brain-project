@@ -81,6 +81,7 @@ const PERFIS_QUE_PUBLICAM: UserRoleEnum[] = [
   UserRoleEnum.SECRETARIO,
   UserRoleEnum.ORIENTADOR,
   UserRoleEnum.ADMIN,
+  UserRoleEnum.DIRETOR,
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -118,7 +119,7 @@ export default function ComunicadosPage() {
   const podeCriar = !!user?.role && PERFIS_QUE_PUBLICAM.includes(user.role);
 
   function podeGerenciar(aviso: AvisoItem): boolean {
-    if (user?.role === UserRoleEnum.ADMIN) return true;
+    if (user?.role === UserRoleEnum.ADMIN || user?.role === UserRoleEnum.DIRETOR) return true;
     // Secretaria e Orientação gerenciam apenas os comunicados que publicaram.
     if (user?.role === UserRoleEnum.SECRETARIO || user?.role === UserRoleEnum.ORIENTADOR) {
       return aviso.autorId != null && aviso.autorId === user.dadosPessoaisId;

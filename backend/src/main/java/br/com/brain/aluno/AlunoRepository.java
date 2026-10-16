@@ -32,6 +32,14 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long>, JpaSpecific
 
     long countByMatriculadoTrueAndTurmaIsNull();
 
+    /** Alunos matriculados na turma, com os dados pessoais já carregados, em ordem de nome. */
+    @Query("""
+            SELECT a FROM Aluno a JOIN FETCH a.dadosPessoais dp
+            WHERE a.turma.id = :turmaId AND a.matriculado = true
+            ORDER BY dp.nome
+            """)
+    List<Aluno> findMatriculadosDaTurmaComDadosPessoais(@Param("turmaId") Long turmaId);
+
     /**
      * Busca de alunos matriculados usada pela Orientação: texto livre sobre nome e
      * matrícula, com filtros opcionais de unidade, série e turma. Um filtro nulo

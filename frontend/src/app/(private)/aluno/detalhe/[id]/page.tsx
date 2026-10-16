@@ -62,6 +62,7 @@ const PRODUTOS_ROLES: UserRoleEnum[] = [UserRoleEnum.ADMIN, UserRoleEnum.SECRETA
 /** Quem enxerga a aba de ficha médica. */
 const FICHA_MEDICA_ROLES: UserRoleEnum[] = [
   UserRoleEnum.ADMIN,
+  UserRoleEnum.DIRETOR,
   UserRoleEnum.SECRETARIO,
   UserRoleEnum.ORIENTADOR,
 ];
@@ -90,6 +91,7 @@ const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
   [UserRoleEnum.ESTUDANTE]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.SECRETARIO]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.ORIENTADOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
+  [UserRoleEnum.DIRETOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   // O responsável não acessa esta tela — ela é o detalhe administrativo do
   // aluno. Ele vê os dados do filho pelo portal (/portal-responsavel/**),
   // que valida o vínculo. Entrada vazia só para satisfazer o Record.

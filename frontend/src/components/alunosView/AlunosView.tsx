@@ -162,27 +162,31 @@ const COLUNAS_CONSULTA: ColunaAluno[] = [
   { key: "turma", label: "Turma" },
 ];
 
+/** Colunas da lista de cadastro (Cadastros > Alunos), com o CRUD. */
+const COLUNAS_CADASTRO: ColunaAluno[] = [
+  COLUNA_ALUNO,
+  COLUNA_MATRICULA,
+  { key: "cpf", label: "CPF" },
+  { key: "email", label: "E-mail" },
+  {
+    key: "cadastroCompleto",
+    label: "Cadastro",
+    render: (aluno) => (
+      <Badge $tone={aluno.cadastroCompleto ? "success" : "warning"}>
+        {aluno.cadastroCompleto ? "Completo" : "Incompleto"}
+      </Badge>
+    ),
+  },
+];
+
 const COLUNAS_POR_PERFIL: Record<UserRoleEnum, ColunaAluno[]> = {
   [UserRoleEnum.ORIENTADOR]: COLUNAS_CONSULTA,
   [UserRoleEnum.SECRETARIO]: COLUNAS_CONSULTA,
   [UserRoleEnum.PROFESSOR]: COLUNAS_CONSULTA,
   [UserRoleEnum.ESTUDANTE]: COLUNAS_CONSULTA,
   [UserRoleEnum.RESPONSAVEL]: COLUNAS_CONSULTA,
-  [UserRoleEnum.ADMIN]: [
-    COLUNA_ALUNO,
-    COLUNA_MATRICULA,
-    { key: "cpf", label: "CPF" },
-    { key: "email", label: "E-mail" },
-    {
-      key: "cadastroCompleto",
-      label: "Cadastro",
-      render: (aluno) => (
-        <Badge $tone={aluno.cadastroCompleto ? "success" : "warning"}>
-          {aluno.cadastroCompleto ? "Completo" : "Incompleto"}
-        </Badge>
-      ),
-    },
-  ],
+  [UserRoleEnum.ADMIN]: COLUNAS_CADASTRO,
+  [UserRoleEnum.DIRETOR]: COLUNAS_CADASTRO,
 };
 
 function valorPadrao(aluno: AlunoListaResponse, key: string): React.ReactNode {
@@ -231,8 +235,9 @@ export default function AlunosView({
   const [linhasPorPagina, setLinhasPorPagina] = useState(LINHAS_POR_PAGINA[0]);
   const [apenasIncompletos, setApenasIncompletos] = useState(false);
 
-  // Exclusivo do ADMIN: CRUD da lista de cadastro.
-  const isAdminCrud = role === UserRoleEnum.ADMIN && !listaExterna && !compacto;
+  // Exclusivo de quem tem o módulo Cadastros (ADMIN e DIRETOR): CRUD da lista.
+  const isAdminCrud =
+    (role === UserRoleEnum.ADMIN || role === UserRoleEnum.DIRETOR) && !listaExterna && !compacto;
 
   const tituloVisivel = titulo ?? (isAdminCrud ? "Lista de Alunos" : "Alunos");
   const descricaoVisivel =

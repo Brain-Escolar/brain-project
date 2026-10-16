@@ -107,8 +107,10 @@ function LoginContent() {
             redirectPath = "/";
             break;
           case "ADMIN":
-          case "DIRETOR":
             redirectPath = "/aluno";
+            break;
+          case "DIRETOR":
+            redirectPath = "/";
             break;
         }
 

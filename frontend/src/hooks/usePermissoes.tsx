@@ -16,6 +16,11 @@ import { UserRoleEnum } from "@/enums";
 export interface Permissoes {
   /** Cria, edita e exclui eventos no calendario. Sem ela, o calendario e so leitura. */
   criarEvento: boolean;
+  /**
+   * So cria eventos institucionais (reuniao, feriado, outro). Provas e
+   * entregas nascem do fluxo de avaliacao do professor e ficam so leitura.
+   */
+  soEventosInstitucionais: boolean;
   /** Publica e remove materiais complementares. */
   gerenciarMateriais: boolean;
   /** Publica comunicados para a escola. */
@@ -34,9 +39,19 @@ export interface Permissoes {
  * nao quebra a compilacao de um Record exaustivo.
  */
 const QUEM_PODE: Record<keyof Permissoes, UserRoleEnum[]> = {
-  criarEvento: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
+  // ATENCAO: o ESTUDANTE esta aqui porque e o comportamento de hoje — o botao
+  // "Novo evento" sempre apareceu para ele. Provavelmente e bug; tirar e so
+  // remover ESTUDANTE desta linha.
+  criarEvento: [
+    UserRoleEnum.PROFESSOR,
+    UserRoleEnum.ADMIN,
+    UserRoleEnum.DIRETOR,
+    UserRoleEnum.SECRETARIO,
+    UserRoleEnum.ESTUDANTE,
+  ],
+  soEventosInstitucionais: [UserRoleEnum.SECRETARIO, UserRoleEnum.DIRETOR],
   gerenciarMateriais: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
-  criarComunicado: [UserRoleEnum.SECRETARIO, UserRoleEnum.ADMIN],
+  criarComunicado: [UserRoleEnum.SECRETARIO, UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   atuarPorAlunoVinculado: [UserRoleEnum.RESPONSAVEL],
   incluirNaFichaMedica: [UserRoleEnum.RESPONSAVEL],
   editarFichaMedica: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
@@ -44,6 +59,7 @@ const QUEM_PODE: Record<keyof Permissoes, UserRoleEnum[]> = {
 
 const NENHUMA: Permissoes = {
   criarEvento: false,
+  soEventosInstitucionais: false,
   gerenciarMateriais: false,
   criarComunicado: false,
   atuarPorAlunoVinculado: false,

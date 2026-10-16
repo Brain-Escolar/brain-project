@@ -12,11 +12,9 @@ const PERFIS_VALIDOS = new Set<string>(Object.values(UserRoleEnum));
 
 /**
  * Perfis do backend que ainda não têm área própria no front e herdam a de
- * outro. Provisório: o DIRETOR usa as telas do ADMIN até ganhar a sua.
+ * outro. Vazio hoje: o DIRETOR ganhou a sua e deixou de usar as telas do ADMIN.
  */
-const PERFIL_ALIAS: Record<string, UserRoleEnum> = {
-  DIRETOR: UserRoleEnum.ADMIN,
-};
+const PERFIL_ALIAS: Record<string, UserRoleEnum> = {};
 
 /**
  * Precedência do perfil principal — usado para despachar dashboard, breadcrumb
@@ -25,6 +23,7 @@ const PERFIL_ALIAS: Record<string, UserRoleEnum> = {
  */
 export const PRECEDENCIA_PERFIL: UserRoleEnum[] = [
   UserRoleEnum.ADMIN,
+  UserRoleEnum.DIRETOR,
   UserRoleEnum.SECRETARIO,
   UserRoleEnum.PROFESSOR,
   UserRoleEnum.ORIENTADOR,

@@ -19,7 +19,6 @@ import { useState, useMemo } from "react";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
-import { useAuth } from "@/hooks/useAuth";
 import { useEventos } from "@/hooks/useEventos";
 import { useContextoAluno } from "@/hooks/useContextoAluno";
 import { usePermissoes } from "@/hooks/usePermissoes";
@@ -103,8 +102,6 @@ function buildCalendarDays(year: number, month: number): CalendarDay[] {
 }
 
 export default function Calendario() {
-  const { user } = useAuth();
-  const isSecretario = user?.role === UserRoleEnum.SECRETARIO;
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -128,7 +125,7 @@ export default function Calendario() {
   // um teste de perfil espalhado pela tela.
   const { turmaId, ehResponsavel } = useContextoAluno();
   const { eventos: eventosRecebidos, loading } = useEventos({ dataInicio, dataFim, turmaId });
-  const { criarEvento: podeCriarEvento } = usePermissoes();
+  const { criarEvento: podeCriarEvento, soEventosInstitucionais } = usePermissoes();
   const { perfilAtivo } = usePerfilAtivo();
 
   // Aluno e responsavel nao veem prazos internos dos professores (ex.: entrega de notas).
@@ -233,8 +230,10 @@ export default function Calendario() {
 
   const tituloMes = `${MESES_PT[currentMonth]} ${currentYear}`;
 
-  const eventoDeAvaliacaoParaSecretaria =
-    isSecretario && !!eventoDetalhe && TIPOS_EVENTO_AVALIACAO.includes(eventoDetalhe.tipo);
+  // Provas e entregas nascem do fluxo de avaliacao do professor: quem so cria
+  // eventos institucionais (secretaria, diretor) apenas os visualiza.
+  const eventoDeAvaliacaoSomenteLeitura =
+    soEventosInstitucionais && !!eventoDetalhe && TIPOS_EVENTO_AVALIACAO.includes(eventoDetalhe.tipo);
 
   const filtrosSidebar = (
     <Stack spacing={0.75}>
@@ -518,9 +517,11 @@ export default function Calendario() {
       description={
         ehResponsavel
           ? "Provas, prazos e eventos da turma do aluno"
-          : podeCriarEvento
-            ? "Gerencie seu calendário e seus compromissos"
-            : "Provas, feriados e eventos da escola"
+          : soEventosInstitucionais
+            ? "Eventos, provas, entregas e feriados da escola"
+            : podeCriarEvento
+              ? "Gerencie seu calendário e seus compromissos"
+              : "Provas, feriados e eventos da escola"
       }
       actions={
         podeCriarEvento ? (
@@ -575,7 +576,7 @@ export default function Calendario() {
         }}
         dataInicial={dataSelecionada}
         evento={eventoEmEdicao}
-        tipoOptions={isSecretario ? TIPO_OPTIONS_SECRETARIA : undefined}
+        tipoOptions={soEventosInstitucionais ? TIPO_OPTIONS_SECRETARIA : undefined}
       />
 
       <DetalheEventoModal
@@ -583,9 +584,9 @@ export default function Calendario() {
         evento={eventoDetalhe}
         onClose={() => setEventoDetalhe(null)}
         onEditar={handleEditarEvento}
-        somenteLeitura={!podeCriarEvento || eventoDeAvaliacaoParaSecretaria}
+        somenteLeitura={!podeCriarEvento || eventoDeAvaliacaoSomenteLeitura}
         avisoSomenteLeitura={
-          podeCriarEvento && eventoDeAvaliacaoParaSecretaria
+          podeCriarEvento && eventoDeAvaliacaoSomenteLeitura
             ? "Gerado pelo fluxo de avaliação — somente leitura."
             : undefined
         }

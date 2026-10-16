@@ -86,6 +86,7 @@ export enum RoutesEnum {
   MINHAS_TURMAS_DETALHE = "/minhas-turmas/detalhe",
   CALENDARIO = "/calendario",
   RELATORIOS = "/relatorios",
+  RELATORIO_ACOMPANHAMENTO_TURMA = "/relatorios/acompanhamento-turma",
   AVALIACOES = "/avaliacoes",
   DIARIO = "/diario",
   CONTRACHEQUE = "/contracheque",

@@ -14,4 +14,17 @@ public interface AnotacaoRepository extends JpaRepository<Anotacao, Long> {
     List<Anotacao> findByAulaIdAndDataAnotacaoOrderByAlunoDadosPessoaisNomeAsc(Long aulaId, LocalDate dataAnotacao);
 
     List<Anotacao> findByAlunoIdAndDataAnotacaoBetween(Long alunoId, LocalDate dataInicio, LocalDate dataFim);
+
+    /** Anotações das aulas da turma no intervalo, com disciplina e professor carregados. */
+    @Query("""
+            SELECT a FROM Anotacao a
+            JOIN FETCH a.aula au
+            JOIN FETCH au.disciplina
+            LEFT JOIN FETCH au.professor p
+            LEFT JOIN FETCH p.dadosPessoais
+            WHERE au.turma.id = :turmaId AND a.dataAnotacao BETWEEN :inicio AND :fim
+            ORDER BY a.dataAnotacao DESC, a.id DESC
+            """)
+    List<Anotacao> findDaTurmaNoPeriodo(@Param("turmaId") Long turmaId,
+            @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 }

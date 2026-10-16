@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import br.com.brain.diretor.projecao.ProfessorDaDisciplina;
 import br.com.brain.disciplina.Disciplina;
 import br.com.brain.turma.Turma;
 
@@ -68,4 +69,12 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
             @Param("professorId") Long professorId,
             @Param("disciplinaId") Long disciplinaId,
             @Param("serieId") Long serieId);
+
+    /** Professores de cada disciplina da turma, pela grade de aulas. */
+    @Query("""
+            SELECT DISTINCT new br.com.brain.diretor.projecao.ProfessorDaDisciplina(au.disciplina.id, dp.nome)
+            FROM Aula au JOIN au.professor p JOIN p.dadosPessoais dp
+            WHERE au.turma.id = :turmaId
+            """)
+    List<ProfessorDaDisciplina> findProfessoresPorDisciplinaDaTurma(@Param("turmaId") Long turmaId);
 }
