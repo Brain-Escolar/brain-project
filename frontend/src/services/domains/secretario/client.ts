@@ -10,7 +10,7 @@ export class SecretarioApi {
     return httpClient.post(`${BASE_ROUTE}`, request);
   }
   getListaSecretarios(): Promise<IBrainResult<SecretarioListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
   deleteSecretario(id: string): Promise<void> {
     return httpClient.delete(`${BASE_ROUTE}/${id}`);

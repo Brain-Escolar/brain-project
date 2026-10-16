@@ -11,7 +11,7 @@ export class NotaApi {
   }
 
   getListaNotas(): Promise<IBrainResult<NotaListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getNotaById(id: string): Promise<NotaDetalheResponse> {

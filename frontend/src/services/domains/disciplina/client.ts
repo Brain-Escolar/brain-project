@@ -11,7 +11,7 @@ export class DisciplinaApi {
   }
 
   getListaDisciplinas(): Promise<IBrainResult<DisciplinaListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getDisciplinaById(id: string): Promise<DisciplinaDetalheResponse> {

@@ -7,7 +7,7 @@ const BASE_ROUTE = "alerta";
 
 export class AlertaApi {
   listaTodasAlertas(): Promise<IBrainResult<AlertaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   criarAlerta(data: AlertaPostRequest): Promise<AlertaResponse> {

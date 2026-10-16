@@ -7,11 +7,11 @@ const BASE_ROUTE = "horario";
 
 export class HorarioApi {
   getListaHorarios(): Promise<IBrainResult<HorarioResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getListaHorariosPaginada(): Promise<IBrainResult<HorarioListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getHorarioById(id: string): Promise<HorarioDetalheResponse> {

@@ -14,7 +14,7 @@ const BASE_ROUTE = "grade-curricular";
 
 export class GradeCurricularApi {
   getListaGradesCurriculares(): Promise<IBrainResult<GradeCurricularListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getGradeCurricularById(id: string): Promise<GradeCurricularDetalheResponse> {

@@ -15,11 +15,11 @@ const BASE_ROUTE = "aula";
 
 export class AulaApi {
   getAula(): Promise<IBrainResult<AulaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getListaAulasPaginada(): Promise<IBrainResult<AulaListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getAulaById(id: string): Promise<AulaInfoResponse> {
