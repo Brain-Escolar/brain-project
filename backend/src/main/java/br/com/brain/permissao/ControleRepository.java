@@ -18,4 +18,8 @@ public interface ControleRepository extends JpaRepository<Controle, Long> {
             order by c.nome
             """)
     List<Controle> findNoTetoDoPerfil(@Param("perfil") PerfilNome perfil);
+
+    /** Todos os controles ativos, por nome: o catálogo do acesso individual. */
+    @Query("select c from Controle c left join fetch c.tela where c.ativo = true order by c.nome")
+    List<Controle> findAtivos();
 }

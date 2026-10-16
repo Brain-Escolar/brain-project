@@ -13,6 +13,7 @@ import br.com.brain.permissao.dto.CadastroGrupoUsuarioDto;
 import br.com.brain.permissao.dto.ControleCatalogoDto;
 import br.com.brain.permissao.dto.DuplicacaoGrupoUsuarioDto;
 import br.com.brain.permissao.dto.ListagemGrupoUsuarioDto;
+import br.com.brain.permissao.dto.MembroGrupoDto;
 import br.com.brain.permissao.dto.PessoaGrupoDto;
 import br.com.brain.permissao.dto.TelaCatalogoDto;
 
@@ -104,7 +105,7 @@ class GrupoUsuarioServiceIntegracaoTest {
 
         service.adicionarMembros(grupo.id(), new AdicaoMembrosDto(Set.of(ana.getId())));
         var membros = service.buscarMembros(grupo.id(), "", PRIMEIRA_PAGINA).getContent();
-        assertThat(membros).extracting(PessoaGrupoDto::nome).containsExactly("Ana Souza");
+        assertThat(membros).extracting(MembroGrupoDto::nome).containsExactly("Ana Souza");
         assertThat(membros.get(0).email()).endsWith("@escola.test");
         assertThat(service.buscarMembros(grupo.id(), "SOUZA", PRIMEIRA_PAGINA).getContent()).hasSize(1);
         assertThat(service.buscarMembros(grupo.id(), "outra pessoa", PRIMEIRA_PAGINA).getContent()).isEmpty();
@@ -135,7 +136,7 @@ class GrupoUsuarioServiceIntegracaoTest {
         service.adicionarMembros(grupo.id(), new AdicaoMembrosDto(Set.of(pessoa.getId())));
 
         assertThat(service.buscarMembros(grupo.id(), "duda", PRIMEIRA_PAGINA).getContent())
-                .extracting(PessoaGrupoDto::nome).containsExactly("Duda");
+                .extracting(MembroGrupoDto::nome).containsExactly("Duda");
     }
 
     // ------------------------------------------------------------ apoio

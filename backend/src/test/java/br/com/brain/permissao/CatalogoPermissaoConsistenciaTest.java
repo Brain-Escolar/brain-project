@@ -95,6 +95,14 @@ class CatalogoPermissaoConsistenciaTest {
     }
 
     @Test
+    @DisplayName("todo controle marcado como sensível existe no catálogo")
+    void sensiveisExistem() {
+        var controles = jdbc.queryForList("select codigo from controles", String.class);
+
+        assertThat(controles).containsAll(ControlesSensiveis.todos());
+    }
+
+    @Test
     @DisplayName("superusuário não recebe situação familiar nem atendimento psicológico (D9)")
     void adminSemDadosDaOrientacao() {
         List<String> controlesDoAdmin = jdbc.queryForList("""

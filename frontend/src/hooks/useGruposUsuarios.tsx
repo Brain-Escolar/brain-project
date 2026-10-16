@@ -34,11 +34,14 @@ export function useGrupoUsuario(id: number | null) {
   };
 }
 
-/** O teto do perfil. Só muda por migration, então fica em cache por mais tempo. */
-export function useCatalogoPermissoes(perfil: PerfilNomeEnum | null) {
+/**
+ * O teto do perfil, ou, com individual, o catálogo inteiro do acesso individual.
+ * Só muda por migration, então fica em cache por mais tempo.
+ */
+export function useCatalogoPermissoes(perfil: PerfilNomeEnum | null, individual = false) {
   const { data, isLoading, error } = useQuery({
-    queryKey: QUERY_KEYS.gruposUsuarios.catalogo(perfil ?? ""),
-    queryFn: () => grupoUsuarioApi.catalogo(perfil!),
+    queryKey: QUERY_KEYS.gruposUsuarios.catalogo(perfil ?? "", individual),
+    queryFn: () => grupoUsuarioApi.catalogo(perfil!, individual),
     enabled: perfil != null,
     staleTime: 30 * 60 * 1000,
   });
@@ -47,6 +50,24 @@ export function useCatalogoPermissoes(perfil: PerfilNomeEnum | null) {
     catalogo: data ?? null,
     loading: isLoading,
     error: error ? "Erro ao carregar as telas disponíveis para o perfil." : null,
+  };
+}
+
+/** Acessos individuais da pessoa no perfil, com o que os grupos dela já dão. */
+export function useAcessosIndividuais(
+  dadosPessoaisId: number | null,
+  perfil: PerfilNomeEnum | null,
+) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: QUERY_KEYS.gruposUsuarios.individuais(dadosPessoaisId ?? 0, perfil ?? ""),
+    queryFn: () => grupoUsuarioApi.acessosIndividuais(dadosPessoaisId!, perfil!),
+    enabled: dadosPessoaisId != null && !Number.isNaN(dadosPessoaisId) && perfil != null,
+  });
+
+  return {
+    acessos: data ?? null,
+    loading: isLoading,
+    error: error ? "Erro ao carregar os acessos individuais." : null,
   };
 }
 

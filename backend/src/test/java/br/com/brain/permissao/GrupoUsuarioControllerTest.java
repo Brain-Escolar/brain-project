@@ -1,5 +1,10 @@
 package br.com.brain.permissao;
 
+import br.com.brain.dadosPessoais.DadosPessoais;
+import br.com.brain.dadosPessoais.DadosPessoaisRepository;
+import br.com.brain.enums.PerfilNome;
+import br.com.brain.perfil.PerfilRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +39,10 @@ class GrupoUsuarioControllerTest {
     private WebApplicationContext context;
     @Autowired
     private JdbcTemplate jdbc;
+    @Autowired
+    private DadosPessoaisRepository dadosPessoaisRepository;
+    @Autowired
+    private PerfilRepository perfilRepository;
 
     private MockMvc mvc;
 
@@ -83,6 +92,29 @@ class GrupoUsuarioControllerTest {
                         .content("{\"telas\": [\"ALUNO_CADASTRO\"], \"controles\": []}"))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.message", containsString("ALUNO_CADASTRO exige ALUNO.DADOS_PESSOAIS.VER")));
+    }
+
+    @Test
+    @DisplayName("acessos individuais: só ADMIN e DIRETOR, e a resposta traz os individuais")
+    void acessosIndividuais() throws Exception {
+        var pessoa = new DadosPessoais();
+        pessoa.setNome("Secretária Teste");
+        pessoa.setEmail("secretaria-individual@pessoal.test");
+        pessoa.getPerfis().add(perfilRepository.findByNome(PerfilNome.SECRETARIO));
+        var id = dadosPessoaisRepository.save(pessoa).getId();
+
+        mvc.perform(get("/grupos-usuarios/individuais/{id}", id).param("perfil", "SECRETARIO")
+                        .with(user("secretaria").roles("SECRETARIO")))
+                .andExpect(status().isForbidden());
+        mvc.perform(put("/grupos-usuarios/individuais/{id}", id).param("perfil", "SECRETARIO")
+                        .with(user("diretor").roles("DIRETOR"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"telas\": [\"SECRETARIA_CRM\"], \"controles\": []}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.perfil").value("SECRETARIO"))
+                .andExpect(jsonPath("$.nome").value("Secretária Teste"))
+                .andExpect(jsonPath("$.telas[0]").value("SECRETARIA_CRM"))
+                .andExpect(jsonPath("$.herdados").isMap());
     }
 
     private Long grupoPadrao(String perfil) {

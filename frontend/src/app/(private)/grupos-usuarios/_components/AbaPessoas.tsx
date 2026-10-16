@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import NextLink from "next/link";
 import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -25,9 +27,11 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import ManageAccountsOutlinedIcon from "@mui/icons-material/ManageAccountsOutlined";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PersonRemoveOutlinedIcon from "@mui/icons-material/PersonRemoveOutlined";
 import SearchIcon from "@mui/icons-material/Search";
+import { RoutesEnum } from "@/enums";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePessoasDoGrupo } from "@/hooks/useGruposUsuarios";
 import { useGrupoUsuarioMutations } from "@/hooks/useGrupoUsuarioMutations";
@@ -129,7 +133,7 @@ export default function AbaPessoas({ grupo }: AbaPessoasProps) {
               <TableRow>
                 <TableCell>Nome</TableCell>
                 <TableCell>E-mail de acesso</TableCell>
-                <TableCell align="right" sx={{ width: 64 }}>
+                <TableCell align="right" sx={{ width: 104 }}>
                   <Box component="span" sx={visualmenteOculto}>
                     Ações
                   </Box>
@@ -150,7 +154,19 @@ export default function AbaPessoas({ grupo }: AbaPessoasProps) {
               )}
               {pessoas.map((pessoa) => (
                 <TableRow key={pessoa.dadosPessoaisId}>
-                  <TableCell>{pessoa.nome}</TableCell>
+                  <TableCell>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                      {pessoa.nome}
+                      {!!pessoa.acessosIndividuais && (
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          color="primary"
+                          label={`+${pessoa.acessosIndividuais} ${pessoa.acessosIndividuais === 1 ? "individual" : "individuais"}`}
+                        />
+                      )}
+                    </Box>
+                  </TableCell>
                   <TableCell>
                     {pessoa.email ?? (
                       <Typography variant="caption" color="text.secondary">
@@ -158,7 +174,17 @@ export default function AbaPessoas({ grupo }: AbaPessoasProps) {
                       </Typography>
                     )}
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                    <Tooltip title="Acessos individuais">
+                      <IconButton
+                        size="small"
+                        component={NextLink}
+                        href={`${RoutesEnum.GRUPOS_USUARIOS}/${grupo.id}/pessoas/${pessoa.dadosPessoaisId}`}
+                        aria-label={`Acessos individuais de ${pessoa.nome}`}
+                      >
+                        <ManageAccountsOutlinedIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="Remover do grupo">
                       <IconButton
                         size="small"
@@ -201,8 +227,8 @@ export default function AbaPessoas({ grupo }: AbaPessoasProps) {
         <DialogContent>
           <DialogContentText>
             {paraRemover?.nome} sai do grupo {grupo.nome}. Se não estiver em outro grupo do perfil{" "}
-            {nomeDoPerfil(grupo.perfil)}, ficará sem as telas desse perfil quando os acessos
-            entrarem em vigor.
+            {nomeDoPerfil(grupo.perfil)}, fica só com os acessos individuais que tiver; sem eles,
+            perde as telas desse perfil.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

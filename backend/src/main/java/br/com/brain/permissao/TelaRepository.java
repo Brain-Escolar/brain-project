@@ -18,4 +18,8 @@ public interface TelaRepository extends JpaRepository<Tela, Long> {
             order by t.nome
             """)
     List<Tela> findNoTetoDoPerfil(@Param("perfil") PerfilNome perfil);
+
+    /** Todas as telas ativas, por nome: o catálogo do acesso individual. */
+    @Query("select t from Tela t where t.ativo = true order by t.nome")
+    List<Tela> findAtivas();
 }

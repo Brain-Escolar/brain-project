@@ -1,8 +1,11 @@
 package br.com.brain.infra.security;
 
+import br.com.brain.permissao.PerfilOuTela;
+
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +33,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfigurations {
 
     private final SecurityFilter securityFilter;
+    private final PerfilOuTela perfilOuTela;
+
+    // As areas da secretaria abaixo aceitam estes perfis OU quem tem uma das
+    // telas que as usam liberada por grupo ou acesso individual
+    // (docs/permissoes.md, D26). So libera: ninguem que entra hoje deixa de entrar.
+    private static final List<String> GESTAO_DA_SECRETARIA = List.of("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -47,7 +56,7 @@ public class SecurityConfigurations {
                             req.requestMatchers("/portal-responsavel/**").hasRole("RESPONSAVEL");
 
                             // CRM de matriculas - acima do permitAll para ja valer hoje.
-                            req.requestMatchers("/crm/**").hasRole("SECRETARIO");
+                            req.requestMatchers("/crm/**").access(perfilOuTela.regra(List.of("SECRETARIO"), "SECRETARIA_CRM"));
 
                             // Configuracao de bolsa - ANTES de /bolsas/** DE PROPOSITO.
                             //
@@ -70,8 +79,9 @@ public class SecurityConfigurations {
                             // Bolsas - acima do permitAll para ja valer hoje.
                             // FINANCEIRO ainda nao existe em PerfilNome; quando
                             // existir, entra aqui.
+                            // A tela que usa bolsas e simulacoes e o bloco de bolsa do CRM.
                             req.requestMatchers("/bolsas/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .access(perfilOuTela.regra(GESTAO_DA_SECRETARIA, "SECRETARIA_CRM"));
 
                             // Simulacoes financeiras - acima do permitAll para ja valer hoje.
                             // Escrita e da secretaria; a leitura inclui o
@@ -79,24 +89,29 @@ public class SecurityConfigurations {
                             // Que seja a DELE e regra do servico, nao daqui:
                             // perfil diz quem entra, nao o que e de quem.
                             req.requestMatchers(HttpMethod.GET, "/simulacoes/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN", "RESPONSAVEL");
+                                    .access(perfilOuTela.regra(
+                                            List.of("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN", "RESPONSAVEL"),
+                                            "SECRETARIA_CRM"));
                             req.requestMatchers("/simulacoes/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .access(perfilOuTela.regra(GESTAO_DA_SECRETARIA, "SECRETARIA_CRM"));
 
                             // Documentos de matricula - acima do permitAll para ja valer hoje.
                             // Dado pessoal de menor: professor fica de fora. A
                             // familia envia pelo /portal-responsavel.
+                            // Telas que chamam: validacao (documentos), matriculas e CRM
+                            // (dialogo de documentacao do aluno).
                             req.requestMatchers("/documentos/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .access(perfilOuTela.regra(GESTAO_DA_SECRETARIA, "SECRETARIA_DOCUMENTOS",
+                                            "SECRETARIA_MATRICULAS", "SECRETARIA_CRM"));
 
                             // Documentos escolares (boletim/historico) emitidos pela escola.
                             req.requestMatchers("/documentos-escolares/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .access(perfilOuTela.regra(GESTAO_DA_SECRETARIA, "SECRETARIA_DOCUMENTOS"));
 
                             // Grupos de acesso - acima do permitAll para ja valer hoje.
                             // Diretor e Admin montam os grupos. Os acessos configurados
-                            // ainda nao sao consultados pelo resto do sistema
-                            // (docs/permissoes.md, fases F2 e F3).
+                            // valem no frontend e nas regras "perfil ou tela" acima; o
+                            // bloqueio no resto do backend e a fase F3 (docs/permissoes.md).
                             req.requestMatchers("/grupos-usuarios", "/grupos-usuarios/**", "/permissoes/catalogo")
                                     .hasAnyRole("DIRETOR", "ADMIN");
                             // Permissões de quem está logado: qualquer perfil, mas com login.

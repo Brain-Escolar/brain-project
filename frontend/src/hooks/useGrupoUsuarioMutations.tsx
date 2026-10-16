@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { grupoUsuarioApi } from "@/services/api";
 import { mensagemDeErro } from "@/hooks/useDocumentoMutations";
+import { PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 import {
   AcessosGrupoUsuarioRequest,
   AtualizacaoGrupoUsuarioRequest,
@@ -120,5 +121,33 @@ export function useGrupoUsuarioMutations() {
     onError: (error) => toast.error(mensagemDeErro(error, "Erro ao remover a pessoa.")),
   });
 
-  return { criar, atualizar, salvarAcessos, duplicar, excluir, adicionarMembros, removerMembro };
+  const salvarAcessosIndividuais = useMutation({
+    retry: repetirSoFalhaDeRede,
+    mutationFn: ({
+      dadosPessoaisId,
+      perfil,
+      dados,
+    }: {
+      dadosPessoaisId: number;
+      perfil: PerfilNomeEnum;
+      dados: AcessosGrupoUsuarioRequest;
+    }) => grupoUsuarioApi.salvarAcessosIndividuais(dadosPessoaisId, perfil, dados),
+    onSuccess: () => {
+      invalidar();
+      toast.success("Acessos individuais salvos.");
+    },
+    onError: (error) =>
+      toast.error(mensagemDeErro(error, "Erro ao salvar os acessos individuais.")),
+  });
+
+  return {
+    criar,
+    atualizar,
+    salvarAcessos,
+    duplicar,
+    excluir,
+    adicionarMembros,
+    removerMembro,
+    salvarAcessosIndividuais,
+  };
 }

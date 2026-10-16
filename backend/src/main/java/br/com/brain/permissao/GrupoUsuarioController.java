@@ -2,12 +2,14 @@ package br.com.brain.permissao;
 
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.permissao.dto.AcessosGrupoUsuarioDto;
+import br.com.brain.permissao.dto.AcessosIndividuaisDto;
 import br.com.brain.permissao.dto.AdicaoMembrosDto;
 import br.com.brain.permissao.dto.AtualizacaoGrupoUsuarioDto;
 import br.com.brain.permissao.dto.CadastroGrupoUsuarioDto;
 import br.com.brain.permissao.dto.DetalhamentoGrupoUsuarioDto;
 import br.com.brain.permissao.dto.DuplicacaoGrupoUsuarioDto;
 import br.com.brain.permissao.dto.ListagemGrupoUsuarioDto;
+import br.com.brain.permissao.dto.MembroGrupoDto;
 import br.com.brain.permissao.dto.PessoaGrupoDto;
 import jakarta.validation.Valid;
 
@@ -83,7 +85,7 @@ public class GrupoUsuarioController {
     }
 
     @GetMapping("/{id}/membros")
-    public ResponseEntity<Page<PessoaGrupoDto>> membros(@PathVariable("id") Long id,
+    public ResponseEntity<Page<MembroGrupoDto>> membros(@PathVariable("id") Long id,
             @RequestParam(defaultValue = "") String busca, @PageableDefault(size = 20) Pageable paginacao) {
         return ResponseEntity.ok(service.buscarMembros(id, busca, paginacao));
     }
@@ -106,5 +108,19 @@ public class GrupoUsuarioController {
             @PathVariable("dadosPessoaisId") Long dadosPessoaisId) {
         service.removerMembro(id, dadosPessoaisId);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Acessos que a pessoa tem além dos grupos, no perfil, e o que os grupos já dão. */
+    @GetMapping("/individuais/{dadosPessoaisId}")
+    public ResponseEntity<AcessosIndividuaisDto> acessosIndividuais(
+            @PathVariable("dadosPessoaisId") Long dadosPessoaisId, @RequestParam PerfilNome perfil) {
+        return ResponseEntity.ok(service.acessosIndividuais(dadosPessoaisId, perfil));
+    }
+
+    @PutMapping("/individuais/{dadosPessoaisId}")
+    public ResponseEntity<AcessosIndividuaisDto> salvarAcessosIndividuais(
+            @PathVariable("dadosPessoaisId") Long dadosPessoaisId, @RequestParam PerfilNome perfil,
+            @RequestBody @Valid AcessosGrupoUsuarioDto dados) {
+        return ResponseEntity.ok(service.salvarAcessosIndividuais(dadosPessoaisId, perfil, dados));
     }
 }

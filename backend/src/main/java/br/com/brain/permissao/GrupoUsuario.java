@@ -1,5 +1,6 @@
 package br.com.brain.permissao;
 
+import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.perfil.Perfil;
 import br.com.brain.shared.EntidadeBase;
 import jakarta.persistence.Entity;
@@ -24,6 +25,11 @@ import org.hibernate.envers.Audited;
  * padrão (um por perfil, criado pela migration) não é excluído nem desativado.
  * Telas, controles e membros ficam em entidades próprias, sem coleção aqui:
  * cada vínculo é auditado separadamente.
+ *
+ * Com dadosPessoais preenchido, é o grupo individual da pessoa no perfil
+ * (acessos além dos grupos dela). Ele não aparece na lista de grupos e só é
+ * mexido pelos endpoints de acessos individuais; a pessoa também é membro,
+ * então a permissão efetiva soma tudo pela mesma consulta.
  */
 @Entity
 @Audited
@@ -46,11 +52,27 @@ public class GrupoUsuario extends EntidadeBase {
     private Boolean padrao;
     private Boolean ativo;
 
+    /** Dono do grupo individual; nulo nos grupos normais. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dados_pessoais_id")
+    private DadosPessoais dadosPessoais;
+
     public GrupoUsuario(Perfil perfil, String nome, String descricao) {
         this.perfil = perfil;
         this.nome = nome;
         this.descricao = descricao;
         this.padrao = false;
         this.ativo = true;
+    }
+
+    public static GrupoUsuario individual(Perfil perfil, DadosPessoais pessoa) {
+        // O nome não aparece na tela, mas é obrigatório e único no perfil: o id
+        // desempata pessoas com o mesmo nome.
+        var nome = "Individual: " + pessoa.getNome();
+        var sufixo = " (" + pessoa.getId() + ")";
+        var grupo = new GrupoUsuario(perfil, nome.substring(0, Math.min(nome.length(), 100 - sufixo.length())) + sufixo,
+                null);
+        grupo.dadosPessoais = pessoa;
+        return grupo;
     }
 }

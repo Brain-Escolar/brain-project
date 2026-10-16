@@ -23,8 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
  * Permissões efetivas de quem está logado (docs/permissoes.md, seção 5).
  *
  * - ADMIN: o teto inteiro do perfil, sem grupo (RP4).
- * - Demais perfis: o que os grupos ativos da pessoa concedem, dentro do teto (RP1).
- *   Perfil sem grupo nenhum vem com as listas vazias.
+ * - Demais perfis: o que os grupos ativos da pessoa concedem, dentro do teto (RP1),
+ *   mais o acesso individual, que não tem teto (D22). Perfil sem grupo nenhum
+ *   vem com as listas vazias.
  *
  * Só perfis que a pessoa tem agora entram na resposta: grupo de um perfil que
  * ela perdeu não concede nada, sem precisar limpar o vínculo.
@@ -68,6 +69,16 @@ public class PermissoesUsuarioService {
 
         var gerencia = perfis.contains(PerfilNome.ADMIN) || perfis.contains(PerfilNome.DIRETOR);
         return new PermissoesUsuarioDto(gerencia, resposta);
+    }
+
+    /**
+     * Se a pessoa tem alguma das telas liberada, em qualquer perfil dela (como a
+     * guarda de tela do frontend). Usado pelas regras de URL "perfil ou tela".
+     */
+    @Transactional(readOnly = true)
+    public boolean temAlgumaTela(DadosAutenticacao usuario, Set<String> telas) {
+        return doUsuario(usuario).perfis().values().stream()
+                .anyMatch(perfil -> perfil.telas().stream().anyMatch(telas::contains));
     }
 
     private static Map<PerfilNome, List<String>> porPerfil(List<ItemPorPerfil> itens) {

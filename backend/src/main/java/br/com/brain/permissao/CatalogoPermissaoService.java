@@ -18,7 +18,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** O teto de cada perfil: o que um grupo daquele perfil pode receber. */
+/**
+ * O que pode ser concedido: o teto de cada perfil, para os grupos, e o catálogo
+ * inteiro, para o acesso individual (D22).
+ */
 @Service
 @RequiredArgsConstructor
 public class CatalogoPermissaoService {
@@ -26,7 +29,7 @@ public class CatalogoPermissaoService {
     private final TelaRepository telaRepository;
     private final ControleRepository controleRepository;
 
-    /** Teto indexado por código, para validar os acessos de um grupo. */
+    /** Telas e controles indexados por código, para validar e gravar acessos. */
     public record Teto(Map<String, Tela> telas, Map<String, Controle> controles) {
     }
 
@@ -37,30 +40,52 @@ public class CatalogoPermissaoService {
                 indexar(controleRepository.findNoTetoDoPerfil(perfil), Controle::getCodigo));
     }
 
+    /** Tudo o que está ativo no catálogo, de todos os perfis: o limite do acesso individual. */
+    @Transactional(readOnly = true)
+    public Teto todos() {
+        return new Teto(
+                indexar(telaRepository.findAtivas(), Tela::getCodigo),
+                indexar(controleRepository.findAtivos(), Controle::getCodigo));
+    }
+
+    /** O que um grupo do perfil pode receber: o teto. */
     @Transactional(readOnly = true)
     public CatalogoPermissaoDto catalogo(PerfilNome perfil) {
         var teto = teto(perfil);
+        return montar(perfil, teto, teto);
+    }
 
-        Map<String, List<ControleCatalogoDto>> controlesPorTela = teto.controles().values().stream()
+    /**
+     * O que o acesso individual de uma pessoa no perfil pode receber: o catálogo
+     * inteiro, com o que é de fora do teto marcado (doPerfil falso).
+     */
+    @Transactional(readOnly = true)
+    public CatalogoPermissaoDto catalogoIndividual(PerfilNome perfil) {
+        return montar(perfil, todos(), teto(perfil));
+    }
+
+    private CatalogoPermissaoDto montar(PerfilNome perfil, Teto itens, Teto tetoDoPerfil) {
+        Map<String, List<ControleCatalogoDto>> controlesPorTela = itens.controles().values().stream()
                 .filter(c -> c.getTela() != null)
                 .collect(Collectors.groupingBy(c -> c.getTela().getCodigo(), LinkedHashMap::new,
-                        Collectors.mapping(this::paraDto, Collectors.toList())));
+                        Collectors.mapping(c -> paraDto(c, tetoDoPerfil), Collectors.toList())));
 
-        var telas = teto.telas().values().stream()
+        var telas = itens.telas().values().stream()
                 .map(t -> new TelaCatalogoDto(t.getCodigo(), t.getNome(), t.getRota(),
                         Boolean.TRUE.equals(t.getExibirMenu()),
+                        tetoDoPerfil.telas().containsKey(t.getCodigo()),
                         controlesPorTela.getOrDefault(t.getCodigo(), List.of())))
                 .toList();
 
-        var controlesGerais = teto.controles().values().stream()
+        var controlesGerais = itens.controles().values().stream()
                 .filter(c -> c.getTela() == null)
-                .map(this::paraDto)
+                .map(c -> paraDto(c, tetoDoPerfil))
                 .toList();
 
-        // Só as dependências de itens que o perfil pode receber: as outras não
-        // interessam a quem monta um grupo deste perfil.
-        var codigos = new HashSet<>(teto.telas().keySet());
-        codigos.addAll(teto.controles().keySet());
+        // Só as dependências de itens que podem ser concedidos aqui: as outras
+        // não interessam a quem está montando estes acessos.
+        var codigos = new HashSet<>(itens.telas().keySet());
+        codigos.addAll(itens.controles().keySet());
         Map<String, List<String>> dependencias = new TreeMap<>();
         DependenciasPermissao.todas().forEach((item, exigidos) -> {
             if (codigos.contains(item)) {
@@ -71,8 +96,10 @@ public class CatalogoPermissaoService {
         return new CatalogoPermissaoDto(perfil, telas, controlesGerais, dependencias);
     }
 
-    private ControleCatalogoDto paraDto(Controle controle) {
-        return new ControleCatalogoDto(controle.getCodigo(), controle.getNome(), controle.getDescricao());
+    private static ControleCatalogoDto paraDto(Controle controle, Teto tetoDoPerfil) {
+        return new ControleCatalogoDto(controle.getCodigo(), controle.getNome(), controle.getDescricao(),
+                tetoDoPerfil.controles().containsKey(controle.getCodigo()),
+                ControlesSensiveis.contem(controle.getCodigo()));
     }
 
     /** Mantém a ordem das consultas (por nome). */

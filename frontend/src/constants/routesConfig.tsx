@@ -748,6 +748,42 @@ export const ROUTES: RouteConfig[] = ROTAS.map((rota) =>
 export type FiltroDeRota = (rota: RouteConfig) => boolean;
 const TODAS: FiltroDeRota = () => true;
 
+/** Aceita um perfil ou a lista de perfis de quem acumula mais de um. */
+type PerfilOuPerfis = UserRoleEnum | UserRoleEnum[];
+
+function comoLista(role: PerfilOuPerfis): UserRoleEnum[] {
+  return Array.isArray(role) ? role : [role];
+}
+
+/** A rota aparece se QUALQUER perfil da pessoa a autoriza. */
+function autorizada(rotaRoles: UserRoleEnum[], role: PerfilOuPerfis): boolean {
+  return comoLista(role).some((perfil) => rotaRoles.includes(perfil));
+}
+
+/**
+ * Entrada que o perfil usa emprestada: a tela não é dele no routesConfig, mas
+ * foi liberada no acesso individual (docs/permissoes.md, D22). Vale a entrada
+ * que a rota tem no menu de outro perfil (a primeira com isShowMenu), com o
+ * ícone e o módulo de lá. Rota livre não se empresta: ela é guardada só pelo
+ * perfil.
+ */
+function emprestada(route: RouteConfig, role: PerfilOuPerfis): boolean {
+  if (route.livre) return false;
+  const daRota = ROUTES.filter((r) => r.router === route.router);
+  if (daRota.some((r) => autorizada(r.roles, role))) return false;
+  return (daRota.find((r) => r.isShowMenu) ?? daRota[0]) === route;
+}
+
+/**
+ * A entrada vale para o perfil: é dele, ou é emprestada e o filtro a libera.
+ * Sem filtro (TODAS) nada é emprestado: sem as permissões, não há como saber
+ * o que foi liberado fora do perfil.
+ */
+function daVez(route: RouteConfig, role: PerfilOuPerfis, pode: FiltroDeRota): boolean {
+  if (autorizada(route.roles, role)) return pode(route);
+  return pode !== TODAS && emprestada(route, role) && pode(route);
+}
+
 const CODIGO_POR_ROTA = new Map<string, TelaCodigo>(
   Object.entries(RoutesEnum).map(([codigo, rota]) => [rota, codigo as TelaCodigo]),
 );
@@ -780,9 +816,7 @@ export function rotaPermitidaDoPerfil(perfil: UserRoleEnum, pode: FiltroDeRota):
     (rota) => rota.router === rotaInicialDoPerfil(perfil) && rota.roles.includes(perfil),
   );
   if (inicial && pode(inicial)) return inicial.router;
-  const primeira = ROUTES.find(
-    (rota) => rota.isShowMenu && rota.roles.includes(perfil) && pode(rota),
-  );
+  const primeira = ROUTES.find((rota) => rota.isShowMenu && daVez(rota, perfil, pode));
   return primeira?.router ?? RoutesEnum.SEM_ACESSO;
 }
 
@@ -791,35 +825,22 @@ export function getAllowedRoutes(role: UserRoleEnum): string[] {
 }
 
 export function getMenuRoutes(role: UserRoleEnum, pode: FiltroDeRota = TODAS): RouteConfig[] {
-  return ROUTES.filter((route) => route.roles.includes(role) && route.isShowMenu && pode(route));
+  return ROUTES.filter((route) => route.isShowMenu && daVez(route, role, pode));
 }
 
 /**
  * Gera dinamicamente os módulos baseados nas rotas disponíveis para o role
  */
-/** Aceita um perfil ou a lista de perfis de quem acumula mais de um. */
-type PerfilOuPerfis = UserRoleEnum | UserRoleEnum[];
-
-function comoLista(role: PerfilOuPerfis): UserRoleEnum[] {
-  return Array.isArray(role) ? role : [role];
-}
-
-/** A rota aparece se QUALQUER perfil da pessoa a autoriza. */
-function autorizada(rotaRoles: UserRoleEnum[], role: PerfilOuPerfis): boolean {
-  return comoLista(role).some((perfil) => rotaRoles.includes(perfil));
-}
-
 export function getMenuModules(role: PerfilOuPerfis, pode: FiltroDeRota = TODAS): MenuModule[] {
   // Obtém todos os módulos únicos das rotas visíveis para o role
   const modulesSet = new Set<RoutesModuleEnum>();
 
   ROUTES.forEach((route) => {
     if (
-      autorizada(route.roles, role) &&
       route.isShowMenu &&
       route.moduleMenu !== null &&
       route.moduleMenu !== undefined &&
-      pode(route)
+      daVez(route, role, pode)
     ) {
       modulesSet.add(route.moduleMenu);
     }
@@ -858,11 +879,7 @@ export function getRoutesByModule(
   pode: FiltroDeRota = TODAS,
 ): RouteConfig[] {
   return ROUTES.filter(
-    (route) =>
-      autorizada(route.roles, role) &&
-      route.isShowMenu &&
-      route.moduleMenu === moduleId &&
-      pode(route),
+    (route) => route.isShowMenu && route.moduleMenu === moduleId && daVez(route, role, pode),
   );
 }
 
@@ -875,10 +892,9 @@ export function getRoutesWithoutModule(
 ): RouteConfig[] {
   const visiveis = ROUTES.filter(
     (route) =>
-      autorizada(route.roles, role) &&
       route.isShowMenu &&
       (route.moduleMenu === null || route.moduleMenu === undefined) &&
-      pode(route),
+      daVez(route, role, pode),
   );
 
   // A mesma rota e registrada uma vez por perfil (padrao do arquivo). Quem

@@ -2,7 +2,7 @@
 
 > **Para quem implementa:** esta spec define o modelo de dados, a migration inicial, o cálculo da permissão efetiva e como backend e frontend passam a consultá-la. É a fonte da verdade para a migration e para as regras. As decisões de produto foram tomadas em 02/10/2026 e revistas em 05/10/2026, depois que o DIRETOR passou a usar as telas do ADMIN (commit `f2c7c91`) (seção 2).
 >
-> **Estado (08/10/2026):** na branch `feature/permissoes-grupos`, as permissões valem no frontend: o menu, a guarda de rota e os botões e seções das telas leem `GET /permissoes/me`. O vínculo automático ao grupo padrão no cadastro também já funciona. Ainda falta o backend recusar o que o grupo não libera, na fase F3 (seção 11). A tela de grupos (`/grupos-usuarios`) está pronta desde 06/10. A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15.
+> **Estado (08/10/2026):** na branch `feature/permissoes-grupos`, as permissões valem no frontend: o menu, a guarda de rota e os botões e seções das telas leem `GET /permissoes/me`. O vínculo automático ao grupo padrão no cadastro também já funciona. Ainda falta o backend recusar o que o grupo não libera, na fase F3 (seção 11). A tela de grupos (`/grupos-usuarios`) está pronta desde 06/10, e os acessos individuais (seção 4.1, migration V112) desde 15/10. O acesso individual pode liberar qualquer tela do sistema, e as áreas do backend que já eram restritas por perfil passaram a aceitar também quem tem a tela liberada (D22–D26). A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15.
 
 ---
 
@@ -38,6 +38,15 @@ Na implantação, cada perfil ganha um grupo padrão com tudo o que já acessa h
 | D15 (08/10) | Não haverá migration para pôr nos grupos quem ficou de fora. Quem ficou sem grupo num perfil é vinculado à mão, pela tela de grupos; até lá, não abre as telas desse perfil. | Seção 8.4, com a consulta que lista quem está sem grupo. |
 | D16 (08/10) | O vínculo automático ao grupo padrão no cadastro (D2) entra junto com a ativação no frontend, e a D11 deixa de valer. | Sem ele, toda pessoa cadastrada depois da ativação cairia em `/sem-acesso`. Seção 8.4. |
 | D17 (08/10) | As permissões entram em vigor sem chave de ativação. | O seed da V111 reproduz o acesso de antes, então quem está no grupo padrão não percebe a mudança. Uma chave obrigaria a manter as duas lógicas, por perfil e por grupo, enquanto existisse. |
+| D18 (15/10) | Uma pessoa pode ter acessos individuais, além dos grupos dela. O acesso individual é um grupo de uma pessoa só, marcado por `grupos_usuarios.dados_pessoais_id`. | Soma pela mesma regra dos grupos (RP1). `/permissoes/me`, o hook, a guarda de tela e a futura checagem no backend não mudam. Seção 4.1. |
+| D19 (15/10) | O acesso individual fica dentro do teto do perfil, como um grupo. **Substituída pela D22.** | — |
+| D20 (15/10) | O acesso individual só soma; não retira o que um grupo dá. | Para tirar algo de uma pessoa, monta-se outro grupo sem aquilo e ela muda de grupo. |
+| D21 (15/10) | O acesso individual é configurado pela aba Pessoas do grupo, numa página da pessoa que mostra o que já vem dos grupos. Ele vale mesmo para quem não está em nenhum grupo do perfil, e não tem data de validade. | Seção 9.5. A D2 passa a ser lida como "sem grupo nem acesso individual, sem acesso". |
+| D22 (15/10) | O acesso individual pode liberar qualquer tela ou controle ativo do sistema, de qualquer perfil, inclusive as telas pessoais (Minhas turmas, Contracheque, as do responsável...). Os grupos normais continuam presos ao teto. | O grupo individual não tem teto: a RV3 vale só para grupos normais, e a consulta da seção 5 não filtra o teto dele. As telas pessoais abrem vazias para quem não é professor, aluno ou responsável. |
+| D23 (15/10) | Situação familiar e atendimento psicológico também podem ser liberados no acesso individual, com o aviso "Dado sensível" na linha. | `ControlesSensiveis`, no código. A D9 continua: o ADMIN não os recebe pelo teto. |
+| D24 (15/10) | Na página individual, a lista continua única e em ordem alfabética; o que é de fora do perfil leva a etiqueta "De outro perfil". | O catálogo traz `doPerfil` em telas e controles. |
+| D25 (15/10) | O middleware passa a exigir só o login para as telas do catálogo; quem decide é a guarda de tela, pelas permissões. Rotas livres continuam presas ao perfil, e rota fora do `routesConfig` continua bloqueada. | Seção 9.3. Quem digita a URL de uma tela que não tem vê um carregamento e é redirecionado pela guarda. |
+| D26 (15/10) | As áreas que o backend restringia por perfil (`/crm/**`, `/bolsas/**`, `/simulacoes/**`, `/documentos/**`, `/documentos-escolares/**`) aceitam "o perfil de antes OU uma das telas que as usam liberada". | Só libera: não é o bloqueio da F3. O portal do responsável e a configuração de bolsas continuam só por perfil. Seção 8.2. |
 
 ## 3. Conceitos e regras
 
@@ -103,6 +112,7 @@ erDiagram
     controles ||--o{ grupos_usuarios_controles : ""
     grupos_usuarios ||--o{ dados_pessoais_grupos_usuarios : "membros"
     dados_pessoais ||--o{ dados_pessoais_grupos_usuarios : ""
+    dados_pessoais |o--o{ grupos_usuarios : "individual"
 ```
 
 | Tabela | Dono | Papel |
@@ -111,7 +121,7 @@ erDiagram
 | `telas_perfis` | código | Teto: perfis que podem receber a tela. O ADMIN recebe exatamente as linhas do perfil ADMIN. Tela sem nenhuma linha aqui não é de ninguém. |
 | `controles` | código | Catálogo de controles. `tela_id` nulo indica controle de dado. |
 | `controles_perfis` | código | Teto do controle. |
-| `grupos_usuarios` | escola | Grupo de um perfil. A coluna `padrao` marca o grupo padrão. |
+| `grupos_usuarios` | escola | Grupo de um perfil. A coluna `padrao` marca o grupo padrão; `dados_pessoais_id`, quando preenchida, marca o grupo individual daquela pessoa (seção 4.1). |
 | `grupos_usuarios_telas` | escola | Telas concedidas ao grupo. |
 | `grupos_usuarios_controles` | escola | Controles concedidos ao grupo. |
 | `dados_pessoais_grupos_usuarios` | escola | Pessoas do grupo. |
@@ -132,6 +142,19 @@ erDiagram
 - **RV7:** o grupo padrão não pode ser excluído nem desativado, e não perde a marcação de padrão. Nenhum endpoint cria grupo padrão.
 - **RV8:** excluir um grupo remove os vínculos pelo JPA, e não por cascade no banco, para que o Envers registre a remoção.
 
+### 4.1 Acessos individuais (D18–D21)
+
+O acesso individual de uma pessoa num perfil é um grupo comum, com `dados_pessoais_id` apontando para ela. Ela também entra como membro dele, então as consultas da seção 5 já o somam aos grupos dela, sem nenhuma mudança. Uma coluna vazia é um grupo normal.
+
+- **RV9:** cada pessoa tem no máximo um grupo individual por perfil (UK `perfil_id, dados_pessoais_id`).
+  - Ele é criado no primeiro acesso individual dado e apagado (pelo JPA, como na RV8) quando fica sem nenhum acesso.
+  - O nome é gerado ("Individual: Ana Souza (42)"); o id desempata pessoas com o mesmo nome, porque a UK de nome por perfil continua valendo.
+  - Os endpoints de grupo normal não o enxergam: o id dele responde 404, ele não aparece na lista, não é duplicado e não recebe outros membros.
+- **RV2 e RV6 valem para ele:** não há acesso individual de ADMIN, e só recebe quem tem o perfil.
+- **A RV3 não vale (D22):** o limite é o catálogo inteiro (`CatalogoPermissaoService.todos()`), e não o teto do perfil. Código que não existe ou está inativo é recusado.
+- **RV4 e RV5 valem dentro do próprio conjunto individual**, mesmo que um grupo da pessoa já dê o item exigido. Exemplo: liberar individualmente "Ver ficha médica" guarda também a tela "Detalhe do aluno" no grupo individual, ainda que o grupo dela já tenha essa tela. Assim o acesso individual continua funcionando se o grupo mudar depois. Para a pessoa, essa dependência não é um acesso a mais, e a tela e o contador não a contam.
+- **Sem `ON DELETE CASCADE`** na chave para `dados_pessoais`, como nos vínculos da V111. O sistema não apaga pessoas.
+
 ## 5. Permissão efetiva
 
 São duas consultas por pessoa: uma para telas e outra para controles.
@@ -149,10 +172,13 @@ JOIN dados_pessoais_perfis dpp ON dpp.dados_pessoais_id = m.dados_pessoais_id
 JOIN perfis p                  ON p.id = g.perfil_id
 JOIN grupos_usuarios_telas gt  ON gt.grupo_usuario_id = g.id
 JOIN telas t                   ON t.id = gt.tela_id AND t.ativo = TRUE
-JOIN telas_perfis tp           ON tp.tela_id = t.id
-                              AND tp.perfil_id = g.perfil_id       -- dentro do teto
-WHERE m.dados_pessoais_id = :dadosPessoaisId;
+WHERE m.dados_pessoais_id = :dadosPessoaisId
+  AND (g.dados_pessoais_id IS NOT NULL                             -- individual: sem teto (D22)
+       OR EXISTS (SELECT 1 FROM telas_perfis tp
+                  WHERE tp.tela_id = t.id AND tp.perfil_id = g.perfil_id));  -- dentro do teto
 ```
+
+O grupo individual (seção 4.1) entra nessa consulta como qualquer outro grupo da pessoa.
 
 Para o perfil ADMIN, a consulta é só o teto, sem grupo (RP4). Ela vale para quem tem o perfil ADMIN:
 
@@ -741,6 +767,33 @@ JOIN grupos_usuarios g ON g.perfil_id = dpp.perfil_id AND g.padrao = TRUE;
 
 </details>
 
+### 7.1 Acessos individuais (V112)
+
+O arquivo é `V112__grupos-usuarios-individuais.sql`. Ficou numa migration separada, em vez de entrar na V111, porque um banco que já rodou a V111 recusaria a versão alterada (o Flyway confere o checksum). Rodou em H2 (testes) e em PostgreSQL 18.
+
+```sql
+-- Acessos individuais (docs/permissoes.md, D18–D21).
+--
+-- Um grupo com dados_pessoais_id preenchido é o grupo individual daquela pessoa
+-- no perfil: os acessos dele somam aos dos grupos normais pela mesma regra
+-- (RP1), porque a pessoa também entra como membro. Coluna vazia = grupo normal.
+--
+-- Sem ON DELETE CASCADE, como os vínculos da V111: telas e controles do grupo
+-- saem pelo JPA, para o Envers registrar. O sistema não apaga pessoas.
+
+ALTER TABLE grupos_usuarios ADD COLUMN dados_pessoais_id BIGINT;
+
+ALTER TABLE grupos_usuarios ADD CONSTRAINT fk_grupos_usuarios_individual
+    FOREIGN KEY (dados_pessoais_id) REFERENCES dados_pessoais(id);
+
+-- Um grupo individual por pessoa em cada perfil. Nos grupos normais a coluna é
+-- nula, e nulos não se repetem para um UNIQUE (PostgreSQL e H2).
+ALTER TABLE grupos_usuarios ADD CONSTRAINT uk_grupos_usuarios_individual
+    UNIQUE (perfil_id, dados_pessoais_id);
+
+ALTER TABLE grupos_usuarios_AUD ADD COLUMN dados_pessoais_id BIGINT;
+```
+
 ## 8. Backend
 
 ### 8.1 Componentes
@@ -760,13 +813,15 @@ Tudo fica no pacote `br.com.brain.permissao`.
 - **`CodigosPermissao`:** constantes Java dos códigos usados no backend.
 - **`DependenciasPermissao`:** o mapa da seção 6.4.
 - **`GrupoPadraoService.vincular(DadosPessoais, PerfilNome)`:** o vínculo automático da seção 8.4.
+- **`PerfilOuTela` (15/10):** monta as regras de URL "perfil OU tela" da D26. Testa o perfil primeiro, com a mesma hierarquia de perfis do `SecurityConfigurations` (o diretor entra onde a secretaria entra), e só então consulta `PermissoesUsuarioService.temAlgumaTela`, que olha a união dos perfis da pessoa.
+- **`ControlesSensiveis` (15/10):** os controles de dado sensível da D23.
 
 ### 8.2 Endpoints
 
 | Método e rota | Quem | Faz |
 |---|---|---|
 | `GET /permissoes/me` | autenticado | Permissões efetivas por perfil (formato abaixo). |
-| `GET /permissoes/catalogo?perfil=` | ADMIN, DIRETOR | Telas e controles do teto do perfil, agrupados por tela, mais as dependências. |
+| `GET /permissoes/catalogo?perfil=&individual=` | ADMIN, DIRETOR | Telas e controles do teto do perfil, agrupados por tela, mais as dependências. Com `individual=true`, o sistema inteiro (D22); cada tela e controle traz `doPerfil` (está no teto) e cada controle traz `sensivel`. |
 | `GET /grupos-usuarios?perfil=` | ADMIN, DIRETOR | Lista de grupos, com as contagens de pessoas, telas e controles. |
 | `POST /grupos-usuarios` | ADMIN, DIRETOR | Cria um grupo (perfil, nome, descrição), ainda sem acessos. |
 | `GET /grupos-usuarios/{id}` | ADMIN, DIRETOR | Detalhe do grupo, com os códigos concedidos. |
@@ -774,10 +829,12 @@ Tudo fica no pacote `br.com.brain.permissao`.
 | `PUT /grupos-usuarios/{id}/acessos` | ADMIN, DIRETOR | Substitui todas as telas e controles do grupo de uma vez (lista de códigos). |
 | `POST /grupos-usuarios/{id}/duplicar` | ADMIN, DIRETOR | Cria um grupo do mesmo perfil com os mesmos acessos (o que ainda estiver no teto), sem as pessoas. |
 | `DELETE /grupos-usuarios/{id}` | ADMIN, DIRETOR | Exclui um grupo que não seja padrão. |
-| `GET /grupos-usuarios/{id}/membros?busca=` | ADMIN, DIRETOR | Pessoas do grupo, paginadas e ordenadas por nome; busca por nome, nome social ou e-mail. |
+| `GET /grupos-usuarios/{id}/membros?busca=` | ADMIN, DIRETOR | Pessoas do grupo, paginadas e ordenadas por nome; busca por nome, nome social ou e-mail. Cada uma vem com `acessosIndividuais`: quantas telas e ações ela tem além dos grupos ativos, no perfil do grupo. |
 | `GET /grupos-usuarios/{id}/candidatos?busca=` | ADMIN, DIRETOR | Pessoas com login e com o perfil do grupo que ainda não estão nele. |
 | `POST /grupos-usuarios/{id}/membros` | ADMIN, DIRETOR | Adiciona pessoas (`dadosPessoaisIds`). |
 | `DELETE /grupos-usuarios/{id}/membros/{dadosPessoaisId}` | ADMIN, DIRETOR | Remove uma pessoa do grupo. |
+| `GET /grupos-usuarios/individuais/{dadosPessoaisId}?perfil=` | ADMIN, DIRETOR | Acessos individuais da pessoa no perfil, os grupos dela e o que eles já dão (`herdados`: código → nomes dos grupos ativos). |
+| `PUT /grupos-usuarios/individuais/{dadosPessoaisId}?perfil=` | ADMIN, DIRETOR | Substitui os acessos individuais (lista de códigos, como em `…/acessos`). Lista vazia apaga o grupo individual. |
 
 Resposta de `GET /permissoes/me`:
 
@@ -794,6 +851,18 @@ Resposta de `GET /permissoes/me`:
 - O ADMIN vem no mesmo formato, com as listas do teto do perfil. O frontend não trata o superusuário como caso especial: só lê as listas.
 - `gerenciaPermissoes` é verdadeiro para quem tem ADMIN ou DIRETOR.
 - **Como está hoje:** a restrição a ADMIN e DIRETOR de `/grupos-usuarios/**` e `/permissoes/catalogo` é uma regra de URL no `SecurityConfigurations`, acima do `permitAll("/**")`, no estilo das regras que já existem ali. O `@EnableMethodSecurity` continua para a fase F3.
+- **Regras "perfil OU tela" (D26):** no mesmo lugar, as áreas abaixo trocaram o `hasRole`/`hasAnyRole` por `perfilOuTela.regra(perfis, telas...)`. As telas são as que chamam a área no frontend.
+
+  | Área | Perfis (como antes) | Ou uma destas telas |
+  |---|---|---|
+  | `/crm/**` | SECRETARIO | `SECRETARIA_CRM` |
+  | `/bolsas/**` | SECRETARIO, COORDENADOR, DIRETOR, ADMIN | `SECRETARIA_CRM` (bloco de bolsa) |
+  | `GET /simulacoes/**` | os mesmos e RESPONSAVEL | `SECRETARIA_CRM` |
+  | `/simulacoes/**` (escrita) | SECRETARIO, COORDENADOR, DIRETOR, ADMIN | `SECRETARIA_CRM` |
+  | `/documentos/**` | SECRETARIO, COORDENADOR, DIRETOR, ADMIN | `SECRETARIA_DOCUMENTOS`, `SECRETARIA_MATRICULAS`, `SECRETARIA_CRM` |
+  | `/documentos-escolares/**` | SECRETARIO, COORDENADOR, DIRETOR, ADMIN | `SECRETARIA_DOCUMENTOS` |
+
+  Ficam só por perfil: `/portal-responsavel/**`, porque mostra os filhos de quem está logado e não tem o que mostrar a outra pessoa; e `/bolsas/configuracao/**`, que nenhuma tela chama.
 - `GET /permissoes/me` existe desde 08/10 e exige login, com uma regra `authenticated()` no mesmo lugar.
 - Recusas de regra (RV2–RV7) respondem 422 com a explicação em `message`; nome repetido responde 409.
 
@@ -888,7 +957,7 @@ Hoje não existe remoção de perfil no código. Se ela vier a existir, não ser
 - **`GrupoUsuarioService`:** as validações RV1–RV8.
 - **Controllers:** para cada linha da tabela 6.3, 403 sem o controle e 200 com ele.
 
-**Já existem (08/10):** `PermissoesUsuarioServiceIntegracaoTest` cobre o cálculo de `/permissoes/me`: grupo padrão, sem grupo, grupo inativo, perfil perdido, dois perfis, item fora do teto, ADMIN com o teto inteiro, DIRETOR por grupo, vínculo no cadastro e vínculo repetido. `PermissaoControllerTest` cobre o login exigido e o formato da resposta.
+**Já existem (08/10):** `PermissoesUsuarioServiceIntegracaoTest` cobre o cálculo de `/permissoes/me`: grupo padrão, sem grupo, grupo inativo, perfil perdido, dois perfis, item fora do teto, ADMIN com o teto inteiro, DIRETOR por grupo, vínculo no cadastro e vínculo repetido. `PermissaoControllerTest` cobre o login exigido e o formato da resposta. Desde 15/10, `AcessosIndividuaisIntegracaoTest` cobre a seção 4.1: soma com o grupo, valer sem grupo, grupo inativo, as regras de um grupo, as recusas, o grupo individual apagado quando fica vazio e escondido dos endpoints de grupo, o contador da aba Pessoas e pessoas com o mesmo nome. Depois da D22, cobre também passar do teto (com dado sensível), o grupo normal ainda preso ao teto e o catálogo individual. `PerfilOuTelaTest` cobre a D26 pelo CRM: secretaria e diretor entram pelo perfil; o professor só entra depois de ganhar a tela.
 
 ## 9. Frontend
 
@@ -918,7 +987,8 @@ podeControle(CONTROLES.EVENTO_GERENCIAR);
 
 - **Código da tela = chave do `RoutesEnum`.** O `codigoDaTela(rota)` deriva o código do `router` de cada entrada, então não precisa de campo novo. As entradas fora do catálogo ganham `livre: true`: início, perfil próprio, `/grupos-usuarios`, `/sem-acesso` e as entradas ainda sem página (`/usuarios`, `/configuracoes`, `/ficha-medica/cadastro`, `/dashAluno/inicio`, seção 6.2).
 - **Menu (perfil ativo).** `getMenuRoutes`, `getRoutesByModule`, `getRoutesWithoutModule` e `getMenuModules` recebem o predicado `podeVerRota` do `usePermissoes`: `rota.livre || telas do perfil ativo têm o código`. O filtro por `roles` continua, porque define a variante da tela por perfil.
-- **Middleware (edge).** Continua checando login, expiração do token e perfil, porque não tem acesso às permissões. A única mudança é a rota inicial, que vem de `rotaInicialDoPerfil` (o DIRETOR vai para `/admin`, como o ADMIN).
+  - **Entrada emprestada (D22):** se o perfil ativo ganhou uma tela que não tem entrada para ele no `routesConfig`, vale a entrada que a rota tem no menu de outro perfil (a primeira com `isShowMenu`), com o ícone e o módulo de lá. Uma lista de alunos liberada para a secretaria aparece em "Cadastros", como no ADMIN. Rota livre não se empresta, e sem o predicado (sem as permissões) nada é emprestado.
+- **Middleware (edge, D25).** Continua checando login e expiração do token, mas não as telas, que ele não conhece: tela do catálogo passa só com o login, e a guarda decide. Rota livre continua presa ao perfil (`roles`), e rota fora do `routesConfig` continua bloqueada para todos. A rota inicial vem de `rotaInicialDoPerfil` (o DIRETOR vai para `/admin`, como o ADMIN).
 - **Guarda de tela (união dos perfis).** O `GuardaDeTela`, no layout privado, resolve a rota atual pelo **prefixo mais longo** (`findRouteByPath`) e exige que a tela esteja liberada em **algum** perfil da pessoa, como o middleware e o backend fazem. O menu mostra só o perfil ativo, mas uma URL digitada de outro perfil da mesma pessoa abre.
   - Enquanto as permissões carregam, ele mostra um carregamento sem renderizar a página.
   - Tela não liberada: redireciona com `rotaPermitidaDoPerfil(perfilAtivo)`. Vai para a rota inicial do perfil, se ela estiver liberada; senão, para a primeira rota de menu liberada; senão, para `/sem-acesso`. Como nunca devolve uma rota bloqueada, não há loop quando a rota inicial (ex.: `/secretaria/matriculas`) não foi concedida.
@@ -970,7 +1040,20 @@ Continuam decididos por perfil (RP7):
   - os controles sem tela (`ALUNO.DADOS_PESSOAIS.VER`, `ALUNO.EDITAR`) ficam num bloco ao fim da lista, "Valem em qualquer tela";
   - as dependências são marcadas automaticamente e aparecem em linguagem simples ("Para funcionar, precisa de: …");
   - salvar envia tudo de uma vez (`PUT …/acessos`). Enquanto houver alteração, a barra com Descartar e Salvar fica fixa no rodapé e mostra o que foi marcado ou desmarcado junto.
-- **Aba Pessoas:** mostra os membros e uma busca de candidatos (só quem tem o perfil). Ao remover alguém do único grupo que a pessoa tem naquele perfil, a tela avisa que ela ficará sem acesso às telas do perfil (D2).
+- **Aba Pessoas:** mostra os membros e uma busca de candidatos (só quem tem o perfil). Ao remover alguém, a tela avisa que, sem outro grupo do perfil, a pessoa fica só com os acessos individuais que tiver (D2, D21).
+  - Quem tem acesso individual ganha o selo "+2 individuais", que conta só o que ela tem além dos grupos ativos.
+  - Cada linha tem o botão "Acessos individuais", que abre a página da pessoa.
+
+**Acessos individuais (`/grupos-usuarios/[id]/pessoas/[dadosPessoaisId]`):**
+
+- O perfil é o do grupo de onde se chegou. Os acessos individuais valem pelo perfil, e não pelo grupo: abrir pela aba Pessoas de outro grupo do mesmo perfil mostra a mesma coisa.
+- Mostra os grupos da pessoa no perfil, com links (os inativos marcados) e, se ela não tiver nenhum grupo ativo, avisa que só os acessos individuais valem.
+- Usa a mesma lista da aba Acessos (`EditorAcessos`), com o catálogo inteiro do sistema (D22), numa lista única em ordem alfabética (D24):
+  - o que é de fora do perfil leva a etiqueta "De outro perfil", e os controles de dado sensível levam "Dado sensível" (D23). Esta segunda etiqueta aparece também nos grupos da orientação;
+  - o que já vem de um grupo aparece marcado, travado e com "Vem do grupo …". Ao passar o mouse, o tooltip diz "Bloqueada: esta tela já está liberada no grupo …. Para mudar, edite o grupo.";
+  - as ações de uma tela que vem do grupo podem ser marcadas sem liberar a tela de novo.
+- Não há "Liberar todas" nem "Retirar todas": acesso individual é exceção de poucos itens.
+- O contador mostra só os individuais ("Individuais: 1 tela e 1 ação").
 - **Ações:**
   - **Duplicar** cria um grupo novo com os mesmos acessos. É o jeito rápido de montar um grupo restrito a partir do padrão.
   - **Desativar** e **Excluir** não aparecem no grupo padrão.
@@ -1056,4 +1139,6 @@ O seed reproduz o comportamento de hoje, inclusive nestes pontos. Cada um é uma
 - Recorte de dados por unidade (D7).
 - Regras por perfil e por dono do dado (RP7).
 - Cadastro de diretor com login. É pré-requisito da seção 9.6 e merece uma spec própria.
+- Acesso individual que retira o que um grupo dá (D20) ou que vence numa data (D21).
+- Fazer as telas pessoais funcionarem para quem não é o dono do dado (D22): Minhas turmas, Contracheque e Diário dependem de a pessoa ser professor; Minhas aulas, de ser aluno; e as telas do responsável, de ter filhos vinculados.
 - Tela de usuários (`/usuarios` está no menu do ADMIN, mas não tem página).

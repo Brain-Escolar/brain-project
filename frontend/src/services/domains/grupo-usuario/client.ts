@@ -10,6 +10,7 @@ import {
   DuplicacaoGrupoUsuarioRequest,
 } from "./request";
 import {
+  AcessosIndividuaisResponse,
   CatalogoPermissoesResponse,
   GrupoUsuarioDetalheResponse,
   GrupoUsuarioListaResponse,
@@ -77,7 +78,27 @@ export class GrupoUsuarioApi {
     return httpClient.delete(`${BASE_ROUTE}/${id}/membros/${dadosPessoaisId}`);
   }
 
-  catalogo(perfil: PerfilNomeEnum): Promise<CatalogoPermissoesResponse> {
-    return httpClient.get("permissoes/catalogo", { params: { perfil } });
+  /** O que a pessoa tem além dos grupos, no perfil, e o que os grupos já dão. */
+  acessosIndividuais(
+    dadosPessoaisId: number,
+    perfil: PerfilNomeEnum,
+  ): Promise<AcessosIndividuaisResponse> {
+    return httpClient.get(`${BASE_ROUTE}/individuais/${dadosPessoaisId}`, { params: { perfil } });
+  }
+
+  /** Conjunto completo: substitui os acessos individuais. Vazio apaga todos. */
+  salvarAcessosIndividuais(
+    dadosPessoaisId: number,
+    perfil: PerfilNomeEnum,
+    dados: AcessosGrupoUsuarioRequest,
+  ): Promise<AcessosIndividuaisResponse> {
+    return httpClient.put(`${BASE_ROUTE}/individuais/${dadosPessoaisId}`, dados, {
+      params: { perfil },
+    });
+  }
+
+  /** O teto do perfil; com individual, o sistema inteiro, com o que é de fora marcado. */
+  catalogo(perfil: PerfilNomeEnum, individual = false): Promise<CatalogoPermissoesResponse> {
+    return httpClient.get("permissoes/catalogo", { params: { perfil, individual } });
   }
 }

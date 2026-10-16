@@ -75,8 +75,11 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.gruposUsuarios.all, "membros", id, busca, page] as const,
     candidatos: (id: number, busca: string, page: number) =>
       [...QUERY_KEYS.gruposUsuarios.all, "candidatos", id, busca, page] as const,
+    individuais: (dadosPessoaisId: number, perfil: string) =>
+      [...QUERY_KEYS.gruposUsuarios.all, "individuais", dadosPessoaisId, perfil] as const,
     // Fora de "all": o catálogo só muda por migration, salvar um grupo não o invalida.
-    catalogo: (perfil: string) => ["catalogoPermissoes", perfil] as const,
+    catalogo: (perfil: string, individual: boolean) =>
+      ["catalogoPermissoes", perfil, individual ? "individual" : "teto"] as const,
   },
   gruposDisciplina: {
     all: ["gruposDisciplina"] as const,

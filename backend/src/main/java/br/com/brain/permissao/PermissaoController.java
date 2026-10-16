@@ -31,9 +31,14 @@ public class PermissaoController {
         return ResponseEntity.ok(permissoesUsuarioService.doUsuario(usuario));
     }
 
-    /** Telas e controles que um grupo do perfil pode receber. Restrito a ADMIN e DIRETOR. */
+    /**
+     * Telas e controles que um grupo do perfil pode receber (o teto). Com
+     * individual=true, o catálogo inteiro, para o acesso individual de uma
+     * pessoa no perfil (D22). Restrito a ADMIN e DIRETOR.
+     */
     @GetMapping("/catalogo")
-    public ResponseEntity<CatalogoPermissaoDto> catalogo(@RequestParam PerfilNome perfil) {
-        return ResponseEntity.ok(catalogoService.catalogo(perfil));
+    public ResponseEntity<CatalogoPermissaoDto> catalogo(@RequestParam PerfilNome perfil,
+            @RequestParam(defaultValue = "false") boolean individual) {
+        return ResponseEntity.ok(individual ? catalogoService.catalogoIndividual(perfil) : catalogoService.catalogo(perfil));
     }
 }

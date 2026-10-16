@@ -1,5 +1,5 @@
 import { MiddlewareConfig, NextRequest, NextResponse } from "next/server";
-import { getAllowedRoutes, rotaInicialDoPerfil } from "@/constants/routesConfig";
+import { findRouteByPath, getAllowedRoutes, rotaInicialDoPerfil } from "@/constants/routesConfig";
 import { UserRoleEnum } from "./enums";
 import { parseRoles, perfilPrincipal } from "@/utils/perfis";
 
@@ -48,7 +48,19 @@ function decodeToken(
   }
 }
 
+/**
+ * O middleware não conhece as permissões (só o token), e uma tela pode ter sido
+ * liberada para fora do perfil no acesso individual (docs/permissoes.md, D25).
+ * Por isso:
+ * - tela do catálogo: basta o login; quem decide é a GuardaDeTela, no cliente;
+ * - rota livre: vale o perfil, pelo roles do routesConfig, como sempre;
+ * - rota fora do routesConfig: ninguém entra.
+ */
 function canAccessRoute(userRoles: UserRoleEnum[], route: string): boolean {
+  const rota = findRouteByPath(route);
+  if (!rota) return false;
+  if (!rota.livre) return true;
+
   // Quem acumula perfis acessa a uniao das rotas dos seus perfis.
   const allowedRoutes = userRoles.flatMap((perfil) => getAllowedRoutes(perfil));
 
