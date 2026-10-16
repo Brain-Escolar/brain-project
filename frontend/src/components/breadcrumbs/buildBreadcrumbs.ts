@@ -13,6 +13,7 @@ export interface BreadcrumbItem {
 
 const HOME_PATHS: Record<UserRoleEnum, RoutesEnum> = {
   [UserRoleEnum.ADMIN]: RoutesEnum.HOME_ADMIN,
+  [UserRoleEnum.DIRETOR]: RoutesEnum.HOME_ADMIN,
   [UserRoleEnum.PROFESSOR]: RoutesEnum.HOME,
   [UserRoleEnum.ESTUDANTE]: RoutesEnum.HOME_ESTUDANTE,
   [UserRoleEnum.SECRETARIO]: RoutesEnum.SECRETARIA_MATRICULAS,

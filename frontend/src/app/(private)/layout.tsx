@@ -6,6 +6,7 @@ import Breadcrumbs from "@/components/breadcrumbs";
 import { BreadcrumbProvider } from "@/contexts/BreadcrumbContext";
 import { AlunoSelecionadoProvider } from "@/contexts/AlunoSelecionadoContext";
 import { PerfilAtivoProvider } from "@/contexts/PerfilAtivoContext";
+import GuardaDeTela from "@/components/guardaDeTela/GuardaDeTela";
 import * as S from "./styles";
 import { Container } from "@mui/material";
 
@@ -17,7 +18,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
       <S.Content>
         <Container maxWidth="lg" sx={{ py: 2 }}>
           <Breadcrumbs />
-          {children}
+          <GuardaDeTela>{children}</GuardaDeTela>
         </Container>
       </S.Content>
     </S.Container>

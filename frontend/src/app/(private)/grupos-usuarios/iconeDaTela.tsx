@@ -1,7 +1,7 @@
 import { ReactElement } from "react";
 import WebAssetIcon from "@mui/icons-material/WebAsset";
 import { ROUTES } from "@/constants/routesConfig";
-import { RoutesEnum, UserRoleEnum } from "@/enums";
+import { RoutesEnum } from "@/enums";
 import { PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 
 /**
@@ -12,8 +12,9 @@ import { PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 export function iconeDaTela(codigo: string, perfil: PerfilNomeEnum): ReactElement {
   const rota = RoutesEnum[codigo as keyof typeof RoutesEnum];
   const entradas = ROUTES.filter((entrada) => entrada.router === rota);
-  // O DIRETOR usa as telas do ADMIN no front (PERFIL_ALIAS em utils/perfis.ts).
-  const perfilNoMenu: string = perfil === PerfilNomeEnum.DIRETOR ? UserRoleEnum.ADMIN : perfil;
-  const doPerfil = entradas.find((entrada) => entrada.roles.some((role) => role === perfilNoMenu));
+  // O DIRETOR já aparece nas entradas do ADMIN (herança no routesConfig).
+  const doPerfil = entradas.find((entrada) =>
+    entrada.roles.some((role) => (role as string) === perfil),
+  );
   return (doPerfil ?? entradas[0])?.icon ?? <WebAssetIcon fontSize="small" />;
 }

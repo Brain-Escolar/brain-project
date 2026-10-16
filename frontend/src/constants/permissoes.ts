@@ -1,0 +1,31 @@
+import { RoutesEnum } from "@/enums";
+
+/**
+ * Códigos de permissão (docs/permissoes.md). Precisam bater com a migration:
+ * o CatalogoPermissaoConsistenciaTest do backend confere as telas contra o
+ * RoutesEnum.
+ */
+
+/** O código de uma tela é a chave dela no RoutesEnum. */
+export type TelaCodigo = keyof typeof RoutesEnum;
+
+/** Controles: capacidades dentro das telas, no formato DOMINIO.ACAO. */
+export const CONTROLES = {
+  ALUNO_DADOS_PESSOAIS_VER: "ALUNO.DADOS_PESSOAIS.VER",
+  ALUNO_EDITAR: "ALUNO.EDITAR",
+  ALUNO_EXCLUIR: "ALUNO.EXCLUIR",
+  ALUNO_MATRICULA_ALTERAR: "ALUNO.MATRICULA.ALTERAR",
+  ALUNO_PRODUTOS_VER: "ALUNO.PRODUTOS.VER",
+  FICHA_MEDICA_VER: "FICHA_MEDICA.VER",
+  FICHA_MEDICA_EDITAR: "FICHA_MEDICA.EDITAR",
+  FICHA_MEDICA_INCLUIR: "FICHA_MEDICA.INCLUIR",
+  SITUACAO_FAMILIAR_VER: "SITUACAO_FAMILIAR.VER",
+  SITUACAO_FAMILIAR_EDITAR: "SITUACAO_FAMILIAR.EDITAR",
+  ATENDIMENTO_PSICOLOGICO_VER: "ATENDIMENTO_PSICOLOGICO.VER",
+  ATENDIMENTO_PSICOLOGICO_REGISTRAR: "ATENDIMENTO_PSICOLOGICO.REGISTRAR",
+  EVENTO_GERENCIAR: "EVENTO.GERENCIAR",
+  MATERIAL_COMPLEMENTAR_PUBLICAR: "MATERIAL_COMPLEMENTAR.PUBLICAR",
+  COMUNICADO_GERENCIAR_TODOS: "COMUNICADO.GERENCIAR_TODOS",
+} as const;
+
+export type ControleCodigo = (typeof CONTROLES)[keyof typeof CONTROLES];

@@ -22,7 +22,8 @@ import AddIcon from "@mui/icons-material/Add";
 import { useAuth } from "@/hooks/useAuth";
 import { useEventos } from "@/hooks/useEventos";
 import { useContextoAluno } from "@/hooks/useContextoAluno";
-import { usePermissoes } from "@/hooks/usePermissoes";
+import { usePermissao } from "@/hooks/usePermissoes";
+import { CONTROLES } from "@/constants/permissoes";
 import { EventoResponse, TipoEvento } from "@/services/domains/evento";
 import { UserRoleEnum } from "@/enums";
 import NovoEventoModal from "./NovoEventoModal";
@@ -122,7 +123,7 @@ export default function Calendario() {
   // um teste de perfil espalhado pela tela.
   const { turmaId, ehResponsavel } = useContextoAluno();
   const { eventos, loading } = useEventos({ dataInicio, dataFim, turmaId });
-  const { criarEvento: podeCriarEvento } = usePermissoes();
+  const podeCriarEvento = usePermissao(CONTROLES.EVENTO_GERENCIAR);
 
   const calendarDays = useMemo(() => buildCalendarDays(currentYear, currentMonth), [currentYear, currentMonth]);
 

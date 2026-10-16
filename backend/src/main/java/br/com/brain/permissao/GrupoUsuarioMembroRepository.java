@@ -95,6 +95,36 @@ public interface GrupoUsuarioMembroRepository extends JpaRepository<GrupoUsuario
     Page<PessoaGrupoDto> buscarCandidatos(@Param("grupoId") Long grupoId, @Param("perfilId") Long perfilId,
             @Param("padrao") String padrao, Pageable pageable);
 
+    /**
+     * Telas que os grupos ativos da pessoa concedem, por perfil do grupo, só as
+     * ativas e dentro do teto do perfil (RP1). Quem chama descarta os perfis
+     * que a pessoa não tem mais.
+     */
+    @Query("""
+            select distinct new br.com.brain.permissao.ItemPorPerfil(g.perfil.nome, t.codigo)
+            from GrupoUsuarioMembro m
+            join m.grupoUsuario g
+            join GrupoUsuarioTela gt on gt.grupoUsuario = g
+            join gt.tela t
+            join t.perfisPermitidos teto
+            where m.dadosPessoais.id = :dadosPessoaisId
+              and g.ativo = true and t.ativo = true and teto = g.perfil
+            """)
+    List<ItemPorPerfil> findTelasEfetivas(@Param("dadosPessoaisId") Long dadosPessoaisId);
+
+    /** O mesmo da consulta de telas, para os controles. */
+    @Query("""
+            select distinct new br.com.brain.permissao.ItemPorPerfil(g.perfil.nome, c.codigo)
+            from GrupoUsuarioMembro m
+            join m.grupoUsuario g
+            join GrupoUsuarioControle gc on gc.grupoUsuario = g
+            join gc.controle c
+            join c.perfisPermitidos teto
+            where m.dadosPessoais.id = :dadosPessoaisId
+              and g.ativo = true and c.ativo = true and teto = g.perfil
+            """)
+    List<ItemPorPerfil> findControlesEfetivos(@Param("dadosPessoaisId") Long dadosPessoaisId);
+
     /** Das pessoas informadas, as que têm o perfil (só elas podem entrar no grupo). */
     @Query("select dp.id from DadosPessoais dp join dp.perfis p where p.id = :perfilId and dp.id in :ids")
     Set<Long> findComPerfilEntre(@Param("perfilId") Long perfilId, @Param("ids") Collection<Long> ids);

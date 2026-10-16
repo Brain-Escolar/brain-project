@@ -1,76 +1,106 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/constants/queryKeys";
+import { RouteConfig, codigoDaTela } from "@/constants/routesConfig";
 import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
-import { UserRoleEnum } from "@/enums";
+import { useAuth } from "@/hooks/useAuth";
+import { permissaoApi } from "@/services/api";
 
 /**
- * O que o usuario logado pode fazer.
+ * O que o usuário logado pode fazer (docs/permissoes.md, seção 9).
  *
- * As telas devem perguntar "o que voce pode" e nao "quem voce e". Um
+ * As telas devem perguntar "o que você pode" e não "quem você é". Um
  * `if (role === RESPONSAVEL)` espalhado pelo corpo de uma tela obriga quem
- * adiciona um perfil a caçar condicional em arquivo por arquivo — foi assim
- * que /calendario acabou com tres pontos de criacao de evento e nenhum deles
- * gateado.
+ * adiciona um perfil a caçar condicional em arquivo por arquivo.
+ *
+ * As permissões vêm de GET /permissoes/me, buscado uma vez no login e ao
+ * recarregar a página, e ficam em cache: o hook não vai à rede a cada uso.
+ * Telas e controles valem para o perfil ativo. A guarda de rota aceita a tela
+ * liberada em qualquer perfil da pessoa, como o backend fará.
+ *
+ * Isto controla só o que aparece: quem protege os dados é o backend.
  */
 export interface Permissoes {
-  /** Cria e edita eventos no calendario. */
-  criarEvento: boolean;
-  /** Publica e remove materiais complementares. */
-  gerenciarMateriais: boolean;
-  /** Publica comunicados para a escola. */
-  criarComunicado: boolean;
-  /** Atua no contexto de um aluno vinculado (mostra o seletor no AppBar). */
-  atuarPorAlunoVinculado: boolean;
-  /** Inclui medicacao e anexa laudo na ficha medica do aluno. */
-  incluirNaFichaMedica: boolean;
-  /** Edita a ficha medica inteira — visao da escola. */
-  editarFichaMedica: boolean;
+  /** true até a primeira resposta chegar. */
+  carregando: boolean;
+  erro: boolean;
+  /** Tela liberada no perfil ativo. */
+  podeTela: (codigo: string) => boolean;
+  /** Tela liberada em qualquer perfil da pessoa (guarda de rota). */
+  podeTelaEmAlgumPerfil: (codigo: string) => boolean;
+  /** Controle (ação dentro de uma tela) liberado no perfil ativo. */
+  podeControle: (codigo: string) => boolean;
+  /** Para o menu: rota livre ou tela liberada no perfil ativo. */
+  podeVerRota: (rota: RouteConfig) => boolean;
+  /** ADMIN e DIRETOR montam os grupos de acesso. */
+  gerenciaPermissoes: boolean;
+  recarregar: () => void;
+}
+
+export function usePermissoes(): Permissoes {
+  const { user } = useAuth();
+  const { perfilAtivo } = usePerfilAtivo();
+  const { data, isPending, isError, refetch } = useQuery({
+    queryKey: QUERY_KEYS.permissoes.minhas(user?.dadosPessoaisId),
+    queryFn: () => permissaoApi.minhas(),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
+  const doPerfil = perfilAtivo ? data?.perfis[perfilAtivo] : undefined;
+  const telas = useMemo(() => new Set(doPerfil?.telas ?? []), [doPerfil]);
+  const controles = useMemo(() => new Set(doPerfil?.controles ?? []), [doPerfil]);
+  const telasEmAlgumPerfil = useMemo(
+    () => new Set(Object.values(data?.perfis ?? {}).flatMap((perfil) => perfil?.telas ?? [])),
+    [data],
+  );
+
+  const podeTela = useCallback((codigo: string) => telas.has(codigo), [telas]);
+  const podeControle = useCallback((codigo: string) => controles.has(codigo), [controles]);
+  const podeTelaEmAlgumPerfil = useCallback(
+    (codigo: string) => telasEmAlgumPerfil.has(codigo),
+    [telasEmAlgumPerfil],
+  );
+  const podeVerRota = useCallback(
+    (rota: RouteConfig) => {
+      if (rota.livre) return true;
+      const codigo = codigoDaTela(rota);
+      return !!codigo && telas.has(codigo);
+    },
+    [telas],
+  );
+
+  return useMemo(
+    () => ({
+      carregando: isPending,
+      erro: isError,
+      podeTela,
+      podeTelaEmAlgumPerfil,
+      podeControle,
+      podeVerRota,
+      gerenciaPermissoes: data?.gerenciaPermissoes ?? false,
+      recarregar: () => void refetch(),
+    }),
+    [
+      isPending,
+      isError,
+      podeTela,
+      podeTelaEmAlgumPerfil,
+      podeControle,
+      podeVerRota,
+      data?.gerenciaPermissoes,
+      refetch,
+    ],
+  );
 }
 
 /**
- * Quem pode cada coisa. Declarado como "capacidade -> perfis", nunca como
- * "perfil -> capacidades": assim um perfil novo nasce sem permissao alguma e
- * nao quebra a compilacao de um Record exaustivo.
+ * Atalho para um controle da tela: `usePermissao(CONTROLES.FICHA_MEDICA_EDITAR)`.
+ * Enquanto as permissões carregam, devolve false — o botão aparece quando chegam.
  */
-const QUEM_PODE: Record<keyof Permissoes, UserRoleEnum[]> = {
-  // ATENCAO: o ESTUDANTE esta aqui porque e o comportamento de hoje — o botao
-  // "Novo evento" sempre apareceu para ele. Provavelmente e bug; tirar e so
-  // remover ESTUDANTE desta linha.
-  criarEvento: [
-    UserRoleEnum.PROFESSOR,
-    UserRoleEnum.ADMIN,
-    UserRoleEnum.SECRETARIO,
-    UserRoleEnum.ESTUDANTE,
-  ],
-  gerenciarMateriais: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
-  criarComunicado: [UserRoleEnum.SECRETARIO, UserRoleEnum.ADMIN],
-  atuarPorAlunoVinculado: [UserRoleEnum.RESPONSAVEL],
-  incluirNaFichaMedica: [UserRoleEnum.RESPONSAVEL],
-  editarFichaMedica: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
-};
-
-const NENHUMA: Permissoes = {
-  criarEvento: false,
-  gerenciarMateriais: false,
-  criarComunicado: false,
-  atuarPorAlunoVinculado: false,
-  incluirNaFichaMedica: false,
-  editarFichaMedica: false,
-};
-
-export function usePermissoes(): Permissoes {
-  const { perfilAtivo } = usePerfilAtivo();
-
-  return useMemo(() => {
-    if (!perfilAtivo) return NENHUMA;
-
-    // Um perfil por vez. Quem acumula troca no seletor do AppBar — somar as
-    // capacidades dos dois embaralharia dois mundos na mesma tela.
-    const entradas = Object.entries(QUEM_PODE) as [keyof Permissoes, UserRoleEnum[]][];
-    return entradas.reduce<Permissoes>(
-      (acc, [capacidade, perfis]) => ({ ...acc, [capacidade]: perfis.includes(perfilAtivo) }),
-      NENHUMA,
-    );
-  }, [perfilAtivo]);
+export function usePermissao(controle: string): boolean {
+  return usePermissoes().podeControle(controle);
 }

@@ -20,7 +20,8 @@ import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
 import { useAlunoSelecionado } from "@/contexts/AlunoSelecionadoContext";
 import { useFichaMedicaAluno } from "@/hooks/useFichaMedicaAluno";
-import { usePermissoes } from "@/hooks/usePermissoes";
+import { usePermissao } from "@/hooks/usePermissoes";
+import { CONTROLES } from "@/constants/permissoes";
 import { LaudoResponse, MedicacaoResponse } from "@/services/domains/responsavel-portal";
 import ModalAdicionarMedicacao from "./components/ModalAdicionarMedicacao";
 import { useFichaMedicaResponsavelMutations } from "./useFichaMedicaResponsavelMutations";
@@ -116,7 +117,7 @@ function LinhaLaudo({ laudo }: { laudo: LaudoResponse }) {
 export default function FichaMedicaResponsavelPage() {
   const { alunoAtual, alunoId, isLoading: carregandoAlunos } = useAlunoSelecionado();
   const { ficha, loading, error } = useFichaMedicaAluno();
-  const { incluirNaFichaMedica: podeIncluir } = usePermissoes();
+  const podeIncluir = usePermissao(CONTROLES.FICHA_MEDICA_INCLUIR);
   const { anexarLaudo } = useFichaMedicaResponsavelMutations(alunoId);
 
   const [modalAberto, setModalAberto] = useState(false);

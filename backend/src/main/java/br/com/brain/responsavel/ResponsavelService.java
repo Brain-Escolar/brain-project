@@ -4,6 +4,7 @@ import br.com.brain.dadosPessoais.DadosPessoaisService;
 import br.com.brain.endereco.EnderecoService;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.perfil.PerfilRepository;
+import br.com.brain.permissao.GrupoPadraoService;
 import br.com.brain.usuario.UsuarioService;
 
 import br.com.brain.aluno.Aluno;
@@ -35,6 +36,7 @@ public class ResponsavelService {
     private final UsuarioService usuarioService;
     private final PerfilRepository perfilRepository;
     private final DadosAutenticacaoRepository dadosAutenticacaoRepository;
+    private final GrupoPadraoService grupoPadraoService;
 
     @PersistenceContext
     private EntityManager em;
@@ -154,6 +156,8 @@ public class ResponsavelService {
             if (!jaTemPerfil) {
                 dadosPessoais.getPerfis().add(perfilRepository.findByNome(PerfilNome.RESPONSAVEL));
                 dadosPessoaisService.salvar(dadosPessoais);
+                // Sem grupo a pessoa não acessa as telas do perfil (D2).
+                grupoPadraoService.vincular(dadosPessoais, PerfilNome.RESPONSAVEL);
             }
             return;
         }

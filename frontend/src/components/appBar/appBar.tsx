@@ -14,6 +14,7 @@ import SeletorAluno from "@/components/seletorAluno";
 import SeletorPerfil from "@/components/seletorPerfil";
 import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { usePermissoes } from "@/hooks/usePermissoes";
+import { UserRoleEnum } from "@/enums";
 import { useTheme } from "@mui/material/styles";
 import { UserMenu } from "@/components/appBar/userMenu";
 import { DynamicModuleMenu } from "@/components/appBar/dynamicModuleMenu/DynamicModuleMenu";
@@ -27,19 +28,22 @@ export default function AppBar() {
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   const { perfilAtivo } = usePerfilAtivo();
-  const { atuarPorAlunoVinculado } = usePermissoes();
+  const { podeVerRota } = usePermissoes();
+  // Identidade, não permissão: o seletor de aluno é de quem navega como responsável.
+  const atuarPorAlunoVinculado = perfilAtivo === UserRoleEnum.RESPONSAVEL;
   const unreadConversas = useUnreadConversas();
 
   // O menu segue o perfil ATIVO, nao a uniao dos perfis: quem acumula troca no
-  // SeletorPerfil e ve um mundo por vez.
+  // SeletorPerfil e ve um mundo por vez. E so mostra as telas liberadas nos
+  // grupos da pessoa (podeVerRota).
   const directRoutes = React.useMemo(
-    () => (perfilAtivo ? getRoutesWithoutModule(perfilAtivo) : []),
-    [perfilAtivo],
+    () => (perfilAtivo ? getRoutesWithoutModule(perfilAtivo, podeVerRota) : []),
+    [perfilAtivo, podeVerRota],
   );
 
   const moduleMenus = React.useMemo(
-    () => (perfilAtivo ? getMenuModules(perfilAtivo) : []),
-    [perfilAtivo],
+    () => (perfilAtivo ? getMenuModules(perfilAtivo, podeVerRota) : []),
+    [perfilAtivo, podeVerRota],
   );
 
   // perfilAtivo resolve no primeiro efeito; ate la nao ha menu a montar.

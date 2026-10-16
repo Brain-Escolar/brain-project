@@ -103,6 +103,21 @@ export function hasPermission(userRole: UserRoleEnum, requiredRoles: UserRoleEnu
   return requiredRoles.includes(userRole);
 }
 
+const ROTAS_ADMIN = [
+  "/",
+  "/admin",
+  "/usuarios",
+  "/relatorios",
+  "/configuracoes",
+  "/perfil",
+  "/aulas",
+  "/minhas-aulas",
+  "/comunicados",
+  "/comunicacao",
+  "/tarefa",
+  "/planejamento-anual", "/aluno", "/calendario", "/minhas-aulas", "/perfil",
+];
+
 /**
  * Define as rotas permitidas para cada role
  */
@@ -130,20 +145,9 @@ export const ROLE_ROUTES: Record<UserRoleEnum, string[]> = {
     "/tarefa",
     "/planejamento-anual",
   ],
-  ADMIN: [
-    "/",
-    "/admin",
-    "/usuarios",
-    "/relatorios",
-    "/configuracoes",
-    "/perfil",
-    "/aulas",
-    "/minhas-aulas",
-    "/comunicados",
-    "/comunicacao",
-    "/tarefa",
-    "/planejamento-anual", "/aluno", "/calendario", "/minhas-aulas", "/perfil",
-  ],
+  ADMIN: ROTAS_ADMIN,
+  // O DIRETOR usa as telas do ADMIN (routesConfig, herança do DIRETOR).
+  DIRETOR: ROTAS_ADMIN,
   SECRETARIO: ["/secretaria", "/aluno", "/perfil"],
   ORIENTADOR: [
     "/",

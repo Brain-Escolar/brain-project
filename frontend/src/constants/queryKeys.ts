@@ -61,6 +61,12 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.disciplinas.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.disciplinas.details(), id] as const,
   },
+  permissoes: {
+    all: ["permissoes"] as const,
+    /** Por pessoa: troca de login no mesmo navegador não reaproveita o cache. */
+    minhas: (dadosPessoaisId?: number) =>
+      [...QUERY_KEYS.permissoes.all, "me", dadosPessoaisId] as const,
+  },
   gruposUsuarios: {
     all: ["gruposUsuarios"] as const,
     lists: () => [...QUERY_KEYS.gruposUsuarios.all, "list"] as const,

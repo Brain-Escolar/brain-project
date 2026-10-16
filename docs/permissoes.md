@@ -2,7 +2,7 @@
 
 > **Para quem implementa:** esta spec define o modelo de dados, a migration inicial, o cálculo da permissão efetiva e como backend e frontend passam a consultá-la. É a fonte da verdade para a migration e para as regras. As decisões de produto foram tomadas em 02/10/2026 e revistas em 05/10/2026, depois que o DIRETOR passou a usar as telas do ADMIN (commit `f2c7c91`) (seção 2).
 >
-> **Estado (06/10/2026):** a tela de grupos foi implementada na branch `feature/permissoes-grupos`: migration V111, catálogo, endpoints de gestão e telas `/grupos-usuarios`. As permissões ainda não estão em vigor: nenhuma outra tela nem endpoint as consulta (seção 11). A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15.
+> **Estado (08/10/2026):** na branch `feature/permissoes-grupos`, as permissões valem no frontend: o menu, a guarda de rota e os botões e seções das telas leem `GET /permissoes/me`. O vínculo automático ao grupo padrão no cadastro também já funciona. Ainda falta o backend recusar o que o grupo não libera, na fase F3 (seção 11). A tela de grupos (`/grupos-usuarios`) está pronta desde 06/10. A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15.
 
 ---
 
@@ -31,8 +31,13 @@ Na implantação, cada perfil ganha um grupo padrão com tudo o que já acessa h
 | D8 (05/10) | O DIRETOR passa por grupos, com teto igual ao que o ADMIN abre hoje e um grupo padrão com tudo isso. | No dia 1, o diretor vê o mesmo que vê desde `f2c7c91`, mas a escola pode restringir. No front, o apelido DIRETOR→ADMIN do `parseRoles` vira um perfil DIRETOR de verdade (seção 9.6). |
 | D9 (05/10) | Superusuário é o teto inteiro do perfil, e não "tudo". | O ADMIN recebe, sem grupo, o teto do perfil ADMIN. Situação familiar e atendimento psicológico ficam fora, porque hoje são exclusivos da orientação. |
 | D10 (06/10) | A tela de grupos entra antes de as permissões valerem, visível para ADMIN e diretor, com um aviso fixo de que os acessos ainda não estão em vigor. Fica em `/grupos-usuarios`, no menu do ADMIN. | Seção 11. |
-| D11 (06/10) | O vínculo automático ao grupo padrão no cadastro fica para depois. | Seção 8.4: quem for cadastrado até a ativação precisa entrar nos grupos padrão antes de as permissões valerem. |
+| D11 (06/10) | O vínculo automático ao grupo padrão no cadastro fica para depois. **Substituída pela D16.** | Quem foi cadastrado entre a V111 e a D16 ficou sem grupo (D15). |
 | D12 (07/10) | Na aba Acessos, as telas aparecem numa lista única em ordem alfabética, sem separar menu de páginas internas e sem agrupar por área. Cada linha mostra nome e rota e se expande para mostrar as ações. | `exibir_menu` deixa de ser usado pela tela de grupos; o catálogo vem ordenado por nome. Seção 9.5. |
+| D13 (08/10) | O frontend busca as permissões numa chamada só, `GET /permissoes/me`, ao entrar e a cada carga da página (F5). A resposta traz telas e controles de todos os perfis da pessoa. O check de controle numa tela lê esse cache e não chama a API. | Seção 9.1. Não há endpoint por tela nem por controle. |
+| D14 (08/10) | O DIRETOR vira um perfil de verdade no frontend e herda as rotas do ADMIN. | Seção 9.6. |
+| D15 (08/10) | Não haverá migration para pôr nos grupos quem ficou de fora. Quem ficou sem grupo num perfil é vinculado à mão, pela tela de grupos; até lá, não abre as telas desse perfil. | Seção 8.4, com a consulta que lista quem está sem grupo. |
+| D16 (08/10) | O vínculo automático ao grupo padrão no cadastro (D2) entra junto com a ativação no frontend, e a D11 deixa de valer. | Sem ele, toda pessoa cadastrada depois da ativação cairia em `/sem-acesso`. Seção 8.4. |
+| D17 (08/10) | As permissões entram em vigor sem chave de ativação. | O seed da V111 reproduz o acesso de antes, então quem está no grupo padrão não percebe a mudança. Uma chave obrigaria a manter as duas lógicas, por perfil e por grupo, enquanto existisse. |
 
 ## 3. Conceitos e regras
 
@@ -199,7 +204,7 @@ Assim as escritas desses cadastros têm um código para checar (seção 8.3), e 
 - **Rotas livres**, guardadas só pelo `roles`:
   - `HOME` (`/`), `PERFIL` (`/perfil`) e `HOME_ADMIN` (`/admin`, para ADMIN e DIRETOR);
   - as novas `GRUPOS_USUARIOS` (`/grupos-usuarios`), para ADMIN e DIRETOR, e `SEM_ACESSO` (`/sem-acesso`), para todos.
-- **Entradas do `routesConfig` sem página:** `/usuarios`, `/configuracoes`, `/ficha-medica/cadastro` e `/dashAluno/inicio`.
+- **Entradas do `routesConfig` sem página:** `/usuarios`, `/configuracoes`, `/ficha-medica/cadastro` e `/dashAluno/inicio`. No frontend também são livres, para o menu e a guarda as tratarem como antes.
 - **Páginas sem entrada no `routesConfig`:** `/minhas-aulas`, `/alerta/detalhamento` e `/ficha-medica/[dadosPessoaisId]`. O middleware já as bloqueia para todos.
 
 ### 6.3 Controles
@@ -746,14 +751,15 @@ Tudo fica no pacote `br.com.brain.permissao`.
   - `Tela` e `Controle` mapeiam o teto com um `@ManyToMany Set<Perfil>`, só para leitura.
   - `GrupoUsuarioMembro` mapeia a tabela `dados_pessoais_grupos_usuarios`.
   - `GrupoUsuario` e os três vínculos são `@Audited`. A relação com `Tela` e `Controle`, que não são auditadas, usa `@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)`.
-- **`PermissaoService`:**
-  - calcula `PermissoesEfetivas` (mapa perfil → telas e controles) e guarda o resultado durante a requisição. Para o perfil ADMIN, usa a consulta do teto (seção 5); para os demais, a dos grupos;
-  - expõe, para o usuário logado, `podeTela(String...)` (basta ter qualquer uma das telas) e `podeControle(String)`.
-- **`PermissaoGuard`:** bean `@Component("permissao")` usado nas expressões SpEL, com `tela(String... codigos)` e `controle(String codigo)`.
+- **`PermissoesUsuarioService` (existe desde 08/10):** calcula, para uma pessoa, o mapa perfil → telas e controles que `GET /permissoes/me` devolve. Para o perfil ADMIN, usa o teto (`CatalogoPermissaoService.teto`); para os demais, as consultas `findTelasEfetivas` e `findControlesEfetivos` do `GrupoUsuarioMembroRepository`, que aplicam a RP1 no próprio JPQL (grupo ativo, item ativo e dentro do teto do perfil do grupo). Perfis que a pessoa não tem mais saem do resultado.
+- **`PermissaoService` (F3):**
+  - usa o `PermissoesUsuarioService` e guarda o resultado durante a requisição;
+  - expõe, para o usuário logado, `podeTela(String...)` (basta ter qualquer uma das telas) e `podeControle(String)`, olhando a união de todos os perfis.
+- **`PermissaoGuard` (F3):** bean `@Component("permissao")` usado nas expressões SpEL, com `tela(String... codigos)` e `controle(String codigo)`.
 - **`GrupoUsuarioService`:** CRUD, acessos e membros, com as validações RV1–RV8.
 - **`CodigosPermissao`:** constantes Java dos códigos usados no backend.
 - **`DependenciasPermissao`:** o mapa da seção 6.4.
-- **`PerfilService.concederPerfil(DadosPessoais, PerfilNome)`:** serviço novo, descrito na seção 8.4.
+- **`GrupoPadraoService.vincular(DadosPessoais, PerfilNome)`:** o vínculo automático da seção 8.4.
 
 ### 8.2 Endpoints
 
@@ -788,7 +794,7 @@ Resposta de `GET /permissoes/me`:
 - O ADMIN vem no mesmo formato, com as listas do teto do perfil. O frontend não trata o superusuário como caso especial: só lê as listas.
 - `gerenciaPermissoes` é verdadeiro para quem tem ADMIN ou DIRETOR.
 - **Como está hoje:** a restrição a ADMIN e DIRETOR de `/grupos-usuarios/**` e `/permissoes/catalogo` é uma regra de URL no `SecurityConfigurations`, acima do `permitAll("/**")`, no estilo das regras que já existem ali. O `@EnableMethodSecurity` continua para a fase F3.
-- `GET /permissoes/me` ainda não existe; entra com o frontend lendo as permissões (F2). Ele leva `isAuthenticated()`.
+- `GET /permissoes/me` existe desde 08/10 e exige login, com uma regra `authenticated()` no mesmo lugar.
 - Recusas de regra (RV2–RV7) respondem 422 com a explicação em `message`; nome repetido responde 409.
 
 ### 8.3 Checagem nos endpoints
@@ -825,14 +831,29 @@ Qual código checar em cada tipo de endpoint (D5):
 
 ### 8.4 Vínculo automático ao grupo padrão (D2)
 
-**Ainda não implementado (D11).** Até que entre, quem receber um perfil depois da V111 fica fora do grupo padrão. Antes de ativar as permissões (F2), é preciso as duas coisas: este vínculo automático e uma migration que coloque nos grupos padrão quem ficou de fora, com a mesma consulta do seed da seção 7.
+**Implementado em 08/10 (D16).** O [GrupoPadraoService.java](../backend/src/main/java/br/com/brain/permissao/GrupoPadraoService.java) tem `vincular(dadosPessoais, perfil)`, que põe a pessoa no grupo padrão do perfil se ela ainda não estiver nele. Não faz nada para o ADMIN, que não tem grupo. Um perfil é concedido em dois lugares, e os dois o chamam:
 
-Hoje um perfil é concedido em dois lugares:
+- `UsuarioService.cadastrarUsuario`, depois de gravar o login. É chamado nos cadastros de aluno, professor, secretário, responsável e escola;
+- `ResponsavelService.garantirAcessoAoPortal`, que adiciona RESPONSAVEL a uma pessoa que já existe.
 
-- `UsuarioService.cadastrarUsuario`, chamado nos cadastros de aluno, professor, secretário, responsável e escola;
-- [ResponsavelService.java](../backend/src/main/java/br/com/brain/responsavel/ResponsavelService.java), na linha 155, que adiciona RESPONSAVEL direto a uma pessoa que já existe.
+O vínculo não adiciona o perfil: cada cadastro continua cuidando disso como antes.
 
-Os dois passam a chamar `PerfilService.concederPerfil(dadosPessoais, perfil)`. Esse método adiciona o perfil, se a pessoa ainda não o tiver, e o vínculo ao grupo padrão daquele perfil, se ainda não existir (o ADMIN não tem grupo).
+**Quem ficou de fora (D15).** A V111 pôs nos grupos padrão quem já tinha perfil. Quem foi cadastrado depois dela e antes deste vínculo ficou sem grupo, e não abre as telas daquele perfil até alguém o incluir pela aba Pessoas da tela de grupos. Não haverá migration para isso. Esta consulta lista quem está nessa situação (rode no schema da escola):
+
+```sql
+SELECT dp.id, dp.nome, p.nome AS perfil
+FROM dados_pessoais dp
+JOIN dados_autenticacao da ON da.dados_pessoais_id = dp.id
+JOIN dados_pessoais_perfis dpp ON dpp.dados_pessoais_id = dp.id
+JOIN perfis p ON p.id = dpp.perfil_id AND p.nome <> 'ADMIN'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM dados_pessoais_grupos_usuarios m
+    JOIN grupos_usuarios g ON g.id = m.grupo_usuario_id
+    WHERE m.dados_pessoais_id = dp.id AND g.perfil_id = p.id
+)
+ORDER BY p.nome, dp.nome;
+```
 
 Hoje não existe remoção de perfil no código. Se ela vier a existir, não será preciso limpar vínculos: a regra RP1 já ignora grupos de perfis que a pessoa não tem mais.
 
@@ -867,13 +888,15 @@ Hoje não existe remoção de perfil no código. Se ela vier a existir, não ser
 - **`GrupoUsuarioService`:** as validações RV1–RV8.
 - **Controllers:** para cada linha da tabela 6.3, 403 sem o controle e 200 com ele.
 
+**Já existem (08/10):** `PermissoesUsuarioServiceIntegracaoTest` cobre o cálculo de `/permissoes/me`: grupo padrão, sem grupo, grupo inativo, perfil perdido, dois perfis, item fora do teto, ADMIN com o teto inteiro, DIRETOR por grupo, vínculo no cadastro e vínculo repetido. `PermissaoControllerTest` cobre o login exigido e o formato da resposta.
+
 ## 9. Frontend
 
 ### 9.1 De onde vêm as permissões
 
-- **Busca:** um cliente em `services/domains/permissoes/client.ts`, com React Query (`queryKeys.permissoes.me`), carregado no layout privado.
-- **Atualização:** `staleTime` de alguns minutos e nova busca quando a janela recebe foco. O frontend é só experiência de uso; quem protege de fato é o backend.
-- **Invalidação:** ao fazer login e depois de salvar um grupo.
+- **Busca (D13):** `permissaoApi.minhas()`, em `services/domains/permissoes`, com React Query na chave `queryKeys.permissoes.minhas(dadosPessoaisId)`. O `usePermissoes` faz a busca; como todos os usos compartilham a mesma chave, há uma chamada por carga de página, e não uma por componente.
+- **Atualização:** `staleTime` de 5 minutos e nova busca quando a janela recebe foco. O login e o logout recarregam a página inteira, então o cache começa vazio a cada sessão; o F5 também busca de novo. O frontend é só experiência de uso; quem protege de fato é o backend.
+- **Invalidação:** depois de qualquer escrita na tela de grupos (`useGrupoUsuarioMutations`), porque quem edita pode estar no grupo editado.
 
 ### 9.2 `usePermissoes` passa a ler do servidor
 
@@ -888,28 +911,27 @@ podeControle(CONTROLES.EVENTO_GERENCIAR);
 - `atuarPorAlunoVinculado` não é permissão, e sim identidade (perfil ativo RESPONSAVEL). Sai do hook e fica no `useContextoAluno`, que já o renomeia para `ehResponsavel`.
 - `gerenciarMateriais`, `criarComunicado` e `editarFichaMedica` não são usados em lugar nenhum e saem (ver a seção 12).
 - Os códigos ficam em `constants/permissoes.ts`: `TelaCodigo = keyof typeof RoutesEnum`, e `CONTROLES` como um objeto `as const`.
+- Para um controle só, há o atalho `usePermissao(CONTROLES.X)` e o componente `<Permissao controle={…}>` (ou `tela={…}`), que mostra o conteúdo só com a permissão, com um `fallback` opcional.
+- Enquanto as permissões carregam, `podeTela` e `podeControle` respondem `false`: o botão aparece quando a resposta chega. `podeTelaEmAlgumPerfil` responde pela união dos perfis e é usado só pela guarda de rota.
 
 ### 9.3 Menu e guarda de rota
 
-- **Código da tela = chave do `RoutesEnum`.** Ele é derivado do `router` de cada entrada, então não precisa de campo novo. As entradas livres ganham `livre: true`.
-- **Menu.** `getMenuRoutes`, `getRoutesByModule`, `getRoutesWithoutModule` e `getMenuModules` passam a receber o predicado `pode` e mantêm o filtro por `roles`, que define a variante da tela por perfil: `rolesDaRota(route).includes(perfilAtivo) && (route.livre || podeTela(codigo))`. O `rolesDaRota` aplica a herança DIRETOR→ADMIN da seção 9.6.
-- **Middleware (edge).** Continua checando login, expiração do token e perfil, porque não tem acesso às permissões. A mudança é passar a resolver a rota pelo **prefixo mais longo**, com o `findRouteByPath` que já existe no `routesConfig`, e checar todas as entradas daquele `router`.
-  - Hoje o [middleware.ts](../frontend/src/middleware.ts) aceita qualquer prefixo permitido. Por isso `/comunicados/cadastro` abre para quem tem `/comunicados` (ESTUDANTE, PROFESSOR e RESPONSAVEL).
-  - O DIRETOR entra em `getDefaultRoute` com o mesmo destino do ADMIN, `/admin`.
-- **Layout privado.** Um componente `GuardaDeTela` espera as permissões carregarem, mostrando um carregamento sem renderizar a página.
-  - Se a tela da rota atual não for permitida, ele redireciona para a **rota padrão**: a primeira rota de menu permitida no perfil ativo (rotas livres incluídas, então `/` para quem a tem) ou, se não houver nenhuma, `/sem-acesso`.
-  - Isso evita loop quando a rota padrão do perfil (ex.: `/secretaria/matriculas`) não foi concedida.
-- **Uma rota padrão só.** Hoje há três regras de destino depois do login, e elas não batem entre si:
-  - o `getDefaultRoute` do middleware;
-  - o `switch` do login por senha, em `(public)/login/page.tsx`, que manda ADMIN e DIRETOR para `/aluno` (rota sem página; o middleware corrige o destino);
-  - o `switch` do login pelo Google, em `useGoogleLogin.tsx`, que manda os dois para `/admin`.
-
-  Os três passam a usar a mesma função de rota padrão. Os dois `switch` também leem o claim `role` por conta própria (só tiram os colchetes), sem o `parseRoles`; passam a usá-lo.
-- **Página `/sem-acesso`.** É uma rota livre, com o texto: "Você ainda não tem acesso às telas deste perfil. Fale com a direção da escola."
+- **Código da tela = chave do `RoutesEnum`.** O `codigoDaTela(rota)` deriva o código do `router` de cada entrada, então não precisa de campo novo. As entradas fora do catálogo ganham `livre: true`: início, perfil próprio, `/grupos-usuarios`, `/sem-acesso` e as entradas ainda sem página (`/usuarios`, `/configuracoes`, `/ficha-medica/cadastro`, `/dashAluno/inicio`, seção 6.2).
+- **Menu (perfil ativo).** `getMenuRoutes`, `getRoutesByModule`, `getRoutesWithoutModule` e `getMenuModules` recebem o predicado `podeVerRota` do `usePermissoes`: `rota.livre || telas do perfil ativo têm o código`. O filtro por `roles` continua, porque define a variante da tela por perfil.
+- **Middleware (edge).** Continua checando login, expiração do token e perfil, porque não tem acesso às permissões. A única mudança é a rota inicial, que vem de `rotaInicialDoPerfil` (o DIRETOR vai para `/admin`, como o ADMIN).
+- **Guarda de tela (união dos perfis).** O `GuardaDeTela`, no layout privado, resolve a rota atual pelo **prefixo mais longo** (`findRouteByPath`) e exige que a tela esteja liberada em **algum** perfil da pessoa, como o middleware e o backend fazem. O menu mostra só o perfil ativo, mas uma URL digitada de outro perfil da mesma pessoa abre.
+  - Enquanto as permissões carregam, ele mostra um carregamento sem renderizar a página.
+  - Tela não liberada: redireciona com `rotaPermitidaDoPerfil(perfilAtivo)`. Vai para a rota inicial do perfil, se ela estiver liberada; senão, para a primeira rota de menu liberada; senão, para `/sem-acesso`. Como nunca devolve uma rota bloqueada, não há loop quando a rota inicial (ex.: `/secretaria/matriculas`) não foi concedida.
+  - Se `GET /permissoes/me` falhar, mostra o erro com "Tentar de novo", em vez de bloquear ou liberar.
+  - É o prefixo mais longo que barra `/comunicados/cadastro` para quem só tem `/comunicados` (seção 12, item 5). O middleware continua aceitando qualquer prefixo.
+- **Rota inicial.** O middleware e a guarda usam a mesma `rotaInicialDoPerfil`. Os dois `switch` de destino depois do login (`(public)/login/page.tsx` e `useGoogleLogin.tsx`) ainda têm regras próprias, e o middleware corrige o destino deles. Passá-los para `rotaInicialDoPerfil` é limpeza pendente, sem efeito para o usuário.
+- **Página `/sem-acesso`.** É uma rota livre, com o texto: "Você ainda não tem acesso às telas deste perfil. Fale com a direção da escola para ser incluído em um grupo de acesso." Para quem tem mais de um perfil, sugere trocar no seletor.
 
 ### 9.4 Checks por perfil que viram permissão
 
-| Onde | Hoje | Passa a ser |
+Todos feitos em 08/10.
+
+| Onde | Antes | Agora |
 |---|---|---|
 | [aluno/detalhe/[id]](../frontend/src/app/(private)/aluno/detalhe/[id]/page.tsx) | `SECOES_POR_PERFIL`, `FICHA_MEDICA_ROLES`, `FICHA_MEDICA_EDICAO_ROLES`, `SITUACAO_FAMILIAR_*`, `ATENDIMENTO_*`, `PRODUTOS_ROLES` | Os controles da tabela 6.3. Ex.: as seções "Dados cadastrais" e "Responsáveis" ← `ALUNO.DADOS_PESSOAIS.VER`; a aba e o resumo da ficha ← `FICHA_MEDICA.VER`. |
 | `calendario` | `usePermissoes().criarEvento` | `EVENTO.GERENCIAR` |
@@ -941,7 +963,7 @@ Continuam decididos por perfil (RP7):
 **Detalhe (`/grupos-usuarios/[id]`):**
 
 - **Aba Acessos:**
-  - mostra as telas do teto do perfil numa lista única, em ordem alfabética (D12). Cada linha tem um interruptor para liberar a tela, o ícone que ela tem no menu (`iconeDaTela`, a partir do `routesConfig`), o nome e a rota;
+  - mostra as telas do teto do perfil numa lista única, em ordem alfabética (D12). Cada linha tem uma caixa de seleção para liberar a tela, o ícone que ela tem no menu (`iconeDaTela`, a partir do `routesConfig`), o nome e a rota;
   - há busca por tela, rota ou ação, sem diferenciar acentos, e um filtro "Todas / Liberadas / Não liberadas". Quando a busca acha uma ação, a linha da tela dela abre sozinha;
   - "Liberar todas" e "Retirar todas" valem para o que a busca e o filtro estão mostrando ("Liberar as 5 exibidas");
   - as ações da tela ficam numa parte que se expande ("O que pode fazer aqui"), com o contador "2 de 3 ações". Elas ficam desabilitadas enquanto a tela não estiver liberada, e liberar uma tela que tem ações abre a linha dela;
@@ -953,7 +975,9 @@ Continuam decididos por perfil (RP7):
   - **Duplicar** cria um grupo novo com os mesmos acessos. É o jeito rápido de montar um grupo restrito a partir do padrão.
   - **Desativar** e **Excluir** não aparecem no grupo padrão.
 
-**Visibilidade:** a tela é uma rota livre com `roles: [ADMIN, DIRETOR]`.
+**Visibilidade:** a tela é uma rota livre do ADMIN, que o DIRETOR herda (seção 9.6).
+
+**Aviso fixo:** no topo da lista e do detalhe, "Os acessos configurados aqui já valem para o menu e as telas de cada pessoa. O bloqueio também no servidor ainda será feito." Até 08/10 o aviso dizia que os acessos ainda não estavam em vigor (D10).
 
 ### 9.6 DIRETOR no frontend
 
@@ -964,14 +988,14 @@ Isso não pode continuar quando o front passar a ler as permissões, por dois mo
 - `GET /permissoes/me` devolve as permissões pela chave do perfil real (`DIRETOR`). Com a troca, o front procuraria pela chave `ADMIN` e não acharia nada.
 - O diretor passa por grupos (D8) e não é superusuário (D3). A camada de permissão precisa saber que ele não é o ADMIN.
 
-A troca então muda de lugar: sai do `parseRoles` e fica só no roteamento.
+A troca então mudou de lugar em 08/10 (D14): saiu do `parseRoles` e ficou só no roteamento.
 
-- **Perfil de verdade.** `DIRETOR` entra no `UserRoleEnum` e na `PRECEDENCIA_PERFIL`, logo depois do ADMIN. O `PERFIL_ALIAS` sai do `parseRoles`.
-- **Herança de rotas.** Uma função `rolesDaRota(route)` acrescenta DIRETOR às entradas do `routesConfig` que têm ADMIN. Ela substitui a leitura direta de `route.roles` no menu, no middleware e no `findListSibling`. Fica num lugar só, mantém a intenção provisória do commit ("o DIRETOR usa as telas do ADMIN até ganhar a sua") e some quando o diretor ganhar área própria.
-- **Mapas por perfil.** O DIRETOR recebe o mesmo valor do ADMIN nos mapas indexados por perfil: o início do breadcrumb (`buildBreadcrumbs.ts`), as colunas da lista de alunos (`AlunosView`) e o ícone do seletor de perfil (`SeletorPerfil`).
-- **Ações do ADMIN.** Os testes `role === ADMIN` das telas viram os controles da tabela 9.4. Com isso o diretor mantém os botões que tem hoje pelo grupo padrão, e a escola pode tirá-los.
-- **Rota padrão:** `/admin`, igual à do ADMIN.
-- **`/grupos-usuarios`:** `roles: [ADMIN, DIRETOR]`, explícito.
+- **Perfil de verdade.** `DIRETOR` está no `UserRoleEnum` e na `PRECEDENCIA_PERFIL`, logo depois do ADMIN. O `PERFIL_ALIAS` saiu do `parseRoles`.
+- **Herança de rotas.** O `routesConfig` declara as entradas em `ROTAS` e exporta `ROUTES` com DIRETOR acrescentado a toda entrada que tem ADMIN. Menu, middleware, `findListSibling` e `iconeDaTela` leem `ROUTES` e herdam sem saber disso. Fica num lugar só, mantém a intenção provisória do commit ("o DIRETOR usa as telas do ADMIN até ganhar a sua") e some quando o diretor ganhar área própria.
+- **Mapas por perfil.** O DIRETOR recebe o mesmo valor do ADMIN nos mapas indexados por perfil: o início do breadcrumb (`buildBreadcrumbs.ts`), as colunas da lista de alunos (`AlunosView`), o ícone do seletor de perfil (`SeletorPerfil`) e o `ROLE_ROUTES` de `utils/auth.ts`.
+- **Ações do ADMIN.** Os testes `role === ADMIN` das telas viraram os controles da tabela 9.4. Com isso o diretor mantém os botões que tinha pelo grupo padrão, e a escola pode tirá-los.
+- **Rota inicial:** `/admin`, igual à do ADMIN.
+- **`/grupos-usuarios`:** entrada do ADMIN, herdada pelo DIRETOR como as demais.
 
 No backend, o cadastro de diretor com login continua todo comentado em [DiretorService.java](../backend/src/main/java/br/com/brain/diretor/DiretorService.java). Nenhum outro ponto do código concede o perfil DIRETOR. Hoje, um diretor com login só existe se for criado direto no banco.
 
@@ -1004,14 +1028,14 @@ No backend, o cadastro de diretor com login continua todo comentado em [DiretorS
 | Fase | Entrega | Muda algo para o usuário? |
 |---|---|---|
 | F0 | Fechar `/usuario/**`; habilitar `@EnableMethodSecurity`. | Não, exceto para chamadas anônimas a `/usuario`. |
-| F1 | Migration V111, entidades, `PermissaoService`, `GET /permissoes/me`, vínculo automático e testes de consistência. **Feito em 06/10:** migration, entidades e testes. **Falta:** `PermissaoService`, `/permissoes/me` e o vínculo automático. | Não. |
-| F2 | Frontend lendo as permissões: `usePermissoes`, menu, guarda de rota, `/sem-acesso`, rota padrão única e os checks da tabela 9.4. DIRETOR como perfil de verdade, com a herança de rotas (seção 9.6). | Só as mudanças intencionais da seção 12 (itens 5 e 8). |
+| F1 | Migration V111, entidades, `PermissaoService`, `GET /permissoes/me`, vínculo automático e testes de consistência. **Feito:** migration, entidades e testes (06/10); `/permissoes/me` e vínculo automático (08/10). **Fica para a F3:** `PermissaoService` e `PermissaoGuard`, que só servem à proteção no backend. | Não. |
+| F2 | Frontend lendo as permissões: `usePermissoes`, menu, guarda de rota, `/sem-acesso`, rota padrão única e os checks da tabela 9.4. DIRETOR como perfil de verdade, com a herança de rotas (seção 9.6). **Feito em 08/10**, menos a troca dos `switch` do login pela rota inicial única (seção 9.3). | Para quem está no grupo padrão, só as mudanças intencionais da seção 12 (itens 5 e 8). Quem está sem grupo vai para `/sem-acesso` (D15). |
 | F3 | Backend protegendo os controles da tabela 6.3; endpoints de gestão; tela de grupos. **Adiantado em 06/10 (D10):** endpoints de gestão e tela de grupos. **Falta:** a proteção no backend. | Sim: as escolas passam a montar grupos. |
 | F4 | Escritas restantes, por domínio (179 endpoints em 46 controllers); remover o `permitAll("/**")`. | Endpoints chamados sem permissão passam a responder 403. |
 
-A fase F3 juntava, de propósito, a tela de grupos com a proteção no backend: se a tela fosse liberada antes, "tirar a ficha médica de um grupo" esconderia só a aba, e a API continuaria respondendo. Com a D10 a tela veio antes, e o aviso fixo "os acessos configurados aqui ainda não estão em vigor" cobre esse risco até a ativação.
+A fase F3 juntava, de propósito, a tela de grupos com a proteção no backend: se a tela fosse liberada antes, "tirar a ficha médica de um grupo" esconderia só a aba, e a API continuaria respondendo. Com a D10 a tela veio antes, e com a F2 o frontend já obedece aos grupos. Até a F3, esse risco continua: quem conhece a API ainda consegue o que o grupo não libera. O aviso fixo da tela de grupos diz isso (seção 9.5).
 
-O DIRETOR tem de virar perfil de verdade na F2, e não depois: é nela que o front passa a buscar as permissões pela chave do perfil real. Se a troca DIRETOR→ADMIN continuar até lá, o diretor fica sem nenhuma tela.
+O DIRETOR virou perfil de verdade na F2, e não depois, porque é nela que o front passa a buscar as permissões pela chave do perfil real. Com a troca DIRETOR→ADMIN, o diretor ficaria sem nenhuma tela.
 
 ## 12. Divergências encontradas
 
@@ -1021,10 +1045,10 @@ O seed reproduz o comportamento de hoje, inclusive nestes pontos. Cada um é uma
 2. **Categoria "Atualização RH".** O formulário esconde a categoria só da secretaria. O comentário diz que ela é restrita a Admin/RH, mas a orientação publica nela hoje e o backend não valida.
 3. **Capacidades sem uso em `usePermissoes`.** `criarComunicado` e `editarFichaMedica` não incluem ORIENTADOR e divergem das constantes das telas, que são o que de fato roda. O seed segue as telas. `gerenciarMateriais` também não é usado.
 4. **Rotas órfãs** (seção 6.2). São páginas que o middleware bloqueia para todos e entradas de menu sem página. Ficam fora do catálogo; falta decidir se saem do código ou se entram no catálogo.
-5. **Mudança intencional na fase F2.** Com o prefixo mais longo, ESTUDANTE, PROFESSOR e RESPONSAVEL deixam de conseguir abrir `/comunicados/cadastro` digitando a URL.
+5. **Mudança intencional na fase F2 (em vigor desde 08/10).** Com o prefixo mais longo da guarda de tela, ESTUDANTE, PROFESSOR e RESPONSAVEL não conseguem mais abrir `/comunicados/cadastro` digitando a URL.
 6. **Dados pessoais para quem tem mais de um perfil.** Com o controle, a view de `GET /aluno/{id}` deixa de depender da ordem dos perfis (`findFirst`).
 7. **Excluir aluno não funciona hoje.** O botão "Excluir" da lista chama `DELETE /aluno/{id}`, que não existe no `AlunoController`. O controle `ALUNO.EXCLUIR` só reproduz a visibilidade do botão; falta decidir se o endpoint deve ser criado ou se o botão sai.
-8. **Mudança intencional: diretor gerenciando comunicados de outros autores.** Hoje o front mostra ao diretor os botões de editar e remover em todos os comunicados (pela troca DIRETOR→ADMIN), mas o backend recusa, porque `verificarPermissaoDeEdicao` testa o perfil ADMIN real. Com `COMUNICADO.GERENCIAR_TODOS`, front e backend passam a concordar: o diretor consegue.
+8. **Mudança intencional: diretor gerenciando comunicados de outros autores.** Hoje o front mostra ao diretor os botões de editar e remover em todos os comunicados (pela troca DIRETOR→ADMIN), mas o backend recusa, porque `verificarPermissaoDeEdicao` testa o perfil ADMIN real. Com `COMUNICADO.GERENCIAR_TODOS`, front e backend passam a concordar: o diretor consegue. **Até a F3 ainda não concordam:** o front já mostra os botões ao diretor pelo controle, e o backend continua recusando, porque `verificarPermissaoDeEdicao` ainda testa o perfil ADMIN.
 9. **Secretaria sem o botão "Editar" no detalhe do aluno.** Ela tem a tela de cadastro (`ALUNO_CADASTRO`), mas o botão no detalhe só aparece para o ADMIN; o seed mantém isso (`ALUNO.EDITAR` sem SECRETARIO no teto). Se a secretaria deve editar dali, basta incluí-la no teto e no grupo padrão.
 
 ## 13. Fora do escopo

@@ -1,7 +1,8 @@
 "use client";
 
 import { useAlunoSelecionado } from "@/contexts/AlunoSelecionadoContext";
-import { usePermissoes } from "@/hooks/usePermissoes";
+import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
+import { UserRoleEnum } from "@/enums";
 
 /**
  * Resolve de qual aluno uma tela compartilhada deve falar.
@@ -17,9 +18,10 @@ import { usePermissoes } from "@/hooks/usePermissoes";
  */
 export function useContextoAluno() {
   const { alunoAtual, alunoId, isLoading } = useAlunoSelecionado();
-  // Capacidade, nao perfil: quem acumula professor + responsavel tambem atua
-  // por um aluno vinculado.
-  const { atuarPorAlunoVinculado: ehResponsavel } = usePermissoes();
+  // Identidade, nao permissao: quem acumula professor + responsavel atua por um
+  // aluno vinculado quando navega como responsavel.
+  const { perfilAtivo } = usePerfilAtivo();
+  const ehResponsavel = perfilAtivo === UserRoleEnum.RESPONSAVEL;
 
   return {
     ehResponsavel,

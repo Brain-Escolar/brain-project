@@ -99,6 +99,8 @@ public class SecurityConfigurations {
                             // (docs/permissoes.md, fases F2 e F3).
                             req.requestMatchers("/grupos-usuarios", "/grupos-usuarios/**", "/permissoes/catalogo")
                                     .hasAnyRole("DIRETOR", "ADMIN");
+                            // Permissões de quem está logado: qualquer perfil, mas com login.
+                            req.requestMatchers("/permissoes/me").authenticated();
 
                             // Remover depois
                             req.requestMatchers("/**").permitAll();

@@ -31,8 +31,12 @@ function repetirSoFalhaDeRede(falhas: number, erro: Error): boolean {
  */
 export function useGrupoUsuarioMutations() {
   const queryClient = useQueryClient();
-  const invalidar = () =>
+  // As permissões de quem está logado também: a pessoa pode ter editado um grupo
+  // em que ela mesma está.
+  const invalidar = () => {
     queryClient.invalidateQueries({ queryKey: QUERY_KEYS.gruposUsuarios.all });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.permissoes.all });
+  };
 
   const criar = useMutation({
     retry: repetirSoFalhaDeRede,
@@ -84,6 +88,7 @@ export function useGrupoUsuarioMutations() {
       // Só a lista: invalidar tudo faria a página do grupo, ainda aberta,
       // buscar de novo o grupo que acabou de ser excluído (404).
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.gruposUsuarios.lists() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.permissoes.all });
       toast.success("Grupo excluído.");
     },
     onError: (error) => toast.error(mensagemDeErro(error, "Erro ao excluir o grupo.")),

@@ -25,6 +25,7 @@ const ICONE: Record<UserRoleEnum, React.ReactNode> = {
   [UserRoleEnum.SECRETARIO]: <BadgeOutlinedIcon />,
   [UserRoleEnum.ORIENTADOR]: <PsychologyOutlinedIcon />,
   [UserRoleEnum.ADMIN]: <AdminPanelSettingsOutlinedIcon />,
+  [UserRoleEnum.DIRETOR]: <AdminPanelSettingsOutlinedIcon />,
 };
 
 /**

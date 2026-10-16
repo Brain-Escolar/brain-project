@@ -1,5 +1,5 @@
 import { MiddlewareConfig, NextRequest, NextResponse } from "next/server";
-import { getAllowedRoutes } from "@/constants/routesConfig";
+import { getAllowedRoutes, rotaInicialDoPerfil } from "@/constants/routesConfig";
 import { UserRoleEnum } from "./enums";
 import { parseRoles, perfilPrincipal } from "@/utils/perfis";
 
@@ -59,20 +59,7 @@ function canAccessRoute(userRoles: UserRoleEnum[], route: string): boolean {
 }
 
 function getDefaultRoute(userRole: UserRoleEnum): string {
-  switch (userRole) {
-    case "ESTUDANTE":
-      return "/";
-    case "PROFESSOR":
-      return "/";
-    case "ADMIN":
-      return "/admin";
-    case "SECRETARIO":
-      return "/secretaria/matriculas";
-    case "ORIENTADOR":
-      return "/";
-    default:
-      return "/";
-  }
+  return rotaInicialDoPerfil(userRole);
 }
 
 export function middleware(request: NextRequest) {

@@ -20,6 +20,7 @@ import {
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { getRoutesByModule } from "@/constants/routesConfig";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import type { RouteConfig, MenuModule } from "@/constants/routesConfig";
 import type { UserRoleEnum } from "@/enums";
 
@@ -44,7 +45,11 @@ function ModuleSection({
   pathname: string;
   onNavigate: () => void;
 }) {
-  const routes = React.useMemo(() => getRoutesByModule(role, mod.id), [role, mod.id]);
+  const { podeVerRota } = usePermissoes();
+  const routes = React.useMemo(
+    () => getRoutesByModule(role, mod.id, podeVerRota),
+    [role, mod.id, podeVerRota],
+  );
   const isActive = routes.some((r) => pathname === r.router || pathname.startsWith(r.router + "/"));
   const [expanded, setExpanded] = React.useState(isActive);
 

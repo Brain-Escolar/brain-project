@@ -8,6 +8,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { RoutesModuleEnum } from "@/enums";
 import { getRoutesByModule } from "@/constants/routesConfig";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import type { UserRoleEnum } from "@/enums";
 
 export interface CadastrosMenuProps {
@@ -32,7 +33,11 @@ export function CadastrosMenu({
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const routes = React.useMemo(() => getRoutesByModule(role, RoutesModuleEnum.CADASTROS), [role]);
+  const { podeVerRota } = usePermissoes();
+  const routes = React.useMemo(
+    () => getRoutesByModule(role, RoutesModuleEnum.CADASTROS, podeVerRota),
+    [role, podeVerRota],
+  );
 
   return (
     <>

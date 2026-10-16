@@ -26,7 +26,7 @@ import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { RoutesEnum } from "@/enums";
 import { PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 import { useGruposUsuarios } from "@/hooks/useGruposUsuarios";
-import AvisoPermissoesInativas from "./_components/AvisoPermissoesInativas";
+import AvisoPermissoes from "./_components/AvisoPermissoes";
 import NovoGrupoDialog from "./_components/NovoGrupoDialog";
 import { PERFIS_COM_GRUPO, nomeDoPerfil } from "./perfisDeGrupo";
 
@@ -58,7 +58,7 @@ export default function GruposUsuariosPage() {
         </Button>
       }
     >
-      <AvisoPermissoesInativas />
+      <AvisoPermissoes />
 
       <TextField
         select

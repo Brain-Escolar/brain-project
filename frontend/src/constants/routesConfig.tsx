@@ -34,8 +34,10 @@ import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutl
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import BlockIcon from "@mui/icons-material/Block";
 import * as React from "react";
 import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
+import type { TelaCodigo } from "@/constants/permissoes";
 
 export interface RouteConfig {
   text: RouteLabelsEnum;
@@ -45,6 +47,13 @@ export interface RouteConfig {
   roles: UserRoleEnum[];
   moduleMenu?: RoutesModuleEnum | null;
   showBadge?: boolean;
+  /**
+   * Rota que não está no catálogo de permissões: vale para todo mundo que tem o
+   * perfil (início, perfil próprio, tela de grupos, sem acesso e as entradas
+   * ainda sem página, que o catálogo deixou de fora). As demais só
+   * aparecem e abrem se a tela estiver liberada nos grupos da pessoa.
+   */
+  livre?: boolean;
 }
 
 export interface MenuModule {
@@ -61,13 +70,14 @@ export const MODULE_CONFIG: Record<RoutesModuleEnum, { text: string; icon: React
   },
 };
 
-export const ROUTES: RouteConfig[] = [
+const ROTAS: RouteConfig[] = [
   {
     text: RouteLabelsEnum.HOME_DASHBOARD,
     icon: <DashboardIcon fontSize="small" />,
     router: RoutesEnum.HOME,
     isShowMenu: true,
     roles: [UserRoleEnum.PROFESSOR],
+    livre: true,
   },
   {
     text: RouteLabelsEnum.HOME_DASHBOARD,
@@ -75,6 +85,7 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.HOME,
     isShowMenu: true,
     roles: [UserRoleEnum.ESTUDANTE],
+    livre: true,
   },
   {
     text: RouteLabelsEnum.HOME_ESTUDANTE,
@@ -82,6 +93,7 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.HOME_ESTUDANTE_INICIO,
     isShowMenu: false,
     roles: [UserRoleEnum.ESTUDANTE],
+    livre: true,
   },
   {
     text: RouteLabelsEnum.HOME_ADMIN,
@@ -89,6 +101,7 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.HOME_ADMIN,
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN],
+    livre: true,
   },
   // ========== CADASTROS - APENAS ADMIN ==========
   {
@@ -325,6 +338,7 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.FICHA_MEDICA_CADASTRO,
     isShowMenu: false,
     roles: [UserRoleEnum.ADMIN],
+    livre: true,
   },
   {
     text: RouteLabelsEnum.PLANEJAMENTO_ANUAL_LISTA,
@@ -405,6 +419,7 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.HOME,
     isShowMenu: true,
     roles: [UserRoleEnum.RESPONSAVEL],
+    livre: true,
   },
   {
     text: RouteLabelsEnum.RELATORIOS,
@@ -555,14 +570,16 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.USUARIOS,
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN],
+    livre: true,
   },
   {
-    // O DIRETOR também entra: o parseRoles o trata como ADMIN (provisório).
+    // Fora do catálogo: o acesso é por perfil (ADMIN e, pela herança abaixo, DIRETOR).
     text: RouteLabelsEnum.GRUPOS_USUARIOS,
     icon: <ManageAccountsIcon fontSize="small" />,
     router: RoutesEnum.GRUPOS_USUARIOS,
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN],
+    livre: true,
   },
   {
     text: RouteLabelsEnum.RELATORIOS,
@@ -577,6 +594,7 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.CONFIGURACOES,
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN],
+    livre: true,
   },
   {
     text: RouteLabelsEnum.AULAS,
@@ -614,6 +632,7 @@ export const ROUTES: RouteConfig[] = [
       UserRoleEnum.SECRETARIO,
       UserRoleEnum.ORIENTADOR,
     ],
+    livre: true,
   },
   // ========== SECRETARIA ==========
   {
@@ -672,6 +691,7 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.HOME,
     isShowMenu: true,
     roles: [UserRoleEnum.ORIENTADOR],
+    livre: true,
   },
   {
     text: RouteLabelsEnum.ALUNOS,
@@ -702,14 +722,76 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ORIENTADOR],
   },
+  {
+    text: RouteLabelsEnum.SEM_ACESSO,
+    icon: <BlockIcon fontSize="small" />,
+    router: RoutesEnum.SEM_ACESSO,
+    isShowMenu: false,
+    roles: Object.values(UserRoleEnum),
+    livre: true,
+  },
 ];
+
+/**
+ * O DIRETOR usa as telas do ADMIN até ganhar área própria (docs/permissoes.md,
+ * D8): toda entrada do ADMIN vale também para ele. A herança é só de rota; as
+ * permissões do diretor vêm dos grupos, como as de qualquer perfil que não seja
+ * o ADMIN.
+ */
+export const ROUTES: RouteConfig[] = ROTAS.map((rota) =>
+  rota.roles.includes(UserRoleEnum.ADMIN) && !rota.roles.includes(UserRoleEnum.DIRETOR)
+    ? { ...rota, roles: [...rota.roles, UserRoleEnum.DIRETOR] }
+    : rota,
+);
+
+/** Filtro das funções de menu: hoje, rota livre ou tela liberada (usePermissoes.podeVerRota). */
+export type FiltroDeRota = (rota: RouteConfig) => boolean;
+const TODAS: FiltroDeRota = () => true;
+
+const CODIGO_POR_ROTA = new Map<string, TelaCodigo>(
+  Object.entries(RoutesEnum).map(([codigo, rota]) => [rota, codigo as TelaCodigo]),
+);
+
+/** O código da tela no catálogo de permissões: a chave da rota no RoutesEnum. */
+export function codigoDaTela(rota: RouteConfig): TelaCodigo | undefined {
+  return CODIGO_POR_ROTA.get(rota.router);
+}
+
+/** Para onde cada perfil vai ao entrar (o middleware usa o mesmo). */
+export function rotaInicialDoPerfil(perfil: UserRoleEnum): RoutesEnum {
+  switch (perfil) {
+    case UserRoleEnum.ADMIN:
+    case UserRoleEnum.DIRETOR:
+      return RoutesEnum.HOME_ADMIN;
+    case UserRoleEnum.SECRETARIO:
+      return RoutesEnum.SECRETARIA_MATRICULAS;
+    default:
+      return RoutesEnum.HOME;
+  }
+}
+
+/**
+ * Para onde mandar quem abriu uma tela que não tem liberada: a rota inicial do
+ * perfil, se ele puder vê-la; senão a primeira do menu que puder; senão a
+ * página de sem acesso. Nunca devolve uma rota bloqueada, então não há loop.
+ */
+export function rotaPermitidaDoPerfil(perfil: UserRoleEnum, pode: FiltroDeRota): string {
+  const inicial = ROUTES.find(
+    (rota) => rota.router === rotaInicialDoPerfil(perfil) && rota.roles.includes(perfil),
+  );
+  if (inicial && pode(inicial)) return inicial.router;
+  const primeira = ROUTES.find(
+    (rota) => rota.isShowMenu && rota.roles.includes(perfil) && pode(rota),
+  );
+  return primeira?.router ?? RoutesEnum.SEM_ACESSO;
+}
 
 export function getAllowedRoutes(role: UserRoleEnum): string[] {
   return ROUTES.filter((route) => route.roles.includes(role)).map((route) => route.router);
 }
 
-export function getMenuRoutes(role: UserRoleEnum): RouteConfig[] {
-  return ROUTES.filter((route) => route.roles.includes(role) && route.isShowMenu);
+export function getMenuRoutes(role: UserRoleEnum, pode: FiltroDeRota = TODAS): RouteConfig[] {
+  return ROUTES.filter((route) => route.roles.includes(role) && route.isShowMenu && pode(route));
 }
 
 /**
@@ -727,7 +809,7 @@ function autorizada(rotaRoles: UserRoleEnum[], role: PerfilOuPerfis): boolean {
   return comoLista(role).some((perfil) => rotaRoles.includes(perfil));
 }
 
-export function getMenuModules(role: PerfilOuPerfis): MenuModule[] {
+export function getMenuModules(role: PerfilOuPerfis, pode: FiltroDeRota = TODAS): MenuModule[] {
   // Obtém todos os módulos únicos das rotas visíveis para o role
   const modulesSet = new Set<RoutesModuleEnum>();
 
@@ -736,7 +818,8 @@ export function getMenuModules(role: PerfilOuPerfis): MenuModule[] {
       autorizada(route.roles, role) &&
       route.isShowMenu &&
       route.moduleMenu !== null &&
-      route.moduleMenu !== undefined
+      route.moduleMenu !== undefined &&
+      pode(route)
     ) {
       modulesSet.add(route.moduleMenu);
     }
@@ -769,21 +852,33 @@ function getUniqueRolesForModule(moduleId: RoutesModuleEnum): UserRoleEnum[] {
 /**
  * Obtém as rotas de um módulo específico para um role
  */
-export function getRoutesByModule(role: PerfilOuPerfis, moduleId: RoutesModuleEnum): RouteConfig[] {
+export function getRoutesByModule(
+  role: PerfilOuPerfis,
+  moduleId: RoutesModuleEnum,
+  pode: FiltroDeRota = TODAS,
+): RouteConfig[] {
   return ROUTES.filter(
-    (route) => autorizada(route.roles, role) && route.isShowMenu && route.moduleMenu === moduleId,
+    (route) =>
+      autorizada(route.roles, role) &&
+      route.isShowMenu &&
+      route.moduleMenu === moduleId &&
+      pode(route),
   );
 }
 
 /**
  * Obtém as rotas que não pertencem a nenhum módulo
  */
-export function getRoutesWithoutModule(role: PerfilOuPerfis): RouteConfig[] {
+export function getRoutesWithoutModule(
+  role: PerfilOuPerfis,
+  pode: FiltroDeRota = TODAS,
+): RouteConfig[] {
   const visiveis = ROUTES.filter(
     (route) =>
       autorizada(route.roles, role) &&
       route.isShowMenu &&
-      (route.moduleMenu === null || route.moduleMenu === undefined),
+      (route.moduleMenu === null || route.moduleMenu === undefined) &&
+      pode(route),
   );
 
   // A mesma rota e registrada uma vez por perfil (padrao do arquivo). Quem

@@ -11,6 +11,7 @@ import br.com.brain.enums.PerfilNome;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.infra.email.EmailService;
 import br.com.brain.infra.multitenancy.TenantContext;
+import br.com.brain.permissao.GrupoPadraoService;
 import br.com.brain.utils.DateUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -33,6 +34,7 @@ public class UsuarioService {
     private final DadosAutenticacaoRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final GrupoPadraoService grupoPadraoService;
 
     @PersistenceContext
     private EntityManager em;
@@ -63,6 +65,8 @@ public class UsuarioService {
 
         usuario.setDadosPessoais(dadosPessoais);
         var usuarioCriado = usuarioRepository.save(usuario);
+        // Sem grupo a pessoa não acessa as telas do perfil (D2).
+        grupoPadraoService.vincular(dadosPessoais, nomePerfil);
         String schema = TenantContext.getTenantId();
         // Nem todo perfil tem nome social (o responsavel nao informa) — sem o
         // fallback o e-mail de verificacao chegaria com "Ola, null".

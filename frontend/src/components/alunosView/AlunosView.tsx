@@ -40,6 +40,8 @@ import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { RoutesEnum } from "@/enums";
 import { UserRoleEnum } from "@/enums/UserRoleEnum";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissoes } from "@/hooks/usePermissoes";
+import { CONTROLES } from "@/constants/permissoes";
 import { useAlunoMutations } from "@/app/(private)/aluno/useAlunoMutations";
 import { MIN_CARACTERES_BUSCA, useBuscaAlunosOrientacao } from "@/hooks/useBuscaAlunosOrientacao";
 import { useAlunos } from "@/hooks/useAlunos";
@@ -164,27 +166,31 @@ const COLUNAS_CONSULTA: ColunaAluno[] = [
   { key: "turma", label: "Turma" },
 ];
 
+/** Lista de cadastro do ADMIN (e do DIRETOR, que usa as telas dele). */
+const COLUNAS_GESTAO: ColunaAluno[] = [
+  COLUNA_ALUNO,
+  COLUNA_MATRICULA,
+  { key: "cpf", label: "CPF" },
+  { key: "email", label: "E-mail" },
+  {
+    key: "cadastroCompleto",
+    label: "Cadastro",
+    render: (aluno) => (
+      <Badge $tone={aluno.cadastroCompleto ? "success" : "warning"}>
+        {aluno.cadastroCompleto ? "Completo" : "Incompleto"}
+      </Badge>
+    ),
+  },
+];
+
 const COLUNAS_POR_PERFIL: Record<UserRoleEnum, ColunaAluno[]> = {
   [UserRoleEnum.ORIENTADOR]: COLUNAS_CONSULTA,
   [UserRoleEnum.SECRETARIO]: COLUNAS_CONSULTA,
   [UserRoleEnum.PROFESSOR]: COLUNAS_CONSULTA,
   [UserRoleEnum.ESTUDANTE]: COLUNAS_CONSULTA,
   [UserRoleEnum.RESPONSAVEL]: COLUNAS_CONSULTA,
-  [UserRoleEnum.ADMIN]: [
-    COLUNA_ALUNO,
-    COLUNA_MATRICULA,
-    { key: "cpf", label: "CPF" },
-    { key: "email", label: "E-mail" },
-    {
-      key: "cadastroCompleto",
-      label: "Cadastro",
-      render: (aluno) => (
-        <Badge $tone={aluno.cadastroCompleto ? "success" : "warning"}>
-          {aluno.cadastroCompleto ? "Completo" : "Incompleto"}
-        </Badge>
-      ),
-    },
-  ],
+  [UserRoleEnum.ADMIN]: COLUNAS_GESTAO,
+  [UserRoleEnum.DIRETOR]: COLUNAS_GESTAO,
 };
 
 function valorPadrao(aluno: AlunoListaResponse, key: string): React.ReactNode {
@@ -233,8 +239,12 @@ export default function AlunosView({
   const [linhasPorPagina, setLinhasPorPagina] = useState(LINHAS_POR_PAGINA[0]);
   const [apenasIncompletos, setApenasIncompletos] = useState(false);
 
-  // Exclusivo do ADMIN: CRUD da lista de cadastro.
-  const isAdminCrud = role === UserRoleEnum.ADMIN && !listaExterna && !compacto;
+  // CRUD da lista de cadastro: para quem pode cadastrar ou excluir aluno (hoje,
+  // pelos grupos padrão, ADMIN e DIRETOR). Os controles vêm do grupo da pessoa.
+  const { podeControle } = usePermissoes();
+  const podeEditarAluno = podeControle(CONTROLES.ALUNO_EDITAR);
+  const podeExcluirAluno = podeControle(CONTROLES.ALUNO_EXCLUIR);
+  const isAdminCrud = (podeEditarAluno || podeExcluirAluno) && !listaExterna && !compacto;
 
   const tituloVisivel = titulo ?? (isAdminCrud ? "Lista de Alunos" : "Alunos");
   const descricaoVisivel =
@@ -375,22 +385,26 @@ export default function AlunosView({
   // chamador que informe `acoes` continua no controle.
   const acoesAdmin = (aluno: AlunoListaResponse) => (
     <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-      <IconButton
-        size="small"
-        onClick={() => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${aluno.id}`)}
-        sx={{ color: "primary.main" }}
-        title="Editar"
-      >
-        <Edit fontSize="small" />
-      </IconButton>
-      <IconButton
-        size="small"
-        onClick={() => setAlunoParaExcluir(aluno)}
-        sx={{ color: "error.main" }}
-        title="Excluir"
-      >
-        <Delete fontSize="small" />
-      </IconButton>
+      {podeEditarAluno && (
+        <IconButton
+          size="small"
+          onClick={() => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${aluno.id}`)}
+          sx={{ color: "primary.main" }}
+          title="Editar"
+        >
+          <Edit fontSize="small" />
+        </IconButton>
+      )}
+      {podeExcluirAluno && (
+        <IconButton
+          size="small"
+          onClick={() => setAlunoParaExcluir(aluno)}
+          sx={{ color: "error.main" }}
+          title="Excluir"
+        >
+          <Delete fontSize="small" />
+        </IconButton>
+      )}
     </Box>
   );
 
@@ -398,7 +412,7 @@ export default function AlunosView({
 
   const acoesCabecalho =
     acoesTopo ??
-    (isAdminCrud ? (
+    (isAdminCrud && podeEditarAluno ? (
       <Button
         variant="contained"
         startIcon={<Add />}

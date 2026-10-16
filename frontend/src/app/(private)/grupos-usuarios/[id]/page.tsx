@@ -13,7 +13,7 @@ import { RoutesEnum } from "@/enums";
 import { useGrupoUsuario } from "@/hooks/useGruposUsuarios";
 import AbaAcessos from "../_components/AbaAcessos";
 import AbaPessoas from "../_components/AbaPessoas";
-import AvisoPermissoesInativas from "../_components/AvisoPermissoesInativas";
+import AvisoPermissoes from "../_components/AvisoPermissoes";
 import DuplicarGrupoDialog from "../_components/DuplicarGrupoDialog";
 import EditarGrupoDialog from "../_components/EditarGrupoDialog";
 import ExcluirGrupoDialog from "../_components/ExcluirGrupoDialog";
@@ -96,7 +96,7 @@ export default function GrupoUsuarioPage() {
         {!grupo.ativo && <Chip size="small" label="Inativo" />}
       </Box>
 
-      <AvisoPermissoesInativas />
+      <AvisoPermissoes />
 
       {grupo.padrao && (
         <Alert severity="info" sx={{ mb: 3 }}>
