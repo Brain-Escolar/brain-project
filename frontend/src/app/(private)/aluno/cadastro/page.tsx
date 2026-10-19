@@ -86,7 +86,8 @@ const OPTIONS_UF: KeyValue[] = [
 const OPTIONS_GENDER: KeyValue[] = [
   { key: "masculino", value: "Masculino" },
   { key: "feminino", value: "Feminino" },
-  { key: "outro", value: "Outro" },
+  { key: "outro", value: "Outros" },
+  { key: "prefiro_nao_informar", value: "Não informar" },
 ];
 
 const OPTIONS_COR_RACA: KeyValue[] = [
