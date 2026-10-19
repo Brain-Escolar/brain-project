@@ -37,7 +37,13 @@ import CorporateFareOutlinedIcon from "@mui/icons-material/CorporateFareOutlined
 import EventRepeatOutlinedIcon from "@mui/icons-material/EventRepeatOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import * as React from "react";
-import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
+import {
+  UserRoleEnum,
+  RoutesEnum,
+  RouteLabelsEnum,
+  RoutesModuleEnum,
+  RoutesSectionEnum,
+} from "@/enums";
 
 export interface RouteConfig {
   text: RouteLabelsEnum;
@@ -46,6 +52,8 @@ export interface RouteConfig {
   isShowMenu: boolean;
   roles: UserRoleEnum[];
   moduleMenu?: RoutesModuleEnum | null;
+  /** Setor (aba) dentro do módulo; módulos com setores abrem em abas. */
+  section?: RoutesSectionEnum;
   showBadge?: boolean;
   /** Linha de apoio exibida sob o nome no menu do módulo. */
   caption?: string;
@@ -76,6 +84,34 @@ export const MODULE_CONFIG: Record<RoutesModuleEnum, { text: string; icon: React
     icon: <SummarizeOutlinedIcon fontSize="small" />,
   },
 };
+
+export interface MenuSection {
+  id: RoutesSectionEnum;
+  text: string;
+  icon: React.JSX.Element;
+  routes: RouteConfig[];
+}
+
+/** A ordem das chaves define a ordem das abas no menu. */
+export const SECTION_CONFIG: Record<RoutesSectionEnum, { text: string; icon: React.JSX.Element }> =
+  {
+    [RoutesSectionEnum.PESSOAS]: {
+      text: "Pessoas",
+      icon: <GroupsIcon fontSize="small" />,
+    },
+    [RoutesSectionEnum.ESTRUTURA_ESCOLAR]: {
+      text: "Estrutura Escolar",
+      icon: <CorporateFareOutlinedIcon fontSize="small" />,
+    },
+    [RoutesSectionEnum.CURRICULO]: {
+      text: "Currículo",
+      icon: <MenuBookOutlinedIcon fontSize="small" />,
+    },
+    [RoutesSectionEnum.PEDAGOGICO]: {
+      text: "Pedagógico",
+      icon: <AssignmentIcon fontSize="small" />,
+    },
+  };
 
 export const ROUTES: RouteConfig[] = [
   {
@@ -114,6 +150,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PESSOAS,
   },
   {
     text: RouteLabelsEnum.PROFESSOR,
@@ -129,6 +166,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PESSOAS,
   },
   {
     text: RouteLabelsEnum.SECRETARIO,
@@ -144,6 +182,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PESSOAS,
   },
   {
     text: RouteLabelsEnum.ALUNO,
@@ -172,6 +211,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.ESTRUTURA_ESCOLAR,
   },
   {
     text: RouteLabelsEnum.TURMA,
@@ -201,6 +241,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.CURRICULO,
   },
   {
     text: RouteLabelsEnum.GRADE_CURRICULAR,
@@ -216,6 +257,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.CURRICULO,
   },
   {
     text: RouteLabelsEnum.GRUPO_DISCIPLINA,
@@ -231,6 +273,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.CURRICULO,
   },
   {
     text: RouteLabelsEnum.DISCIPLINA,
@@ -246,6 +289,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.ESTRUTURA_ESCOLAR,
   },
   {
     text: RouteLabelsEnum.SERIE,
@@ -260,6 +304,7 @@ export const ROUTES: RouteConfig[] = [
     router: RoutesEnum.AULA_LISTA,
     isShowMenu: true,
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PEDAGOGICO,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
@@ -283,6 +328,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.ESTRUTURA_ESCOLAR,
   },
   {
     text: RouteLabelsEnum.HORARIO,
@@ -298,6 +344,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PEDAGOGICO,
   },
   {
     text: RouteLabelsEnum.NOTA,
@@ -313,6 +360,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PEDAGOGICO,
   },
   {
     text: RouteLabelsEnum.TAREFA,
@@ -328,6 +376,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PEDAGOGICO,
   },
   {
     text: RouteLabelsEnum.ALERTA,
@@ -355,6 +404,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PESSOAS,
   },
   {
     text: RouteLabelsEnum.FICHA_MEDICA,
@@ -370,6 +420,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.CURRICULO,
   },
   {
     text: RouteLabelsEnum.PLANEJAMENTO_ANUAL,
@@ -629,6 +680,7 @@ export const ROUTES: RouteConfig[] = [
     isShowMenu: true,
     roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.ESTRUTURA_ESCOLAR,
   },
 
   {
@@ -853,6 +905,26 @@ export function getRoutesByModule(role: PerfilOuPerfis, moduleId: RoutesModuleEn
 /**
  * Obtém as rotas que não pertencem a nenhum módulo
  */
+/**
+ * Agrupa as rotas do módulo por setor, na ordem de SECTION_CONFIG. Retorna
+ * vazio quando o módulo não usa setores (o menu então é uma lista simples).
+ */
+export function getSectionsByModule(
+  role: PerfilOuPerfis,
+  moduleId: RoutesModuleEnum,
+): MenuSection[] {
+  const routes = getRoutesByModule(role, moduleId);
+  if (!routes.some((route) => route.section)) return [];
+
+  return (Object.keys(SECTION_CONFIG) as RoutesSectionEnum[])
+    .map((id) => ({
+      id,
+      ...SECTION_CONFIG[id],
+      routes: routes.filter((route) => route.section === id),
+    }))
+    .filter((section) => section.routes.length > 0);
+}
+
 export function getRoutesWithoutModule(role: PerfilOuPerfis): RouteConfig[] {
   const visiveis = ROUTES.filter(
     (route) =>

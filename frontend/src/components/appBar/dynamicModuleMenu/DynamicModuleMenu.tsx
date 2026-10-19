@@ -2,10 +2,21 @@
 
 import * as React from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { ListItemIcon, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
+import {
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  MenuList,
+  Popover,
+  Tab,
+  Tabs,
+  Typography,
+} from "@mui/material";
 import Box from "@mui/material/Box";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { getRoutesByModule } from "@/constants/routesConfig";
+import { getRoutesByModule, getSectionsByModule } from "@/constants/routesConfig";
+import type { RouteConfig } from "@/constants/routesConfig";
 import type { UserRoleEnum, RoutesModuleEnum } from "@/enums";
 
 export interface DynamicModuleMenuProps {
@@ -40,27 +51,79 @@ export function DynamicModuleMenu({
   const open = Boolean(anchorEl);
 
   const routes = React.useMemo(() => getRoutesByModule(role, moduleId), [role, moduleId]);
+  const sections = React.useMemo(() => getSectionsByModule(role, moduleId), [role, moduleId]);
+  const [sectionId, setSectionId] = React.useState(sections[0]?.id);
 
   if (routes.length === 0) return null;
 
   const accent = accentColor ?? textColor;
-  const isActive = routes.some(
-    (r) => pathname === r.router || pathname.startsWith(r.router + "/"),
-  );
+  const routeIsActive = (r: RouteConfig) =>
+    pathname === r.router || pathname.startsWith(r.router + "/");
+  const isActive = routes.some(routeIsActive);
   const highlighted = open || isActive;
 
   const menuId = `menu-module-${moduleId}`;
+
+  const openMenu = (target: HTMLElement) => {
+    // Abre na aba do setor da página atual, ou na primeira.
+    const current = sections.find((s) => s.routes.some(routeIsActive)) ?? sections[0];
+    setSectionId(current?.id);
+    setAnchorEl(target);
+  };
+
+  const paperSx = {
+    mt: 1,
+    borderRadius: 2,
+    overflow: "hidden",
+    bgcolor: menuBg,
+    color: textColor,
+    border: "1px solid",
+    borderColor,
+    boxShadow: "var(--shadows-level3)",
+  };
+
+  const renderItem = (route: RouteConfig) => (
+    <MenuItem
+      key={route.router}
+      selected={routeIsActive(route)}
+      onClick={() => {
+        router.push(route.router);
+        setAnchorEl(null);
+      }}
+      sx={{ px: 2, py: 1.25, minHeight: 44, "&:hover": { bgcolor: menuHoverBg } }}
+    >
+      <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>{route.icon}</ListItemIcon>
+      <ListItemText
+        primary={
+          <Typography
+            sx={{ fontSize: 14, color: "inherit", fontWeight: route.caption ? 600 : 400 }}
+          >
+            {route.text}
+          </Typography>
+        }
+        secondary={
+          route.caption ? (
+            <Typography sx={{ fontSize: 12, color: mutedTextColor, mt: 0.25 }}>
+              {route.caption}
+            </Typography>
+          ) : undefined
+        }
+      />
+    </MenuItem>
+  );
+
+  const activeSection = sections.find((s) => s.id === sectionId) ?? sections[0];
 
   return (
     <>
       <Box
         role="button"
         tabIndex={0}
-        onClick={(e) => setAnchorEl(e.currentTarget as HTMLElement)}
+        onClick={(e) => openMenu(e.currentTarget as HTMLElement)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            setAnchorEl(e.currentTarget as HTMLElement);
+            openMenu(e.currentTarget as HTMLElement);
           }
         }}
         sx={{
@@ -90,59 +153,71 @@ export function DynamicModuleMenu({
         <KeyboardArrowDownIcon sx={{ fontSize: 18, color: "inherit", opacity: 0.9 }} />
       </Box>
 
-      <Menu
-        id={menuId}
-        anchorEl={anchorEl}
-        open={open}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{
-          paper: {
-            sx: {
-              mt: 1,
-              minWidth: 240,
-              borderRadius: 2,
-              overflow: "hidden",
-              bgcolor: menuBg,
-              color: textColor,
-              border: "1px solid",
-              borderColor,
-              boxShadow: "var(--shadows-level3)",
-            },
-          },
-          list: { disablePadding: true },
-        }}
-      >
-        {routes.map((route) => (
-          <MenuItem
-            key={route.router}
-            onClick={() => {
-              router.push(route.router);
-              setAnchorEl(null);
+      {activeSection ? (
+        <Popover
+          id={menuId}
+          anchorEl={anchorEl}
+          open={open}
+          onClose={() => setAnchorEl(null)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          transformOrigin={{ vertical: "top", horizontal: "left" }}
+          slotProps={{ paper: { sx: { ...paperSx, display: "flex" } } }}
+        >
+          <Tabs
+            orientation="vertical"
+            value={activeSection.id}
+            onChange={(_, value) => setSectionId(value)}
+            sx={{
+              minWidth: 200,
+              py: 1,
+              borderRight: "1px solid",
+              borderRightColor: borderColor,
+              "& .MuiTabs-indicator": { left: 0, bgcolor: accent },
             }}
-            sx={{ px: 2, py: 1.25, minHeight: 44, "&:hover": { bgcolor: menuHoverBg } }}
           >
-            <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>{route.icon}</ListItemIcon>
-            <ListItemText
-              primary={
-                <Typography
-                  sx={{ fontSize: 14, color: "inherit", fontWeight: route.caption ? 600 : 400 }}
-                >
-                  {route.text}
-                </Typography>
-              }
-              secondary={
-                route.caption ? (
-                  <Typography sx={{ fontSize: 12, color: mutedTextColor, mt: 0.25 }}>
-                    {route.caption}
-                  </Typography>
-                ) : undefined
-              }
-            />
-          </MenuItem>
-        ))}
-      </Menu>
+            {sections.map((section) => (
+              <Tab
+                key={section.id}
+                value={section.id}
+                label={section.text}
+                icon={section.icon}
+                iconPosition="start"
+                onMouseEnter={() => setSectionId(section.id)}
+                sx={{
+                  minHeight: 44,
+                  px: 2,
+                  justifyContent: "flex-start",
+                  textTransform: "none",
+                  fontSize: 14,
+                  color: mutedTextColor,
+                  "&.Mui-selected": { color: accent, fontWeight: 600, bgcolor: menuHoverBg },
+                }}
+              />
+            ))}
+          </Tabs>
+          <MenuList
+            aria-label={activeSection.text}
+            sx={{ minWidth: 240, py: 1, alignSelf: "flex-start" }}
+          >
+            {activeSection.routes.map(renderItem)}
+          </MenuList>
+        </Popover>
+      ) : (
+        <Menu
+          id={menuId}
+          anchorEl={anchorEl}
+          open={open}
+          onClose={() => setAnchorEl(null)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          transformOrigin={{ vertical: "top", horizontal: "left" }}
+          slotProps={{
+            paper: { sx: { ...paperSx, minWidth: 240 } },
+            list: { disablePadding: true },
+          }}
+        >
+          {routes.map(renderItem)}
+        </Menu>
+      )}
     </>
   );
 }

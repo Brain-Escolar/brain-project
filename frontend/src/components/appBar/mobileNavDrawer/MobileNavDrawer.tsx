@@ -15,11 +15,12 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  ListSubheader,
   Typography,
 } from "@mui/material";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { getRoutesByModule } from "@/constants/routesConfig";
+import { getRoutesByModule, getSectionsByModule } from "@/constants/routesConfig";
 import type { RouteConfig, MenuModule } from "@/constants/routesConfig";
 import type { UserRoleEnum } from "@/enums";
 
@@ -45,10 +46,36 @@ function ModuleSection({
   onNavigate: () => void;
 }) {
   const routes = React.useMemo(() => getRoutesByModule(role, mod.id), [role, mod.id]);
+  const sections = React.useMemo(() => getSectionsByModule(role, mod.id), [role, mod.id]);
   const isActive = routes.some((r) => pathname === r.router || pathname.startsWith(r.router + "/"));
   const [expanded, setExpanded] = React.useState(isActive);
 
   if (routes.length === 0) return null;
+
+  const renderRoute = (route: RouteConfig) => {
+    const routeActive = pathname === route.router;
+    return (
+      <ListItemButton
+        key={route.router}
+        component={Link}
+        href={route.router}
+        onClick={onNavigate}
+        sx={{ py: 1, pl: 5 }}
+        selected={routeActive}
+      >
+        <ListItemIcon sx={{ minWidth: 36 }}>
+          {React.cloneElement(route.icon, { fontSize: "small" })}
+        </ListItemIcon>
+        <ListItemText
+          primary={
+            <Typography sx={{ fontSize: 14, fontWeight: routeActive ? 600 : 500 }}>
+              {route.text}
+            </Typography>
+          }
+        />
+      </ListItemButton>
+    );
+  };
 
   return (
     <>
@@ -58,7 +85,9 @@ function ModuleSection({
         </ListItemIcon>
         <ListItemText
           primary={
-            <Typography sx={{ fontSize: 14, fontWeight: isActive ? 600 : 500 }}>{mod.text}</Typography>
+            <Typography sx={{ fontSize: 14, fontWeight: isActive ? 600 : 500 }}>
+              {mod.text}
+            </Typography>
           }
         />
         <KeyboardArrowDownIcon
@@ -71,30 +100,25 @@ function ModuleSection({
       </ListItemButton>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <List disablePadding>
-          {routes.map((route) => {
-            const routeActive = pathname === route.router;
-            return (
-              <ListItemButton
-                key={route.router}
-                component={Link}
-                href={route.router}
-                onClick={onNavigate}
-                sx={{ py: 1, pl: 5 }}
-                selected={routeActive}
-              >
-                <ListItemIcon sx={{ minWidth: 36 }}>
-                  {React.cloneElement(route.icon, { fontSize: "small" })}
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography sx={{ fontSize: 14, fontWeight: routeActive ? 600 : 500 }}>
-                      {route.text}
-                    </Typography>
-                  }
-                />
-              </ListItemButton>
-            );
-          })}
+          {sections.length > 0
+            ? sections.map((section) => (
+                <React.Fragment key={section.id}>
+                  <ListSubheader
+                    disableSticky
+                    sx={{
+                      pl: 5,
+                      lineHeight: "32px",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      bgcolor: "transparent",
+                    }}
+                  >
+                    {section.text}
+                  </ListSubheader>
+                  {section.routes.map(renderRoute)}
+                </React.Fragment>
+              ))
+            : routes.map(renderRoute)}
         </List>
       </Collapse>
     </>
@@ -130,7 +154,14 @@ export function MobileNavDrawer({
           borderBottomColor: "divider",
         }}
       >
-        <Image src={logoSrc} alt="Brain" width={81} height={28} unoptimized style={{ height: 28, width: "auto" }} />
+        <Image
+          src={logoSrc}
+          alt="Brain"
+          width={81}
+          height={28}
+          unoptimized
+          style={{ height: 28, width: "auto" }}
+        />
         <IconButton onClick={onClose} aria-label="Fechar menu" size="small">
           <CloseRounded />
         </IconButton>
@@ -168,7 +199,13 @@ export function MobileNavDrawer({
         {moduleMenus.length > 0 && directRoutes.length > 0 && <Divider sx={{ my: 1 }} />}
 
         {moduleMenus.map((mod) => (
-          <ModuleSection key={mod.id} mod={mod} role={role} pathname={pathname} onNavigate={onClose} />
+          <ModuleSection
+            key={mod.id}
+            mod={mod}
+            role={role}
+            pathname={pathname}
+            onNavigate={onClose}
+          />
         ))}
       </List>
     </Drawer>
