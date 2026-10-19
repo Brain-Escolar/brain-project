@@ -699,8 +699,8 @@ export const ROUTES: RouteConfig[] = [
   },
   // ========== DIREÇÃO ==========
   // Área própria do DIRETOR, organizada em módulos (menus suspensos) como no
-  // design da Direção. Os módulos sem tela ainda (Alunos, Professores,
-  // Avaliações de Resultados) entram quando as telas existirem. O módulo
+  // design da Direção. Os módulos sem tela ainda (Alunos, Avaliações de
+  // Resultados) entram quando as telas existirem. O módulo
   // Cadastros (inclusive Secretários) é o mesmo do ADMIN, declarado acima.
   {
     text: RouteLabelsEnum.INICIO,
@@ -717,6 +717,22 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.ROTINAS_ACADEMICAS,
     caption: "Eventos, provas e feriados",
+  },
+  {
+    text: RouteLabelsEnum.PROFESSORES,
+    icon: <MenuBookOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.GESTAO_PROFESSORES,
+    isShowMenu: true,
+    roles: [UserRoleEnum.DIRETOR],
+    moduleMenu: RoutesModuleEnum.GESTAO_ESCOLAR,
+    caption: "Diário, notas e anotações",
+  },
+  {
+    text: RouteLabelsEnum.ACOMPANHAMENTO_PROFESSOR,
+    icon: <MenuBookOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.GESTAO_PROFESSOR_DETALHE,
+    isShowMenu: false,
+    roles: [UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.ACOMPANHAMENTO_TURMA,

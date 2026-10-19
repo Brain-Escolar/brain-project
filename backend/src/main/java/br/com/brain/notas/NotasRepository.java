@@ -1,5 +1,7 @@
 package br.com.brain.notas;
 
+import java.util.Collection;
+import br.com.brain.diretor.projecao.NotasLancadas;
 import br.com.brain.diretor.projecao.MediaPorSerie;
 import br.com.brain.enums.TipoAvaliacao;
 import br.com.brain.turma.Turma;
@@ -50,4 +52,13 @@ public interface NotasRepository extends JpaRepository<Notas, Long> {
             """)
     Double mediaGeral(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim,
             @Param("excluido") TipoAvaliacao excluido);
+
+    /** Quantas notas já foram lançadas em cada avaliação de turma, e a média delas. */
+    @Query("""
+            SELECT new br.com.brain.diretor.projecao.NotasLancadas(n.avaliacaoTurma.id, COUNT(n), AVG(n.pontuacao))
+            FROM Notas n
+            WHERE n.avaliacaoTurma.id IN :avaliacaoTurmaIds AND n.pontuacao IS NOT NULL
+            GROUP BY n.avaliacaoTurma.id
+            """)
+    List<NotasLancadas> contarLancadas(@Param("avaliacaoTurmaIds") Collection<Long> avaliacaoTurmaIds);
 }

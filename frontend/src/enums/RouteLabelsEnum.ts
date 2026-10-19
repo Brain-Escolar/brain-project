@@ -82,6 +82,7 @@ export enum RouteLabelsEnum {
   INICIO = "Início",
   ACOMPANHAMENTO_TURMA = "Acompanhamento por turma",
   CALENDARIO_ACADEMICO = "Calendário acadêmico",
+  ACOMPANHAMENTO_PROFESSOR = "Acompanhamento do professor",
   AVALIACOES = "Avaliações",
   CONTRACHEQUE = "Contracheque e declarações",
   MATERIAIS_COMPLEMENTARES = "Materiais complementares",

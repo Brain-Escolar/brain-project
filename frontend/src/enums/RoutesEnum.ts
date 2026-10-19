@@ -87,6 +87,8 @@ export enum RoutesEnum {
   CALENDARIO = "/calendario",
   RELATORIOS = "/relatorios",
   RELATORIO_ACOMPANHAMENTO_TURMA = "/relatorios/acompanhamento-turma",
+  GESTAO_PROFESSORES = "/gestao-escolar/professores",
+  GESTAO_PROFESSOR_DETALHE = "/gestao-escolar/professores/detalhe",
   AVALIACOES = "/avaliacoes",
   DIARIO = "/diario",
   CONTRACHEQUE = "/contracheque",

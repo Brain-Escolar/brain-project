@@ -1,5 +1,6 @@
 package br.com.brain.anotacao;
 
+import java.util.Collection;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,5 +27,17 @@ public interface AnotacaoRepository extends JpaRepository<Anotacao, Long> {
             ORDER BY a.dataAnotacao DESC, a.id DESC
             """)
     List<Anotacao> findDaTurmaNoPeriodo(@Param("turmaId") Long turmaId,
+            @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /** Anotações lançadas nas aulas no intervalo, com o aluno carregado, das mais recentes para as mais antigas. */
+    @Query("""
+            SELECT a FROM Anotacao a
+            JOIN FETCH a.aula au
+            JOIN FETCH a.aluno al
+            JOIN FETCH al.dadosPessoais
+            WHERE au.id IN :aulaIds AND a.dataAnotacao BETWEEN :inicio AND :fim
+            ORDER BY a.dataAnotacao DESC, a.id DESC
+            """)
+    List<Anotacao> findDasAulasNoPeriodo(@Param("aulaIds") Collection<Long> aulaIds,
             @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 }

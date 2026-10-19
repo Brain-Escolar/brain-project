@@ -210,6 +210,9 @@ export const QUERY_KEYS = {
     filtrosAcompanhamento: () => [...QUERY_KEYS.diretor.all, "acompanhamento", "filtros"] as const,
     acompanhamentoTurma: (turmaId?: number, filtros?: Record<string, unknown>) =>
       [...QUERY_KEYS.diretor.all, "acompanhamento", turmaId, filtros] as const,
+    professores: () => [...QUERY_KEYS.diretor.all, "professores"] as const,
+    professor: (professorId?: number, semana?: string) =>
+      [...QUERY_KEYS.diretor.all, "professores", professorId, semana] as const,
   },
   orientacao: {
     all: ["orientacao"] as const,

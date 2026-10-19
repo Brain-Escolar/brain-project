@@ -77,4 +77,26 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
             WHERE au.turma.id = :turmaId
             """)
     List<ProfessorDaDisciplina> findProfessoresPorDisciplinaDaTurma(@Param("turmaId") Long turmaId);
+
+    /** Grade do ano letivo inteiro, com turma, disciplina, professor e horário carregados. */
+    @Query("""
+            SELECT au FROM Aula au
+            JOIN FETCH au.turma t LEFT JOIN FETCH t.serie LEFT JOIN FETCH t.unidade
+            JOIN FETCH au.disciplina
+            JOIN FETCH au.professor
+            LEFT JOIN FETCH au.horario
+            WHERE t.anoLetivo = :anoLetivo
+            """)
+    List<Aula> findGradeDoAnoLetivo(@Param("anoLetivo") int anoLetivo);
+
+    /** Grade de um professor no ano letivo, com turma, disciplina e horário carregados. */
+    @Query("""
+            SELECT au FROM Aula au
+            JOIN FETCH au.turma t LEFT JOIN FETCH t.serie LEFT JOIN FETCH t.unidade
+            JOIN FETCH au.disciplina
+            JOIN FETCH au.professor
+            LEFT JOIN FETCH au.horario
+            WHERE t.anoLetivo = :anoLetivo AND au.professor.id = :professorId
+            """)
+    List<Aula> findGradeDoProfessor(@Param("anoLetivo") int anoLetivo, @Param("professorId") Long professorId);
 }

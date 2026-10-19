@@ -1,5 +1,7 @@
 package br.com.brain.chamada;
 
+import br.com.brain.diretor.projecao.RegistroChamada;
+import java.util.Collection;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -56,4 +58,16 @@ public interface ChamadaRepository extends JpaRepository<Chamada, Long> {
             ORDER BY EXTRACT(YEAR FROM c.data), EXTRACT(MONTH FROM c.data)
             """)
     List<FrequenciaMensal> frequenciaMensal(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /** Chamadas lançadas para as aulas no intervalo, uma linha por aula e dia. */
+    @Query("""
+            SELECT new br.com.brain.diretor.projecao.RegistroChamada(
+                c.aula.id, c.data, COUNT(c),
+                SUM(CASE WHEN c.presente = false THEN 1 ELSE 0 END), MAX(c.criadoEm))
+            FROM Chamada c
+            WHERE c.aula.id IN :aulaIds AND c.data BETWEEN :inicio AND :fim
+            GROUP BY c.aula.id, c.data
+            """)
+    List<RegistroChamada> registrosDasAulas(@Param("aulaIds") Collection<Long> aulaIds,
+            @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 }

@@ -172,3 +172,200 @@ export interface AcompanhamentoTurmaResponse {
   desempenhoDisciplinas: DisciplinaAcompanhamentoResponse[];
   anotacoes: AnotacaoAcompanhamentoResponse[];
 }
+
+// ─── Acompanhamento docente (Gestão Escolar › Professores) ─────────────────
+
+export type SituacaoProfessor = "EM_DIA" | "PENDENTE" | "SEM_GRADE" | "INATIVO";
+/** REGISTRADA = conteúdo ou chamada lançados; PENDENTE = já aconteceu sem registro; PREVISTA = ainda vai acontecer. */
+export type SituacaoAula = "REGISTRADA" | "PENDENTE" | "PREVISTA";
+export type SituacaoAvaliacao = "LANCADA" | "NO_PRAZO" | "ATRASADA" | "AGENDADA";
+
+export interface PeriodoProfessoresResponse {
+  nome: string;
+  /** yyyy-MM-dd */
+  inicio: string;
+  fim: string;
+}
+
+export interface DiaSemanaProfessoresResponse {
+  data: string;
+  /** Dia da semana atual (segunda a sexta); `feriado` é o nome do feriado da escola, se houver. */
+  feriado: string | null;
+}
+
+export interface ResumoProfessoresResponse {
+  professoresAtivos: number;
+  professoresSemGrade: number;
+  diariosEmDia: number;
+  professoresComGrade: number;
+  aulasPendentes: number;
+  avaliacoesPendentes: number;
+  professoresComPendencia: number;
+}
+
+export interface DiaProfessorResponse {
+  data: string;
+  aulas: number;
+  registradas: number;
+  pendentes: number;
+}
+
+export interface ProfessorLinhaResponse {
+  id: number;
+  nome: string;
+  disciplinas: string[];
+  turmas: number;
+  semana: DiaProfessorResponse[];
+  /** Aulas do período que já aconteceram. */
+  aulasPrevistas: number;
+  aulasRegistradas: number;
+  aulasPendentes: number;
+  avaliacoesAplicadas: number;
+  avaliacoesLancadas: number;
+  avaliacoesPendentes: number;
+  /** yyyy-MM-ddTHH:mm:ss, no fuso da escola. */
+  ultimoRegistro: string | null;
+  situacao: SituacaoProfessor;
+}
+
+/** Payload de `GET /diretor/professores`. */
+export interface ProfessoresDiretorResponse {
+  periodo: PeriodoProfessoresResponse;
+  semana: DiaSemanaProfessoresResponse[];
+  resumo: ResumoProfessoresResponse;
+  professores: ProfessorLinhaResponse[];
+}
+
+export interface ProfessorAcompanhadoResponse {
+  id: number;
+  nome: string;
+  email: string | null;
+  disciplinas: string[];
+  turnos: string[];
+  unidades: string[];
+  ativo: boolean;
+  situacao: SituacaoProfessor;
+}
+
+export interface ResumoProfessorResponse {
+  aulasPrevistas: number;
+  aulasRegistradas: number;
+  aulasPendentes: number;
+  frequencia: number | null;
+  avaliacoesAplicadas: number;
+  avaliacoesLancadas: number;
+  avaliacoesPendentes: number;
+  ultimoRegistro: string | null;
+}
+
+export interface AulaPendenteResponse {
+  data: string;
+  turma: string;
+  serie: string | null;
+  disciplina: string;
+  horario: string | null;
+}
+
+export interface TurmaProfessorResponse {
+  turmaId: number;
+  turma: string;
+  serie: string | null;
+  disciplinaId: number;
+  disciplina: string;
+  alunos: number;
+  aulasPrevistas: number;
+  aulasRegistradas: number;
+  frequencia: number | null;
+  media: number | null;
+  avaliacoesLancadas: number;
+  avaliacoes: number;
+}
+
+export interface AnotacaoAulaResponse {
+  alunoId: number;
+  aluno: string;
+  tipo: string | null;
+  tipoDescricao: string | null;
+  observacao: string | null;
+}
+
+export interface AulaDiarioResponse {
+  aulaId: number;
+  turmaId: number;
+  turma: string;
+  serie: string | null;
+  disciplina: string;
+  horario: string | null;
+  /** HH:mm:ss */
+  inicio: string | null;
+  fim: string | null;
+  situacao: SituacaoAula;
+  conteudo: string | null;
+  /** Nulos quando a chamada não foi feita. */
+  presentes: number | null;
+  faltas: number | null;
+  registradoEm: string | null;
+  anotacoes: AnotacaoAulaResponse[];
+}
+
+export interface DiaDiarioResponse {
+  data: string;
+  feriado: string | null;
+  aulas: AulaDiarioResponse[];
+}
+
+export interface SemanaDiarioResponse {
+  inicio: string;
+  fim: string;
+  /** Segundas-feiras para navegar entre semanas; `proxima` é nula na semana atual. */
+  anterior: string | null;
+  proxima: string | null;
+  dias: DiaDiarioResponse[];
+}
+
+export interface AvaliacaoProfessorResponse {
+  id: number;
+  nome: string;
+  tipo: string | null;
+  turmaId: number;
+  turma: string;
+  serie: string | null;
+  disciplina: string | null;
+  dataAplicacao: string | null;
+  prazo: string | null;
+  alunos: number;
+  lancadas: number;
+  media: number | null;
+  situacao: SituacaoAvaliacao;
+}
+
+export interface AnotacaoProfessorResponse {
+  id: number;
+  alunoId: number;
+  aluno: string;
+  matricula: string | null;
+  turma: string;
+  serie: string | null;
+  disciplina: string;
+  data: string;
+  tipo: string | null;
+  tipoDescricao: string | null;
+  observacao: string | null;
+}
+
+/** Payload de `GET /diretor/professores/{id}`. */
+export interface AcompanhamentoProfessorResponse {
+  professor: ProfessorAcompanhadoResponse;
+  periodo: PeriodoProfessoresResponse;
+  mediaMinima: number;
+  resumo: ResumoProfessorResponse;
+  aulasPendentes: AulaPendenteResponse[];
+  turmas: TurmaProfessorResponse[];
+  semana: SemanaDiarioResponse;
+  avaliacoes: AvaliacaoProfessorResponse[];
+  anotacoes: AnotacaoProfessorResponse[];
+}
+
+export interface LembretesEnviadosResponse {
+  enviados: number;
+}

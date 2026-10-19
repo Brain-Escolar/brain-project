@@ -1,5 +1,8 @@
 package br.com.brain.evento;
 
+import java.util.List;
+import br.com.brain.enums.TipoEvento;
+import br.com.brain.diretor.projecao.Feriado;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -44,4 +47,14 @@ public interface EventoRepository extends JpaRepository<Evento, Long> {
            countQuery = "SELECT COUNT(*) FROM eventos WHERE data_evento >= :dataInicio AND data_evento <= :dataFim",
            nativeQuery = true)
     Page<Evento> findAllByPeriodo(@Param("dataInicio") LocalDate dataInicio, @Param("dataFim") LocalDate dataFim, Pageable pageable);
+
+    /** Eventos de um tipo que valem para a escola ou para uma unidade inteira (sem turma nem série). */
+    @Query("""
+            SELECT new br.com.brain.diretor.projecao.Feriado(e.dataEvento, e.titulo, u.id)
+            FROM Evento e LEFT JOIN e.unidade u
+            WHERE e.tipo = :tipo AND e.turma IS NULL AND e.serie IS NULL
+              AND e.dataEvento BETWEEN :inicio AND :fim
+            """)
+    List<Feriado> findGeraisDoTipoNoPeriodo(@Param("tipo") TipoEvento tipo,
+            @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 }

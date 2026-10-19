@@ -29,4 +29,8 @@ public interface ProfessorRepository extends JpaRepository<Professor, Long> {
             WHERE aula.professor.dadosPessoais.matricula = :matricula
             """)
     List<ListagemAulaDto> gerarGradeHoraria(@Param("matricula") String matricula);
+
+    /** Todos os professores, com dados pessoais, em ordem alfabética. */
+    @Query("SELECT p FROM Professor p JOIN FETCH p.dadosPessoais dp ORDER BY dp.nome")
+    List<Professor> findTodosComDadosPessoais();
 }

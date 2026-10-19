@@ -1,5 +1,7 @@
 package br.com.brain.aluno;
 
+import java.util.Collection;
+import br.com.brain.diretor.projecao.AlunosPorTurma;
 import br.com.brain.aula.Aula;
 import java.util.List;
 
@@ -71,4 +73,13 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long>, JpaSpecific
             Pageable pageable);
 
     List<Aluno> findByTurmaIdAndMatriculadoTrue(Long turmaId);
+
+    /** Alunos matriculados em cada turma. */
+    @Query("""
+            SELECT new br.com.brain.diretor.projecao.AlunosPorTurma(a.turma.id, COUNT(a))
+            FROM Aluno a
+            WHERE a.matriculado = true AND a.turma.id IN :turmaIds
+            GROUP BY a.turma.id
+            """)
+    List<AlunosPorTurma> contarMatriculadosPorTurma(@Param("turmaIds") Collection<Long> turmaIds);
 }
