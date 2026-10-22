@@ -335,4 +335,22 @@ public class MatriculaEfetivacaoService {
                         .findByContratoIdOrderByNumeroParcelaAscIdAsc(c.getId())))
                 .toList();
     }
+
+    /**
+     * Os contratos de um aluno, do mais recente para o mais antigo.
+     *
+     * Existe para a tela de baixa da secretaria. Sem este caminho, so se chegaria
+     * ao carne pelo id da matricula, que nenhuma tela conhece -- e dar baixa
+     * dependeria de a parcela estar atrasada, porque so o relatorio de
+     * inadimplencia lista titulo. O caso comum e o oposto: o pai que paga em dia.
+     *
+     * @param anoLetivo opcional; nulo traz o historico inteiro
+     */
+    @Transactional(readOnly = true)
+    public List<ContratoDto> contratosDoAluno(Long alunoId, Integer anoLetivo) {
+        return contratoRepository.buscarDoAlunoComItens(alunoId, anoLetivo).stream()
+                .map(c -> new ContratoDto(c, tituloRepository
+                        .findByContratoIdOrderByNumeroParcelaAscIdAsc(c.getId())))
+                .toList();
+    }
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,6 +30,18 @@ public class ContratoController {
     @PostMapping("/efetivar")
     public ResponseEntity<ContratoDto> efetivar(@RequestBody @Valid EfetivarMatriculaRequest pedido) {
         return ResponseEntity.ok(efetivacaoService.efetivar(pedido));
+    }
+
+    /**
+     * Os contratos de um aluno, com o carne. E por aqui que a tela de baixa chega
+     * a uma parcela que ainda nao venceu -- o relatorio de inadimplencia so lista
+     * o que esta em atraso, e o caso comum e o pai que paga em dia.
+     */
+    @GetMapping
+    public ResponseEntity<List<ContratoDto>> doAluno(
+            @RequestParam("alunoId") Long alunoId,
+            @RequestParam(value = "anoLetivo", required = false) Integer anoLetivo) {
+        return ResponseEntity.ok(efetivacaoService.contratosDoAluno(alunoId, anoLetivo));
     }
 
     @GetMapping("/{id}")
