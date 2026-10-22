@@ -19,6 +19,7 @@ import br.com.brain.notas.dto.DetalhamentoNotasAlunoDisciplinaDto;
 import br.com.brain.produto.dto.ListagemAlunoProdutoDto;
 import br.com.brain.relatorios.dto.RelatorioDto;
 import br.com.brain.responsavel.portal.dto.AlunoVinculadoDto;
+import br.com.brain.responsavel.portal.dto.CarneResponsavelDto;
 import br.com.brain.responsavel.portal.dto.ResponsavelLogadoDto;
 import br.com.brain.responsavel.portal.dto.ResumoAlunoDto;
 import br.com.brain.tarefa.dto.ListagemTarefaAlunoDto;
@@ -67,6 +68,7 @@ import java.util.List;
 public class ResponsavelPortalController {
 
     private final ResponsavelPortalService service;
+    private final ResponsavelFinanceiroService financeiroService;
 
     // ---------------------------------------------------------------- sessao
 
@@ -238,5 +240,23 @@ public class ResponsavelPortalController {
             @AuthenticationPrincipal DadosAutenticacao usuario,
             @PathVariable("alunoId") Long alunoId) {
         return ResponseEntity.ok(service.financeiro(usuario, alunoId));
+    }
+
+    /**
+     * O carne: as parcelas que ESTE responsavel paga, com bolsa e situacao de
+     * cada uma.
+     *
+     * Sem alunoId na rota de proposito. Os titulos pertencem ao responsavel, nao
+     * ao aluno, e quem tem dois filhos paga uma conta so -- obrigar a escolher um
+     * filho antes de ver o que deve seria o contrario do que a familia quer. O
+     * nome do aluno vem em cada linha, e a tela agrupa se quiser.
+     *
+     * `anoLetivo` omitido traz o historico inteiro.
+     */
+    @GetMapping("/financeiro/carne")
+    public ResponseEntity<CarneResponsavelDto> carne(
+            @AuthenticationPrincipal DadosAutenticacao usuario,
+            @RequestParam(value = "anoLetivo", required = false) Integer anoLetivo) {
+        return ResponseEntity.ok(financeiroService.carne(usuario, anoLetivo));
     }
 }

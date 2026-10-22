@@ -10,6 +10,12 @@ public record TituloDto(
         Long id,
         Long responsavelId,
         Integer numeroParcela,
+        /**
+         * Qual tentativa desta parcela é. 1 no carnê original; 2 ou mais quando a
+         * parcela foi reemitida. A tela precisa disto para não mostrar duas linhas
+         * iguais da parcela 3 sem explicar a diferença.
+         */
+        Integer versao,
         LocalDate competencia,
         LocalDate vencimento,
         String descricao,
@@ -25,6 +31,7 @@ public record TituloDto(
                 t.getId(),
                 t.getResponsavel().getId(),
                 t.getNumeroParcela(),
+                t.getVersao(),
                 t.getCompetencia(),
                 t.getVencimento(),
                 t.getDescricao(),

@@ -60,7 +60,8 @@ public class Titulo extends EntidadeBase {
     /**
      * Quem paga ESTA parcela. Pode nao ser o titular do contrato: o rateio entre
      * responsaveis acontece aqui, e o indice unico do banco e
-     * (contrato, numero_parcela, responsavel) justamente para permitir isso.
+     * (contrato, numero_parcela, responsavel, versao) justamente para permitir
+     * isso.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "responsavel_id", referencedColumnName = "id")
@@ -75,6 +76,16 @@ public class Titulo extends EntidadeBase {
 
     @Column(name = "numero_parcela")
     private Integer numeroParcela;
+
+    /**
+     * Qual tentativa desta parcela esta linha e: 1 na emissao do carne, 2 depois
+     * de um estorno ou renegociacao com reemissao, e assim por diante.
+     *
+     * Faz parte da chave unica. Sem ela, o titulo substituto colidiria com o
+     * substituido em (contrato, parcela, responsavel) e a correcao seria
+     * impossivel -- ver V112.
+     */
+    private Integer versao;
 
     private LocalDate vencimento;
 
@@ -114,6 +125,7 @@ public class Titulo extends EntidadeBase {
         this.valorLiquido = valorBruto.subtract(valorDesconto);
         this.status = StatusTitulo.ABERTO;
         this.tituloOrigem = tituloOrigem;
+        this.versao = tituloOrigem == null ? 1 : tituloOrigem.getVersao() + 1;
     }
 
     public static Titulo parcela(ContratoServico contrato, Responsavel responsavel,
@@ -123,9 +135,21 @@ public class Titulo extends EntidadeBase {
                 descricao, valorBruto, valorDesconto, null);
     }
 
-    /** Substitui um titulo existente, mantendo o rastro de onde veio. */
+    /**
+     * Substitui um titulo existente, mantendo o rastro de onde veio e subindo a
+     * versao.
+     *
+     * O titulo de ORIGEM precisa ter saido de ABERTO antes (estornado, cancelado
+     * ou renegociado): duas versoes abertas da mesma parcela cobrariam a familia
+     * duas vezes, e o indice unico nao pega isso -- as versoes sao diferentes.
+     */
     public static Titulo substituindo(Titulo origem, LocalDate vencimento,
             BigDecimal valorBruto, BigDecimal valorDesconto, String descricao) {
+        if (origem.estaAberto()) {
+            throw new IllegalStateException(
+                    "O título de origem ainda está ABERTO. Estorne, cancele ou renegocie antes de"
+                            + " reemitir, senão a parcela fica cobrada duas vezes.");
+        }
         return new Titulo(origem.getContrato(), origem.getResponsavel(), origem.getCompetencia(),
                 origem.getNumeroParcela(), vencimento, descricao, valorBruto, valorDesconto, origem);
     }

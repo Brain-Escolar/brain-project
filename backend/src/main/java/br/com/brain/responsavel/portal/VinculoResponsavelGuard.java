@@ -40,6 +40,25 @@ public class VinculoResponsavelGuard {
     }
 
     /**
+     * Resolve o responsavel e exige a permissao financeira, SEM aluno.
+     *
+     * Existe para o carne: os titulos sao do responsavel (titulos.responsavel_id),
+     * nao do aluno, e um pagador com dois filhos ve um extrato so. Exigir alunoId
+     * ali obrigaria a tela a escolher um filho antes de mostrar a conta, que e
+     * justamente o contrario do que a familia quer ver.
+     *
+     * O vinculo com cada aluno continua garantido, por outro caminho: cada titulo
+     * ja pertence a este responsavel, e o nome do aluno que aparece na linha e o
+     * do contrato que ele paga.
+     */
+    @Transactional(readOnly = true)
+    public Responsavel resolverResponsavelFinanceiro(DadosAutenticacao usuario) {
+        var responsavel = resolverResponsavel(usuario);
+        exigirPermissaoFinanceira(responsavel, null);
+        return responsavel;
+    }
+
+    /**
      * Devolve o aluno se, e somente se, ele estiver vinculado ao responsavel logado.
      *
      * @throws AcessoNegadoException (403) quando nao ha vinculo.
@@ -58,12 +77,16 @@ public class VinculoResponsavelGuard {
     @Transactional(readOnly = true)
     public Aluno assertPodeVerFinanceiro(DadosAutenticacao usuario, Long alunoId) {
         var responsavel = resolverResponsavel(usuario);
+        exigirPermissaoFinanceira(responsavel, alunoId);
+        return alunoVinculado(responsavel, alunoId);
+    }
+
+    private void exigirPermissaoFinanceira(Responsavel responsavel, Long alunoId) {
         if (!Boolean.TRUE.equals(responsavel.getFinanceiro())) {
-            log.warn("Responsavel id={} sem permissao financeira tentou ver o financeiro do aluno id={}.",
+            log.warn("Responsavel id={} sem permissao financeira tentou ver o financeiro (aluno id={}).",
                     responsavel.getId(), alunoId);
             throw new AcessoNegadoException("Responsavel sem permissao para consultar dados financeiros.");
         }
-        return alunoVinculado(responsavel, alunoId);
     }
 
     private Aluno alunoVinculado(Responsavel responsavel, Long alunoId) {

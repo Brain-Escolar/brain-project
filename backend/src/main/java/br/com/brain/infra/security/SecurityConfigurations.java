@@ -73,6 +73,20 @@ public class SecurityConfigurations {
                             req.requestMatchers("/contratos/**")
                                     .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
 
+                            // Baixa, estorno, caixa e inadimplencia - acima do
+                            // permitAll. NAO confundir com /portal-responsavel:
+                            // la e a familia vendo a propria conta, aqui e a
+                            // escola mexendo no caixa. Prefixos separados de
+                            // proposito, para um erro de matcher nao abrir o
+                            // financeiro da escola para quem paga.
+                            //
+                            // FINANCEIRO ainda nao existe em PerfilNome; quando
+                            // existir, entra aqui -- e dia em que vale rever se
+                            // estorno continua acessivel a SECRETARIO, porque
+                            // estorno tira dinheiro de um caixa ja fechado.
+                            req.requestMatchers("/financeiro/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
                             // Bolsas - acima do permitAll para ja valer hoje.
                             // FINANCEIRO ainda nao existe em PerfilNome; quando
                             // existir, entra aqui.
