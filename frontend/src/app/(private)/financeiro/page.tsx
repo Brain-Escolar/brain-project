@@ -1,18 +1,18 @@
 "use client";
 
-import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
-import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import ReportGmailerrorredOutlinedIcon from "@mui/icons-material/ReportGmailerrorredOutlined";
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
-import Badge from "@/components/badge";
+import Badge, { BadgeTone } from "@/components/badge";
 import KpiCard from "@/components/kpiCard";
 import LoadingComponent from "@/components/loadingComponent/loadingComponent";
 import BrainResultNotFound from "@/components/resultNotFound/resultNotFound";
-import { useAlunoSelecionado } from "@/contexts/AlunoSelecionadoContext";
-import { useFinanceiroAluno } from "@/hooks/useFinanceiroAluno";
+import { useCarneResponsavel } from "@/hooks/useCarneResponsavel";
+import { ParcelaPortalResponse, SituacaoParcela } from "@/services/domains/responsavel-portal";
 import * as S from "./styles";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -28,106 +28,180 @@ function dataBR(iso: string | null | undefined): string | null {
   return `${dia}/${mes}/${ano}`;
 }
 
+/** Competência é sempre dia 1, então o dia só polui: mostra mês/ano. */
+function competenciaBR(iso: string | null | undefined): string {
+  if (!iso) return "–";
+  const [ano, mes] = iso.split("-");
+  if (!ano || !mes) return "–";
+  return `${mes}/${ano}`;
+}
+
+const SITUACAO: Record<SituacaoParcela, { rotulo: string; tone: BadgeTone }> = {
+  PAGA: { rotulo: "Paga", tone: "success" },
+  A_VENCER: { rotulo: "A vencer", tone: "neutral" },
+  VENCE_HOJE: { rotulo: "Vence hoje", tone: "warning" },
+  EM_ATRASO: { rotulo: "Em atraso", tone: "error" },
+  CANCELADA: { rotulo: "Cancelada", tone: "neutral" },
+  SUBSTITUIDA: { rotulo: "Substituída", tone: "neutral" },
+  ESTORNADA: { rotulo: "Estornada", tone: "warning" },
+};
+
+const FORMAS: Record<string, string> = {
+  DINHEIRO: "dinheiro",
+  PIX: "Pix",
+  TRANSFERENCIA: "transferência",
+  CARTAO_CREDITO: "cartão de crédito",
+  CARTAO_DEBITO: "cartão de débito",
+  BOLETO: "boleto",
+  CHEQUE: "cheque",
+  OUTRO: "outra forma",
+};
+
+/**
+ * O carnê da família: o que ela paga, o que já pagou e o que vem.
+ *
+ * Mostra bruto e desconto separados de propósito — "mensalidade 1.350, bolsa
+ * −270, a pagar 1.080". Só o valor final esconderia a bolsa de quem a recebeu, e
+ * bolsa que ninguém percebe não gera a gratidão que a escola esperava quando
+ * decidiu concedê-la.
+ *
+ * Não pede aluno selecionado: os títulos são do responsável, e quem tem dois
+ * filhos paga uma conta só. O nome do aluno vem em cada linha.
+ */
 export default function FinanceiroPage() {
-  const { alunoAtual, isLoading: carregandoAlunos } = useAlunoSelecionado();
-  const { contratos, loading, error } = useFinanceiroAluno();
+  const { carne, loading, semAcesso } = useCarneResponsavel();
 
-  if (carregandoAlunos || loading) return <LoadingComponent />;
-  if (!alunoAtual) {
-    return <BrainResultNotFound message="Nenhum aluno vinculado ao seu cadastro." />;
-  }
+  if (loading) return <LoadingComponent />;
 
-  // O backend responde 403 quando o responsável não tem a flag `financeiro`.
-  // Isso não é falha: é a resposta correta para quem não é o responsável
-  // financeiro do aluno.
-  if (error) {
+  // 403 aqui não é falha: é a resposta correta para quem não é o responsável
+  // financeiro. Nem todo responsável vinculado vê valores.
+  if (semAcesso || !carne) {
     return (
       <PageScaffold title="Financeiro">
         <BrainResultNotFound
-          message="Você não tem acesso aos dados financeiros deste aluno."
-          description="Apenas o responsável financeiro cadastrado na secretaria pode consultar contratos e valores."
+          message="Você não tem acesso aos dados financeiros."
+          description="Apenas o responsável financeiro cadastrado na secretaria pode consultar parcelas e valores."
         />
       </PageScaffold>
     );
   }
 
-  const nomeAluno = alunoAtual.nomeSocial || alunoAtual.nome;
-  const ativos = contratos.filter((c) => c.status === "ATIVO");
-  const totalMensal = ativos.reduce((soma, c) => soma + (c.valorPago ?? 0), 0);
+  const proximo = dataBR(carne.proximoVencimento);
 
   return (
     <PageScaffold
       title="Financeiro"
-      description={`Produtos e serviços contratados para ${nomeAluno}`}
+      description={
+        proximo
+          ? `Próxima parcela em ${proximo}: ${moeda(carne.valorDoProximoVencimento)}`
+          : "Suas parcelas do ano letivo"
+      }
     >
       <S.KpiGrid>
         <KpiCard
-          rotulo="Contratos ativos"
-          valor={ativos.length}
-          icone={<Inventory2OutlinedIcon />}
-          tone="primary"
-        />
-        <KpiCard
-          rotulo="Total contratado"
-          valor={moeda(totalMensal)}
+          rotulo="Ainda a pagar"
+          valor={moeda(carne.totalAberto)}
           icone={<PaymentsOutlinedIcon />}
           tone="primary"
         />
         <KpiCard
-          rotulo="Itens contratados"
-          valor={contratos.length}
-          icone={<ShoppingCartOutlinedIcon />}
+          rotulo="Já pago"
+          valor={moeda(carne.totalPago)}
+          icone={<CheckCircleOutlineIcon />}
+          tone="success"
+        />
+        <KpiCard
+          rotulo={carne.parcelasEmAtraso === 1 ? "1 parcela em atraso" : `${carne.parcelasEmAtraso} parcelas em atraso`}
+          valor={moeda(carne.totalEmAtraso)}
+          icone={<ReportGmailerrorredOutlinedIcon />}
+          tone={carne.totalEmAtraso > 0 ? "error" : "neutral"}
+        />
+        <KpiCard
+          rotulo="Desconto de bolsa no ano"
+          valor={moeda(carne.totalDeBolsa)}
+          icone={<SchoolOutlinedIcon />}
           tone="info"
         />
       </S.KpiGrid>
 
-      <S.SecaoTitulo>Produtos e serviços contratados</S.SecaoTitulo>
+      <S.SecaoTitulo>Parcelas</S.SecaoTitulo>
 
-      {contratos.length === 0 ? (
-        <BrainResultNotFound message="Nenhum produto ou serviço contratado para este aluno." />
+      {carne.parcelas.length === 0 ? (
+        <BrainResultNotFound
+          message="Nenhuma parcela encontrada."
+          description="As parcelas aparecem aqui depois que a matrícula é efetivada na secretaria."
+        />
       ) : (
         <S.Lista>
-          {contratos.map((contrato) => {
-            const cancelado = contrato.status === "CANCELADO";
-            const compra = dataBR(contrato.dataCompra);
-            const temDesconto = (contrato.desconto ?? 0) > 0;
-            return (
-              <S.Produto key={contrato.id}>
-                <S.ProdutoIcone>
-                  <SchoolOutlinedIcon />
-                </S.ProdutoIcone>
-                <S.ProdutoCorpo>
-                  <S.ProdutoNome>{contrato.produtoNome}</S.ProdutoNome>
-                  <S.ProdutoModalidade>{contrato.modalidade}</S.ProdutoModalidade>
-                  {compra && <S.ProdutoData>Contratado em {compra}</S.ProdutoData>}
-                </S.ProdutoCorpo>
-                <S.ProdutoDireita>
-                  <div style={{ textAlign: "right" }}>
-                    <S.Valor $cancelado={cancelado}>{moeda(contrato.valorPago)}</S.Valor>
-                    {temDesconto && !cancelado && (
-                      <div>
-                        <S.ValorOriginal>{moeda(contrato.valorOriginal)}</S.ValorOriginal>
-                      </div>
-                    )}
-                  </div>
-                  <Badge $tone={cancelado ? "neutral" : "success"}>
-                    {cancelado ? "Cancelado" : "Ativo"}
-                  </Badge>
-                </S.ProdutoDireita>
-              </S.Produto>
-            );
-          })}
+          {carne.parcelas.map((p) => (
+            <LinhaDaParcela key={p.id} parcela={p} />
+          ))}
         </S.Lista>
       )}
 
-      {/* Boletos ainda não existem no backend — bloco marcado como módulo futuro. */}
+      {/* Boleto e Pix entram na próxima fase; hoje o pagamento é combinado na secretaria. */}
       <S.Placeholder>
         <ReceiptLongOutlinedIcon sx={{ fontSize: 32, color: "text.disabled" }} />
-        <S.PlaceholderTitulo>Boletos</S.PlaceholderTitulo>
+        <S.PlaceholderTitulo>Boleto e Pix</S.PlaceholderTitulo>
         <S.PlaceholderTexto>
-          Em breve: segunda via, linha digitável e histórico de pagamentos.
+          Em breve: segunda via com linha digitável e QR Code. Por enquanto, o pagamento é
+          combinado com a secretaria, e a baixa aparece aqui assim que registrada.
         </S.PlaceholderTexto>
       </S.Placeholder>
     </PageScaffold>
+  );
+}
+
+function LinhaDaParcela({ parcela }: { parcela: ParcelaPortalResponse }) {
+  const situacao = SITUACAO[parcela.situacao];
+  const temBolsa = parcela.valorDesconto > 0;
+  const naoVale =
+    parcela.situacao === "CANCELADA" ||
+    parcela.situacao === "SUBSTITUIDA" ||
+    parcela.situacao === "ESTORNADA";
+
+  const paga = dataBR(parcela.pagaEm);
+  const vence = dataBR(parcela.vencimento);
+
+  return (
+    <S.Produto>
+      <S.ProdutoIcone>
+        <ReceiptLongOutlinedIcon />
+      </S.ProdutoIcone>
+
+      <S.ProdutoCorpo>
+        <S.ProdutoNome>
+          Parcela {parcela.numeroParcela}/{parcela.totalParcelas} ·{" "}
+          {competenciaBR(parcela.competencia)}
+        </S.ProdutoNome>
+
+        <S.ProdutoModalidade>
+          {parcela.alunoNome ?? "Aluno"} · {parcela.contratoNumero}
+        </S.ProdutoModalidade>
+
+        <S.ProdutoData>
+          {paga
+            ? `Paga em ${paga}${
+                parcela.formaPagamento ? ` por ${FORMAS[parcela.formaPagamento] ?? "outra forma"}` : ""
+              }`
+            : parcela.situacao === "EM_ATRASO"
+              ? `Venceu em ${vence} · ${parcela.diasDeAtraso} dia(s) de atraso`
+              : `Vence em ${vence}`}
+        </S.ProdutoData>
+      </S.ProdutoCorpo>
+
+      <S.ProdutoDireita>
+        <div style={{ textAlign: "right" }}>
+          <S.Valor $cancelado={naoVale}>{moeda(parcela.valorLiquido)}</S.Valor>
+          {temBolsa && !naoVale && (
+            <div>
+              {/* O valor cheio riscado ao lado é o que torna a bolsa visível. */}
+              <S.ValorOriginal>{moeda(parcela.valorBruto)}</S.ValorOriginal>
+            </div>
+          )}
+        </div>
+        <Badge $tone={situacao.tone}>{situacao.rotulo}</Badge>
+      </S.ProdutoDireita>
+    </S.Produto>
   );
 }

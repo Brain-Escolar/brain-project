@@ -262,6 +262,10 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.responsavel.aluno(alunoId), "ficha-medica"] as const,
     financeiro: (alunoId: number) =>
       [...QUERY_KEYS.responsavel.aluno(alunoId), "financeiro"] as const,
+    // Fora do escopo de aluno de proposito: o carne e do responsavel, e quem
+    // tem dois filhos paga uma conta so.
+    carne: (anoLetivo?: number) =>
+      [...QUERY_KEYS.responsavel.all, "carne", anoLetivo ?? "todos"] as const,
     documentos: (alunoId: number) =>
       [...QUERY_KEYS.responsavel.aluno(alunoId), "documentos"] as const,
   },
