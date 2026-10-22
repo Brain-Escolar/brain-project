@@ -39,6 +39,7 @@ import { DocumentoEscolarApi } from "./domains/documento-escolar";
 import { BolsaApi } from "./domains/bolsa";
 import { SimulacaoApi } from "./domains/simulacao";
 import { ContratoApi } from "./domains/contrato";
+import { FinanceiroApi } from "./domains/financeiro";
 
 export const alunoApi = new AlunoApi();
 export const orientacaoApi = new OrientacaoApi();
@@ -81,3 +82,4 @@ export const documentoEscolarApi = new DocumentoEscolarApi();
 export const bolsaApi = new BolsaApi();
 export const simulacaoApi = new SimulacaoApi();
 export const contratoApi = new ContratoApi();
+export const financeiroApi = new FinanceiroApi();

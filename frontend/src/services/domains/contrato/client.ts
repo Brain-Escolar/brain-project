@@ -22,4 +22,15 @@ export class ContratoApi {
   getDaMatricula(matriculaId: number): Promise<ContratoResponse[]> {
     return httpClient.get(`${BASE_ROUTE}/matriculas/${matriculaId}`);
   }
+
+  /**
+   * Os contratos de um aluno, do mais recente para o mais antigo.
+   *
+   * É por aqui que a tela de baixa chega a uma parcela que ainda não venceu: o
+   * relatório de inadimplência só lista o que está em atraso, e o caso comum é o
+   * pai que paga em dia.
+   */
+  getDoAluno(alunoId: number, anoLetivo?: number): Promise<ContratoResponse[]> {
+    return httpClient.get(BASE_ROUTE, { params: { alunoId, anoLetivo } });
+  }
 }

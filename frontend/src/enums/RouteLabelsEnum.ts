@@ -103,6 +103,7 @@ export enum RouteLabelsEnum {
   SECRETARIA_CRM = "CRM",
   SECRETARIA_ENTURMACAO = "Enturmação",
   SECRETARIA_TURMA_GERENCIAR = "Gerenciar alunos da turma",
+  SECRETARIA_FINANCEIRO = "Financeiro da escola",
 
   // Responsavel labels
   OCORRENCIAS = "Ocorrências",

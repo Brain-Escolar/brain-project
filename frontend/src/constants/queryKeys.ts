@@ -301,5 +301,18 @@ export const QUERY_KEYS = {
     detail: (id: number) => [...QUERY_KEYS.contratos.all, "detail", id] as const,
     daMatricula: (matriculaId: number) =>
       [...QUERY_KEYS.contratos.all, "matricula", matriculaId] as const,
+    doAluno: (alunoId: number, anoLetivo?: number) =>
+      [...QUERY_KEYS.contratos.all, "aluno", alunoId, anoLetivo ?? "todos"] as const,
+  },
+  financeiro: {
+    all: ["financeiro"] as const,
+    // O aging depende de unidade, ano e data de referencia: trocar a referencia
+    // reclassifica todas as faixas. Chave por objeto de filtro para o React Query
+    // refazer a conta quando qualquer um mudar.
+    inadimplencia: (filtro?: unknown) =>
+      [...QUERY_KEYS.financeiro.all, "inadimplencia", filtro ?? {}] as const,
+    caixa: (data?: string) => [...QUERY_KEYS.financeiro.all, "caixa", data ?? "hoje"] as const,
+    pagamentosDoTitulo: (tituloId: number) =>
+      [...QUERY_KEYS.financeiro.all, "pagamentos", tituloId] as const,
   },
 } as const;

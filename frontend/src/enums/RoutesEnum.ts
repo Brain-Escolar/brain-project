@@ -108,6 +108,9 @@ export enum RoutesEnum {
   SECRETARIA_ENTURMACAO = "/secretaria/enturmacao",
   SECRETARIA_TURMA_GERENCIAR = "/secretaria/turmas",
   SECRETARIA_DOCUMENTOS = "/secretaria/documentos",
+  // Nao confundir com FINANCEIRO, logo abaixo: aquela e a tela da familia
+  // vendo a propria conta; esta e a escola cobrando e recebendo.
+  SECRETARIA_FINANCEIRO = "/secretaria/financeiro",
 
   // Orientacao routes
   ORIENTACAO_ALUNOS = "/orientacao/alunos",
