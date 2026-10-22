@@ -32,6 +32,7 @@ import { useCrmMutations } from "@/hooks/useCrmMutations";
 import RegistrarInteracaoDialog from "../_components/RegistrarInteracaoDialog";
 import AvisoCadastroIncompletoDialog from "../_components/AvisoCadastroIncompletoDialog";
 import BlocoBolsaLead from "../_components/BlocoBolsaLead";
+import BlocoEfetivacao from "../_components/BlocoEfetivacao";
 import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 function iniciais(nome: string): string {
@@ -224,6 +225,8 @@ export default function DetalheLeadCrmPage() {
             alunoId={processo.alunoId}
             anoLetivo={processo.anoLetivo}
           />
+
+          <BlocoEfetivacao processoMatriculaId={processo.id} anoLetivo={processo.anoLetivo} />
 
           <Paper variant="outlined" sx={{ p: 2.5 }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>

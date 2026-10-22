@@ -296,4 +296,10 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.simulacoes.all, "processo", processoMatriculaId] as const,
     doAluno: (alunoId: number) => [...QUERY_KEYS.simulacoes.all, "aluno", alunoId] as const,
   },
+  contratos: {
+    all: ["contratos"] as const,
+    detail: (id: number) => [...QUERY_KEYS.contratos.all, "detail", id] as const,
+    daMatricula: (matriculaId: number) =>
+      [...QUERY_KEYS.contratos.all, "matricula", matriculaId] as const,
+  },
 } as const;
