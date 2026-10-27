@@ -1,7 +1,7 @@
 package br.com.brain.professor;
 
+import br.com.brain.matricula.MatriculaRepository;
 import br.com.brain.aluno.Aluno;
-import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.anotacao.AnotacaoRepository;
 import br.com.brain.anotacao.dto.AnotacaoAlunoDisciplinaDto;
 import br.com.brain.aula.Aula;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,7 @@ import java.util.Map;
 public class MinhasTurmasService {
 
     private final AulaRepository aulaRepository;
-    private final AlunoRepository alunoRepository;
+    private final MatriculaRepository matriculaRepository;
     private final NotasRepository notasRepository;
     private final ChamadaRepository chamadaRepository;
     private final AnotacaoRepository anotacaoRepository;
@@ -72,9 +71,7 @@ public class MinhasTurmasService {
             throw new ErrosSistema.AcessoNegadoException("Você não leciona esta disciplina nesta turma.");
         }
 
-        var alunos = alunoRepository.findByTurmaIdAndMatriculadoTrue(turmaId).stream()
-                .sorted(Comparator.comparing(a -> a.getDadosPessoais().getNome()))
-                .toList();
+        var alunos = matriculaRepository.findAlunosDaTurma(turmaId);
 
         var alunosDto = alunos.stream()
                 .map(aluno -> montarDetalheAluno(aluno, disciplinaId))
@@ -101,7 +98,7 @@ public class MinhasTurmasService {
     }
 
     private ListagemTurmaProfessorDto montarResumoTurma(Turma turma, Long disciplinaId) {
-        var alunos = alunoRepository.findByTurmaIdAndMatriculadoTrue(turma.getId());
+        var alunos = matriculaRepository.findAlunosDaTurma(turma.getId());
 
         var medias = alunos.stream()
                 .map(aluno -> calcularMedia(aluno.getId(), disciplinaId))

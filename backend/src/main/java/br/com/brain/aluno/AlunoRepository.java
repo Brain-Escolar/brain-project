@@ -1,7 +1,5 @@
 package br.com.brain.aluno;
 
-import java.util.Collection;
-import br.com.brain.diretor.projecao.AlunosPorTurma;
 import br.com.brain.aula.Aula;
 import java.util.List;
 
@@ -13,6 +11,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+/**
+ * {@code turma}, {@code serie} e {@code unidade} de Aluno são o cache da
+ * matrícula do ano corrente. Lista de alunos de uma turma sai de
+ * {@link br.com.brain.matricula.MatriculaRepository#findAlunosDaTurma(Long)},
+ * que vale também para turmas de anos passados.
+ */
 public interface AlunoRepository extends JpaRepository<Aluno, Long>, JpaSpecificationExecutor<Aluno> {
 
     Optional<Aluno> findByDadosPessoaisId(Long dadosPessoaisId);
@@ -26,21 +30,9 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long>, JpaSpecific
             """)
     List<Aula> gerarGradeHoraria(@Param("matricula") String matricula);
 
-    List<Aluno> findByUnidadeIdAndSerieIdAndTurmaIdAndMatriculadoTrueOrderByDadosPessoaisNomeAsc(Long unidadeId, Long serieId, Long turmaId);
-
-    long countByTurmaIdAndMatriculadoTrue(Long turmaId);
-
     long countByMatriculadoTrue();
 
     long countByMatriculadoTrueAndTurmaIsNull();
-
-    /** Alunos matriculados na turma, com os dados pessoais já carregados, em ordem de nome. */
-    @Query("""
-            SELECT a FROM Aluno a JOIN FETCH a.dadosPessoais dp
-            WHERE a.turma.id = :turmaId AND a.matriculado = true
-            ORDER BY dp.nome
-            """)
-    List<Aluno> findMatriculadosDaTurmaComDadosPessoais(@Param("turmaId") Long turmaId);
 
     /**
      * Busca de alunos matriculados usada pela Orientação: texto livre sobre nome e
@@ -71,15 +63,4 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long>, JpaSpecific
             @Param("serieId") Long serieId,
             @Param("turmaId") Long turmaId,
             Pageable pageable);
-
-    List<Aluno> findByTurmaIdAndMatriculadoTrue(Long turmaId);
-
-    /** Alunos matriculados em cada turma. */
-    @Query("""
-            SELECT new br.com.brain.diretor.projecao.AlunosPorTurma(a.turma.id, COUNT(a))
-            FROM Aluno a
-            WHERE a.matriculado = true AND a.turma.id IN :turmaIds
-            GROUP BY a.turma.id
-            """)
-    List<AlunosPorTurma> contarMatriculadosPorTurma(@Param("turmaIds") Collection<Long> turmaIds);
 }

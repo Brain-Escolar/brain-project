@@ -1,8 +1,7 @@
 package br.com.brain.aula;
-import br.com.brain.aluno.AlunoService;
+import br.com.brain.matricula.MatriculaRepository;
 
 import br.com.brain.aluno.Aluno;
-import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.disciplina.Disciplina;
 import br.com.brain.horario.Horario;
 import br.com.brain.professor.Professor;
@@ -36,9 +35,8 @@ public class AulaService {
 
     private final AulaRepository repository;
 
-    private final AlunoService alunoService;
 
-    private final AlunoRepository alunoRepository;
+    private final MatriculaRepository matriculaRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -122,7 +120,7 @@ public class AulaService {
             throw new ErrosSistema.DataInvalidaException("Data não pode ser nula.");
         }
         var diaSemana = data.getDayOfWeek();
-        long quantidadeAlunos = alunoRepository.countByTurmaIdAndMatriculadoTrue(turmaId);
+        long quantidadeAlunos = matriculaRepository.countAlunosDaTurma(turmaId);
         return repository.findByTurmaIdAndDiaSemana(turmaId, diaSemana, paginacao)
                 .map(aula -> new ListagemAulaAlunoDto(aula, quantidadeAlunos));
     }
@@ -130,9 +128,7 @@ public class AulaService {
     public List<Aluno> recuperarAlunos(Long id) {
         var aula = repository.findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aula", id));
-        List<Aluno> alunos = alunoService.recuperarAlunosPorUnidadeSerieTurma(aula.getTurma().getUnidade().getId(),
-                aula.getTurma().getSerie().getId(), aula.getTurma().getId());
-        return alunos;
+        return matriculaRepository.findAlunosDaTurma(aula.getTurma().getId());
     }
 
     public Disciplina recuperarDisciplina(Long aulaId) {
@@ -159,7 +155,7 @@ public class AulaService {
                 DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
         var sort = Sort.by(Sort.Direction.ASC, "diaSemana")
                 .and(Sort.by(Sort.Direction.ASC, "horario.horarioInicio"));
-        long quantidadeAlunos = alunoRepository.countByTurmaIdAndMatriculadoTrue(turmaId);
+        long quantidadeAlunos = matriculaRepository.countAlunosDaTurma(turmaId);
         return repository.findByTurmaIdAndDiaSemanaIn(turmaId, diasUteis, sort)
                 .stream()
                 .map(aula -> new ListagemAulaAlunoDto(aula, quantidadeAlunos))

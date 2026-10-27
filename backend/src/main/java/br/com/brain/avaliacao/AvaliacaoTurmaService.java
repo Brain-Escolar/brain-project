@@ -1,10 +1,10 @@
 package br.com.brain.avaliacao;
 
+import br.com.brain.matricula.MatriculaRepository;
 import java.time.LocalDate;
 import java.util.List;
 
 import br.com.brain.aluno.Aluno;
-import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.aluno.dto.NomeAlunoDto;
 import br.com.brain.avaliacao.dto.AtualizacaoAvaliacaoTurmaDto;
 import br.com.brain.avaliacao.dto.CadastroAvaliacaoTurmaDto;
@@ -33,7 +33,7 @@ public class AvaliacaoTurmaService {
     private final AvaliacaoTurmaRepository repository;
     private final AvaliacaoRepository avaliacaoRepository;
     private final EventoRepository eventoRepository;
-    private final AlunoRepository alunoRepository;
+    private final MatriculaRepository matriculaRepository;
     private final NotasRepository notasRepository;
 
     @PersistenceContext
@@ -106,7 +106,7 @@ public class AvaliacaoTurmaService {
     }
 
     public ListagemAvaliacaoTurmaDto construirListagem(AvaliacaoTurma avaliacaoTurma) {
-        long totalAlunos = alunoRepository.countByTurmaIdAndMatriculadoTrue(avaliacaoTurma.getTurma().getId());
+        long totalAlunos = matriculaRepository.countAlunosDaTurma(avaliacaoTurma.getTurma().getId());
         long alunosCorrigidos = notasRepository.countByAvaliacaoTurmaId(avaliacaoTurma.getId());
         return new ListagemAvaliacaoTurmaDto(avaliacaoTurma, totalAlunos, alunosCorrigidos);
     }
@@ -128,7 +128,7 @@ public class AvaliacaoTurmaService {
         var avaliacaoTurma = repository.findById(avaliacaoTurmaId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma da avaliação", avaliacaoTurmaId));
 
-        return alunoRepository.findByTurmaIdAndMatriculadoTrue(avaliacaoTurma.getTurma().getId())
+        return matriculaRepository.findAlunosDaTurma(avaliacaoTurma.getTurma().getId())
                 .stream()
                 .map(NomeAlunoDto::new)
                 .toList();

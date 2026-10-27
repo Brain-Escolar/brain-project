@@ -1,13 +1,12 @@
 package br.com.brain.aluno;
 import br.com.brain.endereco.EnderecoService;
+import br.com.brain.matricula.EnturmacaoService;
 import br.com.brain.responsavel.ResponsavelService;
 import br.com.brain.usuario.UsuarioService;
 
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.dadosPessoais.DadosPessoaisRepository;
-import br.com.brain.serie.Serie;
 import br.com.brain.turma.Turma;
-import br.com.brain.unidade.Unidade;
 import br.com.brain.aluno.dto.AtualizacaoAlunoDto;
 import br.com.brain.aluno.dto.CadastroAlunoDto;
 import br.com.brain.aluno.dto.CursoPretendidoDto;
@@ -39,6 +38,7 @@ public class AlunoService {
     private final EnderecoService enderecoService;
     private final UsuarioService usuarioService;
     private final ResponsavelService responsavelService;
+    private final EnturmacaoService enturmacaoService;
 
     @PersistenceContext
     private EntityManager em;
@@ -168,6 +168,7 @@ public class AlunoService {
         aluno.setMatriculado(false);
         aluno.setMotivoDesmatricula(motivo != null && !motivo.isBlank() ? motivo : "Não informado");
         aluno.setDataDesmatricula(LocalDate.now());
+        enturmacaoService.encerrarNoAnoCorrente(aluno, aluno.getMotivoDesmatricula(), aluno.getDataDesmatricula());
         repository.save(aluno);
         return aluno;
     }
@@ -181,6 +182,7 @@ public class AlunoService {
         aluno.setMatriculado(true);
         aluno.setMotivoDesmatricula(null);
         aluno.setDataDesmatricula(null);
+        enturmacaoService.reativarNoAnoCorrente(aluno);
         repository.save(aluno);
         return aluno;
     }
@@ -191,21 +193,17 @@ public class AlunoService {
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
 
-        Serie serie = em.getReference(Serie.class, dados.serieId());
-        Unidade unidade = em.getReference(Unidade.class, dados.unidadeId());
-        Turma turma = em.getReference(Turma.class, dados.turmaId());
+        Turma turma = em.find(Turma.class, dados.turmaId());
+        if (turma == null) {
+            throw ErrosSistema.RecursoNaoEncontradoException.para("Turma", dados.turmaId());
+        }
 
-        aluno.setSerie(serie);
-        aluno.setUnidade(unidade);
-        aluno.setTurma(turma);
-
+        // Série e unidade vêm da turma (NOT NULL no banco): as do pedido só
+        // existiam porque o aluno guardava as três soltas.
+        enturmacaoService.enturmar(aluno, turma);
         repository.save(aluno);
 
         return aluno;
-    }
-
-    public List<Aluno> recuperarAlunosPorUnidadeSerieTurma(Long unidadeId, Long serieId, Long turmaId) {
-        return repository.findByUnidadeIdAndSerieIdAndTurmaIdAndMatriculadoTrueOrderByDadosPessoaisNomeAsc(unidadeId, serieId, turmaId);
     }
 
     public Aluno recuperarAlunoPorDadosPessoais(Long dadosPessoaisId) {

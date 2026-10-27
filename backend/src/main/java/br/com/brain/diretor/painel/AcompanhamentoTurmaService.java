@@ -1,7 +1,7 @@
 package br.com.brain.diretor.painel;
 
+import br.com.brain.matricula.MatriculaRepository;
 import br.com.brain.aluno.Aluno;
-import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.anotacao.Anotacao;
 import br.com.brain.anotacao.AnotacaoRepository;
 import br.com.brain.aula.AulaRepository;
@@ -77,7 +77,7 @@ public class AcompanhamentoTurmaService {
     private static final int ESCALA_FREQUENCIA = 1;
 
     private final TurmaRepository turmaRepository;
-    private final AlunoRepository alunoRepository;
+    private final MatriculaRepository matriculaRepository;
     private final DisciplinaRepository disciplinaRepository;
     private final NotasRepository notasRepository;
     private final ChamadaRepository chamadaRepository;
@@ -135,7 +135,7 @@ public class AcompanhamentoTurmaService {
             throw ErrosSistema.OperacaoInvalidaException.com("Disciplina não pertence à série da turma.");
         }
 
-        var alunos = alunoRepository.findMatriculadosDaTurmaComDadosPessoais(turmaId);
+        var alunos = matriculaRepository.findAlunosDaTurma(turmaId);
         var idsAlunos = alunos.stream().map(Aluno::getId).collect(Collectors.toSet());
 
         var notas = new QuadroDeNotas(notasRepository.findComAvaliacaoByTurmaId(turmaId), considerados, escala);

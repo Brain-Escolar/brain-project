@@ -12,6 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -38,6 +39,8 @@ class AnoLetivoServiceTest {
     private AnoLetivoRepository anoLetivoRepository;
     @Mock
     private PeriodoLetivoRepository periodoLetivoRepository;
+    @Mock
+    private ApplicationEventPublisher eventos;
 
     @InjectMocks
     private AnoLetivoService service;
@@ -149,12 +152,12 @@ class AnoLetivoServiceTest {
             var planejado = ano(2027, StatusAnoLetivo.PLANEJAMENTO);
             when(anoLetivoRepository.findById(2027)).thenReturn(Optional.of(planejado));
             when(anoLetivoRepository.findFirstByStatus(StatusAnoLetivo.ABERTO)).thenReturn(Optional.empty());
-            when(anoLetivoRepository.save(planejado)).thenReturn(planejado);
 
             var dto = service.abrir(2027);
 
             assertThat(dto.status()).isEqualTo(StatusAnoLetivo.ABERTO);
             assertThat(planejado.getAbertoEm()).isNotNull();
+            verify(eventos).publishEvent(new AnoLetivoAberto(2027));
         }
     }
 

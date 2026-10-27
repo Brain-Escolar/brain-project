@@ -5,6 +5,7 @@ import br.com.brain.configuracaoAcademica.dto.PeriodosLetivosRequest;
 import br.com.brain.enums.StatusAnoLetivo;
 import br.com.brain.exception.ErrosSistema;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,7 @@ public class AnoLetivoService {
 
     private final AnoLetivoRepository anoLetivoRepository;
     private final PeriodoLetivoRepository periodoLetivoRepository;
+    private final ApplicationEventPublisher eventos;
 
     // ------------------------------------------------------------------ consulta
 
@@ -118,7 +120,9 @@ public class AnoLetivoService {
         });
         anoLetivo.setStatus(StatusAnoLetivo.ABERTO);
         anoLetivo.setAbertoEm(Instant.now());
-        return toDto(anoLetivoRepository.save(anoLetivo));
+        anoLetivoRepository.save(anoLetivo);
+        eventos.publishEvent(new AnoLetivoAberto(ano));
+        return toDto(anoLetivo);
     }
 
     /**

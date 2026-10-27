@@ -1,7 +1,7 @@
 package br.com.brain.diretor.painel;
 
+import br.com.brain.matricula.MatriculaRepository;
 import br.com.brain.alerta.AlertaService;
-import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.anotacao.Anotacao;
 import br.com.brain.anotacao.AnotacaoRepository;
 import br.com.brain.aula.Aula;
@@ -103,7 +103,7 @@ public class AcompanhamentoProfessorService {
     private final AnotacaoRepository anotacaoRepository;
     private final AvaliacaoTurmaRepository avaliacaoTurmaRepository;
     private final NotasRepository notasRepository;
-    private final AlunoRepository alunoRepository;
+    private final MatriculaRepository matriculaRepository;
     private final EventoRepository eventoRepository;
     private final ConfiguracaoAcademicaService configuracaoService;
     private final AlertaService alertaService;
@@ -510,7 +510,7 @@ public class AcompanhamentoProfessorService {
             return Map.of();
         }
         Map<Long, Integer> mapa = new HashMap<>();
-        for (AlunosPorTurma linha : alunoRepository.contarMatriculadosPorTurma(turmaIds)) {
+        for (AlunosPorTurma linha : matriculaRepository.contarAlunosPorTurma(turmaIds)) {
             mapa.put(linha.turmaId(), linha.alunos().intValue());
         }
         return mapa;

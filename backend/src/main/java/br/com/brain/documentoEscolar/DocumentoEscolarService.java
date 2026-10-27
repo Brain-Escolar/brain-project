@@ -1,5 +1,6 @@
 package br.com.brain.documentoEscolar;
 
+import br.com.brain.matricula.MatriculaRepository;
 import br.com.brain.aluno.Aluno;
 import br.com.brain.aluno.AlunoService;
 import br.com.brain.chamada.ChamadaRepository;
@@ -57,6 +58,7 @@ public class DocumentoEscolarService {
     private final ConfiguracaoAcademicaService configuracaoService;
     private final NotasRepository notasRepository;
     private final ChamadaRepository chamadaRepository;
+    private final MatriculaRepository matriculaRepository;
     private final DisciplinaRepository disciplinaRepository;
     private final EscolaService escolaService;
 
@@ -111,6 +113,7 @@ public class DocumentoEscolarService {
             if (turma.getSerie() == null) {
                 continue;
             }
+
             var relatorio = relatoriosService.gerarRelatorio(aluno, turma, null);
             ultimo = relatorio;
             Map<Long, Disciplina> disciplinas = new LinkedHashMap<>();
@@ -162,9 +165,10 @@ public class DocumentoEscolarService {
     }
 
     /**
-     * Turma do aluno em cada ano letivo: a atual mais as que aparecem nas notas
-     * e nas chamadas. Se houver mais de uma no mesmo ano (troca de turma), vale
-     * a atual; senão, a de maior id (a mais recente).
+     * Turma do aluno em cada ano letivo. A matrícula manda: é ela que diz em que
+     * turma ele estudou, inclusive em ano encerrado e quando saiu no meio do ano
+     * (havendo mais de uma no ano, vale a mais recente). Ano sem matrícula com
+     * turma — dado anterior à V114 — ainda é deduzido das notas e chamadas.
      */
     private TreeMap<Integer, Turma> turmasPorAno(Aluno aluno) {
         TreeMap<Integer, Turma> porAno = new TreeMap<>();
@@ -173,9 +177,9 @@ public class DocumentoEscolarService {
                         chamadaRepository.findTurmasComChamadaDoAluno(aluno.getId()).stream())
                 .filter(Objects::nonNull)
                 .forEach(t -> porAno.merge(t.getAnoLetivo(), t, (a, b) -> a.getId() >= b.getId() ? a : b));
-        if (aluno.getTurma() != null) {
-            porAno.put(aluno.getTurma().getAnoLetivo(), aluno.getTurma());
-        }
+        // Em ordem de id: a matrícula mais recente do ano sobrescreve as anteriores.
+        matriculaRepository.findComTurmaDoAluno(aluno.getId())
+                .forEach(m -> porAno.put(m.getAnoLetivo(), m.getTurma()));
         return porAno;
     }
 

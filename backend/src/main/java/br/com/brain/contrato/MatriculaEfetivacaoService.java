@@ -3,6 +3,7 @@ package br.com.brain.contrato;
 import br.com.brain.aluno.Aluno;
 import br.com.brain.bolsa.BolsaConcessaoService;
 import br.com.brain.configuracaoAcademica.AnoLetivoService;
+import br.com.brain.matricula.EnturmacaoService;
 import br.com.brain.contrato.dto.ContratoDto;
 import br.com.brain.contrato.dto.EfetivarMatriculaRequest;
 import br.com.brain.enums.StatusContratoServico;
@@ -58,6 +59,7 @@ public class MatriculaEfetivacaoService {
     private final AlunoResponsavelFinanceiroRepository rateioRepository;
     private final BolsaConcessaoService bolsaConcessaoService;
     private final AnoLetivoService anoLetivoService;
+    private final EnturmacaoService enturmacaoService;
     private final EntityManager entityManager;
 
     @Transactional
@@ -91,6 +93,9 @@ public class MatriculaEfetivacaoService {
 
         matricula.setStatus(StatusMatricula.EFETIVADA);
         matricula.setDataEfetivacao(dataEfetivacao);
+        // A turma escolhida na efetivacao passa a valer nas telas do aluno,
+        // quando a matricula e do ano corrente.
+        enturmacaoService.sincronizarCache(aluno);
 
         // Na MESMA transacao: o reservado vira comprometido e a concessao vira
         // ATIVA. Se algo acima falhou, nada disso aconteceu.
