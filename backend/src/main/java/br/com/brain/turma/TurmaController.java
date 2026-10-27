@@ -35,8 +35,9 @@ public class TurmaController {
 
     @GetMapping
     public ResponseEntity<Page<ListagemTurmaDto>> listar(
+            @RequestParam(required = false) Integer anoLetivo,
             @PageableDefault(size = 10, sort = { "nome" }) Pageable paginacao) {
-        var page = service.listar(paginacao);
+        var page = service.listar(anoLetivo, paginacao);
         return ResponseEntity.ok(page);
     }
 

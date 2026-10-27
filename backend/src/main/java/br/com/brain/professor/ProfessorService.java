@@ -1,4 +1,5 @@
 package br.com.brain.professor;
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.dependente.DependenteService;
 import br.com.brain.endereco.EnderecoService;
 
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 public class ProfessorService {
 
     private final ProfessorRepository repository;
+    private final AnoLetivoService anoLetivoService;
     private final EnderecoService enderecoService;
     private final DependenteService dependenteService;
 
@@ -100,7 +102,7 @@ public class ProfessorService {
     }
 
     public List<ListagemAulaDto> gerarGradeHoraria(String matricula) {
-        return repository.gerarGradeHoraria(matricula);
+        return repository.gerarGradeHoraria(matricula, anoLetivoService.anoCorrente());
     }
 
     public Professor recuperarProfessorPorDadosPessoais(Long dadosPessoaisId) {

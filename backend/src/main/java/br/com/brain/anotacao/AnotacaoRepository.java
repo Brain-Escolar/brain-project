@@ -8,9 +8,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface AnotacaoRepository extends JpaRepository<Anotacao, Long> {
-    @Query("SELECT a FROM Anotacao a WHERE a.aluno.id = :alunoId AND a.aula.disciplina.id = :disciplinaId")
-    List<Anotacao> findByDisciplinaIdAndAlunoId(@Param("disciplinaId") Long disciplinaId,
-            @Param("alunoId") Long alunoId);
+    /** Anotações do aluno na disciplina dentro do ano letivo (aluno repetente refaz a disciplina). */
+    @Query("SELECT a FROM Anotacao a WHERE a.aluno.id = :alunoId AND a.aula.disciplina.id = :disciplinaId "
+            + "AND a.aula.turma.anoLetivo = :anoLetivo")
+    List<Anotacao> findByDisciplinaIdAndAlunoIdNoAno(@Param("disciplinaId") Long disciplinaId,
+            @Param("alunoId") Long alunoId, @Param("anoLetivo") int anoLetivo);
 
     List<Anotacao> findByAulaIdAndDataAnotacaoOrderByAlunoDadosPessoaisNomeAsc(Long aulaId, LocalDate dataAnotacao);
 

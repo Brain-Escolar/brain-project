@@ -1,4 +1,5 @@
 package br.com.brain.aula;
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.matricula.MatriculaRepository;
 
 import br.com.brain.aluno.Aluno;
@@ -37,6 +38,7 @@ public class AulaService {
 
 
     private final MatriculaRepository matriculaRepository;
+    private final AnoLetivoService anoLetivoService;
 
     @PersistenceContext
     private EntityManager em;
@@ -111,7 +113,7 @@ public class AulaService {
             throw new ErrosSistema.DataInvalidaException("Data não pode ser nula.");
         }
         var diaSemana = data.getDayOfWeek();
-        return repository.findByProfessorIdAndDiaSemana(professorId, diaSemana, paginacao).map(ListagemAulaDto::new);
+        return repository.findByProfessorIdAndTurmaAnoLetivoAndDiaSemana(professorId, anoLetivoService.anoCorrente(), diaSemana, paginacao).map(ListagemAulaDto::new);
     }
 
     public Page<ListagemAulaAlunoDto> recuperarAulasPeloAlunoEData(Long turmaId, LocalDate data,
@@ -168,14 +170,14 @@ public class AulaService {
                 DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
         var sort = Sort.by(Sort.Direction.ASC, "diaSemana")
                 .and(Sort.by(Sort.Direction.ASC, "horario.horarioInicio"));
-        return repository.findByProfessorIdAndDiaSemanaIn(professorId, diasUteis, sort)
+        return repository.findByProfessorIdAndTurmaAnoLetivoAndDiaSemanaIn(professorId, anoLetivoService.anoCorrente(), diasUteis, sort)
                 .stream()
                 .map(ListagemAulaDto::new)
                 .toList();
     }
 
     public List<Turma> recuperarTurmasPorDisciplina(Long id) {
-        return repository.findTurmasByDisciplinaId(id);
+        return repository.findTurmasByDisciplinaIdNoAno(id, anoLetivoService.anoCorrente());
     }
 
     public ProximaAulaDto recuperarProximaAula(Long aulaId, LocalDate data, LocalTime horario) {

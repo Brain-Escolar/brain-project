@@ -130,7 +130,7 @@ public class ChamadaService {
         return chamadas.stream().map(ListagemChamadaDto::new).collect(Collectors.toList());
     }
 
-    public Integer contarFaltasPorAlunoEPorDisciplina(Long alunoId, Long disciplinaId) {
-        return repository.countFaltasByAlunoAndDisciplina(alunoId, disciplinaId);
+    public Integer contarFaltasPorAlunoEPorDisciplina(Long alunoId, Long disciplinaId, int anoLetivo) {
+        return repository.countFaltasByAlunoAndDisciplinaNoAno(alunoId, disciplinaId, anoLetivo);
     }
 }

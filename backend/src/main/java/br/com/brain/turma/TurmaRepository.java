@@ -1,5 +1,7 @@
 package br.com.brain.turma;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 public interface TurmaRepository extends JpaRepository<Turma, Long> {
 
     long countByAnoLetivo(int anoLetivo);
+
+    Page<Turma> findByAnoLetivo(int anoLetivo, Pageable pageable);
 
     /** Turmas do ano letivo com unidade e série carregadas, na ordem em que a escola as lê. */
     @Query("""

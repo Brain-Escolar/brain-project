@@ -16,7 +16,14 @@ import br.com.brain.disciplina.Disciplina;
 import br.com.brain.turma.Turma;
 
 public interface AulaRepository extends JpaRepository<Aula, Long> {
-    Page<Aula> findByProfessorIdAndDiaSemana(Long professorId, DayOfWeek diaSemana, Pageable pageable);
+    /*
+     * Consultas "do professor" sao sempre de um ano letivo: a grade de aulas e
+     * por turma, e turma e de um ano. Sem o filtro, a agenda de 2027 traria as
+     * aulas de 2026 junto.
+     */
+
+    Page<Aula> findByProfessorIdAndTurmaAnoLetivoAndDiaSemana(Long professorId, int anoLetivo, DayOfWeek diaSemana,
+            Pageable pageable);
 
     Page<Aula> findByTurmaIdAndDiaSemana(Long turmaId, DayOfWeek diaSemana, Pageable pageable);
 
@@ -31,19 +38,21 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
             @Param("dataFim") LocalDate dataFim);
 
     @Query("""
-                SELECT aula.turma
+                SELECT DISTINCT aula.turma
                 FROM Aula aula
                 WHERE aula.disciplina.id = :disciplinaId
+                AND aula.turma.anoLetivo = :anoLetivo
             """)
-    List<Turma> findTurmasByDisciplinaId(@Param("disciplinaId") Long disciplinaId);
+    List<Turma> findTurmasByDisciplinaIdNoAno(@Param("disciplinaId") Long disciplinaId,
+            @Param("anoLetivo") int anoLetivo);
 
     List<Aula> findByProfessorIdAndVigenciaBetween(Long id, LocalDate dataInicio, LocalDate dataFim);
 
-    List<Aula> findByProfessorId(Long professorId);
+    List<Aula> findByProfessorIdAndTurmaAnoLetivo(Long professorId, int anoLetivo);
 
     boolean existsByProfessorIdAndTurmaIdAndDisciplinaId(Long professorId, Long turmaId, Long disciplinaId);
 
-    boolean existsByProfessorIdAndDisciplinaId(Long professorId, Long disciplinaId);
+    boolean existsByProfessorIdAndDisciplinaIdAndTurmaAnoLetivo(Long professorId, Long disciplinaId, int anoLetivo);
 
     @Query("""
                 SELECT DISTINCT aula.disciplina.id
@@ -54,7 +63,8 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
 
     List<Aula> findByDisciplinaIdAndTurmaId(Long disciplinaId, Long turmaId);
 
-    List<Aula> findByProfessorIdAndDiaSemanaIn(Long professorId, List<DayOfWeek> dias, Sort sort);
+    List<Aula> findByProfessorIdAndTurmaAnoLetivoAndDiaSemanaIn(Long professorId, int anoLetivo,
+            List<DayOfWeek> dias, Sort sort);
 
     List<Aula> findByTurmaIdAndDiaSemanaIn(Long turmaId, List<DayOfWeek> dias, Sort sort);
 
@@ -63,12 +73,14 @@ public interface AulaRepository extends JpaRepository<Aula, Long> {
                 WHERE a.professor.id = :professorId
                 AND a.disciplina.id = :disciplinaId
                 AND a.turma.serie.id = :serieId
+                AND a.turma.anoLetivo = :anoLetivo
                 ORDER BY a.turma.id ASC, a.diaSemana ASC, a.horario.horarioInicio ASC
             """)
-    List<Aula> findByProfessorIdAndDisciplinaIdAndSerieId(
+    List<Aula> findByProfessorIdAndDisciplinaIdAndSerieIdNoAno(
             @Param("professorId") Long professorId,
             @Param("disciplinaId") Long disciplinaId,
-            @Param("serieId") Long serieId);
+            @Param("serieId") Long serieId,
+            @Param("anoLetivo") int anoLetivo);
 
     /** Professores de cada disciplina da turma, pela grade de aulas. */
     @Query("""

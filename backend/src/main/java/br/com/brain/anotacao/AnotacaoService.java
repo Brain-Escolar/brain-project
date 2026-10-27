@@ -1,4 +1,5 @@
 package br.com.brain.anotacao;
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.chamada.ChamadaService;
 
 import br.com.brain.aluno.Aluno;
@@ -31,6 +32,7 @@ public class AnotacaoService {
 
     private final AnotacaoRepository repository;
     private final ChamadaService chamadaService;
+    private final AnoLetivoService anoLetivoService;
 
     @PersistenceContext
     private EntityManager em;
@@ -110,10 +112,11 @@ public class AnotacaoService {
     }
 
     public List<AlunosAulaDto> recuperarAnotacoesPorDisciplina(Long disciplinaId, List<Aluno> alunos) {
+        int ano = anoLetivoService.anoCorrente();
         return alunos.stream()
                 .map(aluno -> {
-                    var anotacoes = repository.findByDisciplinaIdAndAlunoId(disciplinaId, aluno.getId());
-                    var falta = chamadaService.contarFaltasPorAlunoEPorDisciplina(aluno.getId(), disciplinaId);
+                    var anotacoes = repository.findByDisciplinaIdAndAlunoIdNoAno(disciplinaId, aluno.getId(), ano);
+                    var falta = chamadaService.contarFaltasPorAlunoEPorDisciplina(aluno.getId(), disciplinaId, ano);
                     return new AlunosAulaDto(aluno, anotacoes, falta);
                 })
                 .toList();
@@ -126,7 +129,7 @@ public class AnotacaoService {
     }
 
     public List<AnotacaoAlunoDisciplinaDto> buscarPorAlunoEDisciplina(Long alunoId, Long disciplinaId) {
-        return repository.findByDisciplinaIdAndAlunoId(disciplinaId, alunoId).stream()
+        return repository.findByDisciplinaIdAndAlunoIdNoAno(disciplinaId, alunoId, anoLetivoService.anoCorrente()).stream()
                 .map(AnotacaoAlunoDisciplinaDto::new)
                 .toList();
     }

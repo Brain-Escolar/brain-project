@@ -16,7 +16,9 @@ public interface NotasRepository extends JpaRepository<Notas, Long> {
 
     long countByAvaliacaoTurmaId(Long avaliacaoTurmaId);
 
-    List<Notas> findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(Long alunoId, Long disciplinaId);
+    /** Notas do aluno na disciplina dentro do ano letivo (aluno repetente refaz a disciplina). */
+    List<Notas> findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaIdAndAvaliacaoTurmaTurmaAnoLetivo(
+            Long alunoId, Long disciplinaId, int anoLetivo);
 
     /** Turmas em que o aluno já teve nota lançada — a trilha dele ano a ano. */
     @Query("SELECT DISTINCT at.turma FROM Notas n JOIN n.avaliacaoTurma at WHERE n.aluno.id = :alunoId")

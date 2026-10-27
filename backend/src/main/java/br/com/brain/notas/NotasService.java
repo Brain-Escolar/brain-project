@@ -1,5 +1,6 @@
 package br.com.brain.notas;
 
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.aluno.Aluno;
 import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.avaliacao.AvaliacaoTurma;
@@ -23,6 +24,7 @@ public class NotasService {
 
     private final NotasRepository repository;
     private final AlunoRepository alunoRepository;
+    private final AnoLetivoService anoLetivoService;
 
     @PersistenceContext
     private EntityManager em;
@@ -90,7 +92,8 @@ public class NotasService {
     public DetalhamentoNotasAlunoDisciplinaDto buscarNotasAlunoPorDisciplina(Long alunoId, Long disciplinaId) {
         var aluno = alunoRepository.findById(alunoId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
-        var notas = repository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(alunoId, disciplinaId);
+        var notas = repository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaIdAndAvaliacaoTurmaTurmaAnoLetivo(
+                alunoId, disciplinaId, anoLetivoService.anoCorrente());
         return new DetalhamentoNotasAlunoDisciplinaDto(aluno, notas);
     }
 }
