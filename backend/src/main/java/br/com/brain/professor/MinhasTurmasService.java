@@ -42,7 +42,7 @@ public class MinhasTurmasService {
     private final AnoLetivoService anoLetivoService;
 
     public List<ListagemDisciplinaTurmasProfessorDto> listarTurmasAgrupadasPorDisciplina(Long professorId) {
-        var aulas = aulaRepository.findByProfessorIdAndTurmaAnoLetivo(professorId, anoLetivoService.anoCorrente());
+        var aulas = aulaRepository.findByProfessorIdAndTurmaAnoLetivo(professorId, anoLetivoService.anoEmContexto());
 
         // Agrupado por id da disciplina (não pela entidade) para evitar acionar o
         // equals/hashCode gerado pelo Lombok, que inicializaria as coleções lazy.

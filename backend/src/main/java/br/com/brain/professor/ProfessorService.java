@@ -102,7 +102,7 @@ public class ProfessorService {
     }
 
     public List<ListagemAulaDto> gerarGradeHoraria(String matricula) {
-        return repository.gerarGradeHoraria(matricula, anoLetivoService.anoCorrente());
+        return repository.gerarGradeHoraria(matricula, anoLetivoService.anoEmContexto());
     }
 
     public Professor recuperarProfessorPorDadosPessoais(Long dadosPessoaisId) {

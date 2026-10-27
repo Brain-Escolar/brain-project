@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { HttpClient, RequestOptions } from "./";
+import { CABECALHO_ANO_LETIVO, lerAnoLetivoSelecionado } from "./anoLetivoSelecionado";
 
 export class AxiosHttpClient implements HttpClient {
   private readonly client: AxiosInstance;
@@ -21,6 +22,10 @@ export class AxiosHttpClient implements HttpClient {
           const token = localStorage.getItem("access_token");
           if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+          }
+          const ano = lerAnoLetivoSelecionado();
+          if (ano != null) {
+            config.headers[CABECALHO_ANO_LETIVO] = String(ano);
           }
         }
         return config;

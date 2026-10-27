@@ -12,6 +12,7 @@ import { useUnreadConversas } from "@/hooks/useConversas";
 import { NotificationMenu } from "@/components/appBar/notificationMenu";
 import SeletorAluno from "@/components/seletorAluno";
 import SeletorPerfil from "@/components/seletorPerfil";
+import SeletorAnoLetivo from "@/components/seletorAnoLetivo";
 import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { usePermissoes } from "@/hooks/usePermissoes";
 import { useTheme } from "@mui/material/styles";
@@ -160,6 +161,7 @@ export default function AppBar() {
           <Box sx={{ flexGrow: 1 }} />
 
           <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center", gap: 1.5 }}>
+            <SeletorAnoLetivo />
             <SeletorPerfil />
             {atuarPorAlunoVinculado && <SeletorAluno />}
             <NotificationMenu />

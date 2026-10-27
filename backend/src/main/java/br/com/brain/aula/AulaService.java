@@ -113,7 +113,7 @@ public class AulaService {
             throw new ErrosSistema.DataInvalidaException("Data não pode ser nula.");
         }
         var diaSemana = data.getDayOfWeek();
-        return repository.findByProfessorIdAndTurmaAnoLetivoAndDiaSemana(professorId, anoLetivoService.anoCorrente(), diaSemana, paginacao).map(ListagemAulaDto::new);
+        return repository.findByProfessorIdAndTurmaAnoLetivoAndDiaSemana(professorId, anoLetivoService.anoEmContexto(), diaSemana, paginacao).map(ListagemAulaDto::new);
     }
 
     public Page<ListagemAulaAlunoDto> recuperarAulasPeloAlunoEData(Long turmaId, LocalDate data,
@@ -170,14 +170,14 @@ public class AulaService {
                 DayOfWeek.THURSDAY, DayOfWeek.FRIDAY);
         var sort = Sort.by(Sort.Direction.ASC, "diaSemana")
                 .and(Sort.by(Sort.Direction.ASC, "horario.horarioInicio"));
-        return repository.findByProfessorIdAndTurmaAnoLetivoAndDiaSemanaIn(professorId, anoLetivoService.anoCorrente(), diasUteis, sort)
+        return repository.findByProfessorIdAndTurmaAnoLetivoAndDiaSemanaIn(professorId, anoLetivoService.anoEmContexto(), diasUteis, sort)
                 .stream()
                 .map(ListagemAulaDto::new)
                 .toList();
     }
 
     public List<Turma> recuperarTurmasPorDisciplina(Long id) {
-        return repository.findTurmasByDisciplinaIdNoAno(id, anoLetivoService.anoCorrente());
+        return repository.findTurmasByDisciplinaIdNoAno(id, anoLetivoService.anoEmContexto());
     }
 
     public ProximaAulaDto recuperarProximaAula(Long aulaId, LocalDate data, LocalTime horario) {

@@ -112,7 +112,7 @@ public class AnotacaoService {
     }
 
     public List<AlunosAulaDto> recuperarAnotacoesPorDisciplina(Long disciplinaId, List<Aluno> alunos) {
-        int ano = anoLetivoService.anoCorrente();
+        int ano = anoLetivoService.anoEmContexto();
         return alunos.stream()
                 .map(aluno -> {
                     var anotacoes = repository.findByDisciplinaIdAndAlunoIdNoAno(disciplinaId, aluno.getId(), ano);
@@ -129,7 +129,7 @@ public class AnotacaoService {
     }
 
     public List<AnotacaoAlunoDisciplinaDto> buscarPorAlunoEDisciplina(Long alunoId, Long disciplinaId) {
-        return repository.findByDisciplinaIdAndAlunoIdNoAno(disciplinaId, alunoId, anoLetivoService.anoCorrente()).stream()
+        return repository.findByDisciplinaIdAndAlunoIdNoAno(disciplinaId, alunoId, anoLetivoService.anoEmContexto()).stream()
                 .map(AnotacaoAlunoDisciplinaDto::new)
                 .toList();
     }

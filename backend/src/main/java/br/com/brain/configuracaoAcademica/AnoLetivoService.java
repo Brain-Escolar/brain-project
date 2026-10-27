@@ -1,5 +1,7 @@
 package br.com.brain.configuracaoAcademica;
 
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import br.com.brain.configuracaoAcademica.dto.AnoLetivoDto;
 import br.com.brain.configuracaoAcademica.dto.PeriodosLetivosRequest;
 import br.com.brain.enums.StatusAnoLetivo;
@@ -42,6 +44,25 @@ public class AnoLetivoService {
         return anoLetivoRepository.findFirstByStatus(StatusAnoLetivo.ABERTO)
                 .map(AnoLetivo::getAno)
                 .orElseGet(() -> LocalDate.now().getYear());
+    }
+
+    /** Cabeçalho com que o seletor de ano do front diz qual ano está sendo visto. */
+    public static final String CABECALHO_ANO = "X-Ano-Letivo";
+
+    /**
+     * O ano que a tela está olhando: o do seletor de ano (cabeçalho
+     * {@value #CABECALHO_ANO}) ou, sem ele, o corrente. É o que consulta usa.
+     * Escrita continua presa ao ano da turma/matrícula e às travas de
+     * {@link #exigirEditavel} — ver o ano passado não deixa alterá-lo.
+     */
+    public int anoEmContexto() {
+        if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes atributos) {
+            var valor = atributos.getRequest().getHeader(CABECALHO_ANO);
+            if (valor != null && valor.matches("\\d{4}")) {
+                return Integer.parseInt(valor);
+            }
+        }
+        return anoCorrente();
     }
 
     @Transactional(readOnly = true)

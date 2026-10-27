@@ -57,9 +57,9 @@ public class TurmaService {
         return turma;
     }
 
-    /** Turmas de um ano letivo; sem ano, as do ano corrente. */
+    /** Turmas de um ano letivo; sem ano, as do ano em contexto (seletor) ou corrente. */
     public Page<ListagemTurmaDto> listar(Integer anoLetivo, Pageable paginacao) {
-        int ano = anoLetivo != null ? anoLetivo : anoLetivoService.anoCorrente();
+        int ano = anoLetivo != null ? anoLetivo : anoLetivoService.anoEmContexto();
         return repository.findByAnoLetivo(ano, paginacao).map(this::toListagemDto);
     }
 

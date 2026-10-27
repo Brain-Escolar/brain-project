@@ -23,6 +23,11 @@ public class ConfiguracaoAcademicaService {
         return anoLetivoService.anoCorrente();
     }
 
+    /** O ano do seletor de ano, ou o corrente. Ver {@link AnoLetivoService#anoEmContexto()}. */
+    public int anoEmContexto() {
+        return anoLetivoService.anoEmContexto();
+    }
+
     /**
      * Compõe a configuração usada pelos relatórios: a escala da escola (constante,
      * linha única em {@code configuracoes_escola}) e os períodos do ano letivo.

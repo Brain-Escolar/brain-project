@@ -59,7 +59,7 @@ public class InicioDiretorService {
     @Transactional(readOnly = true)
     public InicioDiretorDto montarInicio(DadosAutenticacao usuario) {
         var hoje = LocalDate.now();
-        int anoLetivo = configuracaoService.anoCorrente();
+        int anoLetivo = configuracaoService.anoEmContexto();
         var config = configuracaoService.obterOuPadrao(anoLetivo);
         var escala = config.escala();
         var atual = PeriodosLetivos.corrente(config.periodos(), hoje);

@@ -493,7 +493,7 @@ public class AcompanhamentoProfessorService {
 
     private Contexto contexto() {
         var agora = LocalDateTime.now(FUSO_ESCOLA);
-        int anoLetivo = configuracaoService.anoCorrente();
+        int anoLetivo = configuracaoService.anoEmContexto();
         var config = configuracaoService.obterOuPadrao(anoLetivo);
         var periodos = config.periodos();
         return new Contexto(agora, anoLetivo, periodos, PeriodosLetivos.corrente(periodos, agora.toLocalDate()),

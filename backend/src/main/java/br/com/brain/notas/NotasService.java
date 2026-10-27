@@ -117,7 +117,7 @@ public class NotasService {
         var aluno = alunoRepository.findById(alunoId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
         var notas = repository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaIdAndAvaliacaoTurmaTurmaAnoLetivo(
-                alunoId, disciplinaId, anoLetivoService.anoCorrente());
+                alunoId, disciplinaId, anoLetivoService.anoEmContexto());
         return new DetalhamentoNotasAlunoDisciplinaDto(aluno, notas);
     }
 }
