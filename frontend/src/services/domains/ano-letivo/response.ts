@@ -6,6 +6,8 @@ export interface PeriodoLetivoResponse {
   nome: string;
   dataInicio: string;
   dataFim: string;
+  /** Preenchido quando o período foi fechado: notas e chamadas dele ficam definitivas. */
+  fechadoEm: string | null;
 }
 
 /**

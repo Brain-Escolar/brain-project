@@ -71,5 +71,25 @@ export function useAnoLetivoMutations() {
     onError: (erro) => toast.error(mensagemDoBackend(erro, "Não foi possível abrir o ano letivo.")),
   });
 
-  return { criar, salvarPeriodos, abrir };
+  const fecharPeriodo = useMutation({
+    mutationFn: ({ ano, sequencia }: { ano: number; sequencia: number }) =>
+      anoLetivoApi.fecharPeriodo(ano, sequencia),
+    onSuccess: () => {
+      invalidar();
+      toast.success("Período fechado. Notas e chamadas dele não podem mais ser alteradas.");
+    },
+    onError: (erro) => toast.error(mensagemDoBackend(erro, "Não foi possível fechar o período.")),
+  });
+
+  const reabrirPeriodo = useMutation({
+    mutationFn: ({ ano, sequencia }: { ano: number; sequencia: number }) =>
+      anoLetivoApi.reabrirPeriodo(ano, sequencia),
+    onSuccess: () => {
+      invalidar();
+      toast.success("Período reaberto para correções.");
+    },
+    onError: (erro) => toast.error(mensagemDoBackend(erro, "Não foi possível reabrir o período.")),
+  });
+
+  return { criar, salvarPeriodos, abrir, fecharPeriodo, reabrirPeriodo };
 }

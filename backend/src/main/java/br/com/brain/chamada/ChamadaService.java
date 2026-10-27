@@ -1,5 +1,6 @@
 package br.com.brain.chamada;
 
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.chamada.dto.AtualizacaoChamadaDto;
 import br.com.brain.chamada.dto.AtualizacaoChamadaLoteDto;
 import br.com.brain.chamada.dto.CadastroChamadaDto;
@@ -26,12 +27,14 @@ import org.springframework.stereotype.Service;
 public class ChamadaService {
 
     private final ChamadaRepository repository;
+    private final AnoLetivoService anoLetivoService;
 
     @PersistenceContext
     private EntityManager em;
 
     @Transactional
     public List<ListagemChamadaDto> cadastrarChamada(CadastroChamadaDto dados) {
+        exigirAberta(dados.aulaId(), dados.data());
 
         if (!repository.findAllByAulaIdAndDataOrderByAlunoDadosPessoaisNomeAsc(dados.aulaId(), dados.data()).isEmpty()) {
             throw new ErrosSistema.RecursoJaExisteException(
@@ -66,6 +69,11 @@ public class ChamadaService {
                 .findById(id)
                 .orElseThrow(
                         () -> ErrosSistema.RecursoNaoEncontradoException.para("Chamada", id));
+        exigirAberta(chamada.getAula().getId(), chamada.getData());
+        if (dados.data() != null || dados.aulaId() != null) {
+            exigirAberta(dados.aulaId() != null ? dados.aulaId() : chamada.getAula().getId(),
+                    dados.data() != null ? dados.data() : chamada.getData());
+        }
 
         if (dados.presente() != null) {
             chamada.setPresente(dados.presente());
@@ -93,6 +101,7 @@ public class ChamadaService {
                 .findById(id)
                 .orElseThrow(
                         () -> ErrosSistema.RecursoNaoEncontradoException.para("Chamada", id));
+        exigirAberta(chamada.getAula().getId(), chamada.getData());
         repository.delete(chamada);
     }
 
@@ -111,6 +120,7 @@ public class ChamadaService {
 
     @Transactional
     public List<ListagemChamadaDto> atualizarLote(Long aulaId, LocalDate data, AtualizacaoChamadaLoteDto dados) {
+        exigirAberta(aulaId, data);
         var chamadas = repository.findAllByAulaIdAndDataOrderByAlunoDadosPessoaisNomeAsc(aulaId, data);
         if (chamadas.isEmpty()) {
             throw ErrosSistema.RecursoNaoEncontradoException.para("Chamada", aulaId);
@@ -128,6 +138,18 @@ public class ChamadaService {
         }
 
         return chamadas.stream().map(ListagemChamadaDto::new).collect(Collectors.toList());
+    }
+
+    /**
+     * Frequência entra no boletim: chamada de ano encerrado ou de período
+     * fechado é definitiva, como a nota.
+     */
+    private void exigirAberta(Long aulaId, LocalDate data) {
+        var aula = em.find(Aula.class, aulaId);
+        if (aula == null) {
+            throw ErrosSistema.RecursoNaoEncontradoException.para("Aula", aulaId);
+        }
+        anoLetivoService.exigirDataAberta(aula.getTurma().getAnoLetivo(), data);
     }
 
     public Integer contarFaltasPorAlunoEPorDisciplina(Long alunoId, Long disciplinaId, int anoLetivo) {

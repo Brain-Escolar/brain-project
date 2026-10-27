@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, IconButton, Skeleton, TextField, Tooltip } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
@@ -42,7 +44,7 @@ function paraEdicao(ano: AnoLetivoResponse | undefined): PeriodoLetivoRequest[] 
  */
 export default function AnoLetivoContent() {
   const { anos, loading, error } = useAnosLetivos();
-  const { criar, salvarPeriodos, abrir } = useAnoLetivoMutations();
+  const { criar, salvarPeriodos, abrir, fecharPeriodo, reabrirPeriodo } = useAnoLetivoMutations();
 
   const [anoSelecionado, setAnoSelecionado] = useState<number>();
   const selecionado = useMemo(
@@ -175,59 +177,104 @@ export default function AnoLetivoContent() {
             ) : (
               <S.Aviso>
                 Notas e frequência são agrupadas por estes períodos nos boletins e relatórios. Os
-                períodos precisam estar em ordem e sem sobreposição.
+                períodos precisam estar em ordem e sem sobreposição. Feche um período (cadeado)
+                quando o boletim dele estiver pronto: notas e chamadas dele deixam de aceitar
+                alterações.
               </S.Aviso>
             )}
 
             <S.Periodos>
-              {periodos.map((p, i) => (
-                <S.LinhaPeriodo key={i}>
-                  <S.Sequencia>{i + 1}º</S.Sequencia>
-                  <TextField
-                    size="small"
-                    label="Nome"
-                    value={p.nome}
-                    disabled={somenteLeitura}
-                    onChange={(e) => alterar(i, "nome", e.target.value)}
-                    slotProps={{ htmlInput: { maxLength: 40 } }}
-                  />
-                  <TextField
-                    className="data"
-                    size="small"
-                    type="date"
-                    label="Início"
-                    value={p.dataInicio}
-                    disabled={somenteLeitura}
-                    onChange={(e) => alterar(i, "dataInicio", e.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  />
-                  <TextField
-                    className="data"
-                    size="small"
-                    type="date"
-                    label="Fim"
-                    value={p.dataFim}
-                    disabled={somenteLeitura}
-                    onChange={(e) => alterar(i, "dataFim", e.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
-                  />
-                  {!somenteLeitura ? (
-                    <Tooltip title="Remover período">
-                      <span>
-                        <IconButton
-                          aria-label={`Remover ${p.nome}`}
-                          disabled={periodos.length === 1}
-                          onClick={() => remover(i)}
+              {periodos.map((p, i) => {
+                const gravado = selecionado.periodos.find((g) => g.sequencia === i + 1);
+                const fechado = !!gravado?.fechadoEm;
+                const datasTravadas = somenteLeitura || fechado;
+                return (
+                  <S.LinhaPeriodo key={i}>
+                    <S.Sequencia>{i + 1}º</S.Sequencia>
+                    <TextField
+                      size="small"
+                      label="Nome"
+                      value={p.nome}
+                      disabled={somenteLeitura}
+                      onChange={(e) => alterar(i, "nome", e.target.value)}
+                      slotProps={{ htmlInput: { maxLength: 40 } }}
+                    />
+                    <TextField
+                      className="data"
+                      size="small"
+                      type="date"
+                      label="Início"
+                      value={p.dataInicio}
+                      disabled={datasTravadas}
+                      onChange={(e) => alterar(i, "dataInicio", e.target.value)}
+                      slotProps={{ inputLabel: { shrink: true } }}
+                    />
+                    <TextField
+                      className="data"
+                      size="small"
+                      type="date"
+                      label="Fim"
+                      value={p.dataFim}
+                      disabled={datasTravadas}
+                      onChange={(e) => alterar(i, "dataFim", e.target.value)}
+                      slotProps={{ inputLabel: { shrink: true } }}
+                    />
+                    <S.AcoesPeriodo>
+                      {gravado && !somenteLeitura && (
+                        <Tooltip
+                          title={
+                            fechado
+                              ? "Período fechado. Reabrir permite corrigir notas e chamadas."
+                              : alterado
+                                ? "Salve o calendário antes de fechar."
+                                : "Fechar o período: notas e chamadas dele ficam definitivas."
+                          }
                         >
-                          <DeleteOutlineIcon fontSize="small" />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  ) : (
-                    <span />
-                  )}
-                </S.LinhaPeriodo>
-              ))}
+                          <span>
+                            <IconButton
+                              aria-label={
+                                fechado ? `Reabrir ${gravado.nome}` : `Fechar ${gravado.nome}`
+                              }
+                              disabled={
+                                (!fechado && alterado) ||
+                                fecharPeriodo.isPending ||
+                                reabrirPeriodo.isPending
+                              }
+                              onClick={() =>
+                                (fechado ? reabrirPeriodo : fecharPeriodo).mutate({
+                                  ano: selecionado.ano,
+                                  sequencia: gravado.sequencia,
+                                })
+                              }
+                            >
+                              {fechado ? (
+                                <LockOutlinedIcon fontSize="small" color="warning" />
+                              ) : (
+                                <LockOpenOutlinedIcon fontSize="small" />
+                              )}
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      )}
+                      {!somenteLeitura && (
+                        <Tooltip
+                          title={fechado ? "Reabra o período para removê-lo" : "Remover período"}
+                        >
+                          <span>
+                            <IconButton
+                              aria-label={`Remover ${p.nome}`}
+                              disabled={periodos.length === 1 || fechado}
+                              onClick={() => remover(i)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      )}
+                    </S.AcoesPeriodo>
+                  </S.LinhaPeriodo>
+                );
+              })}
             </S.Periodos>
 
             {!somenteLeitura && (

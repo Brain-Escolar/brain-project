@@ -1,5 +1,8 @@
 package br.com.brain.avaliacao;
 
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
+import br.com.brain.configuracaoAcademica.PeriodoLetivo;
+import br.com.brain.configuracaoAcademica.PeriodoLetivoRepository;
 import br.com.brain.matricula.MatriculaRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -35,6 +38,8 @@ public class AvaliacaoTurmaService {
     private final EventoRepository eventoRepository;
     private final MatriculaRepository matriculaRepository;
     private final NotasRepository notasRepository;
+    private final AnoLetivoService anoLetivoService;
+    private final PeriodoLetivoRepository periodoLetivoRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -43,12 +48,21 @@ public class AvaliacaoTurmaService {
     public AvaliacaoTurma criarParaAvaliacao(Avaliacao avaliacao, CadastroAvaliacaoTurmaDto dados, Long professorPadraoId) {
         Long professorId = dados.professorId() != null ? dados.professorId() : professorPadraoId;
 
+        var turma = em.find(Turma.class, dados.turmaId());
+        if (turma == null) {
+            throw ErrosSistema.RecursoNaoEncontradoException.para("Turma", dados.turmaId());
+        }
+        var periodo = resolverPeriodo(turma, dados.periodoLetivoId(), dados.dataAplicacao());
+        anoLetivoService.exigirEditavel(turma.getAnoLetivo());
+        anoLetivoService.exigirPeriodoAberto(periodo);
+
         var avaliacaoTurma = new AvaliacaoTurma();
         avaliacaoTurma.setAvaliacao(avaliacao);
-        avaliacaoTurma.setTurma(em.getReference(Turma.class, dados.turmaId()));
+        avaliacaoTurma.setTurma(turma);
         avaliacaoTurma.setProfessor(em.getReference(Professor.class, professorId));
         avaliacaoTurma.setDataAplicacao(dados.dataAplicacao());
         avaliacaoTurma.setDataEntregaNotas(dados.dataEntregaNotas());
+        avaliacaoTurma.setPeriodoLetivo(periodo);
 
         repository.save(avaliacaoTurma);
 
@@ -72,6 +86,22 @@ public class AvaliacaoTurmaService {
     public AvaliacaoTurma atualizarDatas(Long avaliacaoTurmaId, AtualizacaoAvaliacaoTurmaDto dados) {
         var avaliacaoTurma = repository.findById(avaliacaoTurmaId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma da avaliação", avaliacaoTurmaId));
+        anoLetivoService.exigirEditavel(avaliacaoTurma.getTurma().getAnoLetivo());
+
+        boolean mudaPeriodo = dados.periodoLetivoId() != null || dados.dataAplicacao() != null;
+        if (mudaPeriodo) {
+            var novo = resolverPeriodo(avaliacaoTurma.getTurma(), dados.periodoLetivoId(),
+                    dados.dataAplicacao() != null ? dados.dataAplicacao() : avaliacaoTurma.getDataAplicacao());
+            var atual = avaliacaoTurma.getPeriodoLetivo();
+            if (novo != null && (atual == null || !atual.getId().equals(novo.getId()))) {
+                // Mover a avaliação de período mexe nas notas dos dois: ambos precisam estar abertos.
+                anoLetivoService.exigirPeriodoAberto(atual);
+                anoLetivoService.exigirPeriodoAberto(novo);
+                avaliacaoTurma.setPeriodoLetivo(novo);
+                notasRepository.findByAvaliacaoTurmaId(avaliacaoTurmaId)
+                        .forEach(n -> n.setPeriodoReferencia(novo.trazerParaDentro(n.getPeriodoReferencia())));
+            }
+        }
 
         if (dados.professorId() != null) {
             avaliacaoTurma.setProfessor(em.getReference(Professor.class, dados.professorId()));
@@ -116,6 +146,7 @@ public class AvaliacaoTurmaService {
         var avaliacaoTurma = repository.findById(avaliacaoTurmaId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma da avaliação", avaliacaoTurmaId));
 
+        anoLetivoService.exigirPeriodoAberto(avaliacaoTurma.getPeriodoLetivo());
         if (notasRepository.countByAvaliacaoTurmaId(avaliacaoTurmaId) > 0) {
             throw ErrosSistema.OperacaoInvalidaException
                     .com("Não é possível remover uma turma que já possui notas lançadas.");
@@ -139,16 +170,43 @@ public class AvaliacaoTurmaService {
         var avaliacaoTurma = repository.findById(avaliacaoTurmaId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma da avaliação", avaliacaoTurmaId));
 
+        anoLetivoService.exigirEditavel(avaliacaoTurma.getTurma().getAnoLetivo());
+        var periodo = avaliacaoTurma.getPeriodoLetivo();
+        anoLetivoService.exigirPeriodoAberto(periodo);
+        // A data de referência fica dentro do período da avaliação: é por ela que
+        // boletim e relatórios põem a nota no bimestre certo.
+        var referencia = periodo != null
+                ? periodo.trazerParaDentro(dados.periodoReferencia())
+                : dados.periodoReferencia();
+
         var notas = dados.notas().stream().map(notaDto -> {
             var nota = new Notas();
             nota.setAvaliacaoTurma(avaliacaoTurma);
             nota.setAluno(em.getReference(Aluno.class, notaDto.alunoId()));
             nota.setPontuacao(notaDto.pontuacao());
-            nota.setPeriodoReferencia(dados.periodoReferencia());
+            nota.setPeriodoReferencia(referencia);
             return nota;
         }).toList();
 
         notasRepository.saveAll(notas);
+    }
+
+    /**
+     * Período informado (precisa ser do ano da turma) ou, sem ele, o que contém
+     * a data de aplicação — e, sem data, o período corrente.
+     */
+    private PeriodoLetivo resolverPeriodo(Turma turma, Long periodoLetivoId, LocalDate dataAplicacao) {
+        if (periodoLetivoId != null) {
+            var periodo = periodoLetivoRepository.findById(periodoLetivoId)
+                    .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Período letivo", periodoLetivoId));
+            if (periodo.getAnoLetivo() != turma.getAnoLetivo()) {
+                throw ErrosSistema.OperacaoInvalidaException.com(
+                        "O período escolhido é de " + periodo.getAnoLetivo() + ", e a turma é de "
+                                + turma.getAnoLetivo() + ".");
+            }
+            return periodo;
+        }
+        return anoLetivoService.periodoPara(turma.getAnoLetivo(), dataAplicacao);
     }
 
     private Evento criarEventoEntregaNotas(AvaliacaoTurma avaliacaoTurma, LocalDate dataEntregaNotas) {

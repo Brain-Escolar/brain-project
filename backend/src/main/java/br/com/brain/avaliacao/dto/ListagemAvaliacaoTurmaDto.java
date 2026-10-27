@@ -11,6 +11,9 @@ public record ListagemAvaliacaoTurmaDto(
         String professor,
         LocalDate dataAplicacao,
         LocalDate dataEntregaNotas,
+        Long periodoLetivoId,
+        String periodo,
+        boolean periodoFechado,
         long totalAlunos,
         long alunosCorrigidos) {
 
@@ -24,6 +27,9 @@ public record ListagemAvaliacaoTurmaDto(
                         : avaliacaoTurma.getProfessor().getDadosPessoais().getNome(),
                 avaliacaoTurma.getDataAplicacao(),
                 avaliacaoTurma.getDataEntregaNotas(),
+                avaliacaoTurma.getPeriodoLetivo() == null ? null : avaliacaoTurma.getPeriodoLetivo().getId(),
+                avaliacaoTurma.getPeriodoLetivo() == null ? null : avaliacaoTurma.getPeriodoLetivo().getNome(),
+                avaliacaoTurma.getPeriodoLetivo() != null && avaliacaoTurma.getPeriodoLetivo().isFechado(),
                 totalAlunos,
                 alunosCorrigidos);
     }

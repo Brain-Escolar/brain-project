@@ -16,6 +16,8 @@ public interface NotasRepository extends JpaRepository<Notas, Long> {
 
     long countByAvaliacaoTurmaId(Long avaliacaoTurmaId);
 
+    List<Notas> findByAvaliacaoTurmaId(Long avaliacaoTurmaId);
+
     /** Notas do aluno na disciplina dentro do ano letivo (aluno repetente refaz a disciplina). */
     List<Notas> findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaIdAndAvaliacaoTurmaTurmaAnoLetivo(
             Long alunoId, Long disciplinaId, int anoLetivo);

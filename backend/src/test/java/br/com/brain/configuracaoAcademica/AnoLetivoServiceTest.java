@@ -242,6 +242,64 @@ class AnoLetivoServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("fechamento de período")
+    class Fechamento {
+
+        @Test
+        @DisplayName("período fechado não pode ter as datas mudadas")
+        void fechadoIntacto() {
+            var fechado = periodo(2026, 1, "1º Bimestre", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30));
+            fechado.setFechadoEm(java.time.Instant.now());
+
+            var mudando = List.of(
+                    new Periodo("1º Bimestre", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 5, 10)));
+            assertThatThrownBy(() -> AnoLetivoService.exigirFechadosIntactos(List.of(fechado), mudando))
+                    .hasMessageContaining("reabra");
+
+            var renomeando = List.of(
+                    new Periodo("Primeiro bimestre", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30)));
+            assertThatCode(() -> AnoLetivoService.exigirFechadosIntactos(List.of(fechado), renomeando))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("lançar em período fechado é recusado")
+        void recusaPeriodoFechado() {
+            var fechado = periodo(2026, 1, "1º Bimestre", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30));
+            fechado.setFechadoEm(java.time.Instant.now());
+            when(anoLetivoRepository.findById(2026)).thenReturn(Optional.of(ano(2026, StatusAnoLetivo.ABERTO)));
+
+            assertThatThrownBy(() -> service.exigirPeriodoAberto(fechado))
+                    .isInstanceOf(ErrosSistema.OperacaoInvalidaException.class)
+                    .hasMessageContaining("fechado");
+        }
+
+        @Test
+        @DisplayName("sem período informado, nas férias vale o último que já começou")
+        void periodoNasFerias() {
+            var primeiro = periodo(2026, 1, "1º Bimestre", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30));
+            var segundo = periodo(2026, 2, "2º Bimestre", LocalDate.of(2026, 5, 1), LocalDate.of(2026, 7, 10));
+            var terceiro = periodo(2026, 3, "3º Bimestre", LocalDate.of(2026, 8, 1), LocalDate.of(2026, 9, 30));
+            when(periodoLetivoRepository.findByAnoLetivoOrderBySequenciaAsc(2026))
+                    .thenReturn(List.of(primeiro, segundo, terceiro));
+
+            assertThat(service.periodoPara(2026, LocalDate.of(2026, 7, 20))).isSameAs(segundo);
+            assertThat(service.periodoPara(2026, LocalDate.of(2026, 1, 15))).isSameAs(primeiro);
+            assertThat(service.periodoPara(2026, LocalDate.of(2026, 8, 5))).isSameAs(terceiro);
+        }
+
+        @Test
+        @DisplayName("nota aplicada fora do período conta com data dentro dele")
+        void trazParaDentro() {
+            var primeiro = periodo(2026, 1, "1º Bimestre", LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30));
+
+            assertThat(primeiro.trazerParaDentro(LocalDate.of(2026, 5, 5))).isEqualTo(LocalDate.of(2026, 4, 30));
+            assertThat(primeiro.trazerParaDentro(LocalDate.of(2026, 3, 5))).isEqualTo(LocalDate.of(2026, 3, 5));
+            assertThat(primeiro.trazerParaDentro(null)).isEqualTo(LocalDate.of(2026, 2, 1));
+        }
+    }
+
     private static AnoLetivo ano(int ano, StatusAnoLetivo status) {
         var anoLetivo = new AnoLetivo();
         anoLetivo.setAno(ano);

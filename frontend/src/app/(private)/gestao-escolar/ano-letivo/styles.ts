@@ -125,16 +125,21 @@ export const Periodos = styled.div`
 
 export const LinhaPeriodo = styled.div`
   display: grid;
-  grid-template-columns: 32px minmax(140px, 1fr) 170px 170px 40px;
+  grid-template-columns: 32px minmax(140px, 1fr) 170px 170px 84px;
   gap: 10px;
   align-items: center;
 
   @media (max-width: 700px) {
-    grid-template-columns: 32px minmax(0, 1fr) 40px;
+    grid-template-columns: 32px minmax(0, 1fr) 84px;
     & > .data {
       grid-column: 2 / 3;
     }
   }
+`;
+
+export const AcoesPeriodo = styled.div`
+  display: flex;
+  justify-content: flex-end;
 `;
 
 export const Sequencia = styled.span`

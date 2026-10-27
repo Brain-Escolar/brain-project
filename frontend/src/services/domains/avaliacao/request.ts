@@ -5,6 +5,8 @@ export interface AvaliacaoTurmaInputRequest {
   professorId?: number;
   dataAplicacao?: string;
   dataEntregaNotas?: string;
+  /** Sem ele, o backend usa o período que contém a data de aplicação. */
+  periodoLetivoId?: number;
 }
 
 export interface AvaliacaoPostRequest {
@@ -31,6 +33,8 @@ export interface AtualizacaoAvaliacaoTurmaRequest {
   professorId?: number;
   dataAplicacao?: string;
   dataEntregaNotas?: string;
+  /** Sem ele, o backend usa o período que contém a data de aplicação. */
+  periodoLetivoId?: number;
 }
 
 export interface SalvarNotaAlunoRequest {

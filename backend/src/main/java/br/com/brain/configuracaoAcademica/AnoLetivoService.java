@@ -139,6 +139,7 @@ public class AnoLetivoService {
 
         var atuais = periodoLetivoRepository.findByAnoLetivoOrderBySequenciaAsc(ano);
         var novos = pedido.periodos();
+        exigirFechadosIntactos(atuais, novos);
 
         // Remove primeiro: a UNIQUE (ano_letivo, sequencia) não pode ver duas
         // linhas com a mesma sequência no meio da troca.
@@ -166,6 +167,104 @@ public class AnoLetivoService {
         anoLetivoRepository.save(anoLetivo);
 
         return toDto(anoLetivo);
+    }
+
+    /**
+     * Período fechado é definitivo: mudar as datas dele mudaria o bimestre de
+     * notas e chamadas já fechadas. Para alterar, reabra antes.
+     */
+    static void exigirFechadosIntactos(List<PeriodoLetivo> atuais, List<PeriodosLetivosRequest.Periodo> novos) {
+        for (var atual : atuais) {
+            if (!atual.isFechado()) {
+                continue;
+            }
+            int indice = atual.getSequencia() - 1;
+            var novo = indice < novos.size() ? novos.get(indice) : null;
+            boolean intacto = novo != null
+                    && atual.getDataInicio().equals(novo.dataInicio())
+                    && atual.getDataFim().equals(novo.dataFim());
+            if (!intacto) {
+                throw ErrosSistema.OperacaoInvalidaException.com(
+                        atual.getNome() + " está fechado: reabra o período antes de mudar ou remover as datas dele.");
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- fechamento
+
+    /** Fecha o período: notas e chamadas dele passam a ser definitivas. */
+    @Transactional
+    public AnoLetivoDto fecharPeriodo(int ano, int sequencia) {
+        var anoLetivo = buscar(ano);
+        exigirEditavel(ano);
+        var periodo = buscarPeriodo(ano, sequencia);
+        if (periodo.isFechado()) {
+            throw ErrosSistema.OperacaoInvalidaException.com(periodo.getNome() + " já está fechado.");
+        }
+        periodo.setFechadoEm(Instant.now());
+        periodoLetivoRepository.save(periodo);
+        return toDto(anoLetivo);
+    }
+
+    /** Reabre o período para correção. Ano encerrado não reabre período. */
+    @Transactional
+    public AnoLetivoDto reabrirPeriodo(int ano, int sequencia) {
+        var anoLetivo = buscar(ano);
+        exigirEditavel(ano);
+        var periodo = buscarPeriodo(ano, sequencia);
+        periodo.setFechadoEm(null);
+        periodoLetivoRepository.save(periodo);
+        return toDto(anoLetivo);
+    }
+
+    /**
+     * O período de uma avaliação sem período informado: o que contém a data;
+     * fora de qualquer período (férias), o último que já começou; antes de o ano
+     * começar, o primeiro. Nulo só se o ano não tem período nenhum.
+     */
+    @Transactional(readOnly = true)
+    public PeriodoLetivo periodoPara(int ano, LocalDate data) {
+        var periodos = periodoLetivoRepository.findByAnoLetivoOrderBySequenciaAsc(ano);
+        if (periodos.isEmpty()) {
+            return null;
+        }
+        var referencia = data != null ? data : LocalDate.now();
+        PeriodoLetivo ultimoIniciado = null;
+        for (var periodo : periodos) {
+            if (periodo.contem(referencia)) {
+                return periodo;
+            }
+            if (!periodo.getDataInicio().isAfter(referencia)) {
+                ultimoIniciado = periodo;
+            }
+        }
+        return ultimoIniciado != null ? ultimoIniciado : periodos.get(0);
+    }
+
+    /** Recusa lançar ou alterar algo que conta para um período fechado ou de ano encerrado. */
+    public void exigirPeriodoAberto(PeriodoLetivo periodo) {
+        if (periodo == null) {
+            return;
+        }
+        exigirEditavel(periodo.getAnoLetivo());
+        if (periodo.isFechado()) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    periodo.getNome() + " de " + periodo.getAnoLetivo()
+                            + " está fechado. Peça à direção para reabrir o período antes de alterar.");
+        }
+    }
+
+    /**
+     * Para o que é registrado por data (chamada): ano encerrado ou data dentro
+     * de período fechado não aceitam alteração.
+     */
+    @Transactional(readOnly = true)
+    public void exigirDataAberta(int ano, LocalDate data) {
+        exigirEditavel(ano);
+        periodoLetivoRepository.findByAnoLetivoOrderBySequenciaAsc(ano).stream()
+                .filter(p -> p.contem(data))
+                .findFirst()
+                .ifPresent(this::exigirPeriodoAberto);
     }
 
     /**
@@ -240,6 +339,14 @@ public class AnoLetivoService {
         periodo.setDataInicio(inicio);
         periodo.setDataFim(fim);
         return periodo;
+    }
+
+    private PeriodoLetivo buscarPeriodo(int ano, int sequencia) {
+        return periodoLetivoRepository.findByAnoLetivoOrderBySequenciaAsc(ano).stream()
+                .filter(p -> p.getSequencia() == sequencia)
+                .findFirst()
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para(
+                        "Período " + sequencia + " de " + ano));
     }
 
     private AnoLetivo buscar(int ano) {

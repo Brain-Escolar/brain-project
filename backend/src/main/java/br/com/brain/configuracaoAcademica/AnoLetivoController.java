@@ -54,6 +54,16 @@ public class AnoLetivoController {
         return ResponseEntity.ok(service.salvarPeriodos(ano, pedido));
     }
 
+    @PostMapping("/{ano}/periodos/{sequencia}/fechar")
+    public ResponseEntity<AnoLetivoDto> fecharPeriodo(@PathVariable int ano, @PathVariable int sequencia) {
+        return ResponseEntity.ok(service.fecharPeriodo(ano, sequencia));
+    }
+
+    @PostMapping("/{ano}/periodos/{sequencia}/reabrir")
+    public ResponseEntity<AnoLetivoDto> reabrirPeriodo(@PathVariable int ano, @PathVariable int sequencia) {
+        return ResponseEntity.ok(service.reabrirPeriodo(ano, sequencia));
+    }
+
     @PostMapping("/{ano}/abrir")
     public ResponseEntity<AnoLetivoDto> abrir(@PathVariable int ano) {
         return ResponseEntity.ok(service.abrir(ano));

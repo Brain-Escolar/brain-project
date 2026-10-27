@@ -22,6 +22,14 @@ export class AnoLetivoApi {
     return httpClient.put(`${BASE_ROUTE}/${ano}/periodos`, dados);
   }
 
+  fecharPeriodo(ano: number, sequencia: number): Promise<AnoLetivoResponse> {
+    return httpClient.post(`${BASE_ROUTE}/${ano}/periodos/${sequencia}/fechar`);
+  }
+
+  reabrirPeriodo(ano: number, sequencia: number): Promise<AnoLetivoResponse> {
+    return httpClient.post(`${BASE_ROUTE}/${ano}/periodos/${sequencia}/reabrir`);
+  }
+
   abrir(ano: number): Promise<AnoLetivoResponse> {
     return httpClient.post(`${BASE_ROUTE}/${ano}/abrir`);
   }

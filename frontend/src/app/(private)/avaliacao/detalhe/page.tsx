@@ -286,8 +286,10 @@ function AvaliacaoDetalheContent() {
                           {avaliacao.disciplina} — {t.turma}
                         </S.TurmaName>
                         <S.TurmaSub>
+                          {t.periodo ? `${t.periodo} · ` : ""}
                           {t.totalAlunos} alunos · {t.alunosCorrigidos}/{t.totalAlunos} notas
                           lançadas
+                          {t.periodoFechado ? " · período fechado" : ""}
                         </S.TurmaSub>
                       </S.TurmaMain>
                       <S.TurmaRight>
