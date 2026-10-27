@@ -126,6 +126,46 @@ public class AnoLetivoService {
     }
 
     /**
+     * Fecha o que restar de período aberto e marca o ano como ENCERRADO. Quem
+     * chama (ViradaAnoService) congela os resultados antes, na mesma transação.
+     */
+    @Transactional
+    public void registrarEncerramento(int ano) {
+        var anoLetivo = exigirAberto(ano);
+        var agora = Instant.now();
+        periodoLetivoRepository.findByAnoLetivoOrderBySequenciaAsc(ano).stream()
+                .filter(p -> !p.isFechado())
+                .forEach(p -> {
+                    p.setFechadoEm(agora);
+                    periodoLetivoRepository.save(p);
+                });
+        anoLetivo.setStatus(StatusAnoLetivo.ENCERRADO);
+        anoLetivo.setEncerradoEm(agora);
+        anoLetivoRepository.save(anoLetivo);
+    }
+
+    /** Só o ano corrente (ABERTO) pode ser encerrado. */
+    @Transactional(readOnly = true)
+    public AnoLetivo exigirAberto(int ano) {
+        var anoLetivo = buscar(ano);
+        if (anoLetivo.getStatus() != StatusAnoLetivo.ABERTO) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Só o ano corrente pode ser encerrado; " + ano + " está " + anoLetivo.getStatus() + ".");
+        }
+        return anoLetivo;
+    }
+
+    @Transactional(readOnly = true)
+    public AnoLetivo exigirEncerrado(int ano) {
+        var anoLetivo = buscar(ano);
+        if (!anoLetivo.isEncerrado()) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Encerre " + ano + " antes: a rematrícula usa o resultado final do ano.");
+        }
+        return anoLetivo;
+    }
+
+    /**
      * Grava o calendário inteiro do ano. A posição na lista é a sequência;
      * períodos já gravados são atualizados no lugar (o id não muda, então o que
      * aponta para eles continua valendo) e os que sobram são removidos. O ano

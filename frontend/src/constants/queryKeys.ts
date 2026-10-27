@@ -297,6 +297,8 @@ export const QUERY_KEYS = {
     all: ["anosLetivos"] as const,
     lista: () => [...QUERY_KEYS.anosLetivos.all, "lista"] as const,
     corrente: () => [...QUERY_KEYS.anosLetivos.all, "corrente"] as const,
+    previaEncerramento: (ano: number) =>
+      [...QUERY_KEYS.anosLetivos.all, "encerramento", ano] as const,
   },
   simulacoes: {
     all: ["simulacoes"] as const,

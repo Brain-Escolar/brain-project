@@ -1,5 +1,11 @@
 package br.com.brain.configuracaoAcademica;
 
+import br.com.brain.matricula.ViradaAnoService;
+import br.com.brain.matricula.dto.CopiaTurmasDto;
+import br.com.brain.matricula.dto.EncerramentoAnoDto;
+import br.com.brain.matricula.dto.PreviaEncerramentoDto;
+import br.com.brain.matricula.dto.RematriculaDto;
+import br.com.brain.matricula.dto.RematriculaRequest;
 import br.com.brain.configuracaoAcademica.dto.AnoLetivoDto;
 import br.com.brain.configuracaoAcademica.dto.CadastroAnoLetivoRequest;
 import br.com.brain.configuracaoAcademica.dto.PeriodosLetivosRequest;
@@ -27,6 +33,7 @@ import java.util.List;
 public class AnoLetivoController {
 
     private final AnoLetivoService service;
+    private final ViradaAnoService viradaAnoService;
 
     @GetMapping
     public ResponseEntity<List<AnoLetivoDto>> listar() {
@@ -62,6 +69,31 @@ public class AnoLetivoController {
     @PostMapping("/{ano}/periodos/{sequencia}/reabrir")
     public ResponseEntity<AnoLetivoDto> reabrirPeriodo(@PathVariable int ano, @PathVariable int sequencia) {
         return ResponseEntity.ok(service.reabrirPeriodo(ano, sequencia));
+    }
+
+    // ------------------------------------------------------------ virada de ano
+
+    @GetMapping("/{ano}/encerramento")
+    public ResponseEntity<PreviaEncerramentoDto> previaEncerramento(@PathVariable int ano) {
+        return ResponseEntity.ok(viradaAnoService.previaEncerramento(ano));
+    }
+
+    @PostMapping("/{ano}/encerrar")
+    public ResponseEntity<EncerramentoAnoDto> encerrar(@PathVariable int ano) {
+        return ResponseEntity.ok(viradaAnoService.encerrar(ano));
+    }
+
+    /** Copia para {ano} as turmas de {ano - 1}. */
+    @PostMapping("/{ano}/copiar-turmas")
+    public ResponseEntity<CopiaTurmasDto> copiarTurmas(@PathVariable int ano) {
+        return ResponseEntity.ok(viradaAnoService.copiarTurmas(ano));
+    }
+
+    /** Pré-matrículas em {ano} para quem concluiu {ano - 1}. */
+    @PostMapping("/{ano}/rematricular")
+    public ResponseEntity<RematriculaDto> rematricular(
+            @PathVariable int ano, @RequestBody @Valid RematriculaRequest pedido) {
+        return ResponseEntity.ok(viradaAnoService.rematricular(ano, pedido));
     }
 
     @PostMapping("/{ano}/abrir")

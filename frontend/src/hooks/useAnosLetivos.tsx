@@ -2,7 +2,7 @@
 
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { anoLetivoApi } from "@/services/api";
-import { PeriodosLetivosRequest } from "@/services/domains/ano-letivo";
+import { PeriodosLetivosRequest, RematriculaRequest } from "@/services/domains/ano-letivo";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
@@ -30,6 +30,29 @@ export function useAnosLetivos() {
     loading: isLoading,
     error: error ? "Não foi possível carregar os anos letivos." : null,
   };
+}
+
+/** Prévia do encerramento do ano: só busca enquanto o diálogo está aberto. */
+export function usePreviaEncerramento(ano: number | null) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: QUERY_KEYS.anosLetivos.previaEncerramento(ano ?? 0),
+    queryFn: () => anoLetivoApi.previaEncerramento(ano as number),
+    enabled: ano != null,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    previa: data,
+    loading: isLoading,
+    error: error
+      ? mensagemDoBackend(error, "Não foi possível carregar a prévia do encerramento.")
+      : null,
+  };
+}
+
+function plural(n: number, singular: string, varios: string) {
+  return `${n} ${n === 1 ? singular : varios}`;
 }
 
 export function useAnoLetivoMutations() {
@@ -91,5 +114,58 @@ export function useAnoLetivoMutations() {
     onError: (erro) => toast.error(mensagemDoBackend(erro, "Não foi possível reabrir o período.")),
   });
 
-  return { criar, salvarPeriodos, abrir, fecharPeriodo, reabrirPeriodo };
+  const encerrar = useMutation({
+    mutationFn: (ano: number) => anoLetivoApi.encerrar(ano),
+    onSuccess: (r) => {
+      invalidar();
+      toast.success(
+        `${r.ano} encerrado: ${plural(r.concluidas, "matrícula concluída", "matrículas concluídas")} ` +
+          `(${r.aprovadas} aprovados, ${r.reprovadas} reprovados, ${r.semResultado} sem resultado).`,
+      );
+    },
+    onError: (erro) =>
+      toast.error(mensagemDoBackend(erro, "Não foi possível encerrar o ano letivo.")),
+  });
+
+  const copiarTurmas = useMutation({
+    mutationFn: (ano: number) => anoLetivoApi.copiarTurmas(ano),
+    onSuccess: (r) => {
+      invalidar();
+      toast.success(
+        `${plural(r.criadas, "turma criada", "turmas criadas")} em ${r.anoDestino}` +
+          (r.jaExistiam ? ` (${r.jaExistiam} já existiam).` : "."),
+      );
+    },
+    onError: (erro) => toast.error(mensagemDoBackend(erro, "Não foi possível copiar as turmas.")),
+  });
+
+  const rematricular = useMutation({
+    mutationFn: ({ ano, dados }: { ano: number; dados: RematriculaRequest }) =>
+      anoLetivoApi.rematricular(ano, dados),
+    onSuccess: (r) => {
+      invalidar();
+      const pendentes = r.semDestino + r.semResultado;
+      toast.success(
+        `${plural(r.criadas, "pré-matrícula criada", "pré-matrículas criadas")} em ${r.anoDestino}.` +
+          (r.jaMatriculados ? ` ${r.jaMatriculados} já estavam matriculados.` : "") +
+          (r.concluintes ? ` ${r.concluintes} concluintes.` : "") +
+          (pendentes
+            ? ` ${pendentes} ficaram de fora (sem resultado ou sem série de destino).`
+            : ""),
+      );
+    },
+    onError: (erro) =>
+      toast.error(mensagemDoBackend(erro, "Não foi possível rematricular os alunos.")),
+  });
+
+  return {
+    criar,
+    salvarPeriodos,
+    abrir,
+    fecharPeriodo,
+    reabrirPeriodo,
+    encerrar,
+    copiarTurmas,
+    rematricular,
+  };
 }

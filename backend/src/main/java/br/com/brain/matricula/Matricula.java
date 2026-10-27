@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.envers.Audited;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
@@ -87,6 +88,16 @@ public class Matricula extends EntidadeBase {
 
     @Column(name = "motivo_saida")
     private String motivoSaida;
+
+    /** Resultado congelado no encerramento do ano (ver V116). Nulo enquanto o ano corre. */
+    @Column(name = "situacao_final")
+    private String situacaoFinal;
+
+    @Column(name = "media_final")
+    private BigDecimal mediaFinal;
+
+    @Column(name = "frequencia_final")
+    private BigDecimal frequenciaFinal;
 
     public boolean estaEfetivada() {
         return status == StatusMatricula.EFETIVADA;

@@ -1,5 +1,8 @@
 package br.com.brain.documentoEscolar;
 
+import br.com.brain.enums.StatusMatricula;
+import br.com.brain.matricula.Matricula;
+import br.com.brain.matricula.ResultadoDisciplinaRepository;
 import br.com.brain.matricula.MatriculaRepository;
 import br.com.brain.aluno.Aluno;
 import br.com.brain.aluno.AlunoService;
@@ -59,6 +62,7 @@ public class DocumentoEscolarService {
     private final NotasRepository notasRepository;
     private final ChamadaRepository chamadaRepository;
     private final MatriculaRepository matriculaRepository;
+    private final ResultadoDisciplinaRepository resultadoDisciplinaRepository;
     private final DisciplinaRepository disciplinaRepository;
     private final EscolaService escolaService;
 
@@ -114,6 +118,31 @@ public class DocumentoEscolarService {
                 continue;
             }
 
+            // Ano encerrado: vale o resultado congelado no encerramento, não um
+            // recálculo com a escala e o calendário de hoje.
+            var congelada = matriculaCongelada(aluno.getId(), ano);
+            if (congelada != null) {
+                int cargaCongelada = 0;
+                for (var r : resultadoDisciplinaRepository.findByMatriculaIdOrderByDisciplinaNomeAsc(congelada.getId())) {
+                    int ch = r.getCargaHoraria() != null ? r.getCargaHoraria() : 0;
+                    cargaCongelada += ch;
+                    componentes
+                            .computeIfAbsent(chave(r.getDisciplinaNome()), k -> new ComponenteAcumulado(
+                                    r.getArea() != null ? r.getArea() : SEM_AREA, r.getDisciplinaNome()))
+                            .notas.put(ano, new NotaAnoHistoricoDto(ano, r.getNotaFinal(), ch));
+                }
+                anos.add(new AnoHistoricoDto(
+                        ano,
+                        turma.getSerie().getNome(),
+                        turma.getNome(),
+                        turma.getUnidade() != null ? turma.getUnidade().getNome() : null,
+                        false,
+                        cargaCongelada,
+                        congelada.getFrequenciaFinal(),
+                        congelada.getSituacaoFinal()));
+                continue;
+            }
+
             var relatorio = relatoriosService.gerarRelatorio(aluno, turma, null);
             ultimo = relatorio;
             Map<Long, Disciplina> disciplinas = new LinkedHashMap<>();
@@ -151,6 +180,11 @@ public class DocumentoEscolarService {
                         .toList()))
                 .toList();
 
+        if (ultimo == null && !turmasPorAno.isEmpty() && turmasPorAno.lastEntry().getValue().getSerie() != null) {
+            // Todos os anos vieram congelados: a escala e os critérios do
+            // cabeçalho saem do relatório do último ano.
+            ultimo = relatoriosService.gerarRelatorio(aluno, turmasPorAno.lastEntry().getValue(), null);
+        }
         var escala = ultimo != null ? ultimo.gradingScale() : null;
         return new HistoricoDto(
                 escola(aluno, aluno.getTurma()),
@@ -162,6 +196,15 @@ public class DocumentoEscolarService {
                 linhas,
                 nome(emissor),
                 LocalDateTime.now());
+    }
+
+    /** Matrícula concluída do ano com resultado congelado, ou nulo. */
+    private Matricula matriculaCongelada(Long alunoId, int ano) {
+        return matriculaRepository.findByAlunoIdAndAnoLetivoOrderByIdDesc(alunoId, ano).stream()
+                .filter(m -> m.getStatus() == StatusMatricula.CONCLUIDA && m.getSituacaoFinal() != null)
+                .filter(m -> resultadoDisciplinaRepository.existsByMatriculaId(m.getId()))
+                .findFirst()
+                .orElse(null);
     }
 
     /**

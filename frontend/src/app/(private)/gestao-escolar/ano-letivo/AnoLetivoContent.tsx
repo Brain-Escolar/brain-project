@@ -7,6 +7,9 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LockOpenOutlinedIcon from "@mui/icons-material/LockOpenOutlined";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import ContentCopyOutlinedIcon from "@mui/icons-material/ContentCopyOutlined";
+import GroupAddOutlinedIcon from "@mui/icons-material/GroupAddOutlined";
+import EventBusyOutlinedIcon from "@mui/icons-material/EventBusyOutlined";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { useAnoLetivoMutations, useAnosLetivos } from "@/hooks/useAnosLetivos";
@@ -16,6 +19,8 @@ import {
   StatusAnoLetivo,
 } from "@/services/domains/ano-letivo";
 import * as S from "./styles";
+import DialogEncerrarAno from "./_components/DialogEncerrarAno";
+import DialogRematricula from "./_components/DialogRematricula";
 
 const ROTULO_STATUS: Record<StatusAnoLetivo, string> = {
   ABERTO: "Ano corrente",
@@ -44,7 +49,10 @@ function paraEdicao(ano: AnoLetivoResponse | undefined): PeriodoLetivoRequest[] 
  */
 export default function AnoLetivoContent() {
   const { anos, loading, error } = useAnosLetivos();
-  const { criar, salvarPeriodos, abrir, fecharPeriodo, reabrirPeriodo } = useAnoLetivoMutations();
+  const { criar, salvarPeriodos, abrir, fecharPeriodo, reabrirPeriodo, copiarTurmas } =
+    useAnoLetivoMutations();
+  const [encerrando, setEncerrando] = useState<number | null>(null);
+  const [rematriculando, setRematriculando] = useState<number | null>(null);
 
   const [anoSelecionado, setAnoSelecionado] = useState<number>();
   const selecionado = useMemo(
@@ -64,6 +72,7 @@ export default function AnoLetivoContent() {
     ? Math.max(...anos.map((a) => a.ano)) + 1
     : new Date().getFullYear();
   const aberto = anos.find((a) => a.status === "ABERTO");
+  const anterior = selecionado ? anos.find((a) => a.ano === selecionado.ano - 1) : undefined;
 
   function alterar(indice: number, campo: keyof PeriodoLetivoRequest, valor: string) {
     setPeriodos((atual) => atual.map((p, i) => (i === indice ? { ...p, [campo]: valor } : p)));
@@ -148,26 +157,79 @@ export default function AnoLetivoContent() {
                   {ROTULO_STATUS[selecionado.status]}
                 </S.Status>
               </S.Titulo>
-              {selecionado.status === "PLANEJAMENTO" && (
-                <Tooltip
-                  title={
-                    aberto
-                      ? `Encerre ${aberto.ano} antes de abrir ${selecionado.ano}.`
-                      : "Passa a ser o ano usado por padrão em todas as telas."
-                  }
-                >
-                  <span>
-                    <Button
-                      variant="outlined"
-                      startIcon={<PlayCircleOutlineIcon />}
-                      disabled={!!aberto || alterado || abrir.isPending}
-                      onClick={() => abrir.mutate(selecionado.ano)}
+              <S.Acoes>
+                {selecionado.status === "ABERTO" && (
+                  <Tooltip title="Congela o resultado de cada aluno e deixa o ano somente leitura.">
+                    <span>
+                      <Button
+                        variant="outlined"
+                        color="warning"
+                        startIcon={<EventBusyOutlinedIcon />}
+                        disabled={alterado}
+                        onClick={() => setEncerrando(selecionado.ano)}
+                      >
+                        Encerrar {selecionado.ano}
+                      </Button>
+                    </span>
+                  </Tooltip>
+                )}
+                {selecionado.status === "PLANEJAMENTO" && anterior && (
+                  <>
+                    <Tooltip
+                      title={`Cria em ${selecionado.ano} as turmas de ${anterior.ano} que ainda não existem.`}
                     >
-                      Tornar ano corrente
-                    </Button>
-                  </span>
-                </Tooltip>
-              )}
+                      <span>
+                        <Button
+                          variant="outlined"
+                          startIcon={<ContentCopyOutlinedIcon />}
+                          disabled={copiarTurmas.isPending}
+                          onClick={() => copiarTurmas.mutate(selecionado.ano)}
+                        >
+                          Copiar turmas de {anterior.ano}
+                        </Button>
+                      </span>
+                    </Tooltip>
+                    <Tooltip
+                      title={
+                        anterior.status === "ENCERRADO"
+                          ? `Pré-matrículas em ${selecionado.ano} para quem concluiu ${anterior.ano}.`
+                          : `Encerre ${anterior.ano} antes: a rematrícula usa o resultado final.`
+                      }
+                    >
+                      <span>
+                        <Button
+                          variant="outlined"
+                          startIcon={<GroupAddOutlinedIcon />}
+                          disabled={anterior.status !== "ENCERRADO"}
+                          onClick={() => setRematriculando(selecionado.ano)}
+                        >
+                          Rematricular
+                        </Button>
+                      </span>
+                    </Tooltip>
+                  </>
+                )}
+                {selecionado.status === "PLANEJAMENTO" && (
+                  <Tooltip
+                    title={
+                      aberto
+                        ? `Encerre ${aberto.ano} antes de abrir ${selecionado.ano}.`
+                        : "Passa a ser o ano usado por padrão em todas as telas."
+                    }
+                  >
+                    <span>
+                      <Button
+                        variant="contained"
+                        startIcon={<PlayCircleOutlineIcon />}
+                        disabled={!!aberto || alterado || abrir.isPending}
+                        onClick={() => abrir.mutate(selecionado.ano)}
+                      >
+                        Tornar ano corrente
+                      </Button>
+                    </span>
+                  </Tooltip>
+                )}
+              </S.Acoes>
             </S.PainelTopo>
 
             {somenteLeitura ? (
@@ -300,6 +362,8 @@ export default function AnoLetivoContent() {
           </S.Painel>
         </S.Layout>
       )}
+      <DialogEncerrarAno ano={encerrando} onClose={() => setEncerrando(null)} />
+      <DialogRematricula ano={rematriculando} onClose={() => setRematriculando(null)} />
     </PageScaffold>
   );
 }

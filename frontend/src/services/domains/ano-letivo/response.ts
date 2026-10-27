@@ -23,3 +23,38 @@ export interface AnoLetivoResponse {
   encerradoEm: string | null;
   periodos: PeriodoLetivoResponse[];
 }
+
+/** O que o encerramento vai fazer, para a direção confirmar antes. */
+export interface PreviaEncerramentoResponse {
+  ano: number;
+  matriculasAConcluir: number;
+  matriculasSemTurma: number;
+  preMatriculas: number;
+  periodosAbertos: number;
+}
+
+export interface EncerramentoAnoResponse {
+  ano: number;
+  concluidas: number;
+  aprovadas: number;
+  reprovadas: number;
+  semResultado: number;
+  preMatriculasCanceladas: number;
+}
+
+export interface CopiaTurmasResponse {
+  anoOrigem: number;
+  anoDestino: number;
+  criadas: number;
+  jaExistiam: number;
+}
+
+export interface RematriculaResponse {
+  anoOrigem: number;
+  anoDestino: number;
+  criadas: number;
+  jaMatriculados: number;
+  concluintes: number;
+  semResultado: number;
+  semDestino: number;
+}

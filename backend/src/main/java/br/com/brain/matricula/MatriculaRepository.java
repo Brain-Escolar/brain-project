@@ -74,6 +74,20 @@ public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
         return contarAlunosPorTurma(turmaIds, NA_TURMA);
     }
 
+    @Query("""
+            SELECT m FROM Matricula m
+            JOIN FETCH m.aluno a JOIN FETCH a.dadosPessoais
+            LEFT JOIN FETCH m.turma
+            WHERE m.anoLetivo = :ano AND m.status IN :status
+            ORDER BY m.id
+            """)
+    List<Matricula> findDoAnoComAluno(@Param("ano") int ano, @Param("status") Collection<StatusMatricula> status);
+
+    @Query("SELECT COUNT(m) FROM Matricula m WHERE m.anoLetivo = :ano AND m.status = :status AND m.turma IS NULL")
+    long countSemTurma(@Param("ano") int ano, @Param("status") StatusMatricula status);
+
+    long countByAnoLetivoAndStatus(Integer anoLetivo, StatusMatricula status);
+
     // ------------------------------------------------------------------ historico
 
     /**

@@ -14,6 +14,10 @@ public interface TurmaRepository extends JpaRepository<Turma, Long> {
 
     Page<Turma> findByAnoLetivo(int anoLetivo, Pageable pageable);
 
+    List<Turma> findByAnoLetivoOrderByNomeAsc(int anoLetivo);
+
+    boolean existsByAnoLetivoAndNomeAndUnidadeIdAndSerieId(int anoLetivo, String nome, Long unidadeId, Long serieId);
+
     /** Turmas do ano letivo com unidade e série carregadas, na ordem em que a escola as lê. */
     @Query("""
             SELECT t FROM Turma t JOIN FETCH t.unidade u JOIN FETCH t.serie s
