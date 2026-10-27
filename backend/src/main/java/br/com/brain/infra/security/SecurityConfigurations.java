@@ -124,6 +124,13 @@ public class SecurityConfigurations {
                             req.requestMatchers("/diretor/**")
                                     .hasAnyRole("DIRETOR", "ADMIN");
 
+                            // Anos letivos - acima do permitAll. Todo mundo logado
+                            // le (o seletor de ano esta em todas as telas);
+                            // abrir, encerrar e mexer no calendario e da Direcao.
+                            req.requestMatchers(HttpMethod.GET, "/anos-letivos/**").authenticated();
+                            req.requestMatchers("/anos-letivos/**")
+                                    .hasAnyRole("DIRETOR", "ADMIN");
+
                             // Remover depois
                             req.requestMatchers("/**").permitAll();
 

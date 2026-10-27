@@ -88,7 +88,7 @@ public class AcompanhamentoTurmaService {
     @Transactional(readOnly = true)
     public FiltrosAcompanhamentoDto filtros() {
         var hoje = LocalDate.now();
-        int anoLetivo = hoje.getYear();
+        int anoLetivo = configuracaoService.anoCorrente();
         var periodos = configuracaoService.obterOuPadrao(anoLetivo).periodos();
         var corrente = PeriodosLetivos.corrente(periodos, hoje);
 

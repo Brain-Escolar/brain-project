@@ -98,7 +98,7 @@ public class DocumentoEscolarService {
     public HistoricoDto gerarHistorico(Long alunoId, DadosPessoais emissor) {
         var aluno = alunoService.detalhar(alunoId);
         var turmasPorAno = turmasPorAno(aluno);
-        int anoAtual = LocalDate.now().getYear();
+        int anoAtual = configuracaoService.anoCorrente();
 
         List<AnoHistoricoDto> anos = new ArrayList<>();
         // nome da disciplina (normalizado) -> área, nome de exibição e nota por ano
@@ -181,7 +181,7 @@ public class DocumentoEscolarService {
 
     /** Ano em curso quando o aluno tem turma nele; senão o último ano cursado. */
     private int anoPadrao(TreeMap<Integer, Turma> turmasPorAno) {
-        int anoAtual = LocalDate.now().getYear();
+        int anoAtual = configuracaoService.anoCorrente();
         if (turmasPorAno.isEmpty() || turmasPorAno.containsKey(anoAtual)) {
             return anoAtual;
         }

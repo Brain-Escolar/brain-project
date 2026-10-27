@@ -4,6 +4,7 @@ import br.com.brain.serie.Serie;
 import br.com.brain.unidade.Unidade;
 import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.aluno.dto.ListagemAlunoDto;
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.turma.dto.AtualizacaoTurmaDto;
 import br.com.brain.turma.dto.CadastroTurmaDto;
 import br.com.brain.turma.dto.ListagemTurmaDto;
@@ -25,12 +26,15 @@ public class TurmaService {
 
     private final TurmaRepository repository;
     private final AlunoRepository alunoRepository;
+    private final AnoLetivoService anoLetivoService;
 
     @PersistenceContext
     private EntityManager em;
 
     @Transactional
     public Turma cadastrarTurma(CadastroTurmaDto dados) {
+
+        anoLetivoService.garantir(dados.anoLetivo());
 
         Serie serie = em.find(Serie.class, dados.serieId());
         Unidade unidade = em.find(Unidade.class, dados.unidadeId());
@@ -64,6 +68,7 @@ public class TurmaService {
                 .findById(id)
                 .orElseThrow(
                         () -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", id));
+        anoLetivoService.exigirEditavel(turma.getAnoLetivo());
 
         if (dados.nome() != null) {
             turma.setNome(dados.nome());

@@ -293,6 +293,11 @@ export const QUERY_KEYS = {
     concessoes: (simulacaoId: number) =>
       [...QUERY_KEYS.bolsa.all, "concessoes", simulacaoId] as const,
   },
+  anosLetivos: {
+    all: ["anosLetivos"] as const,
+    lista: () => [...QUERY_KEYS.anosLetivos.all, "lista"] as const,
+    corrente: () => [...QUERY_KEYS.anosLetivos.all, "corrente"] as const,
+  },
   simulacoes: {
     all: ["simulacoes"] as const,
     detail: (id: number) => [...QUERY_KEYS.simulacoes.all, "detail", id] as const,

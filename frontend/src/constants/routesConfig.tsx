@@ -35,6 +35,7 @@ import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import CorporateFareOutlinedIcon from "@mui/icons-material/CorporateFareOutlined";
 import EventRepeatOutlinedIcon from "@mui/icons-material/EventRepeatOutlined";
+import DateRangeOutlinedIcon from "@mui/icons-material/DateRangeOutlined";
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import * as React from "react";
 import {
@@ -726,6 +727,15 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.GESTAO_ESCOLAR,
     caption: "Diário, notas e anotações",
+  },
+  {
+    text: RouteLabelsEnum.ANO_LETIVO,
+    icon: <DateRangeOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.GESTAO_ANO_LETIVO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.DIRETOR],
+    moduleMenu: RoutesModuleEnum.GESTAO_ESCOLAR,
+    caption: "Calendário, bimestres e virada de ano",
   },
   {
     text: RouteLabelsEnum.ACOMPANHAMENTO_PROFESSOR,

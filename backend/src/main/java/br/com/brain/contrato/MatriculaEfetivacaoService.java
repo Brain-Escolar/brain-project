@@ -2,6 +2,7 @@ package br.com.brain.contrato;
 
 import br.com.brain.aluno.Aluno;
 import br.com.brain.bolsa.BolsaConcessaoService;
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.contrato.dto.ContratoDto;
 import br.com.brain.contrato.dto.EfetivarMatriculaRequest;
 import br.com.brain.enums.StatusContratoServico;
@@ -56,6 +57,7 @@ public class MatriculaEfetivacaoService {
     private final TituloRepository tituloRepository;
     private final AlunoResponsavelFinanceiroRepository rateioRepository;
     private final BolsaConcessaoService bolsaConcessaoService;
+    private final AnoLetivoService anoLetivoService;
     private final EntityManager entityManager;
 
     @Transactional
@@ -127,6 +129,8 @@ public class MatriculaEfetivacaoService {
      */
     private Matricula obterOuCriarMatricula(SimulacaoFinanceira simulacao, Aluno aluno,
             EfetivarMatriculaRequest pedido, LocalDate dataEfetivacao) {
+
+        anoLetivoService.garantir(simulacao.getAnoLetivo());
 
         var existentes = matriculaRepository
                 .findByAlunoIdAndAnoLetivoOrderByIdDesc(aluno.getId(), simulacao.getAnoLetivo());

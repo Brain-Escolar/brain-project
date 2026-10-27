@@ -59,7 +59,8 @@ public class InicioDiretorService {
     @Transactional(readOnly = true)
     public InicioDiretorDto montarInicio(DadosAutenticacao usuario) {
         var hoje = LocalDate.now();
-        var config = configuracaoService.obterOuPadrao(hoje.getYear());
+        int anoLetivo = configuracaoService.anoCorrente();
+        var config = configuracaoService.obterOuPadrao(anoLetivo);
         var escala = config.escala();
         var atual = PeriodosLetivos.corrente(config.periodos(), hoje);
         var anterior = PeriodosLetivos.anterior(config.periodos(), atual);
@@ -69,19 +70,19 @@ public class InicioDiretorService {
                 .getContent();
 
         return new InicioDiretorDto(
-                montarIndicadores(hoje, atual, anterior, escala),
+                montarIndicadores(anoLetivo, atual, anterior, escala),
                 montarDesempenhoPorSerie(atual, escala),
                 montarFrequenciaMensal(hoje),
                 comunicados);
     }
 
-    private IndicadoresDiretorDto montarIndicadores(LocalDate hoje, PeriodoLetivo atual, PeriodoLetivo anterior,
+    private IndicadoresDiretorDto montarIndicadores(int anoLetivo, PeriodoLetivo atual, PeriodoLetivo anterior,
             EscalaAvaliacao escala) {
         return new IndicadoresDiretorDto(
                 alunoRepository.countByMatriculadoTrue(),
                 professorRepository.countByAtivoTrue(),
                 unidadeRepository.count(),
-                turmaRepository.countByAnoLetivo(hoje.getYear()),
+                turmaRepository.countByAnoLetivo(anoLetivo),
                 serieRepository.count(),
                 disciplinaRepository.count(),
                 atual.getNome(),
