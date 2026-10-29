@@ -1,5 +1,7 @@
 package br.com.brain.permissao;
 
+import br.com.brain.autenticacao.DadosAutenticacao;
+import br.com.brain.autenticacao.DadosAutenticacaoRepository;
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.dadosPessoais.DadosPessoaisRepository;
 import br.com.brain.enums.PerfilNome;
@@ -43,6 +45,8 @@ class GrupoUsuarioControllerTest {
     private DadosPessoaisRepository dadosPessoaisRepository;
     @Autowired
     private PerfilRepository perfilRepository;
+    @Autowired
+    private DadosAutenticacaoRepository dadosAutenticacaoRepository;
 
     private MockMvc mvc;
 
@@ -115,6 +119,39 @@ class GrupoUsuarioControllerTest {
                 .andExpect(jsonPath("$.nome").value("Secretária Teste"))
                 .andExpect(jsonPath("$.telas[0]").value("SECRETARIA_CRM"))
                 .andExpect(jsonPath("$.herdados").isMap());
+    }
+
+    @Test
+    @DisplayName("histórico: exige o controle de histórico, além de ADMIN ou DIRETOR, e responde uma página")
+    void historico() throws Exception {
+        var grupo = grupoPadrao("SECRETARIO");
+
+        mvc.perform(get("/grupos-usuarios/{id}/historico", grupo).with(user("secretaria").roles("SECRETARIO")))
+                .andExpect(status().isForbidden());
+        // DIRETOR fora de grupo: entra pela URL, mas não tem o controle.
+        mvc.perform(get("/grupos-usuarios/{id}/historico", grupo).with(user(login("diretor", PerfilNome.DIRETOR))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message", containsString("histórico")));
+        mvc.perform(get("/grupos-usuarios/{id}/historico", grupo).with(user(login("admin", PerfilNome.ADMIN))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").isNumber());
+    }
+
+    private DadosAutenticacao login(String nome, PerfilNome perfil) {
+        var pessoa = new DadosPessoais();
+        pessoa.setNome(nome);
+        pessoa.setEmail(nome + "-historico@pessoal.test");
+        pessoa.getPerfis().add(perfilRepository.findByNome(perfil));
+        pessoa = dadosPessoaisRepository.save(pessoa);
+
+        var login = new DadosAutenticacao();
+        login.setEmail(nome + "-historico@escola.test");
+        login.setSenha("nao-usada");
+        login.setVerificado(true);
+        login.setAtivo(true);
+        login.setDadosPessoais(pessoa);
+        return dadosAutenticacaoRepository.save(login);
     }
 
     private Long grupoPadrao(String perfil) {

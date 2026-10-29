@@ -1,5 +1,6 @@
 package br.com.brain.permissao;
 
+import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.permissao.dto.AcessoATelaDto;
 import br.com.brain.permissao.dto.AcessosGrupoUsuarioDto;
@@ -12,6 +13,7 @@ import br.com.brain.permissao.dto.DuplicacaoGrupoUsuarioDto;
 import br.com.brain.permissao.dto.ListagemGrupoUsuarioDto;
 import br.com.brain.permissao.dto.MembroGrupoDto;
 import br.com.brain.permissao.dto.PessoaGrupoDto;
+import br.com.brain.permissao.dto.RevisaoGrupoUsuarioDto;
 import br.com.brain.permissao.dto.TelaResumoDto;
 import jakarta.validation.Valid;
 
@@ -23,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +44,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class GrupoUsuarioController {
 
     private final GrupoUsuarioService service;
+    private final HistoricoGrupoUsuarioService historicoService;
 
     @GetMapping
     public ResponseEntity<List<ListagemGrupoUsuarioDto>> listar(@RequestParam(required = false) PerfilNome perfil) {
@@ -96,6 +100,13 @@ public class GrupoUsuarioController {
     public ResponseEntity<Void> excluir(@PathVariable("id") Long id) {
         service.excluir(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /** Alterações do grupo, da mais recente para a mais antiga. Exige GRUPO_USUARIO.HISTORICO.VER. */
+    @GetMapping("/{id}/historico")
+    public ResponseEntity<Page<RevisaoGrupoUsuarioDto>> historico(@PathVariable("id") Long id,
+            @AuthenticationPrincipal DadosAutenticacao usuario, @PageableDefault(size = 20) Pageable paginacao) {
+        return ResponseEntity.ok(historicoService.historico(id, usuario, paginacao));
     }
 
     @GetMapping("/{id}/membros")

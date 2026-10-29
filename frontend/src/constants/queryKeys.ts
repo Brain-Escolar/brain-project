@@ -83,6 +83,7 @@ export const QUERY_KEYS = {
     // Fora de "all" pelo mesmo motivo do catálogo: só muda por migration.
     telas: () => ["catalogoPermissoes", "telas"] as const,
     porTela: (codigo: string) => [...QUERY_KEYS.gruposUsuarios.all, "porTela", codigo] as const,
+    historico: (id: number) => [...QUERY_KEYS.gruposUsuarios.all, "historico", id] as const,
   },
   gruposDisciplina: {
     all: ["gruposDisciplina"] as const,

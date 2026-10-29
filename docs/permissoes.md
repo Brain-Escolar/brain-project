@@ -254,10 +254,11 @@ Entram só as diferenças que já existem hoje entre perfis dentro de uma mesma 
 | `EVENTO.GERENCIAR` | `CALENDARIO` | PROFESSOR, SECRETARIO, ESTUDANTE ⚠️ | Botão "Novo evento" e edição (`usePermissoes().criarEvento`) | Escritas em `/evento` |
 | `MATERIAL_COMPLEMENTAR.PUBLICAR` | `MATERIAIS_COMPLEMENTARES` | PROFESSOR | Publicar e remover, na página do professor | `POST`/`DELETE /material-complementar` |
 | `FICHA_MEDICA.INCLUIR` | `FICHA_MEDICA_RESPONSAVEL` | RESPONSAVEL | Incluir medicação e laudo (`usePermissoes().incluirNaFichaMedica`) | Inclusões em `/portal-responsavel/aluno/{alunoId}/ficha-medica/laudos` e `…/medicacoes` |
+| `GRUPO_USUARIO.HISTORICO.VER` | — (tela de grupos, fora do catálogo) | ADMIN, DIRETOR | Botão "Histórico" no detalhe do grupo (V113) | `GET /grupos-usuarios/{id}/historico` |
 
 ⚠️ Ver a seção 12.
 
-Situação familiar e atendimento psicológico ficam fora do teto de ADMIN e DIRETOR (D9). No total são 15 controles. O ADMIN e o grupo padrão do diretor recebem 8 deles.
+Situação familiar e atendimento psicológico ficam fora do teto de ADMIN e DIRETOR (D9). No total são 16 controles. O ADMIN e o grupo padrão do diretor recebem 9 deles (o de histórico veio na V113).
 
 ### 6.4 Dependências
 
@@ -833,6 +834,7 @@ Tudo fica no pacote `br.com.brain.permissao`.
 | `GET /grupos-usuarios/{id}/candidatos?busca=` | ADMIN, DIRETOR | Pessoas com login e com o perfil do grupo que ainda não estão nele. |
 | `POST /grupos-usuarios/{id}/membros` | ADMIN, DIRETOR | Adiciona pessoas (`dadosPessoaisIds`). |
 | `DELETE /grupos-usuarios/{id}/membros/{dadosPessoaisId}` | ADMIN, DIRETOR | Remove uma pessoa do grupo. |
+| `GET /grupos-usuarios/{id}/historico?page=&size=` | ADMIN, DIRETOR com `GRUPO_USUARIO.HISTORICO.VER` | Alterações do grupo pelas tabelas `_AUD`, uma por revisão, da mais recente para a mais antiga: quem e quando, nome/descrição/situação (antes e depois), telas e ações liberadas ou retiradas, pessoas adicionadas ou removidas. Sem o controle, 403. Grupo individual ou excluído, 404. |
 | `GET /grupos-usuarios/individuais/{dadosPessoaisId}?perfil=` | ADMIN, DIRETOR | Acessos individuais da pessoa no perfil, os grupos dela e o que eles já dão (`herdados`: código → nomes dos grupos ativos). |
 | `PUT /grupos-usuarios/individuais/{dadosPessoaisId}?perfil=` | ADMIN, DIRETOR | Substitui os acessos individuais (lista de códigos, como em `…/acessos`). Lista vazia apaga o grupo individual. |
 
@@ -1057,6 +1059,7 @@ Continuam decididos por perfil (RP7):
 - **Ações:**
   - **Duplicar** cria um grupo novo com os mesmos acessos. É o jeito rápido de montar um grupo restrito a partir do padrão.
   - **Desativar** e **Excluir** não aparecem no grupo padrão.
+  - **Histórico** (só com `GRUPO_USUARIO.HISTORICO.VER`) abre um modal com as alterações do grupo, a mais recente no topo e "Carregar mais" de 20 em 20. Cada item mostra data, autor e o que mudou. O que veio do seed não tem revisão: o histórico começa na primeira alteração pela tela. Fica para depois: histórico dos acessos individuais e dos grupos excluídos.
 
 **Visibilidade:** a tela é uma rota livre do ADMIN, que o DIRETOR herda (seção 9.6).
 

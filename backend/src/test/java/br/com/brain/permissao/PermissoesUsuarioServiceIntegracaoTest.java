@@ -142,7 +142,7 @@ class PermissoesUsuarioServiceIntegracaoTest {
 
         assertThat(permissoes.gerenciaPermissoes()).isTrue();
         assertThat(permissoes.perfis().get(PerfilNome.ADMIN).telas()).hasSize(41);
-        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).controles()).hasSize(8)
+        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).controles()).hasSize(9)
                 .noneMatch(codigo -> codigo.startsWith("SITUACAO_FAMILIAR.")
                         || codigo.startsWith("ATENDIMENTO_PSICOLOGICO."));
     }

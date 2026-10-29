@@ -106,3 +106,38 @@ export interface AcessosIndividuaisResponse {
   telas: string[];
   controles: string[];
 }
+
+export interface ItemHistoricoResponse {
+  codigo: string;
+  nome: string;
+}
+
+export interface PessoaHistoricoResponse {
+  dadosPessoaisId: number;
+  nome: string;
+}
+
+/** campo: nome, descricao ou ativo. ativo vem como "true"/"false"; antes é nulo na criação. */
+export interface CampoAlteradoResponse {
+  campo: "nome" | "descricao" | "ativo";
+  antes: string | null;
+  depois: string | null;
+}
+
+/**
+ * Tudo o que um salvamento mudou no grupo. autor é nulo quando a alteração
+ * não veio de alguém logado.
+ */
+export interface RevisaoGrupoUsuarioResponse {
+  revisao: number;
+  data: string;
+  autor: PessoaHistoricoResponse | null;
+  criacao: boolean;
+  campos: CampoAlteradoResponse[];
+  telasConcedidas: ItemHistoricoResponse[];
+  telasRetiradas: ItemHistoricoResponse[];
+  controlesConcedidos: ItemHistoricoResponse[];
+  controlesRetirados: ItemHistoricoResponse[];
+  pessoasAdicionadas: PessoaHistoricoResponse[];
+  pessoasRemovidas: PessoaHistoricoResponse[];
+}

@@ -7,7 +7,10 @@ import { Alert, Box, Button, Chip, Skeleton, Tab, Tabs } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/Edit";
+import HistoryIcon from "@mui/icons-material/History";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
+import Permissao from "@/components/permissao/Permissao";
+import { CONTROLES } from "@/constants/permissoes";
 import { useBreadcrumbOverride } from "@/contexts/BreadcrumbContext";
 import { RoutesEnum } from "@/enums";
 import { useGrupoUsuario } from "@/hooks/useGruposUsuarios";
@@ -17,9 +20,10 @@ import AvisoPermissoes from "../_components/AvisoPermissoes";
 import DuplicarGrupoDialog from "../_components/DuplicarGrupoDialog";
 import EditarGrupoDialog from "../_components/EditarGrupoDialog";
 import ExcluirGrupoDialog from "../_components/ExcluirGrupoDialog";
+import HistoricoGrupoDialog from "../_components/HistoricoGrupoDialog";
 import { nomeDoPerfil } from "../perfisDeGrupo";
 
-type Dialogo = "editar" | "duplicar" | "excluir" | null;
+type Dialogo = "editar" | "duplicar" | "excluir" | "historico" | null;
 
 export default function GrupoUsuarioPage() {
   const params = useParams<{ id: string }>();
@@ -76,6 +80,16 @@ export default function GrupoUsuarioPage() {
           >
             Duplicar
           </Button>
+          <Permissao controle={CONTROLES.GRUPO_USUARIO_HISTORICO_VER}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<HistoryIcon />}
+              onClick={() => setDialogo("historico")}
+            >
+              Histórico
+            </Button>
+          </Permissao>
           {!grupo.padrao && (
             <Button
               variant="outlined"
@@ -155,6 +169,11 @@ export default function GrupoUsuarioPage() {
       />
       <ExcluirGrupoDialog
         open={dialogo === "excluir"}
+        onClose={() => setDialogo(null)}
+        grupo={grupo}
+      />
+      <HistoricoGrupoDialog
+        open={dialogo === "historico"}
         onClose={() => setDialogo(null)}
         grupo={grupo}
       />
