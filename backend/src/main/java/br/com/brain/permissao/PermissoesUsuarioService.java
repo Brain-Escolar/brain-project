@@ -81,6 +81,13 @@ public class PermissoesUsuarioService {
                 .anyMatch(perfil -> perfil.telas().stream().anyMatch(telas::contains));
     }
 
+    /** Se a pessoa tem o controle, em qualquer perfil dela. */
+    @Transactional(readOnly = true)
+    public boolean temControle(DadosAutenticacao usuario, String codigo) {
+        return doUsuario(usuario).perfis().values().stream()
+                .anyMatch(perfil -> perfil.controles().contains(codigo));
+    }
+
     private static Map<PerfilNome, List<String>> porPerfil(List<ItemPorPerfil> itens) {
         return itens.stream().collect(Collectors.groupingBy(
                 ItemPorPerfil::perfil,

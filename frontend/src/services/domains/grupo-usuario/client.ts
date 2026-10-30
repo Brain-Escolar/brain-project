@@ -16,6 +16,7 @@ import {
   GrupoUsuarioDetalheResponse,
   GrupoUsuarioListaResponse,
   PessoaGrupoResponse,
+  RevisaoGrupoUsuarioResponse,
   TelaResumoResponse,
 } from "./response";
 
@@ -55,6 +56,14 @@ export class GrupoUsuarioApi {
 
   excluir(id: number): Promise<void> {
     return httpClient.delete(`${BASE_ROUTE}/${id}`);
+  }
+
+  /** Alterações do grupo, da mais recente para a mais antiga. Exige o controle de histórico. */
+  historico(
+    id: number,
+    params: { page: number; size: number },
+  ): Promise<IBrainResult<RevisaoGrupoUsuarioResponse>> {
+    return httpClient.get(`${BASE_ROUTE}/${id}/historico`, { params });
   }
 
   listarMembros(

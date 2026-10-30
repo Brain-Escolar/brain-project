@@ -1,6 +1,6 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { grupoUsuarioApi } from "@/services/api";
 import { PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
@@ -139,5 +139,32 @@ export function usePessoasDoGrupo({
     loading: isLoading,
     atualizando: isFetching,
     error: error ? "Erro ao carregar as pessoas." : null,
+  };
+}
+
+const TAMANHO_PAGINA_HISTORICO = 20;
+
+/**
+ * Histórico do grupo, da alteração mais recente para a mais antiga, em páginas
+ * acumuladas ("Carregar mais"). Só busca enquanto o modal está aberto.
+ */
+export function useHistoricoGrupoUsuario(grupoId: number, enabled: boolean) {
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage, error } =
+    useInfiniteQuery({
+      queryKey: QUERY_KEYS.gruposUsuarios.historico(grupoId),
+      queryFn: ({ pageParam }) =>
+        grupoUsuarioApi.historico(grupoId, { page: pageParam, size: TAMANHO_PAGINA_HISTORICO }),
+      initialPageParam: 0,
+      getNextPageParam: (ultima) => (ultima.last ? undefined : ultima.number + 1),
+      enabled,
+    });
+
+  return {
+    revisoes: data?.pages.flatMap((pagina) => pagina.content) ?? [],
+    loading: isLoading,
+    carregandoMais: isFetchingNextPage,
+    temMais: hasNextPage,
+    carregarMais: fetchNextPage,
+    error: error ? "Erro ao carregar o histórico do grupo." : null,
   };
 }
