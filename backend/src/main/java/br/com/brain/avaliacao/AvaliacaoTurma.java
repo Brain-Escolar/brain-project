@@ -1,5 +1,7 @@
 package br.com.brain.avaliacao;
 
+import br.com.brain.configuracaoAcademica.PeriodoLetivo;
+import org.hibernate.envers.RelationTargetAuditMode;
 import br.com.brain.evento.Evento;
 import br.com.brain.professor.Professor;
 import br.com.brain.turma.Turma;
@@ -49,6 +51,12 @@ public class AvaliacaoTurma extends EntidadeBase {
 
     @Column(name = "data_entrega_notas")
     private LocalDate dataEntregaNotas;
+
+    /** O bimestre (trimestre, ...) para o qual a avaliação conta. */
+    @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "periodo_letivo_id", referencedColumnName = "id")
+    private PeriodoLetivo periodoLetivo;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "evento_id", referencedColumnName = "id")

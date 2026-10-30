@@ -3,13 +3,18 @@ import { cssVarColor, cssVarFontSize, cssVarFontWeight, cssVarRadius } from "@/s
 import { BrainBoxShadow } from "@/utils/utilsCss";
 import styled from "styled-components";
 
+/**
+ * auto-fit em vez de três colunas fixas: o carnê tem quatro números que a
+ * família pergunta — quanto falta, quanto já pagou, quanto está atrasado e
+ * quanto a bolsa abateu — e nenhum deles pode cair fora da primeira tela.
+ */
 export const KpiGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-top: 22px;
 
-  @media (max-width: 900px) {
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 `;

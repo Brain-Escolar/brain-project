@@ -13,7 +13,6 @@ import {
   DialogTitle,
   FormControlLabel,
   IconButton,
-  MenuItem,
   Radio,
   RadioGroup,
   TextField,
@@ -44,6 +43,7 @@ import {
 } from "@/services/domains/aluno/response";
 import { MedicacaoRequest } from "@/services/domains/aluno/request";
 import * as S from "./styles";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 interface FichaMedicaAlunoProps {
   alunoId: string;
@@ -179,14 +179,14 @@ export default function FichaMedicaAluno({
         }
       >
         <S.CampoGrid>
-          <TextField select label="Tipo sanguíneo" {...campo("tipoSanguineo")}>
-            <MenuItem value="">Não informado</MenuItem>
-            {TIPOS_SANGUINEOS.map((opcao) => (
-              <MenuItem key={opcao.key} value={opcao.key}>
-                {opcao.label}
-              </MenuItem>
-            ))}
-          </TextField>
+          <BrainDropdownField
+            label="Tipo sanguíneo"
+            placeholder="Não informado"
+            value={dados.tipoSanguineo}
+            onChange={(v) => setDados((atual) => ({ ...atual, tipoSanguineo: v ?? "" }))}
+            disabled={!podeEditar}
+            options={TIPOS_SANGUINEOS.map((opcao) => ({ key: opcao.key, value: opcao.label }))}
+          />
           <TextField label="Necessidades especiais" {...campo("necessidadesEspeciais")} />
           <TextField label="Doenças respiratórias" {...campo("doencasRespiratorias")} />
           <TextField label="Alergias alimentares" {...campo("alergiasAlimentares")} />
@@ -283,10 +283,7 @@ export default function FichaMedicaAluno({
         onSalvar={(dadosMedicacao) => {
           const fechar = { onSuccess: () => setDialogMedicacao(false) };
           if (medicacaoEmEdicao) {
-            atualizarMedicacao.mutate(
-              { id: medicacaoEmEdicao.id, dados: dadosMedicacao },
-              fechar,
-            );
+            atualizarMedicacao.mutate({ id: medicacaoEmEdicao.id, dados: dadosMedicacao }, fechar);
           } else {
             anexarMedicacao.mutate(dadosMedicacao, fechar);
           }
@@ -441,20 +438,13 @@ function DialogLaudo({
             multiple={false}
             label="Clique para selecionar o laudo"
           />
-          <TextField
-            select
-            size="small"
-            fullWidth
+          <BrainDropdownField
             label="Tipo de laudo"
+            disableClearable
             value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
-          >
-            {TIPOS_LAUDO.map((opcao) => (
-              <MenuItem key={opcao.key} value={opcao.key}>
-                {opcao.label}
-              </MenuItem>
-            ))}
-          </TextField>
+            onChange={(v) => v && setTipo(v)}
+            options={TIPOS_LAUDO.map((opcao) => ({ key: opcao.key, value: opcao.label }))}
+          />
           <TextField
             size="small"
             fullWidth

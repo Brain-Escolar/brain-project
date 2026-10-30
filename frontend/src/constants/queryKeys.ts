@@ -49,6 +49,10 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.fichasMedicas.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.fichasMedicas.details(), id] as const,
   },
+  secretarios: {
+    all: ["secretarios"] as const,
+    lists: () => [...QUERY_KEYS.secretarios.all, "list"] as const,
+  },
   professores: {
     all: ["professores"] as const,
     lists: () => [...QUERY_KEYS.professores.all, "list"] as const,
@@ -224,6 +228,16 @@ export const QUERY_KEYS = {
     mensagens: (conversaId: number, page?: number) => [...["conversas"], "mensagens", conversaId, page] as const,
     destinatariosDisponiveis: () => [...["conversas"], "destinatarios-disponiveis"] as const,
   },
+  diretor: {
+    all: ["diretor"] as const,
+    inicio: () => [...QUERY_KEYS.diretor.all, "inicio"] as const,
+    filtrosAcompanhamento: () => [...QUERY_KEYS.diretor.all, "acompanhamento", "filtros"] as const,
+    acompanhamentoTurma: (turmaId?: number, filtros?: Record<string, unknown>) =>
+      [...QUERY_KEYS.diretor.all, "acompanhamento", turmaId, filtros] as const,
+    professores: () => [...QUERY_KEYS.diretor.all, "professores"] as const,
+    professor: (professorId?: number, semana?: string) =>
+      [...QUERY_KEYS.diretor.all, "professores", professorId, semana] as const,
+  },
   orientacao: {
     all: ["orientacao"] as const,
     inicio: () => [...QUERY_KEYS.orientacao.all, "inicio"] as const,
@@ -272,6 +286,10 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.responsavel.aluno(alunoId), "ficha-medica"] as const,
     financeiro: (alunoId: number) =>
       [...QUERY_KEYS.responsavel.aluno(alunoId), "financeiro"] as const,
+    // Fora do escopo de aluno de proposito: o carne e do responsavel, e quem
+    // tem dois filhos paga uma conta so.
+    carne: (anoLetivo?: number) =>
+      [...QUERY_KEYS.responsavel.all, "carne", anoLetivo ?? "todos"] as const,
     documentos: (alunoId: number) =>
       [...QUERY_KEYS.responsavel.aluno(alunoId), "documentos"] as const,
   },
@@ -299,11 +317,37 @@ export const QUERY_KEYS = {
     concessoes: (simulacaoId: number) =>
       [...QUERY_KEYS.bolsa.all, "concessoes", simulacaoId] as const,
   },
+  anosLetivos: {
+    all: ["anosLetivos"] as const,
+    lista: () => [...QUERY_KEYS.anosLetivos.all, "lista"] as const,
+    corrente: () => [...QUERY_KEYS.anosLetivos.all, "corrente"] as const,
+    previaEncerramento: (ano: number) =>
+      [...QUERY_KEYS.anosLetivos.all, "encerramento", ano] as const,
+  },
   simulacoes: {
     all: ["simulacoes"] as const,
     detail: (id: number) => [...QUERY_KEYS.simulacoes.all, "detail", id] as const,
     doProcesso: (processoMatriculaId: number) =>
       [...QUERY_KEYS.simulacoes.all, "processo", processoMatriculaId] as const,
     doAluno: (alunoId: number) => [...QUERY_KEYS.simulacoes.all, "aluno", alunoId] as const,
+  },
+  contratos: {
+    all: ["contratos"] as const,
+    detail: (id: number) => [...QUERY_KEYS.contratos.all, "detail", id] as const,
+    daMatricula: (matriculaId: number) =>
+      [...QUERY_KEYS.contratos.all, "matricula", matriculaId] as const,
+    doAluno: (alunoId: number, anoLetivo?: number) =>
+      [...QUERY_KEYS.contratos.all, "aluno", alunoId, anoLetivo ?? "todos"] as const,
+  },
+  financeiro: {
+    all: ["financeiro"] as const,
+    // O aging depende de unidade, ano e data de referencia: trocar a referencia
+    // reclassifica todas as faixas. Chave por objeto de filtro para o React Query
+    // refazer a conta quando qualquer um mudar.
+    inadimplencia: (filtro?: unknown) =>
+      [...QUERY_KEYS.financeiro.all, "inadimplencia", filtro ?? {}] as const,
+    caixa: (data?: string) => [...QUERY_KEYS.financeiro.all, "caixa", data ?? "hoje"] as const,
+    pagamentosDoTitulo: (tituloId: number) =>
+      [...QUERY_KEYS.financeiro.all, "pagamentos", tituloId] as const,
   },
 } as const;

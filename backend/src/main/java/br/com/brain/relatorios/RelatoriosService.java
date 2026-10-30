@@ -88,7 +88,7 @@ public class RelatoriosService {
 
         var disciplinas = disciplinaRepository.findBySerieIdOrderByNomeAsc(turma.getSerie().getId());
         var disciplinasDto = disciplinas.stream()
-                .map(disciplina -> montarDisciplina(aluno.getId(), disciplina, periodos, considerados, escala))
+                .map(disciplina -> montarDisciplina(aluno.getId(), turma.getAnoLetivo(), disciplina, periodos, considerados, escala))
                 .toList();
 
         var periodosDto = periodos.stream()
@@ -108,9 +108,10 @@ public class RelatoriosService {
                 disciplinasDto);
     }
 
-    private DisciplinaRelatorioDto montarDisciplina(Long alunoId, Disciplina disciplina,
+    private DisciplinaRelatorioDto montarDisciplina(Long alunoId, int anoLetivo, Disciplina disciplina,
             List<PeriodoLetivo> periodos, List<PeriodoLetivo> considerados, EscalaAvaliacao escala) {
-        var notas = notasRepository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(alunoId, disciplina.getId());
+        var notas = notasRepository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaIdAndAvaliacaoTurmaTurmaAnoLetivo(
+                alunoId, disciplina.getId(), anoLetivo);
 
         var regulares = notas.stream().filter(n -> tipo(n) != TipoAvaliacao.RECUPERACAO).toList();
         var recuperacoes = notas.stream().filter(n -> tipo(n) == TipoAvaliacao.RECUPERACAO).toList();

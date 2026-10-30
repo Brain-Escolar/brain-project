@@ -1,5 +1,6 @@
 package br.com.brain.aluno;
 
+import br.com.brain.matricula.EnturmacaoService;
 import br.com.brain.aluno.dto.AtualizacaoAlunoDto;
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.dadosPessoais.DadosPessoaisRepository;
@@ -48,13 +49,15 @@ class AlunoServiceTest {
     private UsuarioService usuarioService;
     @Mock
     private ResponsavelService responsavelService;
+    @Mock
+    private EnturmacaoService enturmacaoService;
 
     private AlunoService service;
 
     @BeforeEach
     void setUp() {
         service = new AlunoService(repository, dadosPessoaisRepository, enderecoService, usuarioService,
-                responsavelService);
+                responsavelService, enturmacaoService);
         lenient().when(repository.save(any(Aluno.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 

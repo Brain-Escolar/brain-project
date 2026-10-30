@@ -27,6 +27,11 @@ export interface AvaliacaoTurmaResponse {
   professor: string | null;
   dataAplicacao: string | null;
   dataEntregaNotas: string | null;
+  /** Período letivo em que a avaliação conta; deduzido da data de aplicação. */
+  periodoLetivoId: number | null;
+  periodo: string | null;
+  /** Período fechado: as notas não podem mais ser lançadas nem alteradas. */
+  periodoFechado: boolean;
   totalAlunos: number;
   alunosCorrigidos: number;
 }

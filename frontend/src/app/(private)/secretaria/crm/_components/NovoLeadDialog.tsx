@@ -12,8 +12,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  MenuItem,
-  Select,
   TextField,
   Typography,
 } from "@mui/material";
@@ -27,6 +25,7 @@ import { useDesmatriculados } from "@/hooks/useDesmatriculados";
 import { CadastroLeadCrmRequest, TipoProcessoCrm } from "@/services/domains/crm";
 import { AlunoListaResponse } from "@/services/domains/aluno/response";
 import { RoutesEnum } from "@/enums";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 interface NovoLeadDialogProps {
   open: boolean;
@@ -165,18 +164,13 @@ export default function NovoLeadDialog({ open, onClose }: NovoLeadDialogProps) {
               />
             </>
           )}
-          <Select<number | "">
-            displayEmpty
+          <BrainDropdownField<number>
+            size="medium"
+            label="Série pretendida"
             value={serieId}
-            onChange={(e) => setSerieId(e.target.value === "" ? "" : Number(e.target.value))}
-          >
-            <MenuItem value="">Série pretendida</MenuItem>
-            {series.map((s) => (
-              <MenuItem key={s.id} value={s.id}>
-                {s.nome}
-              </MenuItem>
-            ))}
-          </Select>
+            onChange={(v) => setSerieId(v ?? "")}
+            options={series.map((s) => ({ key: s.id, value: s.nome }))}
+          />
           <TextField
             label="Ciclo letivo"
             type="number"
@@ -193,30 +187,22 @@ export default function NovoLeadDialog({ open, onClose }: NovoLeadDialogProps) {
             value={responsavelTelefone}
             onChange={(e) => setResponsavelTelefone(e.target.value)}
           />
-          <Select<number | "">
-            displayEmpty
+          <BrainDropdownField<number>
+            size="medium"
+            label="Origem do lead"
+            required
             value={origemId}
-            onChange={(e) => setOrigemId(e.target.value === "" ? "" : Number(e.target.value))}
-          >
-            <MenuItem value="">Origem do lead *</MenuItem>
-            {origens.map((o) => (
-              <MenuItem key={o.id} value={o.id}>
-                {o.nome}
-              </MenuItem>
-            ))}
-          </Select>
-          <Select<number | "">
-            displayEmpty
+            onChange={(v) => setOrigemId(v ?? "")}
+            options={origens.map((o) => ({ key: o.id, value: o.nome }))}
+          />
+          <BrainDropdownField<number>
+            size="medium"
+            label="Responsável pelo lead"
+            placeholder="Distribuir pela fila"
             value={funcionarioId}
-            onChange={(e) => setFuncionarioId(e.target.value === "" ? "" : Number(e.target.value))}
-          >
-            <MenuItem value="">Distribuir pela fila</MenuItem>
-            {equipe.map((f) => (
-              <MenuItem key={f.funcionarioId} value={f.funcionarioId}>
-                {f.nome}
-              </MenuItem>
-            ))}
-          </Select>
+            onChange={(v) => setFuncionarioId(v ?? "")}
+            options={equipe.map((f) => ({ key: f.funcionarioId, value: f.nome }))}
+          />
         </Box>
 
         {!funcionarioId && (

@@ -24,7 +24,7 @@ export class PlanejamentoAnualAPI {
   }
 
   listar(): Promise<IBrainResult<ListagemPlanejamentoAnualResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   recuperarPorAno(ano: number): Promise<PlanejamentoAnualResponse> {

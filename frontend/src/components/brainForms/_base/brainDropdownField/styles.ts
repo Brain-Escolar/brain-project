@@ -1,5 +1,5 @@
 "use client";
-import { FormControl, Select, MenuItem } from "@mui/material";
+import { FormControl } from "@mui/material";
 import { cssVarColor } from "@/styles";
 import styled from "styled-components";
 
@@ -44,7 +44,7 @@ export const StyledFormControl = styled(FormControl)`
       }
     }
 
-    & .MuiSelect-select {
+    & .MuiInputBase-input {
       color: ${cssVarColor("text")};
     }
 
@@ -53,27 +53,6 @@ export const StyledFormControl = styled(FormControl)`
 
       &.Mui-error {
         color: #ef4444;
-      }
-    }
-  }
-`;
-
-export const StyledSelect = styled(Select)``;
-
-export const StyledMenuItem = styled(MenuItem)`
-  &&& {
-    color: ${cssVarColor("text")};
-    background: ${cssVarColor("backgroundSection")};
-
-    &:hover {
-      background: ${cssVarColor("backgroundHover")};
-    }
-
-    &.Mui-selected {
-      background: ${cssVarColor("backgroundHover")};
-
-      &:hover {
-        background: ${cssVarColor("backgroundHover")};
       }
     }
   }

@@ -223,12 +223,7 @@ function FichaMedicaPageContent({ params }: PageProps) {
               id="laudos-file-input"
             />
             <label htmlFor="laudos-file-input">
-              <Button
-                variant="outlined"
-                component="span"
-                startIcon={<AttachFile />}
-                sx={{ mb: 2 }}
-              >
+              <Button variant="outlined" component="span" startIcon={<AttachFile />} sx={{ mb: 2 }}>
                 Adicionar Arquivos
               </Button>
             </label>
@@ -286,10 +281,7 @@ function FichaMedicaPageContent({ params }: PageProps) {
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
           <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
-          <BrainButtonPrimary
-            type="submit"
-            disabled={isSubmitting || createFichaMedica.isPending}
-          >
+          <BrainButtonPrimary type="submit" disabled={isSubmitting || createFichaMedica.isPending}>
             {createFichaMedica.isPending ? "Salvando..." : "Salvar"}
           </BrainButtonPrimary>
         </Box>

@@ -18,7 +18,7 @@ const BASE_ROUTE = "turma";
 
 export class TurmaApi {
   getListaTurmas(): Promise<TurmaResponse[]> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   criarTurma(request: TurmaPostRequest): Promise<IBrainResult<void>> {

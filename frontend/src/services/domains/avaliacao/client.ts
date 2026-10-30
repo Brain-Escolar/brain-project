@@ -25,7 +25,7 @@ export class AvaliacaoApi {
   }
 
   getListaAvaliacoesProfessor(): Promise<IBrainResult<AvaliacaoListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}/professor`);
+    return httpClient.get(`${BASE_ROUTE}/professor`, { params: { size: 500 } });
   }
 
   getAvaliacaoById(id: string): Promise<AvaliacaoDetalheResponse> {

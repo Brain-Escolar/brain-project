@@ -238,7 +238,7 @@ export default function SectionAulasAluno() {
           />
         </CardClassPanel>
       ) : (
-        <CardClassPanel>
+        <CardClassPanel $divided>
           {aulas.map((aula, index) => (
             <CardClass
               key={aula.id}

@@ -12,12 +12,8 @@ import {
   DialogContentText,
   DialogTitle,
   Divider,
-  FormControl,
   IconButton,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   Table,
   TableBody,
@@ -37,6 +33,7 @@ import { TIPOS_ANOTACAO, TipoAnotacao } from "@/services/domains/anotacao";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { RoutesEnum } from "@/enums/RoutesEnum";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 interface RegistrosDisciplinaresProps {
   aulaId: string;
@@ -170,7 +167,11 @@ function RegistrosDisciplinares({ aulaId, data }: RegistrosDisciplinaresProps) {
                       component={Link}
                       href={`${RoutesEnum.ALUNO_DETALHE}/${aluno.id}`}
                       onClick={(e) => e.stopPropagation()}
-                      sx={{ color: "primary.main", textDecoration: "none", "&:hover": { textDecoration: "underline" } }}
+                      sx={{
+                        color: "primary.main",
+                        textDecoration: "none",
+                        "&:hover": { textDecoration: "underline" },
+                      }}
                     >
                       {aluno.nome}
                     </Typography>
@@ -184,20 +185,13 @@ function RegistrosDisciplinares({ aulaId, data }: RegistrosDisciplinaresProps) {
 
       {/* Tipo e observação */}
       <Stack spacing={2} sx={{ mb: 2 }}>
-        <FormControl size="small" fullWidth>
-          <InputLabel>Tipo de anotação</InputLabel>
-          <Select
-            value={tipoAnotacao}
-            label="Tipo de anotação"
-            onChange={(e) => setTipoAnotacao(e.target.value as TipoAnotacao)}
-          >
-            {TIPOS_ANOTACAO.map((tipo) => (
-              <MenuItem key={tipo.value} value={tipo.value}>
-                {tipo.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <BrainDropdownField<TipoAnotacao>
+          label="Tipo de anotação"
+          disableClearable
+          value={tipoAnotacao}
+          onChange={(v) => v && setTipoAnotacao(v)}
+          options={TIPOS_ANOTACAO.map((tipo) => ({ key: tipo.value, value: tipo.label }))}
+        />
 
         <TextField
           label="Observação (opcional)"
@@ -245,7 +239,12 @@ function RegistrosDisciplinares({ aulaId, data }: RegistrosDisciplinaresProps) {
           {anotacoes.map((anotacao) => (
             <Paper key={anotacao.anotacaoId} variant="outlined" sx={{ p: 2 }}>
               <Box
-                sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: anotacao.observacao ? 1 : 0 }}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  mb: anotacao.observacao ? 1 : 0,
+                }}
               >
                 <Typography variant="body2" fontWeight={600}>
                   {anotacao.nomeAluno}
@@ -281,7 +280,8 @@ function RegistrosDisciplinares({ aulaId, data }: RegistrosDisciplinaresProps) {
         <DialogTitle>Remover registro</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Tem certeza que deseja remover este registro disciplinar? Esta ação não pode ser desfeita.
+            Tem certeza que deseja remover este registro disciplinar? Esta ação não pode ser
+            desfeita.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

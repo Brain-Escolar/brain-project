@@ -33,10 +33,20 @@ import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import CorporateFareOutlinedIcon from "@mui/icons-material/CorporateFareOutlined";
+import EventRepeatOutlinedIcon from "@mui/icons-material/EventRepeatOutlined";
+import DateRangeOutlinedIcon from "@mui/icons-material/DateRangeOutlined";
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import BlockIcon from "@mui/icons-material/Block";
 import * as React from "react";
-import { UserRoleEnum, RoutesEnum, RouteLabelsEnum, RoutesModuleEnum } from "@/enums";
+import {
+  UserRoleEnum,
+  RoutesEnum,
+  RouteLabelsEnum,
+  RoutesModuleEnum,
+  RoutesSectionEnum,
+} from "@/enums";
 import type { TelaCodigo } from "@/constants/permissoes";
 
 export interface RouteConfig {
@@ -46,7 +56,11 @@ export interface RouteConfig {
   isShowMenu: boolean;
   roles: UserRoleEnum[];
   moduleMenu?: RoutesModuleEnum | null;
+  /** Setor (aba) dentro do módulo; módulos com setores abrem em abas. */
+  section?: RoutesSectionEnum;
   showBadge?: boolean;
+  /** Linha de apoio exibida sob o nome no menu do módulo. */
+  caption?: string;
   /**
    * Rota que não está no catálogo de permissões: vale para todo mundo que tem o
    * perfil (início, perfil próprio, tela de grupos, sem acesso e as entradas
@@ -68,9 +82,49 @@ export const MODULE_CONFIG: Record<RoutesModuleEnum, { text: string; icon: React
     text: "Cadastros",
     icon: <FolderIcon fontSize="small" />,
   },
+  [RoutesModuleEnum.GESTAO_ESCOLAR]: {
+    text: "Gestão Escolar",
+    icon: <CorporateFareOutlinedIcon fontSize="small" />,
+  },
+  [RoutesModuleEnum.ROTINAS_ACADEMICAS]: {
+    text: "Rotinas Acadêmicas",
+    icon: <EventRepeatOutlinedIcon fontSize="small" />,
+  },
+  [RoutesModuleEnum.RELATORIOS]: {
+    text: "Relatórios",
+    icon: <SummarizeOutlinedIcon fontSize="small" />,
+  },
 };
 
-const ROTAS: RouteConfig[] = [
+export interface MenuSection {
+  id: RoutesSectionEnum;
+  text: string;
+  icon: React.JSX.Element;
+  routes: RouteConfig[];
+}
+
+/** A ordem das chaves define a ordem das abas no menu. */
+export const SECTION_CONFIG: Record<RoutesSectionEnum, { text: string; icon: React.JSX.Element }> =
+  {
+    [RoutesSectionEnum.PESSOAS]: {
+      text: "Pessoas",
+      icon: <GroupsIcon fontSize="small" />,
+    },
+    [RoutesSectionEnum.ESTRUTURA_ESCOLAR]: {
+      text: "Estrutura Escolar",
+      icon: <CorporateFareOutlinedIcon fontSize="small" />,
+    },
+    [RoutesSectionEnum.CURRICULO]: {
+      text: "Currículo",
+      icon: <MenuBookOutlinedIcon fontSize="small" />,
+    },
+    [RoutesSectionEnum.PEDAGOGICO]: {
+      text: "Pedagógico",
+      icon: <AssignmentIcon fontSize="small" />,
+    },
+  };
+
+export const ROUTES: RouteConfig[] = [
   {
     text: RouteLabelsEnum.HOME_DASHBOARD,
     icon: <DashboardIcon fontSize="small" />,
@@ -103,36 +157,54 @@ const ROTAS: RouteConfig[] = [
     roles: [UserRoleEnum.ADMIN],
     livre: true,
   },
-  // ========== CADASTROS - APENAS ADMIN ==========
+  // ========== CADASTROS - ADMIN E DIRETOR ==========
   {
     text: RouteLabelsEnum.PROFESSORES,
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.PROFESSOR_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PESSOAS,
   },
   {
     text: RouteLabelsEnum.PROFESSOR,
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.PROFESSOR_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
+  },
+  {
+    text: RouteLabelsEnum.SECRETARIOS,
+    icon: <PersonIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIO_LISTA,
+    isShowMenu: true,
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
+    moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PESSOAS,
+  },
+  {
+    text: RouteLabelsEnum.SECRETARIO,
+    icon: <PersonIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIO_CADASTRO,
+    isShowMenu: false,
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.ALUNOS,
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PESSOAS,
   },
   {
     text: RouteLabelsEnum.ALUNO,
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR, UserRoleEnum.SECRETARIO],
   },
   {
     text: RouteLabelsEnum.ALUNO,
@@ -141,6 +213,7 @@ const ROTAS: RouteConfig[] = [
     isShowMenu: false,
     roles: [
       UserRoleEnum.ADMIN,
+      UserRoleEnum.DIRETOR,
       UserRoleEnum.PROFESSOR,
       UserRoleEnum.SECRETARIO,
       UserRoleEnum.ORIENTADOR,
@@ -151,89 +224,94 @@ const ROTAS: RouteConfig[] = [
     icon: <GroupIcon fontSize="small" />,
     router: RoutesEnum.TURMA_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.ESTRUTURA_ESCOLAR,
   },
   {
     text: RouteLabelsEnum.TURMA,
     icon: <GroupIcon fontSize="small" />,
     router: RoutesEnum.TURMA_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.TURMA_VINCULAR_ALUNOS,
     icon: <GroupIcon fontSize="small" />,
     router: RoutesEnum.TURMA_VINCULAR_ALUNOS,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.TURMA_DEFINIR_HORARIOS,
     icon: <ScheduleIcon fontSize="small" />,
     router: RoutesEnum.TURMA_DEFINIR_HORARIOS,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.GRADES_CURRICULARES,
     icon: <MenuBookIcon fontSize="small" />,
     router: RoutesEnum.GRADE_CURRICULAR_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.CURRICULO,
   },
   {
     text: RouteLabelsEnum.GRADE_CURRICULAR,
     icon: <MenuBookIcon fontSize="small" />,
     router: RoutesEnum.GRADE_CURRICULAR_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.GRUPOS_DISCIPLINA,
     icon: <CategoryIcon fontSize="small" />,
     router: RoutesEnum.GRUPO_DISCIPLINA_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.CURRICULO,
   },
   {
     text: RouteLabelsEnum.GRUPO_DISCIPLINA,
     icon: <CategoryIcon fontSize="small" />,
     router: RoutesEnum.GRUPO_DISCIPLINA_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.DISCIPLINAS,
     icon: <MenuBookIcon fontSize="small" />,
     router: RoutesEnum.DISCIPLINA_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.CURRICULO,
   },
   {
     text: RouteLabelsEnum.DISCIPLINA,
     icon: <MenuBookIcon fontSize="small" />,
     router: RoutesEnum.DISCIPLINA_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.SERIES,
     icon: <SchoolIcon fontSize="small" />,
     router: RoutesEnum.SERIE_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.ESTRUTURA_ESCOLAR,
   },
   {
     text: RouteLabelsEnum.SERIE,
     icon: <SchoolIcon fontSize="small" />,
     router: RoutesEnum.SERIE_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.AULAS,
@@ -241,103 +319,114 @@ const ROTAS: RouteConfig[] = [
     router: RoutesEnum.AULA_LISTA,
     isShowMenu: true,
     moduleMenu: RoutesModuleEnum.CADASTROS,
-    roles: [UserRoleEnum.ADMIN],
+    section: RoutesSectionEnum.PEDAGOGICO,
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.AULAS,
     icon: <ClassIcon fontSize="small" />,
     router: RoutesEnum.AULAS_DETALHE,
     isShowMenu: false,
-    roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.AULA,
     icon: <ClassIcon fontSize="small" />,
     router: RoutesEnum.AULA_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.PROFESSOR, UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.HORARIOS,
     icon: <ScheduleIcon fontSize="small" />,
     router: RoutesEnum.HORARIO_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.ESTRUTURA_ESCOLAR,
   },
   {
     text: RouteLabelsEnum.HORARIO,
     icon: <ScheduleIcon fontSize="small" />,
     router: RoutesEnum.HORARIO_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.NOTAS,
     icon: <GradeIcon fontSize="small" />,
     router: RoutesEnum.NOTA_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PEDAGOGICO,
   },
   {
     text: RouteLabelsEnum.NOTA,
     icon: <GradeIcon fontSize="small" />,
     router: RoutesEnum.NOTA_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.TAREFA_LISTA,
     icon: <AssignmentIcon fontSize="small" />,
     router: RoutesEnum.TAREFA_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PEDAGOGICO,
   },
   {
     text: RouteLabelsEnum.TAREFA,
     icon: <AssignmentIcon fontSize="small" />,
     router: RoutesEnum.TAREFA_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.ALERTA_LISTA,
     icon: <AnnouncementIcon fontSize="small" />,
     router: RoutesEnum.ALERTA_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PEDAGOGICO,
   },
   {
     text: RouteLabelsEnum.ALERTA,
     icon: <AnnouncementIcon fontSize="small" />,
     router: RoutesEnum.ALERTA_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   {
     text: RouteLabelsEnum.COMUNICADO_CADASTRO,
     icon: <CampaignIcon fontSize="small" />,
     router: RoutesEnum.COMUNICADOS_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO, UserRoleEnum.ORIENTADOR],
+    roles: [
+      UserRoleEnum.ADMIN,
+      UserRoleEnum.DIRETOR,
+      UserRoleEnum.SECRETARIO,
+      UserRoleEnum.ORIENTADOR,
+    ],
   },
   {
     text: RouteLabelsEnum.FICHA_MEDICA_LISTA,
     icon: <LocalHospitalIcon fontSize="small" />,
     router: RoutesEnum.FICHA_MEDICA_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.PESSOAS,
   },
   {
     text: RouteLabelsEnum.FICHA_MEDICA,
     icon: <LocalHospitalIcon fontSize="small" />,
     router: RoutesEnum.FICHA_MEDICA_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     livre: true,
   },
   {
@@ -345,15 +434,16 @@ const ROTAS: RouteConfig[] = [
     icon: <AssignmentIcon fontSize="small" />,
     router: RoutesEnum.PLANEJAMENTO_ANUAL_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.CURRICULO,
   },
   {
     text: RouteLabelsEnum.PLANEJAMENTO_ANUAL,
     icon: <AssignmentIcon fontSize="small" />,
     router: RoutesEnum.PLANEJAMENTO_ANUAL_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
   },
   // ========== COMUNICAÇÃO ==========
   {
@@ -573,12 +663,12 @@ const ROTAS: RouteConfig[] = [
     livre: true,
   },
   {
-    // Fora do catálogo: o acesso é por perfil (ADMIN e, pela herança abaixo, DIRETOR).
+    // Fora do catálogo: o acesso é por perfil. ADMIN e DIRETOR gerenciam os grupos (D3).
     text: RouteLabelsEnum.GRUPOS_USUARIOS,
     icon: <ManageAccountsIcon fontSize="small" />,
     router: RoutesEnum.GRUPOS_USUARIOS,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     livre: true,
   },
   {
@@ -608,7 +698,7 @@ const ROTAS: RouteConfig[] = [
     icon: <ClassIcon fontSize="small" />,
     router: RoutesEnum.UNIDADE_CADASTRO,
     isShowMenu: false,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
   },
   {
@@ -616,8 +706,9 @@ const ROTAS: RouteConfig[] = [
     icon: <ClassIcon fontSize="small" />,
     router: RoutesEnum.UNIDADE_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
     moduleMenu: RoutesModuleEnum.CADASTROS,
+    section: RoutesSectionEnum.ESTRUTURA_ESCOLAR,
   },
 
   {
@@ -629,10 +720,82 @@ const ROTAS: RouteConfig[] = [
       UserRoleEnum.ESTUDANTE,
       UserRoleEnum.PROFESSOR,
       UserRoleEnum.ADMIN,
+      UserRoleEnum.DIRETOR,
       UserRoleEnum.SECRETARIO,
       UserRoleEnum.ORIENTADOR,
     ],
     livre: true,
+  },
+  // ========== DIREÇÃO ==========
+  // Área própria do DIRETOR, organizada em módulos (menus suspensos) como no
+  // design da Direção. Os módulos sem tela ainda (Alunos, Avaliações de
+  // Resultados) entram quando as telas existirem. O módulo
+  // Cadastros (inclusive Secretários) é o mesmo do ADMIN, declarado acima.
+  {
+    text: RouteLabelsEnum.INICIO,
+    icon: <HomeIcon fontSize="small" />,
+    router: RoutesEnum.HOME,
+    isShowMenu: true,
+    roles: [UserRoleEnum.DIRETOR],
+    livre: true,
+  },
+  {
+    text: RouteLabelsEnum.CALENDARIO_ACADEMICO,
+    icon: <CalendarTodayOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.CALENDARIO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.DIRETOR],
+    moduleMenu: RoutesModuleEnum.ROTINAS_ACADEMICAS,
+    caption: "Eventos, provas e feriados",
+  },
+  {
+    text: RouteLabelsEnum.PROFESSORES,
+    icon: <MenuBookOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.GESTAO_PROFESSORES,
+    isShowMenu: true,
+    roles: [UserRoleEnum.DIRETOR],
+    moduleMenu: RoutesModuleEnum.GESTAO_ESCOLAR,
+    caption: "Diário, notas e anotações",
+  },
+  {
+    text: RouteLabelsEnum.ANO_LETIVO,
+    icon: <DateRangeOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.GESTAO_ANO_LETIVO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.DIRETOR],
+    moduleMenu: RoutesModuleEnum.GESTAO_ESCOLAR,
+    caption: "Calendário, bimestres e virada de ano",
+  },
+  {
+    text: RouteLabelsEnum.ACOMPANHAMENTO_PROFESSOR,
+    icon: <MenuBookOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.GESTAO_PROFESSOR_DETALHE,
+    isShowMenu: false,
+    roles: [UserRoleEnum.DIRETOR],
+  },
+  {
+    text: RouteLabelsEnum.ACOMPANHAMENTO_TURMA,
+    icon: <GroupsOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.RELATORIO_ACOMPANHAMENTO_TURMA,
+    isShowMenu: true,
+    roles: [UserRoleEnum.DIRETOR],
+    moduleMenu: RoutesModuleEnum.RELATORIOS,
+    caption: "Notas, faltas, atrasos e comportamento",
+  },
+  {
+    text: RouteLabelsEnum.COMUNICADOS,
+    icon: <CampaignOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICADOS,
+    isShowMenu: true,
+    roles: [UserRoleEnum.DIRETOR],
+  },
+  {
+    text: RouteLabelsEnum.COMUNICACAO,
+    icon: <ChatBubbleOutlineOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.COMUNICACAO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.DIRETOR],
+    showBadge: true,
   },
   // ========== SECRETARIA ==========
   {
@@ -646,6 +809,13 @@ const ROTAS: RouteConfig[] = [
     text: RouteLabelsEnum.SECRETARIA_CRM,
     icon: <FilterAltIcon fontSize="small" />,
     router: RoutesEnum.SECRETARIA_CRM,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
+    text: RouteLabelsEnum.SECRETARIA_FINANCEIRO,
+    icon: <RequestQuoteOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_FINANCEIRO,
     isShowMenu: true,
     roles: [UserRoleEnum.SECRETARIO],
   },
@@ -732,18 +902,6 @@ const ROTAS: RouteConfig[] = [
   },
 ];
 
-/**
- * O DIRETOR usa as telas do ADMIN até ganhar área própria (docs/permissoes.md,
- * D8): toda entrada do ADMIN vale também para ele. A herança é só de rota; as
- * permissões do diretor vêm dos grupos, como as de qualquer perfil que não seja
- * o ADMIN.
- */
-export const ROUTES: RouteConfig[] = ROTAS.map((rota) =>
-  rota.roles.includes(UserRoleEnum.ADMIN) && !rota.roles.includes(UserRoleEnum.DIRETOR)
-    ? { ...rota, roles: [...rota.roles, UserRoleEnum.DIRETOR] }
-    : rota,
-);
-
 /** Filtro das funções de menu: hoje, rota livre ou tela liberada (usePermissoes.podeVerRota). */
 export type FiltroDeRota = (rota: RouteConfig) => boolean;
 const TODAS: FiltroDeRota = () => true;
@@ -797,7 +955,6 @@ export function codigoDaTela(rota: RouteConfig): TelaCodigo | undefined {
 export function rotaInicialDoPerfil(perfil: UserRoleEnum): RoutesEnum {
   switch (perfil) {
     case UserRoleEnum.ADMIN:
-    case UserRoleEnum.DIRETOR:
       return RoutesEnum.HOME_ADMIN;
     case UserRoleEnum.SECRETARIO:
       return RoutesEnum.SECRETARIA_MATRICULAS;
@@ -881,6 +1038,27 @@ export function getRoutesByModule(
   return ROUTES.filter(
     (route) => route.isShowMenu && route.moduleMenu === moduleId && daVez(route, role, pode),
   );
+}
+
+/**
+ * Agrupa as rotas do módulo por setor, na ordem de SECTION_CONFIG. Retorna
+ * vazio quando o módulo não usa setores (o menu então é uma lista simples).
+ */
+export function getSectionsByModule(
+  role: PerfilOuPerfis,
+  moduleId: RoutesModuleEnum,
+  pode: FiltroDeRota = TODAS,
+): MenuSection[] {
+  const routes = getRoutesByModule(role, moduleId, pode);
+  if (!routes.some((route) => route.section)) return [];
+
+  return (Object.keys(SECTION_CONFIG) as RoutesSectionEnum[])
+    .map((id) => ({
+      id,
+      ...SECTION_CONFIG[id],
+      routes: routes.filter((route) => route.section === id),
+    }))
+    .filter((section) => section.routes.length > 0);
 }
 
 /**

@@ -7,6 +7,7 @@ import DashProfessorPage from "./dashProfessor/dashProfessor";
 import DashAlunoPage from "./dashAluno/dashAluno";
 import DashOrientadorPage from "./dashOrientador/dashOrientador";
 import DashResponsavelPage from "./dashResponsavel/dashResponsavel";
+import DashDiretorPage from "./dashDiretor/dashDiretor";
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
@@ -39,6 +40,10 @@ export default function Dashboard() {
 
   if (perfilAtivo === UserRoleEnum.ORIENTADOR) {
     return <DashOrientadorPage />;
+  }
+
+  if (perfilAtivo === UserRoleEnum.DIRETOR) {
+    return <DashDiretorPage />;
   }
 
   if (perfilAtivo === UserRoleEnum.RESPONSAVEL) {

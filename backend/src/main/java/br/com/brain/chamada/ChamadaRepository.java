@@ -1,8 +1,12 @@
 package br.com.brain.chamada;
 
+import br.com.brain.diretor.projecao.RegistroChamada;
+import java.util.Collection;
 import java.time.LocalDate;
 import java.util.List;
 
+import br.com.brain.diretor.projecao.FrequenciaAgregada;
+import br.com.brain.diretor.projecao.FrequenciaMensal;
 import br.com.brain.turma.Turma;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,11 +15,21 @@ import org.springframework.data.repository.query.Param;
 public interface ChamadaRepository extends JpaRepository<Chamada, Long> {
     List<Chamada> findAllByAulaIdAndDataOrderByAlunoDadosPessoaisNomeAsc(Long aulaId, LocalDate data);
 
-    @Query("SELECT COUNT(c) FROM Chamada c WHERE c.aluno.id = :alunoId AND c.aula.disciplina.id = :disciplinaId AND c.presente = false")
-    Integer countFaltasByAlunoAndDisciplina(@Param("alunoId") Long alunoId, @Param("disciplinaId") Long disciplinaId);
+    /*
+     * Faltas e aulas do aluno na disciplina, dentro de um ano letivo. A
+     * disciplina e da serie, entao aluno que repete o ano refaz a mesma
+     * disciplina: sem o ano, as faltas dos dois anos somariam.
+     */
 
-    @Query("SELECT COUNT(c) FROM Chamada c WHERE c.aluno.id = :alunoId AND c.aula.disciplina.id = :disciplinaId")
-    Integer countTotalByAlunoAndDisciplina(@Param("alunoId") Long alunoId, @Param("disciplinaId") Long disciplinaId);
+    @Query("SELECT COUNT(c) FROM Chamada c WHERE c.aluno.id = :alunoId AND c.aula.disciplina.id = :disciplinaId "
+            + "AND c.aula.turma.anoLetivo = :anoLetivo AND c.presente = false")
+    Integer countFaltasByAlunoAndDisciplinaNoAno(@Param("alunoId") Long alunoId,
+            @Param("disciplinaId") Long disciplinaId, @Param("anoLetivo") int anoLetivo);
+
+    @Query("SELECT COUNT(c) FROM Chamada c WHERE c.aluno.id = :alunoId AND c.aula.disciplina.id = :disciplinaId "
+            + "AND c.aula.turma.anoLetivo = :anoLetivo")
+    Integer countTotalByAlunoAndDisciplinaNoAno(@Param("alunoId") Long alunoId,
+            @Param("disciplinaId") Long disciplinaId, @Param("anoLetivo") int anoLetivo);
 
     @Query("SELECT COUNT(c) FROM Chamada c WHERE c.aluno.id = :alunoId AND c.aula.disciplina.id = :disciplinaId "
             + "AND c.presente = false AND c.data BETWEEN :inicio AND :fim")
@@ -30,4 +44,40 @@ public interface ChamadaRepository extends JpaRepository<Chamada, Long> {
     /** Turmas em que o aluno já teve chamada registrada. */
     @Query("SELECT DISTINCT c.aula.turma FROM Chamada c WHERE c.aluno.id = :alunoId")
     List<Turma> findTurmasComChamadaDoAluno(@Param("alunoId") Long alunoId);
+
+    /** Aulas e faltas de cada aluno, por disciplina, nas chamadas da turma dentro do intervalo. */
+    @Query("""
+            SELECT new br.com.brain.diretor.projecao.FrequenciaAgregada(
+                c.aluno.id, c.aula.disciplina.id, COUNT(c),
+                SUM(CASE WHEN c.presente = false THEN 1 ELSE 0 END))
+            FROM Chamada c
+            WHERE c.aula.turma.id = :turmaId AND c.data BETWEEN :inicio AND :fim
+            GROUP BY c.aluno.id, c.aula.disciplina.id
+            """)
+    List<FrequenciaAgregada> agregarPorAlunoEDisciplina(@Param("turmaId") Long turmaId,
+            @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /** Chamadas e presenças da escola inteira, mês a mês, dentro do intervalo. */
+    @Query("""
+            SELECT new br.com.brain.diretor.projecao.FrequenciaMensal(
+                EXTRACT(YEAR FROM c.data), EXTRACT(MONTH FROM c.data), COUNT(c),
+                SUM(CASE WHEN c.presente = true THEN 1 ELSE 0 END))
+            FROM Chamada c
+            WHERE c.data BETWEEN :inicio AND :fim
+            GROUP BY EXTRACT(YEAR FROM c.data), EXTRACT(MONTH FROM c.data)
+            ORDER BY EXTRACT(YEAR FROM c.data), EXTRACT(MONTH FROM c.data)
+            """)
+    List<FrequenciaMensal> frequenciaMensal(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    /** Chamadas lançadas para as aulas no intervalo, uma linha por aula e dia. */
+    @Query("""
+            SELECT new br.com.brain.diretor.projecao.RegistroChamada(
+                c.aula.id, c.data, COUNT(c),
+                SUM(CASE WHEN c.presente = false THEN 1 ELSE 0 END), MAX(c.criadoEm))
+            FROM Chamada c
+            WHERE c.aula.id IN :aulaIds AND c.data BETWEEN :inicio AND :fim
+            GROUP BY c.aula.id, c.data
+            """)
+    List<RegistroChamada> registrosDasAulas(@Param("aulaIds") Collection<Long> aulaIds,
+            @Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 }

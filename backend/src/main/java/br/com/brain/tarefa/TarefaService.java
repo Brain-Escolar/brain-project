@@ -1,5 +1,6 @@
 package br.com.brain.tarefa;
 
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.arquivo.Arquivo;
 import br.com.brain.arquivo.ArquivoRepository;
 import br.com.brain.aula.Aula;
@@ -41,6 +42,7 @@ public class TarefaService {
 
     private final TarefaRepository repository;
     private final AulaRepository aulaRepository;
+    private final AnoLetivoService anoLetivoService;
     private final ConteudoRepository conteudoRepository;
     private final ArquivoRepository arquivoRepository;
     private final S3Service s3Service;
@@ -100,8 +102,8 @@ public class TarefaService {
                     .com("Informe a tarefa de casa quando 'Tarefa de casa' estiver ativada.");
         }
 
-        var aulas = aulaRepository.findByProfessorIdAndDisciplinaIdAndSerieId(
-                professor.getId(), dados.disciplinaId(), dados.serieId());
+        var aulas = aulaRepository.findByProfessorIdAndDisciplinaIdAndSerieIdNoAno(
+                professor.getId(), dados.disciplinaId(), dados.serieId(), anoLetivoService.anoCorrente());
 
         Map<Long, List<Aula>> aulasPorTurma = aulas.stream()
                 .collect(Collectors.groupingBy(a -> a.getTurma().getId()));

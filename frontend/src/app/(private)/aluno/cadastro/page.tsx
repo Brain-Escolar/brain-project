@@ -86,7 +86,8 @@ const OPTIONS_UF: KeyValue[] = [
 const OPTIONS_GENDER: KeyValue[] = [
   { key: "masculino", value: "Masculino" },
   { key: "feminino", value: "Feminino" },
-  { key: "outro", value: "Outro" },
+  { key: "outro", value: "Outros" },
+  { key: "prefiro_nao_informar", value: "Não informar" },
 ];
 
 const OPTIONS_COR_RACA: KeyValue[] = [
@@ -889,12 +890,7 @@ function AlunoPageContent() {
                         gap: 2,
                       }}
                     >
-                      <BrainTextCPFControlled
-                        name="cpf"
-                        control={control}
-                        label="CPF"
-                        required
-                      />
+                      <BrainTextCPFControlled name="cpf" control={control} label="CPF" required />
                       <BrainTextRGControlled name="rg" control={control} label="RG" required />
                     </Box>
                     <BrainTextFieldControlled
@@ -958,12 +954,7 @@ function AlunoPageContent() {
                 <SectionCard icon={<LocationOnIcon />} title="Endereço">
                   <Stack spacing={2}>
                     <Box sx={{ maxWidth: { md: "50%" }, position: "relative" }}>
-                      <BrainTextCEPControlled
-                        name="cep"
-                        control={control}
-                        label="CEP"
-                        required
-                      />
+                      <BrainTextCEPControlled name="cep" control={control} label="CEP" required />
                       {buscandoCep && (
                         <Box sx={{ position: "absolute", right: 10, top: "50%" }}>
                           <CircularProgress size={18} />

@@ -2,7 +2,7 @@
 
 > **Para quem implementa:** esta spec define o modelo de dados, a migration inicial, o cálculo da permissão efetiva e como backend e frontend passam a consultá-la. É a fonte da verdade para a migration e para as regras. As decisões de produto foram tomadas em 02/10/2026 e revistas em 05/10/2026, depois que o DIRETOR passou a usar as telas do ADMIN (commit `f2c7c91`) (seção 2).
 >
-> **Estado (08/10/2026):** na branch `feature/permissoes-grupos`, as permissões valem no frontend: o menu, a guarda de rota e os botões e seções das telas leem `GET /permissoes/me`. O vínculo automático ao grupo padrão no cadastro também já funciona. Ainda falta o backend recusar o que o grupo não libera, na fase F3 (seção 11). A tela de grupos (`/grupos-usuarios`) está pronta desde 06/10, e os acessos individuais (seção 4.1, migration V112) desde 15/10. O acesso individual pode liberar qualquer tela do sistema, e as áreas do backend que já eram restritas por perfil passaram a aceitar também quem tem a tela liberada (D22–D26). A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15.
+> **Estado (08/10/2026):** na branch `feature/permissoes-grupos`, as permissões valem no frontend: o menu, a guarda de rota e os botões e seções das telas leem `GET /permissoes/me`. O vínculo automático ao grupo padrão no cadastro também já funciona. Ainda falta o backend recusar o que o grupo não libera, na fase F3 (seção 11). A tela de grupos (`/grupos-usuarios`) está pronta desde 06/10, e os acessos individuais (seção 4.1, migration V118) desde 15/10. O acesso individual pode liberar qualquer tela do sistema, e as áreas do backend que já eram restritas por perfil passaram a aceitar também quem tem a tela liberada (D22–D26). A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15.
 
 ---
 
@@ -31,13 +31,13 @@ Na implantação, cada perfil ganha um grupo padrão com tudo o que já acessa h
 | D8 (05/10) | O DIRETOR passa por grupos, com teto igual ao que o ADMIN abre hoje e um grupo padrão com tudo isso. | No dia 1, o diretor vê o mesmo que vê desde `f2c7c91`, mas a escola pode restringir. No front, o apelido DIRETOR→ADMIN do `parseRoles` vira um perfil DIRETOR de verdade (seção 9.6). |
 | D9 (05/10) | Superusuário é o teto inteiro do perfil, e não "tudo". | O ADMIN recebe, sem grupo, o teto do perfil ADMIN. Situação familiar e atendimento psicológico ficam fora, porque hoje são exclusivos da orientação. |
 | D10 (06/10) | A tela de grupos entra antes de as permissões valerem, visível para ADMIN e diretor, com um aviso fixo de que os acessos ainda não estão em vigor. Fica em `/grupos-usuarios`, no menu do ADMIN. | Seção 11. |
-| D11 (06/10) | O vínculo automático ao grupo padrão no cadastro fica para depois. **Substituída pela D16.** | Quem foi cadastrado entre a V111 e a D16 ficou sem grupo (D15). |
+| D11 (06/10) | O vínculo automático ao grupo padrão no cadastro fica para depois. **Substituída pela D16.** | Quem foi cadastrado entre a V117 e a D16 ficou sem grupo (D15). |
 | D12 (07/10) | Na aba Acessos, as telas aparecem numa lista única em ordem alfabética, sem separar menu de páginas internas e sem agrupar por área. Cada linha mostra nome e rota e se expande para mostrar as ações. | `exibir_menu` deixa de ser usado pela tela de grupos; o catálogo vem ordenado por nome. Seção 9.5. |
 | D13 (08/10) | O frontend busca as permissões numa chamada só, `GET /permissoes/me`, ao entrar e a cada carga da página (F5). A resposta traz telas e controles de todos os perfis da pessoa. O check de controle numa tela lê esse cache e não chama a API. | Seção 9.1. Não há endpoint por tela nem por controle. |
 | D14 (08/10) | O DIRETOR vira um perfil de verdade no frontend e herda as rotas do ADMIN. | Seção 9.6. |
 | D15 (08/10) | Não haverá migration para pôr nos grupos quem ficou de fora. Quem ficou sem grupo num perfil é vinculado à mão, pela tela de grupos; até lá, não abre as telas desse perfil. | Seção 8.4, com a consulta que lista quem está sem grupo. |
 | D16 (08/10) | O vínculo automático ao grupo padrão no cadastro (D2) entra junto com a ativação no frontend, e a D11 deixa de valer. | Sem ele, toda pessoa cadastrada depois da ativação cairia em `/sem-acesso`. Seção 8.4. |
-| D17 (08/10) | As permissões entram em vigor sem chave de ativação. | O seed da V111 reproduz o acesso de antes, então quem está no grupo padrão não percebe a mudança. Uma chave obrigaria a manter as duas lógicas, por perfil e por grupo, enquanto existisse. |
+| D17 (08/10) | As permissões entram em vigor sem chave de ativação. | O seed da V117 reproduz o acesso de antes, então quem está no grupo padrão não percebe a mudança. Uma chave obrigaria a manter as duas lógicas, por perfil e por grupo, enquanto existisse. |
 | D18 (15/10) | Uma pessoa pode ter acessos individuais, além dos grupos dela. O acesso individual é um grupo de uma pessoa só, marcado por `grupos_usuarios.dados_pessoais_id`. | Soma pela mesma regra dos grupos (RP1). `/permissoes/me`, o hook, a guarda de tela e a futura checagem no backend não mudam. Seção 4.1. |
 | D19 (15/10) | O acesso individual fica dentro do teto do perfil, como um grupo. **Substituída pela D22.** | — |
 | D20 (15/10) | O acesso individual só soma; não retira o que um grupo dá. | Para tirar algo de uma pessoa, monta-se outro grupo sem aquilo e ela muda de grupo. |
@@ -153,7 +153,7 @@ O acesso individual de uma pessoa num perfil é um grupo comum, com `dados_pesso
 - **RV2 e RV6 valem para ele:** não há acesso individual de ADMIN, e só recebe quem tem o perfil.
 - **A RV3 não vale (D22):** o limite é o catálogo inteiro (`CatalogoPermissaoService.todos()`), e não o teto do perfil. Código que não existe ou está inativo é recusado.
 - **RV4 e RV5 valem dentro do próprio conjunto individual**, mesmo que um grupo da pessoa já dê o item exigido. Exemplo: liberar individualmente "Ver ficha médica" guarda também a tela "Detalhe do aluno" no grupo individual, ainda que o grupo dela já tenha essa tela. Assim o acesso individual continua funcionando se o grupo mudar depois. Para a pessoa, essa dependência não é um acesso a mais, e a tela e o contador não a contam.
-- **Sem `ON DELETE CASCADE`** na chave para `dados_pessoais`, como nos vínculos da V111. O sistema não apaga pessoas.
+- **Sem `ON DELETE CASCADE`** na chave para `dados_pessoais`, como nos vínculos da V117. O sistema não apaga pessoas.
 
 ## 5. Permissão efetiva
 
@@ -254,11 +254,11 @@ Entram só as diferenças que já existem hoje entre perfis dentro de uma mesma 
 | `EVENTO.GERENCIAR` | `CALENDARIO` | PROFESSOR, SECRETARIO, ESTUDANTE ⚠️ | Botão "Novo evento" e edição (`usePermissoes().criarEvento`) | Escritas em `/evento` |
 | `MATERIAL_COMPLEMENTAR.PUBLICAR` | `MATERIAIS_COMPLEMENTARES` | PROFESSOR | Publicar e remover, na página do professor | `POST`/`DELETE /material-complementar` |
 | `FICHA_MEDICA.INCLUIR` | `FICHA_MEDICA_RESPONSAVEL` | RESPONSAVEL | Incluir medicação e laudo (`usePermissoes().incluirNaFichaMedica`) | Inclusões em `/portal-responsavel/aluno/{alunoId}/ficha-medica/laudos` e `…/medicacoes` |
-| `GRUPO_USUARIO.HISTORICO.VER` | — (tela de grupos, fora do catálogo) | ADMIN, DIRETOR | Botão "Histórico" no detalhe do grupo (V113) | `GET /grupos-usuarios/{id}/historico` |
+| `GRUPO_USUARIO.HISTORICO.VER` | — (tela de grupos, fora do catálogo) | ADMIN, DIRETOR | Botão "Histórico" no detalhe do grupo (V119) | `GET /grupos-usuarios/{id}/historico` |
 
 ⚠️ Ver a seção 12.
 
-Situação familiar e atendimento psicológico ficam fora do teto de ADMIN e DIRETOR (D9). No total são 16 controles. O ADMIN e o grupo padrão do diretor recebem 9 deles (o de histórico veio na V113).
+Situação familiar e atendimento psicológico ficam fora do teto de ADMIN e DIRETOR (D9). No total são 16 controles. O ADMIN e o grupo padrão do diretor recebem 9 deles (o de histórico veio na V119).
 
 ### 6.4 Dependências
 
@@ -275,7 +275,7 @@ As dependências ficam declaradas no código (`DependenciasPermissao`). O endpoi
 
 ## 7. Migration
 
-O arquivo é `V111__create-tables-permissoes.sql`. Hoje V111 é o próximo número livre em todas as branches; confirme no merge.
+O arquivo é `V117__create-tables-permissoes.sql`. Nasceu como V111 e foi renumerado em 29/10, no merge da main, que tinha criado as V111–V116 nesse meio-tempo. O mesmo aconteceu com a V112 (agora V118) e a V113 (agora V119). O conteúdo dos arquivos não mudou, então o checksum é o mesmo. Um banco que rodou as versões antigas precisa só renumerar o `flyway_schema_history` e aplicar as V111–V116 da main (seção 7.2).
 
 A migration foi validada assim:
 
@@ -768,9 +768,9 @@ JOIN grupos_usuarios g ON g.perfil_id = dpp.perfil_id AND g.padrao = TRUE;
 
 </details>
 
-### 7.1 Acessos individuais (V112)
+### 7.1 Acessos individuais (V118)
 
-O arquivo é `V112__grupos-usuarios-individuais.sql`. Ficou numa migration separada, em vez de entrar na V111, porque um banco que já rodou a V111 recusaria a versão alterada (o Flyway confere o checksum). Rodou em H2 (testes) e em PostgreSQL 18.
+O arquivo é `V118__grupos-usuarios-individuais.sql` (era V112 até o merge de 29/10). Ficou numa migration separada, em vez de entrar na V117, porque um banco que já rodou a V117 recusaria a versão alterada (o Flyway confere o checksum). Rodou em H2 (testes) e em PostgreSQL 18.
 
 ```sql
 -- Acessos individuais (docs/permissoes.md, D18–D21).
@@ -794,6 +794,25 @@ ALTER TABLE grupos_usuarios ADD CONSTRAINT uk_grupos_usuarios_individual
 
 ALTER TABLE grupos_usuarios_AUD ADD COLUMN dados_pessoais_id BIGINT;
 ```
+
+### 7.2 Renumeração no merge da main (29/10)
+
+A main criou as V111–V116 (pagamentos, versão de títulos, anos letivos, matrículas, período da avaliação e resultados finais) enquanto esta branch tinha as V111–V113. Duas migrations com a mesma versão impedem o Flyway de subir, e as da main são as que valem nos outros ambientes. Por isso as desta branch viraram V117–V119, sem mudar uma linha do conteúdo: o checksum continua o mesmo, inclusive o comentário da V118 que ainda cita a V111.
+
+Um banco que rodou as versões antigas não tem as V111–V116 da main e tem 111–113 com outros scripts, então o Flyway recusa a validação. O conserto, por schema de escola e numa transação só (feito em 29/10 nos tenants locais `sigma` e `teste`, depois de um `pg_dump`):
+
+```sql
+SET LOCAL search_path TO "<schema>", "$user", public;
+
+UPDATE flyway_schema_history SET version = '117', script = 'V117__create-tables-permissoes.sql'
+WHERE version = '111' AND script = 'V111__create-tables-permissoes.sql';
+UPDATE flyway_schema_history SET version = '118', script = 'V118__grupos-usuarios-individuais.sql'
+WHERE version = '112' AND script = 'V112__grupos-usuarios-individuais.sql';
+UPDATE flyway_schema_history SET version = '119', script = 'V119__controle-ver-historico-grupos.sql'
+WHERE version = '113' AND script = 'V113__controle-ver-historico-grupos.sql';
+```
+
+Em seguida, ainda na mesma transação, roda-se o conteúdo das V111–V116 da main e registra-se cada uma no `flyway_schema_history` com o `checksum` que o Flyway calcularia: o CRC32 das linhas do arquivo, sem as quebras de linha, como inteiro de 32 bits com sinal. O `installed_rank` de cada uma é o próximo número livre. Sem esse registro, o Flyway trataria as V111–V116 como pendentes abaixo da última versão aplicada e recusaria subir, porque o `outOfOrder` está desligado no `TenantFlywayMigrationService`.
 
 ## 8. Backend
 
@@ -909,7 +928,7 @@ Qual código checar em cada tipo de endpoint (D5):
 
 O vínculo não adiciona o perfil: cada cadastro continua cuidando disso como antes.
 
-**Quem ficou de fora (D15).** A V111 pôs nos grupos padrão quem já tinha perfil. Quem foi cadastrado depois dela e antes deste vínculo ficou sem grupo, e não abre as telas daquele perfil até alguém o incluir pela aba Pessoas da tela de grupos. Não haverá migration para isso. Esta consulta lista quem está nessa situação (rode no schema da escola):
+**Quem ficou de fora (D15).** A V117 pôs nos grupos padrão quem já tinha perfil. Quem foi cadastrado depois dela e antes deste vínculo ficou sem grupo, e não abre as telas daquele perfil até alguém o incluir pela aba Pessoas da tela de grupos. Não haverá migration para isso. Esta consulta lista quem está nessa situação (rode no schema da escola):
 
 ```sql
 SELECT dp.id, dp.nome, p.nome AS perfil
@@ -1114,7 +1133,7 @@ No backend, o cadastro de diretor com login continua todo comentado em [DiretorS
 | Fase | Entrega | Muda algo para o usuário? |
 |---|---|---|
 | F0 | Fechar `/usuario/**`; habilitar `@EnableMethodSecurity`. | Não, exceto para chamadas anônimas a `/usuario`. |
-| F1 | Migration V111, entidades, `PermissaoService`, `GET /permissoes/me`, vínculo automático e testes de consistência. **Feito:** migration, entidades e testes (06/10); `/permissoes/me` e vínculo automático (08/10). **Fica para a F3:** `PermissaoService` e `PermissaoGuard`, que só servem à proteção no backend. | Não. |
+| F1 | Migration V117 (era V111), entidades, `PermissaoService`, `GET /permissoes/me`, vínculo automático e testes de consistência. **Feito:** migration, entidades e testes (06/10); `/permissoes/me` e vínculo automático (08/10). **Fica para a F3:** `PermissaoService` e `PermissaoGuard`, que só servem à proteção no backend. | Não. |
 | F2 | Frontend lendo as permissões: `usePermissoes`, menu, guarda de rota, `/sem-acesso`, rota padrão única e os checks da tabela 9.4. DIRETOR como perfil de verdade, com a herança de rotas (seção 9.6). **Feito em 08/10**, menos a troca dos `switch` do login pela rota inicial única (seção 9.3). | Para quem está no grupo padrão, só as mudanças intencionais da seção 12 (itens 5 e 8). Quem está sem grupo vai para `/sem-acesso` (D15). |
 | F3 | Backend protegendo os controles da tabela 6.3; endpoints de gestão; tela de grupos. **Adiantado em 06/10 (D10):** endpoints de gestão e tela de grupos. **Falta:** a proteção no backend. | Sim: as escolas passam a montar grupos. |
 | F4 | Escritas restantes, por domínio (179 endpoints em 46 controllers); remover o `permitAll("/**")`. | Endpoints chamados sem permissão passam a responder 403. |

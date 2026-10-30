@@ -15,7 +15,7 @@ export class SerieApi {
   }
 
   getListaSeriesPaginada(): Promise<IBrainResult<SerieListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getSerieById(id: string): Promise<SerieDetalheResponse> {

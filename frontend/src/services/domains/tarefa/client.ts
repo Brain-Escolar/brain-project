@@ -7,7 +7,7 @@ const BASE_ROUTE = "tarefa";
 
 export class TarefaApi {
   listaTodasTarefas(): Promise<IBrainResult<TarefaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   criarTarefa(dados: TarefaPostRequest, arquivo?: File): Promise<TarefaResponse> {
@@ -41,7 +41,7 @@ export class TarefaApi {
   }
 
   getTarefasProfessor(historico = false): Promise<IBrainResult<TarefaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}/professor`, { params: { historico } });
+    return httpClient.get(`${BASE_ROUTE}/professor`, { params: { historico, size: 500 } });
   }
 
   criarTarefaLote(dados: TarefaLotePostRequest, arquivo?: File): Promise<TarefaLoteResponse> {

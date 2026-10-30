@@ -16,8 +16,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  MenuItem,
-  TextField,
   Button,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -29,6 +27,7 @@ import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "react-toastify";
 import { TurmaHorarioItemRequest } from "@/services/domains/turma/request";
 import * as S from "./styles";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 const DIAS_SEMANA = [
   { key: "segunda", label: "Segunda" },
@@ -228,9 +227,7 @@ function DefinirHorariosPageContent() {
                                   <span className="cell-disciplina">
                                     {assignment.disciplinaNome}
                                   </span>
-                                  <span className="cell-professor">
-                                    {assignment.professorNome}
-                                  </span>
+                                  <span className="cell-professor">{assignment.professorNome}</span>
                                 </>
                               ) : (
                                 <span className="cell-empty">+</span>
@@ -296,12 +293,7 @@ function DefinirHorariosPageContent() {
           </Box>
 
           {/* Dialog para atribuir disciplina/professor */}
-          <Dialog
-            open={dialogOpen}
-            onClose={() => setDialogOpen(false)}
-            maxWidth="xs"
-            fullWidth
-          >
+          <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
             <DialogTitle>
               Atribuir Aula —{" "}
               {editingCell
@@ -310,34 +302,18 @@ function DefinirHorariosPageContent() {
             </DialogTitle>
             <DialogContent>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-                <TextField
-                  select
+                <BrainDropdownField<number>
                   label="Disciplina"
                   value={dialogDisciplinaId}
-                  onChange={(e) => setDialogDisciplinaId(Number(e.target.value))}
-                  fullWidth
-                  size="small"
-                >
-                  {gradeDisciplinas.map((d) => (
-                    <MenuItem key={d.id} value={d.id}>
-                      {d.nome}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <TextField
-                  select
+                  onChange={(v) => setDialogDisciplinaId(v ?? "")}
+                  options={gradeDisciplinas.map((d) => ({ key: d.id, value: d.nome }))}
+                />
+                <BrainDropdownField<number>
                   label="Professor"
                   value={dialogProfessorId}
-                  onChange={(e) => setDialogProfessorId(Number(e.target.value))}
-                  fullWidth
-                  size="small"
-                >
-                  {professores.map((p) => (
-                    <MenuItem key={p.id} value={p.id}>
-                      {p.nome}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                  onChange={(v) => setDialogProfessorId(v ?? "")}
+                  options={professores.map((p) => ({ key: p.id, value: p.nome }))}
+                />
               </Box>
             </DialogContent>
             <DialogActions>

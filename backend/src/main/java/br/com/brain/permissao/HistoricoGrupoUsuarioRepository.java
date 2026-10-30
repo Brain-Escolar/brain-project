@@ -13,7 +13,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Leitura das tabelas _AUD do grupo e dos três vínculos dele (V111).
+ * Leitura das tabelas _AUD do grupo e dos três vínculos dele (V117).
  *
  * SQL direto, e não AuditReader: o histórico junta quatro entidades por
  * revisão e precisa paginar pelas revisões, não pelas linhas. Os nomes vêm

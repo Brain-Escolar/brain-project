@@ -79,7 +79,9 @@ function SectionProximasTarefas() {
           {tarefas.map((tarefa) => (
             <S.TarefaCard
               key={tarefa.id}
-              onClick={() => router.push(`${RoutesEnum.ALUNO_AULA}/${tarefa.aulaId}`)}
+              onClick={() =>
+                router.push(`${RoutesEnum.ALUNO_AULA}/${tarefa.aulaId}?data=${tarefa.prazo}`)
+              }
             >
               <S.CardTopRow>
                 <S.SubjectTag $tone={getDisciplinaTagTone(tarefa.disciplina)}>

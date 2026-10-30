@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * GET /permissoes/me contra o banco: o seed da V111 e as regras RP1 e RP4 da
+ * GET /permissoes/me contra o banco: o seed da V117 e as regras RP1 e RP4 da
  * spec. Cada teste roda numa transação desfeita no fim.
  */
 @SpringBootTest

@@ -11,6 +11,7 @@ import {
   AlunoProdutoResponse,
   AlunoVinculadoResponse,
   AulaGradeResponse,
+  CarneResponsavelResponse,
   FichaMedicaPortalResponse,
   MedicacaoResponse,
   ResponsavelLogadoResponse,
@@ -136,5 +137,22 @@ export class ResponsavelPortalApi {
   /** Só responde 200 se o responsável tiver a flag financeiro no backend. */
   getFinanceiro(alunoId: number): Promise<AlunoProdutoResponse[]> {
     return httpClient.get(`${BASE_ROUTE}/aluno/${alunoId}/financeiro`);
+  }
+
+  /**
+   * O carnê: as parcelas que ESTE responsável paga.
+   *
+   * Sem alunoId de propósito. Os títulos pertencem ao responsável, não ao aluno,
+   * e quem tem dois filhos paga uma conta só — o nome do aluno vem em cada
+   * linha. Quando os pais são separados e a conta é rateada, cada um vê a sua
+   * metade e nenhum vê quanto o outro paga, porque a consulta parte de quem
+   * está logado.
+   *
+   * Também só responde 200 para quem tem a flag financeiro.
+   */
+  getCarne(anoLetivo?: number): Promise<CarneResponsavelResponse> {
+    return httpClient.get(`${BASE_ROUTE}/financeiro/carne`, {
+      params: anoLetivo ? { anoLetivo } : undefined,
+    });
   }
 }

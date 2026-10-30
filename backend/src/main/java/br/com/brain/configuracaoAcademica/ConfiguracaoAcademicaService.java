@@ -16,6 +16,17 @@ public class ConfiguracaoAcademicaService {
 
     private final ConfiguracaoEscolaRepository configuracaoEscolaRepository;
     private final PeriodoLetivoRepository periodoLetivoRepository;
+    private final AnoLetivoService anoLetivoService;
+
+    /** O ano letivo ABERTO. Ver {@link AnoLetivoService#anoCorrente()}. */
+    public int anoCorrente() {
+        return anoLetivoService.anoCorrente();
+    }
+
+    /** O ano do seletor de ano, ou o corrente. Ver {@link AnoLetivoService#anoEmContexto()}. */
+    public int anoEmContexto() {
+        return anoLetivoService.anoEmContexto();
+    }
 
     /**
      * Compõe a configuração usada pelos relatórios: a escala da escola (constante,

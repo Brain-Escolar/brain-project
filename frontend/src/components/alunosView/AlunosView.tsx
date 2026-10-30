@@ -16,7 +16,6 @@ import {
   FormControlLabel,
   IconButton,
   InputAdornment,
-  MenuItem,
   Paper,
   Switch,
   Table,
@@ -51,6 +50,7 @@ import { useUnidades } from "@/hooks/useUnidades";
 import { AlunoListaResponse } from "@/services/domains/aluno/response";
 import { iniciais } from "@/utils/utils";
 import * as S from "./styles";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 /** Espera entre a digitação e a chamada à API. */
 const DEBOUNCE_MS = 350;
@@ -60,8 +60,6 @@ const LINHAS_POR_PAGINA = [10, 25, 50];
 const SERIES_COMO_ATALHO = 5;
 /** Linhas exibidas no modo compacto, onde não há paginação. */
 const LINHAS_MODO_COMPACTO = 8;
-
-const SEM_FILTRO = "";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -166,8 +164,8 @@ const COLUNAS_CONSULTA: ColunaAluno[] = [
   { key: "turma", label: "Turma" },
 ];
 
-/** Lista de cadastro do ADMIN (e do DIRETOR, que usa as telas dele). */
-const COLUNAS_GESTAO: ColunaAluno[] = [
+/** Colunas da lista de cadastro (Cadastros > Alunos), com o CRUD. */
+const COLUNAS_CADASTRO: ColunaAluno[] = [
   COLUNA_ALUNO,
   COLUNA_MATRICULA,
   { key: "cpf", label: "CPF" },
@@ -189,8 +187,8 @@ const COLUNAS_POR_PERFIL: Record<UserRoleEnum, ColunaAluno[]> = {
   [UserRoleEnum.PROFESSOR]: COLUNAS_CONSULTA,
   [UserRoleEnum.ESTUDANTE]: COLUNAS_CONSULTA,
   [UserRoleEnum.RESPONSAVEL]: COLUNAS_CONSULTA,
-  [UserRoleEnum.ADMIN]: COLUNAS_GESTAO,
-  [UserRoleEnum.DIRETOR]: COLUNAS_GESTAO,
+  [UserRoleEnum.ADMIN]: COLUNAS_CADASTRO,
+  [UserRoleEnum.DIRETOR]: COLUNAS_CADASTRO,
 };
 
 function valorPadrao(aluno: AlunoListaResponse, key: string): React.ReactNode {
@@ -349,7 +347,7 @@ export default function AlunosView({
 
   const total = usaBuscaServidor ? busca.totalElements : alunosExibidos.length;
   const loading = listaExterna ? !!loadingProp : usaBuscaServidor ? busca.loading : lista.loading;
-  const error = listaExterna ? errorProp ?? null : usaBuscaServidor ? busca.error : lista.error;
+  const error = listaExterna ? (errorProp ?? null) : usaBuscaServidor ? busca.error : lista.error;
   const refetch = usaBuscaServidor ? busca.refetch : lista.refetch;
 
   // Quem recebe a lista pronta já decide o que mostrar; por isso o padrão ali é
@@ -376,8 +374,7 @@ export default function AlunosView({
   const temOutrasPaginas = (paginacaoServidor?.total ?? 0) > 0;
 
   // No card do dashboard nada é listado antes de o usuário pedir.
-  const buscaAtiva =
-    !compacto || termoDebounced.trim().length >= MIN_CARACTERES_BUSCA || temFiltro;
+  const buscaAtiva = !compacto || termoDebounced.trim().length >= MIN_CARACTERES_BUSCA || temFiltro;
 
   const colunasVisiveis = colunas ?? COLUNAS_POR_PERFIL[role] ?? COLUNAS_CONSULTA;
 
@@ -476,61 +473,35 @@ export default function AlunosView({
       />
 
       <S.FiltroRow>
-        <TextField
-          select
-          size="small"
+        <BrainDropdownField<number>
           label="Unidade"
-          value={unidadeId ?? SEM_FILTRO}
-          onChange={(e) => {
-            const valor = e.target.value;
-            setUnidadeId(valor === SEM_FILTRO ? undefined : Number(valor));
+          placeholder="Todas"
+          value={unidadeId}
+          onChange={(v) => {
+            setUnidadeId(v ?? undefined);
             setTurmaId(undefined);
           }}
-        >
-          <MenuItem value={SEM_FILTRO}>Todas</MenuItem>
-          {unidades.map((unidade) => (
-            <MenuItem key={unidade.id} value={unidade.id}>
-              {unidade.nome}
-            </MenuItem>
-          ))}
-        </TextField>
+          options={unidades.map((unidade) => ({ key: unidade.id, value: unidade.nome }))}
+        />
 
-        <TextField
-          select
-          size="small"
+        <BrainDropdownField<number>
           label="Série"
-          value={serieId ?? SEM_FILTRO}
-          onChange={(e) => {
-            const valor = e.target.value;
-            setSerieId(valor === SEM_FILTRO ? undefined : Number(valor));
+          placeholder="Todas"
+          value={serieId}
+          onChange={(v) => {
+            setSerieId(v ?? undefined);
             setTurmaId(undefined);
           }}
-        >
-          <MenuItem value={SEM_FILTRO}>Todas</MenuItem>
-          {series.map((serie) => (
-            <MenuItem key={serie.id} value={serie.id}>
-              {serie.nome}
-            </MenuItem>
-          ))}
-        </TextField>
+          options={series.map((serie) => ({ key: serie.id, value: serie.nome }))}
+        />
 
-        <TextField
-          select
-          size="small"
+        <BrainDropdownField<number>
           label="Turma"
-          value={turmaId ?? SEM_FILTRO}
-          onChange={(e) => {
-            const valor = e.target.value;
-            setTurmaId(valor === SEM_FILTRO ? undefined : Number(valor));
-          }}
-        >
-          <MenuItem value={SEM_FILTRO}>Todas</MenuItem>
-          {turmasDisponiveis.map((turma) => (
-            <MenuItem key={turma.id} value={turma.id}>
-              {turma.nome}
-            </MenuItem>
-          ))}
-        </TextField>
+          placeholder="Todas"
+          value={turmaId}
+          onChange={(v) => setTurmaId(v ?? undefined)}
+          options={turmasDisponiveis.map((turma) => ({ key: turma.id, value: turma.nome }))}
+        />
       </S.FiltroRow>
 
       {atalhosSerie && series.length > 0 && (
@@ -696,8 +667,8 @@ export default function AlunosView({
 
       {!error && !buscaAtiva && (
         <S.EmptyHint>
-          Digite ao menos {MIN_CARACTERES_BUSCA} caracteres ou escolha um filtro para localizar
-          um aluno.
+          Digite ao menos {MIN_CARACTERES_BUSCA} caracteres ou escolha um filtro para localizar um
+          aluno.
         </S.EmptyHint>
       )}
 
@@ -711,22 +682,31 @@ export default function AlunosView({
         <S.EmptyHint>Nenhum aluno encontrado com esses critérios.</S.EmptyHint>
       )}
 
-      {!error && buscaAtiva && !loading && alunosVisiveis.length === 0 && !compacto && !temOutrasPaginas && (
-        <BrainResultNotFound
-          message={mensagemVazio ?? "Nenhum aluno encontrado"}
-          description={
-            // Quem passa a lista pronta filtrou fora daqui — a dica sobre "os
-            // filtros" seria enganosa, então só a mensagem é exibida.
-            listaExterna
-              ? undefined
-              : temCriterio
-                ? "Ajuste a busca ou os filtros para encontrar o aluno."
-                : "Não há alunos matriculados para exibir."
-          }
-        />
-      )}
+      {!error &&
+        buscaAtiva &&
+        !loading &&
+        alunosVisiveis.length === 0 &&
+        !compacto &&
+        !temOutrasPaginas && (
+          <BrainResultNotFound
+            message={mensagemVazio ?? "Nenhum aluno encontrado"}
+            description={
+              // Quem passa a lista pronta filtrou fora daqui — a dica sobre "os
+              // filtros" seria enganosa, então só a mensagem é exibida.
+              listaExterna
+                ? undefined
+                : temCriterio
+                  ? "Ajuste a busca ou os filtros para encontrar o aluno."
+                  : "Não há alunos matriculados para exibir."
+            }
+          />
+        )}
 
-      {!error && buscaAtiva && !loading && (alunosVisiveis.length > 0 || temOutrasPaginas) && tabela}
+      {!error &&
+        buscaAtiva &&
+        !loading &&
+        (alunosVisiveis.length > 0 || temOutrasPaginas) &&
+        tabela}
 
       {isAdminCrud && (
         <Dialog

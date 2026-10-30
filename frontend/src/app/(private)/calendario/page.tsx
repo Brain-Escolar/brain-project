@@ -19,17 +19,22 @@ import { useState, useMemo } from "react";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
-import { useAuth } from "@/hooks/useAuth";
 import { useEventos } from "@/hooks/useEventos";
 import { useContextoAluno } from "@/hooks/useContextoAluno";
 import { usePermissao } from "@/hooks/usePermissoes";
 import { CONTROLES } from "@/constants/permissoes";
+import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { EventoResponse, TipoEvento } from "@/services/domains/evento";
 import { UserRoleEnum } from "@/enums";
 import NovoEventoModal from "./NovoEventoModal";
 import DetalheEventoModal from "./DetalheEventoModal";
 import ListaEventosDiaModal from "./ListaEventosDiaModal";
-import { TIPO_CONFIG, TIPO_OPTIONS_SECRETARIA, TIPOS_EVENTO_AVALIACAO } from "./eventoTipos";
+import {
+  TIPO_CONFIG,
+  TIPO_OPTIONS_SECRETARIA,
+  TIPOS_EVENTO_AVALIACAO,
+  TIPOS_EVENTO_INTERNOS,
+} from "./eventoTipos";
 
 const MESES_PT = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -98,8 +103,6 @@ function buildCalendarDays(year: number, month: number): CalendarDay[] {
 }
 
 export default function Calendario() {
-  const { user } = useAuth();
-  const isSecretario = user?.role === UserRoleEnum.SECRETARIO;
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -122,8 +125,29 @@ export default function Calendario() {
   // escola inteira. A permissao de criar evento vem de usePermissoes, nao de
   // um teste de perfil espalhado pela tela.
   const { turmaId, ehResponsavel } = useContextoAluno();
-  const { eventos, loading } = useEventos({ dataInicio, dataFim, turmaId });
+  const { eventos: eventosRecebidos, loading } = useEventos({ dataInicio, dataFim, turmaId });
   const podeCriarEvento = usePermissao(CONTROLES.EVENTO_GERENCIAR);
+  const { perfilAtivo } = usePerfilAtivo();
+
+  // Secretaria e direcao so criam eventos institucionais (reuniao, feriado,
+  // outro): provas e entregas nascem do fluxo de avaliacao do professor. E
+  // regra do perfil, como era o isSecretario, e nao um controle dos grupos.
+  const soEventosInstitucionais =
+    perfilAtivo === UserRoleEnum.SECRETARIO || perfilAtivo === UserRoleEnum.DIRETOR;
+
+  // Aluno e responsavel nao veem prazos internos dos professores (ex.: entrega de notas).
+  const visaoDoAluno = perfilAtivo === UserRoleEnum.ESTUDANTE || ehResponsavel;
+  const tiposVisiveis = useMemo(
+    () =>
+      (Object.keys(TIPO_CONFIG) as TipoEvento[]).filter(
+        (tipo) => !(visaoDoAluno && TIPOS_EVENTO_INTERNOS.includes(tipo)),
+      ),
+    [visaoDoAluno],
+  );
+  const eventos = useMemo(
+    () => eventosRecebidos.filter((e) => tiposVisiveis.includes(e.tipo)),
+    [eventosRecebidos, tiposVisiveis],
+  );
 
   const calendarDays = useMemo(() => buildCalendarDays(currentYear, currentMonth), [currentYear, currentMonth]);
 
@@ -213,9 +237,14 @@ export default function Calendario() {
 
   const tituloMes = `${MESES_PT[currentMonth]} ${currentYear}`;
 
+  // Provas e entregas nascem do fluxo de avaliacao do professor: quem so cria
+  // eventos institucionais (secretaria, diretor) apenas os visualiza.
+  const eventoDeAvaliacaoSomenteLeitura =
+    soEventosInstitucionais && !!eventoDetalhe && TIPOS_EVENTO_AVALIACAO.includes(eventoDetalhe.tipo);
+
   const filtrosSidebar = (
     <Stack spacing={0.75}>
-      {(Object.keys(TIPO_CONFIG) as TipoEvento[]).map((tipo) => {
+      {tiposVisiveis.map((tipo) => {
         const cfg = TIPO_CONFIG[tipo];
         const count = contagemPorTipo[tipo] ?? 0;
         return (
@@ -495,7 +524,11 @@ export default function Calendario() {
       description={
         ehResponsavel
           ? "Provas, prazos e eventos da turma do aluno"
-          : "Gerencie seu calendário e seus compromissos"
+          : soEventosInstitucionais
+            ? "Eventos, provas, entregas e feriados da escola"
+            : podeCriarEvento
+              ? "Gerencie seu calendário e seus compromissos"
+              : "Provas, feriados e eventos da escola"
       }
       actions={
         podeCriarEvento ? (
@@ -550,7 +583,7 @@ export default function Calendario() {
         }}
         dataInicial={dataSelecionada}
         evento={eventoEmEdicao}
-        tipoOptions={isSecretario ? TIPO_OPTIONS_SECRETARIA : undefined}
+        tipoOptions={soEventosInstitucionais ? TIPO_OPTIONS_SECRETARIA : undefined}
       />
 
       <DetalheEventoModal
@@ -558,7 +591,12 @@ export default function Calendario() {
         evento={eventoDetalhe}
         onClose={() => setEventoDetalhe(null)}
         onEditar={handleEditarEvento}
-        somenteLeitura={isSecretario && !!eventoDetalhe && TIPOS_EVENTO_AVALIACAO.includes(eventoDetalhe.tipo)}
+        somenteLeitura={!podeCriarEvento || eventoDeAvaliacaoSomenteLeitura}
+        avisoSomenteLeitura={
+          podeCriarEvento && eventoDeAvaliacaoSomenteLeitura
+            ? "Gerado pelo fluxo de avaliação — somente leitura."
+            : undefined
+        }
       />
 
       <ListaEventosDiaModal

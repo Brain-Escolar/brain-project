@@ -30,13 +30,13 @@ export class ProfessorApi {
     return httpClient.get(`${BASE_ROUTE}/aulas/semana`);
   }
   getPlanejamento(): Promise<IBrainResult<ProfessorPlanejamentoResponse>> {
-    return httpClient.get(`${BASE_ROUTE}/planejamento`);
+    return httpClient.get(`${BASE_ROUTE}/planejamento`, { params: { size: 500 } });
   }
   criarProfessor(request: ProfessorPostRequest): Promise<IBrainResult<void>> {
     return httpClient.post(`${BASE_ROUTE}`, request);
   }
   getListaProfessores(): Promise<IBrainResult<ProfessorListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
   getProfessorById(id: string): Promise<ProfessorDetalheResponse> {
     return httpClient.get(`${BASE_ROUTE}/${id}`);
@@ -62,7 +62,7 @@ export class ProfessorApi {
   listarDisponibilidade(
     professorId: string,
   ): Promise<IBrainResult<ProfessorDisponibilidadeResponse>> {
-    return httpClient.get(`${BASE_ROUTE}/${professorId}/disponibilidade`);
+    return httpClient.get(`${BASE_ROUTE}/${professorId}/disponibilidade`, { params: { size: 500 } });
   }
 
   atualizarDisponibilidade(

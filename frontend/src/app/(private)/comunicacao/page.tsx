@@ -17,11 +17,6 @@ import {
   CircularProgress,
   Divider,
   Avatar,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
-  FormHelperText,
   useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -42,12 +37,10 @@ import { useBrainForm } from "@/hooks/useBrainForm";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import { ConversaResponse } from "@/services/domains/conversa/response";
 import { UserRoleEnum } from "@/enums";
-import {
-  PERFIL_DISPLAY_NAME,
-  PerfilNomeEnum,
-} from "@/enums/PerfilNomeEnum";
+import { PERFIL_DISPLAY_NAME, PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 import { z } from "zod";
 import FilaAtendimento from "./FilaAtendimento";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 const novaConversaSchema = z.object({
   titulo: z.string().min(1, "Assunto é obrigatório"),
@@ -182,7 +175,6 @@ function ComunicacaoRemetenteView() {
         </Button>
       }
     >
-
       <Box
         sx={{
           display: "flex",
@@ -592,24 +584,22 @@ function ComunicacaoRemetenteView() {
           <DialogContent>
             <Stack spacing={3} sx={{ mt: 1 }}>
               <BrainTextFieldControlled name="titulo" control={control} label="Assunto" required />
-              <FormControl fullWidth error={!!destinatarioError} disabled={loadingDestinatarios}>
-                <InputLabel>Destinatário</InputLabel>
-                <Select
-                  value={destinatario}
-                  label="Destinatário"
-                  onChange={(e) => {
-                    setDestinatario(e.target.value as PerfilNomeEnum);
-                    setDestinatarioError("");
-                  }}
-                >
-                  {destinatarios.map((perfil) => (
-                    <MenuItem key={perfil} value={perfil}>
-                      {PERFIL_DISPLAY_NAME[perfil] ?? perfil}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {destinatarioError && <FormHelperText>{destinatarioError}</FormHelperText>}
-              </FormControl>
+              <BrainDropdownField<PerfilNomeEnum>
+                label="Destinatário"
+                size="medium"
+                value={destinatario}
+                disabled={loadingDestinatarios}
+                error={!!destinatarioError}
+                helperText={destinatarioError || undefined}
+                onChange={(v) => {
+                  setDestinatario(v ?? "");
+                  setDestinatarioError("");
+                }}
+                options={destinatarios.map((perfil) => ({
+                  key: perfil,
+                  value: PERFIL_DISPLAY_NAME[perfil] ?? perfil,
+                }))}
+              />
               <BrainTextFieldControlled
                 name="primeiraMensagem"
                 control={control}

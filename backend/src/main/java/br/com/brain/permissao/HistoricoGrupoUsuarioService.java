@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  * pessoas, por revisão do Envers, da mais recente para a mais antiga.
  *
  * Grupo excluído e grupo individual respondem 404, como no detalhe. O que veio
- * do seed da V111 não tem revisão: o histórico começa na primeira alteração
+ * do seed da V117 não tem revisão: o histórico começa na primeira alteração
  * feita pela tela.
  */
 @Service

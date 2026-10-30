@@ -4,6 +4,8 @@ import {
   RelatorioResponse,
 } from "@/services/domains/estudante";
 import { ArquivoResponse } from "@/services/domains/aluno/response";
+import { StatusTitulo } from "@/services/domains/contrato";
+import { FormaPagamento } from "@/services/domains/financeiro";
 
 /**
  * Aluno vinculado ao responsavel logado — item do seletor.
@@ -140,4 +142,69 @@ export interface FichaMedicaPortalResponse {
   alergiasMedicamentosas: string | null;
   laudos: LaudoResponse[];
   medicacoes: MedicacaoResponse[];
+}
+
+// ---------------------------------------------------------------- financeiro
+
+export type SituacaoParcela =
+  | "PAGA"
+  | "A_VENCER"
+  | "VENCE_HOJE"
+  | "EM_ATRASO"
+  | "CANCELADA"
+  | "SUBSTITUIDA"
+  | "ESTORNADA";
+
+/**
+ * Uma linha do carnê como a família vê.
+ *
+ * Bruto, desconto e líquido vêm os três, e é o ponto todo: a família vê
+ * "mensalidade 1.350, bolsa −270, a pagar 1.080". Só o líquido esconderia a
+ * bolsa de quem a recebeu.
+ *
+ * `situacao` é separada de `status` porque respondem perguntas diferentes:
+ * status diz o que aconteceu com o registro, situação diz se precisa pagar e
+ * quando. Um título ABERTO pode estar a vencer, vencendo hoje ou em atraso — e
+ * quem decide é o calendário, não o status.
+ */
+export interface ParcelaPortalResponse {
+  id: number;
+  alunoId: number;
+  alunoNome: string | null;
+  contratoNumero: string;
+  numeroParcela: number;
+  totalParcelas: number;
+  competencia: string;
+  vencimento: string;
+  descricao: string;
+  valorBruto: number;
+  valorDesconto: number;
+  valorLiquido: number;
+  status: StatusTitulo;
+  situacao: SituacaoParcela;
+  /** Zero ou negativo quando ainda não venceu. */
+  diasDeAtraso: number;
+  pagaEm: string | null;
+  formaPagamento: FormaPagamento | null;
+}
+
+/**
+ * O extrato do responsável: o que ele deve, o que já pagou e o que vem.
+ *
+ * Os totais ignoram parcelas canceladas, substituídas e estornadas — essas
+ * continuam na lista, porque a família tem direito ao histórico, mas somar a
+ * versão antiga e a nova da mesma parcela diria que ela deve o dobro.
+ */
+export interface CarneResponsavelResponse {
+  anoLetivo: number | null;
+  totalContratado: number;
+  totalPago: number;
+  totalAberto: number;
+  totalEmAtraso: number;
+  /** Quanto a bolsa abateu no período. É o número que a família nunca viu. */
+  totalDeBolsa: number;
+  proximoVencimento: string | null;
+  valorDoProximoVencimento: number;
+  parcelasEmAtraso: number;
+  parcelas: ParcelaPortalResponse[];
 }

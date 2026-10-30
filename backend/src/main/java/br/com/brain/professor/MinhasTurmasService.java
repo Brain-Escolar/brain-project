@@ -1,7 +1,8 @@
 package br.com.brain.professor;
 
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
+import br.com.brain.matricula.MatriculaRepository;
 import br.com.brain.aluno.Aluno;
-import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.anotacao.AnotacaoRepository;
 import br.com.brain.anotacao.dto.AnotacaoAlunoDisciplinaDto;
 import br.com.brain.aula.Aula;
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,15 +33,16 @@ import java.util.Map;
 public class MinhasTurmasService {
 
     private final AulaRepository aulaRepository;
-    private final AlunoRepository alunoRepository;
+    private final MatriculaRepository matriculaRepository;
     private final NotasRepository notasRepository;
     private final ChamadaRepository chamadaRepository;
     private final AnotacaoRepository anotacaoRepository;
     private final TurmaRepository turmaRepository;
     private final DisciplinaRepository disciplinaRepository;
+    private final AnoLetivoService anoLetivoService;
 
     public List<ListagemDisciplinaTurmasProfessorDto> listarTurmasAgrupadasPorDisciplina(Long professorId) {
-        var aulas = aulaRepository.findByProfessorId(professorId);
+        var aulas = aulaRepository.findByProfessorIdAndTurmaAnoLetivo(professorId, anoLetivoService.anoEmContexto());
 
         // Agrupado por id da disciplina (não pela entidade) para evitar acionar o
         // equals/hashCode gerado pelo Lombok, que inicializaria as coleções lazy.
@@ -72,16 +73,13 @@ public class MinhasTurmasService {
             throw new ErrosSistema.AcessoNegadoException("Você não leciona esta disciplina nesta turma.");
         }
 
-        var alunos = alunoRepository.findByTurmaIdAndMatriculadoTrue(turmaId).stream()
-                .sorted(Comparator.comparing(a -> a.getDadosPessoais().getNome()))
-                .toList();
-
-        var alunosDto = alunos.stream()
-                .map(aluno -> montarDetalheAluno(aluno, disciplinaId))
-                .toList();
-
         var turma = turmaRepository.findById(turmaId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", turmaId));
+        var alunos = matriculaRepository.findAlunosDaTurma(turmaId);
+
+        var alunosDto = alunos.stream()
+                .map(aluno -> montarDetalheAluno(aluno, disciplinaId, turma.getAnoLetivo()))
+                .toList();
         var disciplina = disciplinaRepository.findById(disciplinaId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Disciplina", disciplinaId));
 
@@ -101,13 +99,13 @@ public class MinhasTurmasService {
     }
 
     private ListagemTurmaProfessorDto montarResumoTurma(Turma turma, Long disciplinaId) {
-        var alunos = alunoRepository.findByTurmaIdAndMatriculadoTrue(turma.getId());
+        var alunos = matriculaRepository.findAlunosDaTurma(turma.getId());
 
         var medias = alunos.stream()
-                .map(aluno -> calcularMedia(aluno.getId(), disciplinaId))
+                .map(aluno -> calcularMedia(aluno.getId(), disciplinaId, turma.getAnoLetivo()))
                 .toList();
         var frequencias = alunos.stream()
-                .map(aluno -> calcularFrequencia(aluno.getId(), disciplinaId))
+                .map(aluno -> calcularFrequencia(aluno.getId(), disciplinaId, turma.getAnoLetivo()))
                 .toList();
 
         return new ListagemTurmaProfessorDto(
@@ -119,17 +117,17 @@ public class MinhasTurmasService {
                 mediaInteiros(frequencias));
     }
 
-    private DetalhamentoAlunoTurmaDto montarDetalheAluno(Aluno aluno, Long disciplinaId) {
-        var notas = notasRepository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(aluno.getId(), disciplinaId).stream()
+    private DetalhamentoAlunoTurmaDto montarDetalheAluno(Aluno aluno, Long disciplinaId, int ano) {
+        var notas = notasRepository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaIdAndAvaliacaoTurmaTurmaAnoLetivo(aluno.getId(), disciplinaId, ano).stream()
                 .map(NotaDisciplinaItemDto::new)
                 .toList();
-        var anotacoes = anotacaoRepository.findByDisciplinaIdAndAlunoId(disciplinaId, aluno.getId()).stream()
+        var anotacoes = anotacaoRepository.findByDisciplinaIdAndAlunoIdNoAno(disciplinaId, aluno.getId(), ano).stream()
                 .map(AnotacaoAlunoDisciplinaDto::new)
                 .toList();
 
-        var faltas = chamadaRepository.countFaltasByAlunoAndDisciplina(aluno.getId(), disciplinaId);
-        var media = calcularMedia(aluno.getId(), disciplinaId);
-        var frequencia = calcularFrequencia(aluno.getId(), disciplinaId);
+        var faltas = chamadaRepository.countFaltasByAlunoAndDisciplinaNoAno(aluno.getId(), disciplinaId, ano);
+        var media = calcularMedia(aluno.getId(), disciplinaId, ano);
+        var frequencia = calcularFrequencia(aluno.getId(), disciplinaId, ano);
 
         return new DetalhamentoAlunoTurmaDto(
                 aluno.getId(),
@@ -142,8 +140,9 @@ public class MinhasTurmasService {
                 anotacoes);
     }
 
-    private BigDecimal calcularMedia(Long alunoId, Long disciplinaId) {
-        var notas = notasRepository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaId(alunoId, disciplinaId);
+    private BigDecimal calcularMedia(Long alunoId, Long disciplinaId, int ano) {
+        var notas = notasRepository.findByAlunoIdAndAvaliacaoTurmaAvaliacaoDisciplinaIdAndAvaliacaoTurmaTurmaAnoLetivo(
+                alunoId, disciplinaId, ano);
         if (notas.isEmpty()) {
             return null;
         }
@@ -151,12 +150,12 @@ public class MinhasTurmasService {
         return soma.divide(BigDecimal.valueOf(notas.size()), 1, RoundingMode.HALF_UP);
     }
 
-    private Integer calcularFrequencia(Long alunoId, Long disciplinaId) {
-        var total = chamadaRepository.countTotalByAlunoAndDisciplina(alunoId, disciplinaId);
+    private Integer calcularFrequencia(Long alunoId, Long disciplinaId, int ano) {
+        var total = chamadaRepository.countTotalByAlunoAndDisciplinaNoAno(alunoId, disciplinaId, ano);
         if (total == null || total == 0) {
             return null;
         }
-        var faltas = chamadaRepository.countFaltasByAlunoAndDisciplina(alunoId, disciplinaId);
+        var faltas = chamadaRepository.countFaltasByAlunoAndDisciplinaNoAno(alunoId, disciplinaId, ano);
         faltas = faltas == null ? 0 : faltas;
         return (int) Math.round((total - faltas) * 100.0 / total);
     }

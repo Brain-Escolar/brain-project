@@ -7,8 +7,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  MenuItem,
-  Select,
   TextField,
   Typography,
   Box,
@@ -20,6 +18,7 @@ import { useCrmMutations } from "@/hooks/useCrmMutations";
 import { CadastroInteracaoRequest } from "@/services/domains/crm";
 import { FunilEstagioResponse } from "@/services/domains/crm";
 import AvisoCadastroIncompletoDialog from "./AvisoCadastroIncompletoDialog";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 const TIPOS: { value: CadastroInteracaoRequest["tipo"]; label: string }[] = [
   { value: "LIGACAO", label: "Ligação" },
@@ -98,119 +97,121 @@ export default function RegistrarInteracaoDialog({
       (maior, e) => (e.ordem > maior.ordem ? e : maior),
       estagios[0],
     )?.id;
-    if (moveuParaEstagioId !== undefined && moveuParaEstagioId === ultimoEstagioId && !cadastroCompleto) {
+    if (
+      moveuParaEstagioId !== undefined &&
+      moveuParaEstagioId === ultimoEstagioId &&
+      !cadastroCompleto
+    ) {
       setAvisoIncompleto(true);
     }
   }
 
   return (
     <>
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Registrar interação</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
-        <Typography variant="body2" color="text.secondary">
-          Contato com <strong>{responsavelNome ?? "responsável"}</strong> sobre{" "}
-          <strong>{alunoNome}</strong>.
-        </Typography>
-
-        <Box>
-          <Typography variant="caption" fontWeight={600} color="text.secondary">
-            Tipo de interação
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <DialogTitle>Registrar interação</DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Contato com <strong>{responsavelNome ?? "responsável"}</strong> sobre{" "}
+            <strong>{alunoNome}</strong>.
           </Typography>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
-            {TIPOS.map((t) => (
-              <Chip
-                key={t.value}
-                label={t.label}
-                color={tipo === t.value ? "primary" : "default"}
-                onClick={() => setTipo(t.value)}
-              />
-            ))}
+
+          <Box>
+            <Typography variant="caption" fontWeight={600} color="text.secondary">
+              Tipo de interação
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
+              {TIPOS.map((t) => (
+                <Chip
+                  key={t.value}
+                  label={t.label}
+                  color={tipo === t.value ? "primary" : "default"}
+                  onClick={() => setTipo(t.value)}
+                />
+              ))}
+            </Box>
           </Box>
-        </Box>
 
-        <Box>
-          <Typography variant="caption" fontWeight={600} color="text.secondary">
-            Resultado
-          </Typography>
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
-            {RESULTADOS.map((r) => (
-              <Chip
-                key={r}
-                label={r}
-                color={resultado === r ? "primary" : "default"}
-                onClick={() => setResultado(r)}
-              />
-            ))}
+          <Box>
+            <Typography variant="caption" fontWeight={600} color="text.secondary">
+              Resultado
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5 }}>
+              {RESULTADOS.map((r) => (
+                <Chip
+                  key={r}
+                  label={r}
+                  color={resultado === r ? "primary" : "default"}
+                  onClick={() => setResultado(r)}
+                />
+              ))}
+            </Box>
           </Box>
-        </Box>
 
-        <TextField
-          label="Observações"
-          multiline
-          minRows={3}
-          value={observacoes}
-          onChange={(e) => setObservacoes(e.target.value)}
-          placeholder="Ex.: mãe pediu para ligar depois das 18h..."
-        />
-
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
           <TextField
-            label="Próxima ação"
-            type="datetime-local"
-            value={proximaAcao}
-            onChange={(e) => setProximaAcao(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ flex: 1, minWidth: 220 }}
+            label="Observações"
+            multiline
+            minRows={3}
+            value={observacoes}
+            onChange={(e) => setObservacoes(e.target.value)}
+            placeholder="Ex.: mãe pediu para ligar depois das 18h..."
           />
-          <Select
-            value={novoEstagioId}
-            onChange={(e) => setNovoEstagioId(Number(e.target.value))}
-            sx={{ flex: 1, minWidth: 220 }}
+
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+            <TextField
+              label="Próxima ação"
+              type="datetime-local"
+              value={proximaAcao}
+              onChange={(e) => setProximaAcao(e.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              sx={{ flex: 1, minWidth: 220 }}
+            />
+            <BrainDropdownField<number>
+              size="medium"
+              label="Estágio"
+              disableClearable
+              value={novoEstagioId}
+              onChange={(v) => v !== null && setNovoEstagioId(v)}
+              options={estagios.map((e) => ({ key: e.id, value: e.nome }))}
+              sx={{ flex: 1, minWidth: 220 }}
+            />
+          </Box>
+
+          <TextField
+            label="Sub-estágio (opcional)"
+            value={subestagio}
+            onChange={(e) => setSubestagio(e.target.value)}
+            placeholder="Ex.: 2ª tentativa, docs pendentes..."
+          />
+
+          <Alert severity="info" variant="outlined">
+            A próxima ação alimenta a lista de follow-ups do dia. Mover de estágio grava entrada e
+            saída no histórico.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} disabled={registrarInteracao.isPending}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<CheckIcon />}
+            onClick={confirmar}
+            disabled={registrarInteracao.isPending}
           >
-            {estagios.map((e) => (
-              <MenuItem key={e.id} value={e.id}>
-                {e.nome}
-              </MenuItem>
-            ))}
-          </Select>
-        </Box>
+            Salvar interação
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-        <TextField
-          label="Sub-estágio (opcional)"
-          value={subestagio}
-          onChange={(e) => setSubestagio(e.target.value)}
-          placeholder="Ex.: 2ª tentativa, docs pendentes..."
-        />
-
-        <Alert severity="info" variant="outlined">
-          A próxima ação alimenta a lista de follow-ups do dia. Mover de estágio grava entrada e
-          saída no histórico.
-        </Alert>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={registrarInteracao.isPending}>
-          Cancelar
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={<CheckIcon />}
-          onClick={confirmar}
-          disabled={registrarInteracao.isPending}
-        >
-          Salvar interação
-        </Button>
-      </DialogActions>
-    </Dialog>
-
-    <AvisoCadastroIncompletoDialog
-      open={avisoIncompleto}
-      onClose={() => setAvisoIncompleto(false)}
-      alunoId={alunoId}
-      alunoNome={alunoNome}
-      dadosCompletos={dadosCompletos}
-      documentacaoCompleta={documentacaoCompleta}
-    />
+      <AvisoCadastroIncompletoDialog
+        open={avisoIncompleto}
+        onClose={() => setAvisoIncompleto(false)}
+        alunoId={alunoId}
+        alunoNome={alunoNome}
+        dadosCompletos={dadosCompletos}
+        documentacaoCompleta={documentacaoCompleta}
+      />
     </>
   );
 }

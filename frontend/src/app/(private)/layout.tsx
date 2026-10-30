@@ -7,6 +7,8 @@ import { BreadcrumbProvider } from "@/contexts/BreadcrumbContext";
 import { AlunoSelecionadoProvider } from "@/contexts/AlunoSelecionadoContext";
 import { PerfilAtivoProvider } from "@/contexts/PerfilAtivoContext";
 import GuardaDeTela from "@/components/guardaDeTela/GuardaDeTela";
+import { AnoLetivoProvider } from "@/contexts/AnoLetivoContext";
+import AvisoAnoLetivo from "@/components/seletorAnoLetivo/AvisoAnoLetivo";
 import * as S from "./styles";
 import { Container } from "@mui/material";
 
@@ -18,6 +20,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
       <S.Content>
         <Container maxWidth="lg" sx={{ py: 2 }}>
           <Breadcrumbs />
+          <AvisoAnoLetivo />
           <GuardaDeTela>{children}</GuardaDeTela>
         </Container>
       </S.Content>
@@ -41,9 +44,11 @@ export default function PrivateLayout({
         {/* PerfilAtivo vem primeiro: o AlunoSelecionado decide se busca dados
             olhando qual perfil está ativo. */}
         <PerfilAtivoProvider>
-          <AlunoSelecionadoProvider>
-            <PrivateLayoutContent>{children}</PrivateLayoutContent>
-          </AlunoSelecionadoProvider>
+          <AnoLetivoProvider>
+            <AlunoSelecionadoProvider>
+              <PrivateLayoutContent>{children}</PrivateLayoutContent>
+            </AlunoSelecionadoProvider>
+          </AnoLetivoProvider>
         </PerfilAtivoProvider>
       </BreadcrumbProvider>
     </Suspense>

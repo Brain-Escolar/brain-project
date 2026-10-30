@@ -8,6 +8,7 @@ import br.com.brain.exception.ErrosSistema;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.dadosPessoais.DadosPessoaisRepository;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.perfil.PerfilRepository;
@@ -53,6 +54,25 @@ public class AlertaService {
      * Idempotencia nao e tratada aqui: cada anexo de laudo e um evento novo e
      * merece o seu proprio alerta.
      */
+    /** Cria um alerta e o entrega a uma única pessoa, no perfil em que ela deve vê-lo. */
+    @Transactional
+    public Alerta notificarPessoa(DadosPessoais pessoa, PerfilNome perfilNome, String titulo, String conteudo) {
+        var alerta = new Alerta();
+        alerta.setTitulo(titulo);
+        alerta.setConteudo(conteudo);
+        alerta.setData(LocalDate.now());
+        alertaRepository.save(alerta);
+
+        var destinatario = new AlertaUsuario();
+        destinatario.setAlerta(alerta);
+        destinatario.setUsuario(pessoa);
+        destinatario.setPerfil(perfilRepository.findByNome(perfilNome));
+        destinatario.setLido(false);
+        alertaUsuarioRepository.save(destinatario);
+
+        return alerta;
+    }
+
     @Transactional
     public Alerta notificarPerfil(PerfilNome perfilNome, String titulo, String conteudo) {
         var alerta = new Alerta();

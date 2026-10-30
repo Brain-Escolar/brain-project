@@ -7,7 +7,7 @@ const BASE_ROUTE = "ficha-medica";
 
 export class FichaMedicaApi {
   listaTodasFichasMedicas(): Promise<IBrainResult<FichaMedicaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   criarFichaMedica(data: FichaMedicaPostRequest): Promise<FichaMedicaResponse> {

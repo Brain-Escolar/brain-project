@@ -76,6 +76,26 @@ public class SecurityConfigurations {
                             req.requestMatchers("/bolsas/configuracao/**")
                                     .hasAnyRole("DIRETOR", "ADMIN");
 
+                            // Contratos e efetivacao de matricula - acima do permitAll.
+                            // Efetivar gera cobranca: e operacao de secretaria,
+                            // nao de quem so consulta.
+                            req.requestMatchers("/contratos/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
+                            // Baixa, estorno, caixa e inadimplencia - acima do
+                            // permitAll. NAO confundir com /portal-responsavel:
+                            // la e a familia vendo a propria conta, aqui e a
+                            // escola mexendo no caixa. Prefixos separados de
+                            // proposito, para um erro de matcher nao abrir o
+                            // financeiro da escola para quem paga.
+                            //
+                            // FINANCEIRO ainda nao existe em PerfilNome; quando
+                            // existir, entra aqui -- e dia em que vale rever se
+                            // estorno continua acessivel a SECRETARIO, porque
+                            // estorno tira dinheiro de um caixa ja fechado.
+                            req.requestMatchers("/financeiro/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
                             // Bolsas - acima do permitAll para ja valer hoje.
                             // FINANCEIRO ainda nao existe em PerfilNome; quando
                             // existir, entra aqui.
@@ -116,6 +136,24 @@ public class SecurityConfigurations {
                                     .hasAnyRole("DIRETOR", "ADMIN");
                             // Permissões de quem está logado: qualquer perfil, mas com login.
                             req.requestMatchers("/permissoes/me").authenticated();
+
+                            // Cadastro de secretarios - acima do permitAll para ja valer hoje.
+                            // Criar secretario gera login com acesso a dados de
+                            // alunos: e decisao de direcao.
+                            req.requestMatchers("/secretario/**")
+                                    .hasAnyRole("DIRETOR", "ADMIN");
+
+                            // Telas da Direcao - acima do permitAll para ja valer hoje.
+                            // Desempenho e comportamento da escola inteira.
+                            req.requestMatchers("/diretor/**")
+                                    .hasAnyRole("DIRETOR", "ADMIN");
+
+                            // Anos letivos - acima do permitAll. Todo mundo logado
+                            // le (o seletor de ano esta em todas as telas);
+                            // abrir, encerrar e mexer no calendario e da Direcao.
+                            req.requestMatchers(HttpMethod.GET, "/anos-letivos/**").authenticated();
+                            req.requestMatchers("/anos-letivos/**")
+                                    .hasAnyRole("DIRETOR", "ADMIN");
 
                             // Remover depois
                             req.requestMatchers("/**").permitAll();

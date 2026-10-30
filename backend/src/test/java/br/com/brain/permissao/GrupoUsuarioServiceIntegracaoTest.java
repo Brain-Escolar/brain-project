@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * O que depende de SQL de verdade: o seed da V111, as consultas de membros e
+ * O que depende de SQL de verdade: o seed da V117, as consultas de membros e
  * candidatos (join com o login, nome social) e a exclusão com vínculos.
  * Cada teste roda numa transação desfeita no fim.
  */

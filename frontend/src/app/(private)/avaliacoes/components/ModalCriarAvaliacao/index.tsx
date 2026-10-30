@@ -321,8 +321,8 @@ export default function ModalCriarAvaliacao({ open, onClose }: ModalCriarAvaliac
             ))}
             {mesmaDataParaTodas && turmasSelecionadas.length > 1 && (
               <Typography variant="caption" color="text.secondary">
-                A data preenchida numa turma é replicada para as demais. Desligue a opção acima
-                para ajustar cada turma individualmente.
+                A data preenchida numa turma é replicada para as demais. Desligue a opção acima para
+                ajustar cada turma individualmente.
               </Typography>
             )}
           </Box>

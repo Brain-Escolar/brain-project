@@ -7,9 +7,7 @@ import {
   Button,
   Chip,
   Divider,
-  MenuItem,
   Paper,
-  Select,
   Skeleton,
   Slider,
   Stack,
@@ -24,6 +22,7 @@ import { useBolsaTeto, useConcessoesDaSimulacao, useTiposBolsa } from "@/hooks/u
 import { useBolsaMutations } from "@/hooks/useBolsaMutations";
 import { useSimulacoesDoProcesso } from "@/hooks/useSimulacoes";
 import { LimiteAtingido, TetoConcessaoResponse } from "@/services/domains/bolsa";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -32,7 +31,9 @@ function moeda(valor: number | null | undefined): string {
 }
 
 function pct(valor: number | null | undefined): string {
-  return valor == null ? "–" : `${Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
+  return valor == null
+    ? "–"
+    : `${Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`;
 }
 
 interface Props {
@@ -52,7 +53,8 @@ interface Props {
 export default function BlocoBolsaLead({ processoMatriculaId, alunoId, anoLetivo }: Props) {
   const { tipos, loading: carregandoTipos } = useTiposBolsa();
   const { aluno, loading: carregandoAluno } = useAluno(String(alunoId));
-  const { simulacoes, loading: carregandoSimulacoes } = useSimulacoesDoProcesso(processoMatriculaId);
+  const { simulacoes, loading: carregandoSimulacoes } =
+    useSimulacoesDoProcesso(processoMatriculaId);
   const { criarSimulacao, reservar, liberar } = useBolsaMutations(processoMatriculaId);
 
   const [tipoBolsaId, setTipoBolsaId] = useState<number | "">("");
@@ -192,29 +194,21 @@ export default function BlocoBolsaLead({ processoMatriculaId, alunoId, anoLetivo
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.75 }}>
               Tipo de bolsa
             </Typography>
-            <Select<number | "">
-              fullWidth
-              size="small"
-              displayEmpty
+            <BrainDropdownField<number>
+              placeholder="Selecione para ver quanto pode conceder"
               value={tipoBolsaId}
               disabled={carregandoTipos}
-              onChange={(e) => {
-                const escolhido = e.target.value;
-                setTipoBolsaId(escolhido === "" ? "" : Number(escolhido));
+              onChange={(v) => {
+                setTipoBolsaId(v ?? "");
                 // Zera o percentual: o teto do tipo anterior nao vale para o novo.
                 setPercentual(0);
               }}
-            >
-              <MenuItem value="">
-                <em>Selecione para ver quanto pode conceder</em>
-              </MenuItem>
-              {tipos.map((t) => (
-                <MenuItem key={t.id} value={t.id} disabled={t.produtoIds.length === 0}>
-                  {t.nome}
-                  {t.produtoIds.length === 0 && " — sem produto configurado"}
-                </MenuItem>
-              ))}
-            </Select>
+              options={tipos.map((t) => ({
+                key: t.id,
+                value: t.produtoIds.length === 0 ? `${t.nome} — sem produto configurado` : t.nome,
+                disabled: t.produtoIds.length === 0,
+              }))}
+            />
           </Box>
 
           {erroTeto && (
@@ -293,7 +287,11 @@ export default function BlocoBolsaLead({ processoMatriculaId, alunoId, anoLetivo
                     {reservar.isPending ? "Concedendo..." : `Conceder ${pct(percentual)}`}
                   </Button>
 
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mt: 1, display: "block" }}
+                  >
                     A concessão segura orçamento por 15 dias. Se o lead não fechar, o valor volta
                     automaticamente para o bolo.
                   </Typography>
@@ -447,34 +445,20 @@ function ProponhaPrimeiro({
         valores vêm do catálogo, não são digitados.
       </Typography>
       <Stack direction="row" spacing={2}>
-        <TextField
-          select
-          fullWidth
-          size="small"
+        <BrainDropdownField<number>
           label="Parcelas"
+          disableClearable
           value={qtdParcelas}
-          onChange={(e) => onQtdParcelas(Number(e.target.value))}
-        >
-          {[12, 11, 10, 6, 1].map((n) => (
-            <MenuItem key={n} value={n}>
-              {n}x
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          fullWidth
-          size="small"
+          onChange={(v) => v !== null && onQtdParcelas(v)}
+          options={[12, 11, 10, 6, 1].map((n) => ({ key: n, value: `${n}x` }))}
+        />
+        <BrainDropdownField<number>
           label="Vencimento"
+          disableClearable
           value={diaVencimento}
-          onChange={(e) => onDiaVencimento(Number(e.target.value))}
-        >
-          {[5, 10, 15, 20, 25].map((d) => (
-            <MenuItem key={d} value={d}>
-              dia {d}
-            </MenuItem>
-          ))}
-        </TextField>
+          onChange={(v) => v !== null && onDiaVencimento(v)}
+          options={[5, 10, 15, 20, 25].map((d) => ({ key: d, value: `dia ${d}` }))}
+        />
       </Stack>
       <Button variant="contained" onClick={onGerar} disabled={gerando}>
         {gerando ? "Gerando..." : "Gerar proposta"}

@@ -12,7 +12,6 @@ import { PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 export function iconeDaTela(codigo: string, perfil: PerfilNomeEnum): ReactElement {
   const rota = RoutesEnum[codigo as keyof typeof RoutesEnum];
   const entradas = ROUTES.filter((entrada) => entrada.router === rota);
-  // O DIRETOR já aparece nas entradas do ADMIN (herança no routesConfig).
   const doPerfil = entradas.find((entrada) =>
     entrada.roles.some((role) => (role as string) === perfil),
   );

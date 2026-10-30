@@ -18,11 +18,9 @@ import {
   FormControlLabel,
   InputAdornment,
   LinearProgress,
-  MenuItem,
   Paper,
   Radio,
   RadioGroup,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -49,6 +47,7 @@ import { TurmaListaResponse } from "@/services/domains/turma/response";
 import { alunoApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { iniciais } from "@/utils/utils";
+import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 type View = "porAluno" | "porTurma";
 type Situacao = "Todos" | "Sem turma" | "Enturmado";
@@ -121,7 +120,10 @@ export default function EnturmacaoPage() {
 
   const kpiSemTurma = alunos.filter((a) => !a.turmaId).length;
   const kpiEnturmados = alunos.filter((a) => !!a.turmaId).length;
-  const kpiVagas = turmas.reduce((acc, t) => acc + Math.max(0, (t.vagas ?? 0) - (t.ocupadas ?? 0)), 0);
+  const kpiVagas = turmas.reduce(
+    (acc, t) => acc + Math.max(0, (t.vagas ?? 0) - (t.ocupadas ?? 0)),
+    0,
+  );
 
   const alunosFiltrados = useMemo(() => {
     const q = busca.trim().toLowerCase();
@@ -152,7 +154,9 @@ export default function EnturmacaoPage() {
   // Só turmas da mesma série + unidade do aluno podem recebê-lo (regra M4/T4).
   const turmasDoAluno = useMemo(() => {
     if (!ctxAluno) return [];
-    return turmas.filter((t) => t.serieId === ctxAluno.serieId && t.unidadeId === ctxAluno.unidadeId);
+    return turmas.filter(
+      (t) => t.serieId === ctxAluno.serieId && t.unidadeId === ctxAluno.unidadeId,
+    );
   }, [turmas, ctxAluno]);
 
   const loading = loadingAlunos || loadingTurmas;
@@ -162,7 +166,14 @@ export default function EnturmacaoPage() {
       title="Enturmação"
       description="Enturme alunos matriculados, altere a turma de quem já está alocado e acompanhe a ocupação."
     >
-      <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" }, gap: 2, mb: 3 }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <KpiCard label="Aguardando enturmação" value={kpiSemTurma} color="warning.main" />
         <KpiCard label="Alunos enturmados" value={kpiEnturmados} />
         <KpiCard label="Vagas disponíveis" value={kpiVagas} color="primary.main" />
@@ -203,23 +214,27 @@ export default function EnturmacaoPage() {
                 },
               }}
             />
-            <Select size="small" value={filtroSerie} onChange={(e) => setFiltroSerie(e.target.value)}>
-              <MenuItem value="Todas">Todas as séries</MenuItem>
-              {series.map((s) => (
-                <MenuItem key={s.id} value={s.nome}>
-                  {s.nome}
-                </MenuItem>
-              ))}
-            </Select>
-            <Select
-              size="small"
+            <BrainDropdownField
+              label="Série"
+              fullWidth={false}
+              value={filtroSerie}
+              onChange={(v) => setFiltroSerie(v ?? "Todas")}
+              options={[
+                { key: "Todas", value: "Todas as séries" },
+                ...series.map((s) => ({ key: s.nome, value: s.nome })),
+              ]}
+            />
+            <BrainDropdownField<Situacao>
+              label="Situação"
+              fullWidth={false}
               value={filtroSituacao}
-              onChange={(e) => setFiltroSituacao(e.target.value as Situacao)}
-            >
-              <MenuItem value="Todos">Todas as situações</MenuItem>
-              <MenuItem value="Sem turma">Sem turma</MenuItem>
-              <MenuItem value="Enturmado">Enturmados</MenuItem>
-            </Select>
+              onChange={(v) => setFiltroSituacao(v ?? "Todos")}
+              options={[
+                { key: "Todos", value: "Todas as situações" },
+                { key: "Sem turma", value: "Sem turma" },
+                { key: "Enturmado", value: "Enturmados" },
+              ]}
+            />
           </Box>
 
           <AlunosView
@@ -315,34 +330,36 @@ export default function EnturmacaoPage() {
                 },
               }}
             />
-            <Select size="small" value={filtroSerieTurma} onChange={(e) => setFiltroSerieTurma(e.target.value)}>
-              <MenuItem value="Todas">Todas as séries</MenuItem>
-              {series.map((s) => (
-                <MenuItem key={s.id} value={s.nome}>
-                  {s.nome}
-                </MenuItem>
-              ))}
-            </Select>
-            <Select
-              size="small"
+            <BrainDropdownField
+              label="Série"
+              fullWidth={false}
+              value={filtroSerieTurma}
+              onChange={(v) => setFiltroSerieTurma(v ?? "Todas")}
+              options={[
+                { key: "Todas", value: "Todas as séries" },
+                ...series.map((s) => ({ key: s.nome, value: s.nome })),
+              ]}
+            />
+            <BrainDropdownField
+              label="Unidade"
+              fullWidth={false}
               value={filtroUnidadeTurma}
-              onChange={(e) => setFiltroUnidadeTurma(e.target.value)}
-            >
-              <MenuItem value="Todas">Todas as unidades</MenuItem>
-              {unidades.map((u) => (
-                <MenuItem key={u.id} value={u.nome}>
-                  {u.nome}
-                </MenuItem>
-              ))}
-            </Select>
-            <Select size="small" value={filtroTurno} onChange={(e) => setFiltroTurno(e.target.value)}>
-              <MenuItem value="Todos">Todos os turnos</MenuItem>
-              {turnos.map((t) => (
-                <MenuItem key={t} value={t}>
-                  {t}
-                </MenuItem>
-              ))}
-            </Select>
+              onChange={(v) => setFiltroUnidadeTurma(v ?? "Todas")}
+              options={[
+                { key: "Todas", value: "Todas as unidades" },
+                ...unidades.map((u) => ({ key: u.nome, value: u.nome })),
+              ]}
+            />
+            <BrainDropdownField
+              label="Turno"
+              fullWidth={false}
+              value={filtroTurno}
+              onChange={(v) => setFiltroTurno(v ?? "Todos")}
+              options={[
+                { key: "Todos", value: "Todos os turnos" },
+                ...turnos.map((t) => ({ key: t, value: t })),
+              ]}
+            />
           </Box>
 
           <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
@@ -375,7 +392,9 @@ export default function EnturmacaoPage() {
                         key={turma.id}
                         hover
                         sx={{ cursor: "pointer" }}
-                        onClick={() => router.push(`${RoutesEnum.SECRETARIA_TURMA_GERENCIAR}/${turma.id}`)}
+                        onClick={() =>
+                          router.push(`${RoutesEnum.SECRETARIA_TURMA_GERENCIAR}/${turma.id}`)
+                        }
                       >
                         <TableCell>
                           <Typography variant="body2" fontWeight={600}>
@@ -414,7 +433,9 @@ export default function EnturmacaoPage() {
                           <Button
                             size="small"
                             startIcon={<GroupsIcon fontSize="small" />}
-                            onClick={() => router.push(`${RoutesEnum.SECRETARIA_TURMA_GERENCIAR}/${turma.id}`)}
+                            onClick={() =>
+                              router.push(`${RoutesEnum.SECRETARIA_TURMA_GERENCIAR}/${turma.id}`)
+                            }
                           >
                             Gerenciar alunos
                           </Button>
@@ -463,7 +484,14 @@ export default function EnturmacaoPage() {
                       py: 0.5,
                     }}
                     label={
-                      <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%", gap: 2 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          width: "100%",
+                          gap: 2,
+                        }}
+                      >
                         <span>
                           {t.nome}
                           {isAtual ? " (atual)" : ""} — {t.turno}

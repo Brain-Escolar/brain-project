@@ -8,6 +8,10 @@ export enum RouteLabelsEnum {
   PROFESSORES = "Professores",
   PROFESSOR = "Professor",
 
+  // Secretario labels
+  SECRETARIOS = "Secretários",
+  SECRETARIO = "Secretário",
+
   // Aluno labels
   ALUNOS = "Alunos",
   ALUNO = "Aluno",
@@ -75,6 +79,11 @@ export enum RouteLabelsEnum {
   MINHAS_TURMAS = "Minhas turmas",
   CALENDARIO = "Calendário",
   RELATORIOS = "Relatórios",
+  INICIO = "Início",
+  ACOMPANHAMENTO_TURMA = "Acompanhamento por turma",
+  CALENDARIO_ACADEMICO = "Calendário acadêmico",
+  ACOMPANHAMENTO_PROFESSOR = "Acompanhamento do professor",
+  ANO_LETIVO = "Ano letivo",
   AVALIACOES = "Avaliações",
   CONTRACHEQUE = "Contracheque e declarações",
   MATERIAIS_COMPLEMENTARES = "Materiais complementares",
@@ -97,6 +106,7 @@ export enum RouteLabelsEnum {
   SECRETARIA_CRM = "CRM",
   SECRETARIA_ENTURMACAO = "Enturmação",
   SECRETARIA_TURMA_GERENCIAR = "Gerenciar alunos da turma",
+  SECRETARIA_FINANCEIRO = "Financeiro da escola",
 
   // Responsavel labels
   OCORRENCIAS = "Ocorrências",

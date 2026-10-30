@@ -10,12 +10,14 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 /**
  * Período letivo configurável por ano (bimestre, trimestre, semestre, anual, ...).
- * O intervalo [dataInicio, dataFim] é usado para alocar cada nota
- * (via {@code periodo_referencia}) e cada chamada ao período correto nos relatórios.
+ * Cada avaliação de turma aponta para o seu período; o intervalo
+ * [dataInicio, dataFim] aloca as chamadas e a data de referência das notas.
+ * Fechado ({@code fechadoEm} preenchido), não aceita mais nota nem chamada.
  */
 @Entity
 @Table(name = "periodos_letivos")
@@ -39,6 +41,25 @@ public class PeriodoLetivo extends EntidadeBase {
 
     @Column(name = "data_fim")
     private LocalDate dataFim;
+
+    @Column(name = "fechado_em")
+    private Instant fechadoEm;
+
+    public boolean isFechado() {
+        return fechadoEm != null;
+    }
+
+    /**
+     * A data informada trazida para dentro do período: a de referência de uma
+     * nota que conta para este período, mesmo que a prova tenha sido aplicada
+     * fora dele (recuperação).
+     */
+    public LocalDate trazerParaDentro(LocalDate data) {
+        if (data == null || data.isBefore(dataInicio)) {
+            return dataInicio;
+        }
+        return data.isAfter(dataFim) ? dataFim : data;
+    }
 
     /** Indica se a data informada cai dentro deste período (limites inclusivos). */
     public boolean contem(LocalDate data) {

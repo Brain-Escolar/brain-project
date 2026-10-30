@@ -4,6 +4,9 @@ import br.com.brain.serie.Serie;
 import br.com.brain.unidade.Unidade;
 import br.com.brain.aluno.AlunoRepository;
 import br.com.brain.aluno.dto.ListagemAlunoDto;
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
+import br.com.brain.matricula.EnturmacaoService;
+import br.com.brain.matricula.MatriculaRepository;
 import br.com.brain.turma.dto.AtualizacaoTurmaDto;
 import br.com.brain.turma.dto.CadastroTurmaDto;
 import br.com.brain.turma.dto.ListagemTurmaDto;
@@ -25,12 +28,17 @@ public class TurmaService {
 
     private final TurmaRepository repository;
     private final AlunoRepository alunoRepository;
+    private final AnoLetivoService anoLetivoService;
+    private final MatriculaRepository matriculaRepository;
+    private final EnturmacaoService enturmacaoService;
 
     @PersistenceContext
     private EntityManager em;
 
     @Transactional
     public Turma cadastrarTurma(CadastroTurmaDto dados) {
+
+        anoLetivoService.garantir(dados.anoLetivo());
 
         Serie serie = em.find(Serie.class, dados.serieId());
         Unidade unidade = em.find(Unidade.class, dados.unidadeId());
@@ -49,12 +57,14 @@ public class TurmaService {
         return turma;
     }
 
-    public Page<ListagemTurmaDto> listar(Pageable paginacao) {
-        return repository.findAll(paginacao).map(this::toListagemDto);
+    /** Turmas de um ano letivo; sem ano, as do ano em contexto (seletor) ou corrente. */
+    public Page<ListagemTurmaDto> listar(Integer anoLetivo, Pageable paginacao) {
+        int ano = anoLetivo != null ? anoLetivo : anoLetivoService.anoEmContexto();
+        return repository.findByAnoLetivo(ano, paginacao).map(this::toListagemDto);
     }
 
     public ListagemTurmaDto toListagemDto(Turma turma) {
-        int ocupadas = (int) alunoRepository.countByTurmaIdAndMatriculadoTrue(turma.getId());
+        int ocupadas = (int) matriculaRepository.countAlunosDaTurma(turma.getId());
         return new ListagemTurmaDto(turma, ocupadas);
     }
 
@@ -64,6 +74,7 @@ public class TurmaService {
                 .findById(id)
                 .orElseThrow(
                         () -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", id));
+        anoLetivoService.exigirEditavel(turma.getAnoLetivo());
 
         if (dados.nome() != null) {
             turma.setNome(dados.nome());
@@ -95,7 +106,7 @@ public class TurmaService {
         var turma = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", id));
-        return turma.getAlunos().stream().map(ListagemAlunoDto::new).toList();
+        return matriculaRepository.findAlunosDaTurma(turma.getId()).stream().map(ListagemAlunoDto::new).toList();
     }
 
     @Transactional
@@ -104,7 +115,7 @@ public class TurmaService {
                 .findById(turmaId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", turmaId));
 
-        int ocupadas = (int) alunoRepository.countByTurmaIdAndMatriculadoTrue(turmaId);
+        int ocupadas = (int) matriculaRepository.countAlunosDaTurma(turmaId);
         if (ocupadas + alunoIds.size() > turma.getVagas()) {
             throw ErrosSistema.OperacaoInvalidaException
                     .com("Turma não tem vagas suficientes para " + alunoIds.size() + " aluno(s).");
@@ -114,7 +125,7 @@ public class TurmaService {
             var aluno = alunoRepository
                     .findById(alunoId)
                     .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
-            aluno.setTurma(turma);
+            enturmacaoService.enturmar(aluno, turma);
             alunoRepository.save(aluno);
         }
     }
@@ -125,11 +136,16 @@ public class TurmaService {
                 .findById(alunoId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", alunoId));
 
-        if (aluno.getTurma() == null || !aluno.getTurma().getId().equals(turmaId)) {
+        var turma = repository
+                .findById(turmaId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Turma", turmaId));
+        boolean naTurma = matriculaRepository.findAlunosDaTurma(turmaId).stream()
+                .anyMatch(a -> a.getId().equals(alunoId));
+        if (!naTurma) {
             throw ErrosSistema.OperacaoInvalidaException.com("Aluno não pertence a esta turma.");
         }
 
-        aluno.setTurma(null);
+        enturmacaoService.desenturmar(aluno, turma);
         alunoRepository.save(aluno);
     }
 }

@@ -1,5 +1,6 @@
 package br.com.brain.materialComplementar;
 
+import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.arquivo.Arquivo;
 import br.com.brain.arquivo.ArquivoRepository;
 import br.com.brain.aula.AulaRepository;
@@ -28,6 +29,7 @@ public class MaterialComplementarService {
 
     private final MaterialComplementarRepository repository;
     private final AulaRepository aulaRepository;
+    private final AnoLetivoService anoLetivoService;
     private final ArquivoRepository arquivoRepository;
     private final S3Service s3Service;
 
@@ -37,7 +39,8 @@ public class MaterialComplementarService {
     @Transactional
     public MaterialComplementar cadastrar(CadastroMaterialComplementarDto dados, MultipartFile arquivo,
             Professor professor) {
-        if (!aulaRepository.existsByProfessorIdAndDisciplinaId(professor.getId(), dados.disciplinaId())) {
+        if (!aulaRepository.existsByProfessorIdAndDisciplinaIdAndTurmaAnoLetivo(
+                professor.getId(), dados.disciplinaId(), anoLetivoService.anoCorrente())) {
             throw ErrosSistema.OperacaoInvalidaException
                     .com("Você não leciona essa disciplina.");
         }

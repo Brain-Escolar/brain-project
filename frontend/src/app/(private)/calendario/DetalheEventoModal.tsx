@@ -26,8 +26,10 @@ interface DetalheEventoModalProps {
   evento: EventoResponse | null;
   onClose: () => void;
   onEditar: (evento: EventoResponse) => void;
-  /** Quando true, oculta as ações de Editar/Excluir (ex.: eventos de avaliação para a Secretaria). */
+  /** Quando true, oculta as ações de Editar/Excluir (quem não gerencia eventos, ou evento de avaliação para a Secretaria). */
   somenteLeitura?: boolean;
+  /** Explicação exibida no rodapé quando o modal está em somente leitura. Sem ela, o rodapé some. */
+  avisoSomenteLeitura?: string;
 }
 
 export default function DetalheEventoModal({
@@ -36,6 +38,7 @@ export default function DetalheEventoModal({
   onClose,
   onEditar,
   somenteLeitura = false,
+  avisoSomenteLeitura,
 }: DetalheEventoModalProps) {
   const { excluirEvento } = useEventoMutations();
   const [confirmandoExclusao, setConfirmandoExclusao] = useState(false);
@@ -124,30 +127,32 @@ export default function DetalheEventoModal({
           )}
         </DialogContent>
 
-        <DialogActions
-          sx={{ px: 3, pt: 2, pb: 2.75, gap: 1.25, borderTop: `1px solid ${cssVarColor("borderSubtle")}` }}
-        >
-          {somenteLeitura ? (
-            <Typography sx={{ fontSize: cssVarFontSize("small"), color: cssVarColor("textSecondary"), mr: "auto" }}>
-              Gerado pelo fluxo de avaliação — somente leitura.
-            </Typography>
-          ) : (
-            <>
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteOutline />}
-                onClick={() => setConfirmandoExclusao(true)}
-                sx={{ mr: "auto" }}
-              >
-                Excluir
-              </Button>
-              <Button variant="contained" startIcon={<EditOutlined />} onClick={() => onEditar(evento)}>
-                Editar
-              </Button>
-            </>
-          )}
-        </DialogActions>
+        {(!somenteLeitura || avisoSomenteLeitura) && (
+          <DialogActions
+            sx={{ px: 3, pt: 2, pb: 2.75, gap: 1.25, borderTop: `1px solid ${cssVarColor("borderSubtle")}` }}
+          >
+            {somenteLeitura ? (
+              <Typography sx={{ fontSize: cssVarFontSize("small"), color: cssVarColor("textSecondary"), mr: "auto" }}>
+                {avisoSomenteLeitura}
+              </Typography>
+            ) : (
+              <>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<DeleteOutline />}
+                  onClick={() => setConfirmandoExclusao(true)}
+                  sx={{ mr: "auto" }}
+                >
+                  Excluir
+                </Button>
+                <Button variant="contained" startIcon={<EditOutlined />} onClick={() => onEditar(evento)}>
+                  Editar
+                </Button>
+              </>
+            )}
+          </DialogActions>
+        )}
       </Dialog>
 
       <Dialog open={confirmandoExclusao} onClose={() => setConfirmandoExclusao(false)} maxWidth="xs" fullWidth>

@@ -9,6 +9,10 @@ export enum RoutesEnum {
   PROFESSOR_LISTA = "/professor/lista",
   PROFESSOR_CADASTRO = "/professor/cadastro",
 
+  // Secretario routes
+  SECRETARIO_LISTA = "/secretario/lista",
+  SECRETARIO_CADASTRO = "/secretario/cadastro",
+
   // Aluno routes
   ALUNO_LISTA = "/aluno/lista",
   ALUNO_CADASTRO = "/aluno/cadastro",
@@ -82,6 +86,10 @@ export enum RoutesEnum {
   MINHAS_TURMAS_DETALHE = "/minhas-turmas/detalhe",
   CALENDARIO = "/calendario",
   RELATORIOS = "/relatorios",
+  RELATORIO_ACOMPANHAMENTO_TURMA = "/relatorios/acompanhamento-turma",
+  GESTAO_PROFESSORES = "/gestao-escolar/professores",
+  GESTAO_PROFESSOR_DETALHE = "/gestao-escolar/professores/detalhe",
+  GESTAO_ANO_LETIVO = "/gestao-escolar/ano-letivo",
   AVALIACOES = "/avaliacoes",
   DIARIO = "/diario",
   CONTRACHEQUE = "/contracheque",
@@ -103,6 +111,9 @@ export enum RoutesEnum {
   SECRETARIA_ENTURMACAO = "/secretaria/enturmacao",
   SECRETARIA_TURMA_GERENCIAR = "/secretaria/turmas",
   SECRETARIA_DOCUMENTOS = "/secretaria/documentos",
+  // Nao confundir com FINANCEIRO, logo abaixo: aquela e a tela da familia
+  // vendo a propria conta; esta e a escola cobrando e recebendo.
+  SECRETARIA_FINANCEIRO = "/secretaria/financeiro",
 
   // Orientacao routes
   ORIENTACAO_ALUNOS = "/orientacao/alunos",

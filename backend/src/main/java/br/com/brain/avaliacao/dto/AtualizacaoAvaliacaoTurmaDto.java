@@ -5,5 +5,7 @@ import java.time.LocalDate;
 public record AtualizacaoAvaliacaoTurmaDto(
         Long professorId,
         LocalDate dataAplicacao,
-        LocalDate dataEntregaNotas) {
+        LocalDate dataEntregaNotas,
+        /** Opcional: sem ele, o período que contém a data de aplicação. */
+        Long periodoLetivoId) {
 }

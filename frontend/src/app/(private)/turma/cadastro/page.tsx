@@ -194,8 +194,7 @@ function TurmaPageContent() {
   }, [gradesCurriculares, gradeSearch]);
 
   const serieName = seriesOptions.find((s) => s.key === watchSerieId)?.value || "—";
-  const turnoLabel =
-    TURNO_OPTIONS.find((t) => t.key === watchTurno)?.label || "—";
+  const turnoLabel = TURNO_OPTIONS.find((t) => t.key === watchTurno)?.label || "—";
   const unidadeName = unidadesOptions.find((u) => u.key === watchUnidadeId)?.value || "—";
 
   return (
@@ -225,16 +224,25 @@ function TurmaPageContent() {
         </Alert>
       ) : (
         <>
-
           {/* Dialog Importar Modelo */}
-          <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} maxWidth="sm" fullWidth>
+          <Dialog
+            open={importDialogOpen}
+            onClose={() => setImportDialogOpen(false)}
+            maxWidth="sm"
+            fullWidth
+          >
             <DialogTitle>Importar Modelo de Turma</DialogTitle>
             <DialogContent dividers>
               <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                Selecione uma turma para importar as configurações (sem alunos). O nome será apagado para você definir um novo.
+                Selecione uma turma para importar as configurações (sem alunos). O nome será apagado
+                para você definir um novo.
               </Typography>
               {turmas.length === 0 ? (
-                <Typography variant="body2" color="textSecondary" sx={{ textAlign: "center", py: 2 }}>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{ textAlign: "center", py: 2 }}
+                >
                   Nenhuma turma disponível para importar.
                 </Typography>
               ) : (
@@ -273,10 +281,7 @@ function TurmaPageContent() {
               {/* Coluna Principal */}
               <div>
                 {/* Seção Identificação da Turma */}
-                <ContainerSection
-                  title="Identificação da Turma"
-                  numberOfCollumns={2}
-                >
+                <ContainerSection title="Identificação da Turma" numberOfCollumns={2}>
                   <BrainTextFieldControlled
                     name="nome"
                     control={control}
@@ -308,10 +313,7 @@ function TurmaPageContent() {
                     control={control}
                     render={({ field, fieldState: { error } }) => (
                       <Box>
-                        <Typography
-                          variant="body2"
-                          sx={{ mb: 1, fontWeight: 500 }}
-                        >
+                        <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
                           Turno <span style={{ color: "#ef4444" }}>*</span>
                         </Typography>
                         <S.TurnoGroup>
@@ -341,10 +343,7 @@ function TurmaPageContent() {
                 </ContainerSection>
 
                 {/* Seção Unidade e Capacidade */}
-                <ContainerSection
-                  title="Unidade e Capacidade"
-                  numberOfCollumns={2}
-                >
+                <ContainerSection title="Unidade e Capacidade" numberOfCollumns={2}>
                   <BrainDropdownControlled
                     name="unidadeId"
                     control={control}
@@ -381,10 +380,7 @@ function TurmaPageContent() {
                 </ContainerSection>
 
                 {/* Seção Grade Curricular */}
-                <ContainerSection
-                  title="Grade Curricular"
-                  numberOfCollumns={1}
-                >
+                <ContainerSection title="Grade Curricular" numberOfCollumns={1}>
                   <Box>
                     <TextField
                       fullWidth
@@ -419,11 +415,7 @@ function TurmaPageContent() {
                         >
                           {filteredGrades.length === 0 ? (
                             <Box sx={{ py: 3, textAlign: "center" }}>
-                              <Typography
-                                variant="body2"
-                                color="textSecondary"
-                                sx={{ mb: 1 }}
-                              >
+                              <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
                                 Nenhuma grade curricular encontrada.
                               </Typography>
                               {gradesCurriculares.length === 0 && (
@@ -442,9 +434,7 @@ function TurmaPageContent() {
                               <S.GradeCard
                                 key={grade.id}
                                 $active={field.value === String(grade.id)}
-                                onClick={() =>
-                                  field.onChange(String(grade.id))
-                                }
+                                onClick={() => field.onChange(String(grade.id))}
                               >
                                 <div className="grade-info">
                                   <span className="grade-nome">
@@ -470,9 +460,7 @@ function TurmaPageContent() {
                                     {grade.quantidadeDisciplinas} disciplinas
                                   </span>
                                 </div>
-                                <span className="grade-versao">
-                                  v{grade.versao}
-                                </span>
+                                <span className="grade-versao">v{grade.versao}</span>
                               </S.GradeCard>
                             ))
                           )}
@@ -515,9 +503,7 @@ function TurmaPageContent() {
                     </span>
                   </div>
                   <div className="ocupacao-label">
-                    {watchVagasTotais
-                      ? "Defina o número de vagas"
-                      : "Defina o número de vagas"}
+                    {watchVagasTotais ? "Defina o número de vagas" : "Defina o número de vagas"}
                   </div>
                 </S.OcupacaoContainer>
 
@@ -530,9 +516,7 @@ function TurmaPageContent() {
                 </S.ResumoItem>
                 <S.ResumoItem>
                   <span className="resumo-label">Ano Letivo</span>
-                  <span className="resumo-value">
-                    {watchAnoLetivo || "—"}
-                  </span>
+                  <span className="resumo-value">{watchAnoLetivo || "—"}</span>
                 </S.ResumoItem>
                 <S.ResumoItem>
                   <span className="resumo-label">Série</span>
@@ -555,9 +539,7 @@ function TurmaPageContent() {
                     {selectedGradeDetail.disciplinas.map((disc) => (
                       <S.ResumoItem key={disc.id}>
                         <span className="resumo-label">{disc.nome}</span>
-                        <span className="resumo-value">
-                          {disc.cargaHorariaSemanal} hora/aula
-                        </span>
+                        <span className="resumo-value">{disc.cargaHorariaSemanal} hora/aula</span>
                       </S.ResumoItem>
                     ))}
                   </>
@@ -575,28 +557,18 @@ function TurmaPageContent() {
                 flexWrap: "wrap",
               }}
             >
-              <BrainButtonSecondary onClick={handleCancel}>
-                Cancelar
-              </BrainButtonSecondary>
+              <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
 
               <BrainButtonSecondary
                 onClick={handleSubmit((data) => handleSaveAndAddAlunos(data))}
-                disabled={
-                  isSubmitting ||
-                  createTurma.isPending ||
-                  updateTurma.isPending
-                }
+                disabled={isSubmitting || createTurma.isPending || updateTurma.isPending}
               >
                 Salvar e Adicionar Alunos
               </BrainButtonSecondary>
 
               <BrainButtonPrimary
                 onClick={handleSubmit((data) => handleSaveAndDefineHorarios(data))}
-                disabled={
-                  isSubmitting ||
-                  createTurma.isPending ||
-                  updateTurma.isPending
-                }
+                disabled={isSubmitting || createTurma.isPending || updateTurma.isPending}
               >
                 {createTurma.isPending || updateTurma.isPending
                   ? "Salvando..."

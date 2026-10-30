@@ -11,7 +11,7 @@ export class UnidadeApi {
   }
 
   getListaUnidades(): Promise<IBrainResult<UnidadeResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getUnidadeById(id: string): Promise<UnidadeResponse> {

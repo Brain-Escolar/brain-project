@@ -11,6 +11,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+/**
+ * {@code turma}, {@code serie} e {@code unidade} de Aluno são o cache da
+ * matrícula do ano corrente. Lista de alunos de uma turma sai de
+ * {@link br.com.brain.matricula.MatriculaRepository#findAlunosDaTurma(Long)},
+ * que vale também para turmas de anos passados.
+ */
 public interface AlunoRepository extends JpaRepository<Aluno, Long>, JpaSpecificationExecutor<Aluno> {
 
     Optional<Aluno> findByDadosPessoaisId(Long dadosPessoaisId);
@@ -23,10 +29,6 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long>, JpaSpecific
             AND aluno.dadosPessoais.matricula = :matricula
             """)
     List<Aula> gerarGradeHoraria(@Param("matricula") String matricula);
-
-    List<Aluno> findByUnidadeIdAndSerieIdAndTurmaIdAndMatriculadoTrueOrderByDadosPessoaisNomeAsc(Long unidadeId, Long serieId, Long turmaId);
-
-    long countByTurmaIdAndMatriculadoTrue(Long turmaId);
 
     long countByMatriculadoTrue();
 
@@ -61,6 +63,4 @@ public interface AlunoRepository extends JpaRepository<Aluno, Long>, JpaSpecific
             @Param("serieId") Long serieId,
             @Param("turmaId") Long turmaId,
             Pageable pageable);
-
-    List<Aluno> findByTurmaIdAndMatriculadoTrue(Long turmaId);
 }

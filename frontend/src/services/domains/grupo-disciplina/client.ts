@@ -11,7 +11,7 @@ export class GrupoDisciplinaApi {
   }
 
   getListaGruposDisciplina(): Promise<IBrainResult<GrupoDisciplinaListaResponse>> {
-    return httpClient.get(`${BASE_ROUTE}`);
+    return httpClient.get(`${BASE_ROUTE}`, { params: { size: 500 } });
   }
 
   getGrupoDisciplinaById(id: string): Promise<GrupoDisciplinaDetalheResponse> {
