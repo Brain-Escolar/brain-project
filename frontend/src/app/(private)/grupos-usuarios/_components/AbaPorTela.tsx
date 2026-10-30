@@ -23,6 +23,7 @@ import {
 import { RoutesEnum } from "@/enums";
 import { useAcessoPorTela, useTelasCatalogo } from "@/hooks/useGruposUsuarios";
 import { TelaResumoResponse } from "@/services/domains/grupo-usuario";
+import { compararPorModulo, nomeDoModulo } from "../modulos";
 import { nomeDoPerfil } from "../perfisDeGrupo";
 
 type FiltroSituacao = "ATIVOS" | "INATIVOS";
@@ -34,6 +35,8 @@ type FiltroSituacao = "ATIVOS" | "INATIVOS";
  */
 export default function AbaPorTela() {
   const { telas, loading: carregandoTelas, error: erroTelas } = useTelasCatalogo();
+  // O groupBy do Autocomplete só junta opções vizinhas: a lista vem na ordem do menu.
+  const telasPorModulo = useMemo(() => [...telas].sort(compararPorModulo), [telas]);
   const [tela, setTela] = useState<TelaResumoResponse | null>(null);
   const [situacao, setSituacao] = useState<FiltroSituacao>("ATIVOS");
 
@@ -55,7 +58,8 @@ export default function AbaPorTela() {
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
         <Autocomplete
           sx={{ minWidth: 320 }}
-          options={telas}
+          options={telasPorModulo}
+          groupBy={(t) => nomeDoModulo(t.modulo)}
           value={tela}
           onChange={(_, novaTela) => setTela(novaTela)}
           loading={carregandoTelas}

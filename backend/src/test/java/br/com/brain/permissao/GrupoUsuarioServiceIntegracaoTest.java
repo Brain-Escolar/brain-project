@@ -64,7 +64,7 @@ class GrupoUsuarioServiceIntegracaoTest {
         assertThat(padroes).hasSize(8);
         assertThat(padroes).extracting(ListagemGrupoUsuarioDto::perfil).doesNotContain(PerfilNome.ADMIN);
         var secretaria = padroes.stream().filter(g -> g.perfil() == PerfilNome.SECRETARIO).findFirst().orElseThrow();
-        assertThat(secretaria.quantidadeTelas()).isEqualTo(11);
+        assertThat(secretaria.quantidadeTelas()).isEqualTo(12);
         assertThat(secretaria.quantidadeControles()).isEqualTo(5);
     }
 
@@ -73,16 +73,23 @@ class GrupoUsuarioServiceIntegracaoTest {
     void catalogoDaSecretaria() {
         var catalogo = catalogoService.catalogo(PerfilNome.SECRETARIO);
 
-        assertThat(catalogo.telas()).hasSize(11);
+        assertThat(catalogo.telas()).hasSize(12);
         var detalhe = catalogo.telas().stream().filter(t -> t.codigo().equals("ALUNO_DETALHE")).findFirst()
                 .orElseThrow();
+        // O detalhe do aluno fica no setor da lista de alunos (D33), com o módulo acima dele.
+        assertThat(detalhe.modulo().codigo()).isEqualTo("PESSOAS");
+        assertThat(detalhe.modulo().pai().codigo()).isEqualTo("CADASTROS");
+        assertThat(detalhe.modulo().pai().pai()).isNull();
+        var financeiro = catalogo.telas().stream().filter(t -> t.codigo().equals("SECRETARIA_FINANCEIRO"))
+                .findFirst().orElseThrow();
+        assertThat(financeiro.modulo()).isNull();
         assertThat(detalhe.controles()).extracting(ControleCatalogoDto::codigo)
                 .contains("FICHA_MEDICA.VER", "ALUNO.PRODUTOS.VER")
                 .doesNotContain("SITUACAO_FAMILIAR.VER", "ATENDIMENTO_PSICOLOGICO.VER");
         assertThat(catalogo.controlesGerais()).extracting(ControleCatalogoDto::codigo)
                 .containsExactly("ALUNO.DADOS_PESSOAIS.VER");
         assertThat(catalogo.dependencias()).containsEntry("ALUNO_CADASTRO", List.of("ALUNO.DADOS_PESSOAIS.VER"));
-        // Uma lista só, por nome: sem separar telas de menu das internas.
+        // Por nome: quem agrupa por módulo é a tela de grupos (D34).
         assertThat(catalogo.telas()).extracting(TelaCatalogoDto::nome).isSorted();
     }
 

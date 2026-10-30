@@ -3,11 +3,15 @@ package br.com.brain.permissao;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -21,9 +25,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * O catálogo vive em três lugares: a migration, o RoutesEnum do frontend e o
- * DependenciasPermissao. Este teste quebra quando um deles fica para trás
- * (docs/permissoes.md, seções 8.6 e 10).
+ * O catálogo vive em vários lugares: as migrations, o RoutesEnum, o routesConfig
+ * e os enums de módulo do frontend, e o DependenciasPermissao. Este teste quebra
+ * quando um deles fica para trás (docs/permissoes.md, seções 8.6 e 10). Foi o
+ * que faltou no merge da main de 29/10, que trouxe sete telas sem migration.
  */
 @SpringBootTest
 @DisplayName("Catálogo de permissões — consistência")
@@ -31,6 +36,9 @@ class CatalogoPermissaoConsistenciaTest {
 
     /** A CI roda o backend em backend/ com o monorepo inteiro no checkout. */
     private static final Path ROUTES_ENUM = Path.of("..", "frontend", "src", "enums", "RoutesEnum.ts");
+    private static final Path MODULOS_ENUM = Path.of("..", "frontend", "src", "enums", "RoutesModuleEnum.ts");
+    private static final Path SETORES_ENUM = Path.of("..", "frontend", "src", "enums", "RoutesSectionEnum.ts");
+    private static final Path ROUTES_CONFIG = Path.of("..", "frontend", "src", "constants", "routesConfig.tsx");
 
     @Autowired
     private JdbcTemplate jdbc;
@@ -39,13 +47,80 @@ class CatalogoPermissaoConsistenciaTest {
     @DisplayName("todo código de tela é uma chave do RoutesEnum do frontend")
     void telasExistemNoFrontend() throws IOException {
         Assumptions.assumeTrue(Files.exists(ROUTES_ENUM), "frontend fora do checkout");
-        var chaves = Pattern.compile("^\\s+([A-Z_]+)\\s*=", Pattern.MULTILINE)
-                .matcher(Files.readString(ROUTES_ENUM))
-                .results()
-                .map(m -> m.group(1))
-                .collect(Collectors.toSet());
 
-        assertThat(chaves).containsAll(jdbc.queryForList("select codigo from telas", String.class));
+        assertThat(chavesDoEnum(ROUTES_ENUM)).containsAll(jdbc.queryForList("select codigo from telas", String.class));
+    }
+
+    @Test
+    @DisplayName("módulo é chave do RoutesModuleEnum e submódulo, do RoutesSectionEnum, em dois níveis")
+    void modulosExistemNoFrontend() throws IOException {
+        Assumptions.assumeTrue(Files.exists(MODULOS_ENUM) && Files.exists(SETORES_ENUM), "frontend fora do checkout");
+
+        assertThat(chavesDoEnum(MODULOS_ENUM)).containsAll(
+                jdbc.queryForList("select codigo from modulos where modulo_pai_id is null", String.class));
+        assertThat(chavesDoEnum(SETORES_ENUM)).containsAll(
+                jdbc.queryForList("select codigo from modulos where modulo_pai_id is not null", String.class));
+        assertThat(jdbc.queryForList("""
+                select m.codigo from modulos m
+                join modulos pai on pai.id = m.modulo_pai_id
+                where pai.modulo_pai_id is not null
+                """, String.class)).as("submódulo de submódulo").isEmpty();
+    }
+
+    @Test
+    @DisplayName("toda rota do routesConfig que não é livre tem tela no catálogo")
+    void rotasDoMenuEstaoNoCatalogo() throws IOException {
+        Assumptions.assumeTrue(Files.exists(ROUTES_CONFIG), "frontend fora do checkout");
+        var semTela = new TreeSet<String>();
+        entradasDoRoutesConfig().stream().filter(e -> !e.livre()).forEach(e -> semTela.add(e.rota()));
+        semTela.removeAll(jdbc.queryForList("select codigo from telas", String.class));
+
+        assertThat(semTela)
+                .as("página nova sem migration (seção 10) ou sem livre: true no routesConfig")
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("o teto de cada tela é a soma dos perfis das entradas dela no routesConfig")
+    void tetoIgualAoRoutesConfig() throws IOException {
+        Assumptions.assumeTrue(Files.exists(ROUTES_CONFIG), "frontend fora do checkout");
+        Map<String, Set<String>> doFront = new TreeMap<>();
+        entradasDoRoutesConfig().stream().filter(e -> !e.livre())
+                .forEach(e -> doFront.computeIfAbsent(e.rota(), k -> new TreeSet<>()).addAll(e.perfis()));
+        Map<String, Set<String>> doBanco = new TreeMap<>();
+        jdbc.query("""
+                select t.codigo, p.nome from telas t
+                join telas_perfis tp on tp.tela_id = t.id join perfis p on p.id = tp.perfil_id
+                where t.ativo = true
+                """, rs -> {
+            doBanco.computeIfAbsent(rs.getString(1), k -> new TreeSet<>()).add(rs.getString(2));
+        });
+
+        // Nos dois sentidos: tela ativa que saiu do routesConfig também quebra.
+        var telas = new TreeSet<>(doFront.keySet());
+        telas.addAll(doBanco.keySet());
+        telas.forEach(tela -> assertThat(doBanco.get(tela)).as("teto de %s", tela).isEqualTo(doFront.get(tela)));
+    }
+
+    @Test
+    @DisplayName("o módulo da tela é o da entrada dela no menu (setor, quando o módulo tem setores)")
+    void moduloIgualAoMenu() throws IOException {
+        Assumptions.assumeTrue(Files.exists(ROUTES_CONFIG), "frontend fora do checkout");
+        Map<String, Set<String>> doMenu = new TreeMap<>();
+        entradasDoRoutesConfig().stream()
+                .filter(e -> !e.livre() && e.noMenu() && e.modulo() != null)
+                .forEach(e -> doMenu.computeIfAbsent(e.rota(), k -> new TreeSet<>())
+                        .add(e.setor() != null ? e.setor() : e.modulo()));
+        Map<String, String> doBanco = new HashMap<>();
+        jdbc.query("select t.codigo, m.codigo from telas t join modulos m on m.id = t.modulo_id",
+                rs -> {
+                    doBanco.put(rs.getString(1), rs.getString(2));
+                });
+
+        doMenu.forEach((tela, modulos) -> {
+            assertThat(modulos).as("a tela %s está em mais de um módulo no menu", tela).hasSize(1);
+            assertThat(doBanco.get(tela)).as("módulo de %s", tela).isEqualTo(modulos.iterator().next());
+        });
     }
 
     @Test
@@ -114,5 +189,66 @@ class CatalogoPermissaoConsistenciaTest {
 
         assertThat(controlesDoAdmin).noneMatch(codigo ->
                 codigo.startsWith("SITUACAO_FAMILIAR.") || codigo.startsWith("ATENDIMENTO_PSICOLOGICO."));
+    }
+
+    private static Set<String> chavesDoEnum(Path arquivo) throws IOException {
+        return Pattern.compile("^\\s+([A-Z_]+)\\s*=", Pattern.MULTILINE)
+                .matcher(Files.readString(arquivo))
+                .results()
+                .map(m -> m.group(1))
+                .collect(Collectors.toSet());
+    }
+
+    /** Uma entrada do ROUTES do routesConfig, só com o que o catálogo espelha. */
+    private record EntradaDeRota(String rota, Set<String> perfis, boolean noMenu, boolean livre,
+                                 String modulo, String setor) {
+    }
+
+    /**
+     * Lê as entradas do array ROUTES pelo texto: cada objeto de primeiro nível
+     * entre os colchetes. As entradas não têm chaves dentro (o ícone é JSX sem
+     * expressão), então contar { e } basta.
+     */
+    private static List<EntradaDeRota> entradasDoRoutesConfig() throws IOException {
+        var texto = Files.readString(ROUTES_CONFIG);
+        var inicio = texto.indexOf("export const ROUTES: RouteConfig[] = [");
+        assertThat(inicio).as("declaração do ROUTES no routesConfig").isNotNegative();
+
+        var entradas = new ArrayList<EntradaDeRota>();
+        var profundidade = 0;
+        var abertura = -1;
+        for (var i = texto.indexOf('[', texto.indexOf("= [", inicio)) + 1; i < texto.length(); i++) {
+            var c = texto.charAt(i);
+            if (c == '{' && profundidade++ == 0) {
+                abertura = i;
+            } else if (c == '}' && --profundidade == 0) {
+                entradas.add(entrada(texto.substring(abertura, i + 1)));
+            } else if (c == ']' && profundidade == 0) {
+                break;
+            }
+        }
+        assertThat(entradas).as("entradas lidas do routesConfig").hasSizeGreaterThan(50);
+        return entradas;
+    }
+
+    private static EntradaDeRota entrada(String objeto) {
+        var perfis = new TreeSet<String>();
+        var roles = Pattern.compile("roles:\\s*\\[([^\\]]*)]").matcher(objeto);
+        if (roles.find()) {
+            Pattern.compile("UserRoleEnum\\.([A-Z_]+)").matcher(roles.group(1)).results()
+                    .forEach(m -> perfis.add(m.group(1)));
+        }
+        return new EntradaDeRota(
+                grupo(objeto, "router:\\s*RoutesEnum\\.([A-Z_]+)"),
+                perfis,
+                "true".equals(grupo(objeto, "isShowMenu:\\s*(true|false)")),
+                "true".equals(grupo(objeto, "livre:\\s*(true|false)")),
+                grupo(objeto, "moduleMenu:\\s*RoutesModuleEnum\\.([A-Z_]+)"),
+                grupo(objeto, "section:\\s*RoutesSectionEnum\\.([A-Z_]+)"));
+    }
+
+    private static String grupo(String texto, String regex) {
+        Matcher m = Pattern.compile(regex).matcher(texto);
+        return m.find() ? m.group(1) : null;
     }
 }

@@ -67,7 +67,7 @@ class PermissaoControllerTest {
                         new UsernamePasswordAuthenticationToken(secretaria, null, secretaria.getAuthorities()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gerenciaPermissoes").value(false))
-                .andExpect(jsonPath("$.perfis.SECRETARIO.telas", hasSize(11)))
+                .andExpect(jsonPath("$.perfis.SECRETARIO.telas", hasSize(12)))
                 .andExpect(jsonPath("$.perfis.SECRETARIO.controles", hasSize(5)));
     }
 

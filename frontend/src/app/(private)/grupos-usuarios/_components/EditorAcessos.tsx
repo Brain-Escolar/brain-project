@@ -35,6 +35,7 @@ import {
   montarIndice,
 } from "../acessos";
 import { iconeDaTela } from "../iconeDaTela";
+import { SEM_MODULO, agruparPorModulo } from "../modulos";
 import { nomeDoPerfil } from "../perfisDeGrupo";
 
 type Filtro = "TODAS" | "LIBERADAS" | "NAO_LIBERADAS";
@@ -63,7 +64,8 @@ interface EditorAcessosProps {
 
 /**
  * Lista de telas e ações do teto do perfil, com caixas de seleção. É a aba
- * Acessos do grupo e a página de acessos individuais de uma pessoa.
+ * Acessos do grupo e a página de acessos individuais de uma pessoa. As telas
+ * vêm agrupadas por módulo e submódulo, na ordem do menu (D34).
  */
 export default function EditorAcessos({
   perfil,
@@ -174,13 +176,14 @@ export default function EditorAcessos({
     }
   }
 
-  function alternarVisiveis(ligar: boolean) {
-    const codigos = telasVisiveis.map((tela) => tela.codigo);
+  /** Liberar ou retirar de uma vez: as telas exibidas, ou as de um módulo. */
+  function alternarLote(telas: TelaCatalogoResponse[], ligar: boolean) {
+    const codigos = telas.map((tela) => tela.codigo);
     const resultado = aplicarEmLote(indice, marcados, codigos, ligar ? marcar : desmarcar);
     setMarcados(resultado.marcados);
     // As telas do lote e as ações delas são o esperado; o aviso é para o resto.
     const doLote = new Set(
-      telasVisiveis.flatMap((tela) => [tela.codigo, ...tela.controles.map((c) => c.codigo)]),
+      telas.flatMap((tela) => [tela.codigo, ...tela.controles.map((c) => c.codigo)]),
     );
     avisarArrastados(
       resultado.arrastados.filter((codigo) => !doLote.has(codigo)),
@@ -219,6 +222,27 @@ export default function EditorAcessos({
     : telasVisiveis.length === 1
       ? "a exibida"
       : `as ${telasVisiveis.length} exibidas`;
+
+  const secoes = agruparPorModulo(telasVisiveis);
+  // Sem módulo nenhum à vista (perfis que não têm módulo no menu, ou uma busca
+  // que só achou telas soltas), a lista continua única, como era.
+  const agrupar = secoes.some((secao) => secao.chave !== SEM_MODULO);
+
+  const linhas = (telas: TelaCatalogoResponse[]) =>
+    telas.map((tela, posicao) => (
+      <LinhaTela
+        key={tela.codigo}
+        tela={tela}
+        icone={iconeDaTela(tela.codigo, perfil)}
+        primeira={posicao === 0}
+        aberta={abertas.has(tela.codigo) || abertaPelaBusca(tela)}
+        indice={indice}
+        marcados={marcados}
+        herdados={deGrupos}
+        onAlternar={alternar}
+        onAbrirOuFechar={abrirOuFechar}
+      />
+    ));
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -269,14 +293,14 @@ export default function EditorAcessos({
           <Box sx={{ display: "flex", gap: 0.5, justifyContent: "flex-end", flexWrap: "wrap" }}>
             <Button
               size="small"
-              onClick={() => alternarVisiveis(true)}
+              onClick={() => alternarLote(telasVisiveis, true)}
               disabled={telasVisiveis.length === 0}
             >
               Liberar {quantas}
             </Button>
             <Button
               size="small"
-              onClick={() => alternarVisiveis(false)}
+              onClick={() => alternarLote(telasVisiveis, false)}
               disabled={telasVisiveis.length === 0}
             >
               Retirar {quantas}
@@ -291,23 +315,78 @@ export default function EditorAcessos({
           : `${contar("tela")} de ${catalogo.telas.length} telas liberadas · ${contar("controle")} de ${totalAcoes} ações`}
       </Typography>
 
-      {telasVisiveis.length > 0 ? (
-        <Paper variant="outlined">
-          {telasVisiveis.map((tela, posicao) => (
-            <LinhaTela
-              key={tela.codigo}
-              tela={tela}
-              icone={iconeDaTela(tela.codigo, perfil)}
-              primeira={posicao === 0}
-              aberta={abertas.has(tela.codigo) || abertaPelaBusca(tela)}
-              indice={indice}
-              marcados={marcados}
-              herdados={deGrupos}
-              onAlternar={alternar}
-              onAbrirOuFechar={abrirOuFechar}
-            />
-          ))}
-        </Paper>
+      {agrupar ? (
+        secoes.map((secao) => {
+          const telasDaSecao = [...secao.telas, ...secao.submodulos.flatMap((sub) => sub.telas)];
+          const liberadas = telasDaSecao.filter((tela) => ligado(tela.codigo)).length;
+          return (
+            <Paper key={secao.chave} variant="outlined" component="section" aria-label={secao.titulo}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 1,
+                  px: { xs: 1.5, sm: 2 },
+                  py: 1.25,
+                }}
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="subtitle1" component="h3" fontWeight={600}>
+                    {secao.titulo}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" component="p">
+                    {liberadas} de {quantidade(telasDaSecao.length, "tela liberada", "telas liberadas")}
+                  </Typography>
+                </Box>
+                {/* Como os botões do topo: o acesso individual não libera em lote. */}
+                {!individual && (
+                  <Box sx={{ display: "flex", gap: 0.5 }}>
+                    <Button
+                      size="small"
+                      onClick={() => alternarLote(telasDaSecao, true)}
+                      disabled={liberadas === telasDaSecao.length}
+                      aria-label={`Liberar as telas de ${secao.titulo}`}
+                    >
+                      Liberar
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => alternarLote(telasDaSecao, false)}
+                      disabled={liberadas === 0}
+                      aria-label={`Retirar as telas de ${secao.titulo}`}
+                    >
+                      Retirar
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+              {secao.telas.length > 0 && (
+                <>
+                  <Divider />
+                  {linhas(secao.telas)}
+                </>
+              )}
+              {secao.submodulos.map((sub) => (
+                <Box key={sub.chave}>
+                  <Divider />
+                  <Typography
+                    variant="overline"
+                    color="text.secondary"
+                    component="h4"
+                    sx={{ display: "block", px: { xs: 1.5, sm: 2 }, pt: 1, lineHeight: 2 }}
+                  >
+                    {sub.titulo}
+                  </Typography>
+                  {linhas(sub.telas)}
+                </Box>
+              ))}
+            </Paper>
+          );
+        })
+      ) : telasVisiveis.length > 0 ? (
+        <Paper variant="outlined">{linhas(telasVisiveis)}</Paper>
       ) : (
         <Paper variant="outlined" sx={{ p: 3 }}>
           <Typography variant="body2" color="text.secondary">

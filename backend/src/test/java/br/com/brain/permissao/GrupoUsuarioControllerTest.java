@@ -73,7 +73,7 @@ class GrupoUsuarioControllerTest {
         mvc.perform(get("/permissoes/catalogo").param("perfil", "SECRETARIO").with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.perfil").value("SECRETARIO"))
-                .andExpect(jsonPath("$.telas", hasSize(11)))
+                .andExpect(jsonPath("$.telas", hasSize(12)))
                 .andExpect(jsonPath("$.dependencias.ALUNO_CADASTRO[0]").value("ALUNO.DADOS_PESSOAIS.VER"));
     }
 

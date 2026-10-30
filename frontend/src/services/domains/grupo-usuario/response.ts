@@ -35,10 +35,24 @@ export interface ControleCatalogoResponse {
   sensivel: boolean;
 }
 
+/**
+ * Módulo do menu a que a tela pertence (docs/permissoes.md, D33). Com pai, é
+ * um submódulo: os setores de Cadastros.
+ */
+export interface ModuloResponse {
+  codigo: string;
+  nome: string;
+  /** Posição entre os irmãos, a mesma do menu. */
+  ordem: number;
+  pai: ModuloResponse | null;
+}
+
 export interface TelaCatalogoResponse {
   codigo: string;
   nome: string;
   rota: string;
+  /** Nulo para item solto no menu e para as páginas internas dele. */
+  modulo: ModuloResponse | null;
   exibirMenu: boolean;
   /** Falso só no catálogo do acesso individual, para as telas de fora do teto do perfil. */
   doPerfil: boolean;
@@ -76,6 +90,7 @@ export interface TelaResumoResponse {
   codigo: string;
   nome: string;
   rota: string;
+  modulo: ModuloResponse | null;
 }
 
 /**

@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.util.ArrayList;
@@ -44,6 +45,14 @@ public class Tela extends EntidadeBase {
     private Boolean exibirMenu;
 
     private Boolean ativo;
+
+    /**
+     * O nível mais baixo do menu a que a tela pertence: o submódulo, quando o
+     * módulo tem setores. Nulo para item solto no menu (D33).
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modulo_id")
+    private Modulo modulo;
 
     /**
      * Teto: perfis que podem receber a tela. List, e não Set, porque o

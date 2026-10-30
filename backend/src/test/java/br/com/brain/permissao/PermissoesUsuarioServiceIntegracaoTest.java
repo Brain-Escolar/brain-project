@@ -64,7 +64,8 @@ class PermissoesUsuarioServiceIntegracaoTest {
 
         assertThat(permissoes.gerenciaPermissoes()).isFalse();
         assertThat(permissoes.perfis()).containsOnlyKeys(PerfilNome.SECRETARIO);
-        assertThat(permissoes.perfis().get(PerfilNome.SECRETARIO).telas()).hasSize(11).contains("SECRETARIA_CRM");
+        assertThat(permissoes.perfis().get(PerfilNome.SECRETARIO).telas()).hasSize(12)
+                .contains("SECRETARIA_CRM", "SECRETARIA_FINANCEIRO");
         assertThat(permissoes.perfis().get(PerfilNome.SECRETARIO).controles()).hasSize(5);
     }
 
@@ -141,7 +142,10 @@ class PermissoesUsuarioServiceIntegracaoTest {
         var permissoes = service.doUsuario(login(PerfilNome.ADMIN));
 
         assertThat(permissoes.gerenciaPermissoes()).isTrue();
-        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).telas()).hasSize(41);
+        // Ganhou o cadastro de secretários; a área da Direção não é dele (D35).
+        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).telas()).hasSize(43)
+                .contains("SECRETARIO_LISTA", "AVALIACOES")
+                .doesNotContain("GESTAO_ANO_LETIVO", "RELATORIO_ACOMPANHAMENTO_TURMA");
         assertThat(permissoes.perfis().get(PerfilNome.ADMIN).controles()).hasSize(9)
                 .noneMatch(codigo -> codigo.startsWith("SITUACAO_FAMILIAR.")
                         || codigo.startsWith("ATENDIMENTO_PSICOLOGICO."));
@@ -156,7 +160,14 @@ class PermissoesUsuarioServiceIntegracaoTest {
         var permissoes = service.doUsuario(diretor);
 
         assertThat(permissoes.gerenciaPermissoes()).isTrue();
-        assertThat(permissoes.perfis().get(PerfilNome.DIRETOR).telas()).hasSize(41);
+        // A área própria da main (D35): sem a herança das telas do ADMIN.
+        assertThat(permissoes.perfis().get(PerfilNome.DIRETOR).telas()).hasSize(43)
+                .contains("GESTAO_PROFESSORES", "GESTAO_ANO_LETIVO", "RELATORIO_ACOMPANHAMENTO_TURMA",
+                        "CALENDARIO", "SECRETARIO_LISTA", "ALUNO_LISTA")
+                .doesNotContain("AVALIACOES", "DIARIO", "RELATORIOS");
+        assertThat(permissoes.perfis().get(PerfilNome.DIRETOR).controles())
+                .contains("EVENTO.GERENCIAR", "FICHA_MEDICA.VER", "ALUNO.EDITAR", "COMUNICADO.GERENCIAR_TODOS")
+                .doesNotContain("FICHA_MEDICA.EDITAR", "ALUNO.PRODUTOS.VER", "ALUNO.MATRICULA.ALTERAR");
     }
 
     @Test

@@ -3,6 +3,7 @@ package br.com.brain.permissao;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.permissao.dto.CatalogoPermissaoDto;
 import br.com.brain.permissao.dto.ControleCatalogoDto;
+import br.com.brain.permissao.dto.ModuloDto;
 import br.com.brain.permissao.dto.TelaCatalogoDto;
 import br.com.brain.permissao.dto.TelaResumoDto;
 
@@ -53,7 +54,7 @@ public class CatalogoPermissaoService {
     @Transactional(readOnly = true)
     public List<TelaResumoDto> telas() {
         return telaRepository.findAtivas().stream()
-                .map(t -> new TelaResumoDto(t.getCodigo(), t.getNome(), t.getRota()))
+                .map(t -> new TelaResumoDto(t.getCodigo(), t.getNome(), t.getRota(), ModuloDto.de(t.getModulo())))
                 .toList();
     }
 
@@ -81,6 +82,7 @@ public class CatalogoPermissaoService {
 
         var telas = itens.telas().values().stream()
                 .map(t -> new TelaCatalogoDto(t.getCodigo(), t.getNome(), t.getRota(),
+                        ModuloDto.de(t.getModulo()),
                         Boolean.TRUE.equals(t.getExibirMenu()),
                         tetoDoPerfil.telas().containsKey(t.getCodigo()),
                         controlesPorTela.getOrDefault(t.getCodigo(), List.of())))

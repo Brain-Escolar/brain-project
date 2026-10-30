@@ -151,7 +151,7 @@ class AcessosIndividuaisIntegracaoTest {
         var catalogo = catalogoService.catalogoIndividual(SECRETARIO);
         var doPerfil = catalogoService.catalogo(SECRETARIO);
 
-        assertThat(catalogo.telas()).hasSize(57).extracting(TelaCatalogoDto::nome).isSorted();
+        assertThat(catalogo.telas()).hasSize(64).extracting(TelaCatalogoDto::nome).isSorted();
         assertThat(catalogo.telas().stream().filter(TelaCatalogoDto::doPerfil).map(TelaCatalogoDto::codigo))
                 .containsExactlyInAnyOrderElementsOf(doPerfil.telas().stream().map(TelaCatalogoDto::codigo).toList());
         var controlesDoDetalhe = catalogo.telas().stream().filter(t -> t.codigo().equals("ALUNO_DETALHE"))
