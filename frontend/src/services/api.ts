@@ -41,6 +41,7 @@ import { SimulacaoApi } from "./domains/simulacao";
 import { ContratoApi } from "./domains/contrato";
 import { FinanceiroApi } from "./domains/financeiro";
 import { AnoLetivoApi } from "./domains/ano-letivo";
+import { DadosPessoaisApi } from "./domains/dados-pessoais";
 
 export const alunoApi = new AlunoApi();
 export const orientacaoApi = new OrientacaoApi();
@@ -85,3 +86,4 @@ export const simulacaoApi = new SimulacaoApi();
 export const contratoApi = new ContratoApi();
 export const financeiroApi = new FinanceiroApi();
 export const anoLetivoApi = new AnoLetivoApi();
+export const dadosPessoaisApi = new DadosPessoaisApi();

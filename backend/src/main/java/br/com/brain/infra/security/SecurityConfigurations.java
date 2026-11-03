@@ -119,6 +119,11 @@ public class SecurityConfigurations {
                             req.requestMatchers("/secretario/**")
                                     .hasAnyRole("DIRETOR", "ADMIN");
 
+                            // Busca de pessoa por CPF/e-mail - acima do permitAll.
+                            // Devolve dado pessoal completo: so quem cadastra.
+                            req.requestMatchers("/dados-pessoais/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+
                             // Telas da Direcao - acima do permitAll para ja valer hoje.
                             // Desempenho e comportamento da escola inteira.
                             req.requestMatchers("/diretor/**")

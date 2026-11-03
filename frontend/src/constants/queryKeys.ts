@@ -326,4 +326,8 @@ export const QUERY_KEYS = {
     pagamentosDoTitulo: (tituloId: number) =>
       [...QUERY_KEYS.financeiro.all, "pagamentos", tituloId] as const,
   },
+  dadosPessoais: {
+    all: ["dados-pessoais"] as const,
+    existente: (cpf: string) => [...QUERY_KEYS.dadosPessoais.all, "existente", cpf] as const,
+  },
 } as const;

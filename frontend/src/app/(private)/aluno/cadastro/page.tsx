@@ -13,6 +13,12 @@ import { BrainDropdownControlled } from "@/components/brainForms/brainDropdownCo
 import BrainFormProvider from "@/components/brainForms/brainFormProvider/brainFormProvider";
 import { BrainTextCEPControlled } from "@/components/brainForms/brainTextCEPControlled";
 import { BrainTextCPFControlled } from "@/components/brainForms/brainTextCPFControlled";
+import {
+  PessoaExistenteAviso,
+  pessoaParaCampos,
+  preencherVazios,
+  usePessoaExistente,
+} from "@/components/pessoaExistente";
 import { BrainTextFieldControlled } from "@/components/brainForms/brainTextFieldControlled";
 import { BrainTextRGControlled } from "@/components/brainForms/brainTextRGControlled";
 import { BrainTextPhoneControlled } from "@/components/brainForms/brainTextPhoneControlled";
@@ -200,6 +206,22 @@ function TelefonesArray({
   );
 }
 
+/** Telefones são um array de { value }: só preenche se o primeiro ainda estiver vazio. */
+function preencherTelefonesVazios(
+  campo: "telefones" | `responsaveis.${number}.telefones`,
+  telefones: string[],
+  getValues: FormCtx["getValues"],
+  setValue: FormCtx["setValue"],
+) {
+  const atuais = getValues(campo) ?? [];
+  if (telefones.length === 0 || atuais.some((t) => t.value)) return;
+  setValue(
+    campo,
+    telefones.map((value) => ({ value })),
+    { shouldValidate: true },
+  );
+}
+
 function ResponsavelCard({
   index,
   control,
@@ -213,9 +235,44 @@ function ResponsavelCard({
   onCopiarEnderecoAluno: (index: number) => void;
   buscandoCep: boolean;
 }) {
-  const { watch, setValue } = useBrainFormCtx();
+  const { watch, setValue, getValues } = useBrainFormCtx();
   const financeiro = watch(`responsaveis.${index}.financeiro`) ?? false;
   const mesmoEndereco = watch(`responsaveis.${index}.mesmoEnderecoAluno`) ?? false;
+
+  // Responsável já cadastrado (de outro filho, ou em outro papel, como
+  // professor): reaproveita o cadastro e preenche só o que está vazio.
+  const pessoaExistente = usePessoaExistente(
+    watch(`responsaveis.${index}.cpfResponsavel`),
+    "RESPONSAVEL",
+    {
+      papelAcumula: true,
+      onEncontrada: (pessoa) => {
+        const c = pessoaParaCampos(pessoa);
+        const prefixo = `responsaveis.${index}` as const;
+        preencherVazios<AlunoFormData>(
+          {
+            [`${prefixo}.nomeResponsavel`]: c.nome,
+            [`${prefixo}.dataNascimentoResponsavel`]: c.dataNascimento,
+            [`${prefixo}.emailResponsavel`]: c.email,
+            ...(getValues(`${prefixo}.mesmoEnderecoAluno`)
+              ? {}
+              : {
+                  [`${prefixo}.cep`]: c.cep,
+                  [`${prefixo}.logradouro`]: c.logradouro,
+                  [`${prefixo}.numero`]: c.numero,
+                  [`${prefixo}.complemento`]: c.complemento,
+                  [`${prefixo}.bairro`]: c.bairro,
+                  [`${prefixo}.cidade`]: c.cidade,
+                  [`${prefixo}.uf`]: c.uf,
+                }),
+          },
+          getValues,
+          setValue,
+        );
+        preencherTelefonesVazios(`${prefixo}.telefones`, c.telefones, getValues, setValue);
+      },
+    },
+  );
 
   useEffect(() => {
     if (mesmoEndereco) onCopiarEnderecoAluno(index);
@@ -278,6 +335,7 @@ function ResponsavelCard({
             required
           />
         </Box>
+        <PessoaExistenteAviso estado={pessoaExistente} />
 
         <BrainTextFieldControlled
           name={`responsaveis.${index}.emailResponsavel`}
@@ -620,6 +678,7 @@ import { createContext, useContext } from "react";
 type FormCtx = {
   watch: ReturnType<typeof useBrainForm<AlunoFormData>>["watch"];
   setValue: ReturnType<typeof useBrainForm<AlunoFormData>>["setValue"];
+  getValues: ReturnType<typeof useBrainForm<AlunoFormData>>["getValues"];
 };
 const BrainFormCtx = createContext<FormCtx | null>(null);
 function useBrainFormCtx() {
@@ -664,6 +723,37 @@ function AlunoPageContent() {
     append: appendResponsavel,
     remove: removeResponsavel,
   } = useFieldArray({ control, name: "responsaveis" });
+
+  // A pessoa pode já existir em outro papel (ex.: aluno adulto que já é
+  // responsável): preenche só o que está vazio.
+  const pessoaExistente = usePessoaExistente(watch("cpf"), "ALUNO", {
+    enabled: !isEditMode,
+    onEncontrada: (pessoa) => {
+      const c = pessoaParaCampos(pessoa);
+      preencherVazios<AlunoFormData>(
+        {
+          nomeCompleto: c.nome,
+          nomeSocial: c.nomeSocial,
+          email: c.email,
+          dataNascimento: c.dataNascimento,
+          genero: c.genero,
+          corRaca: c.corRaca,
+          cidadeNaturalidade: c.cidadeNaturalidade,
+          rg: c.rg,
+          cep: c.cep,
+          logradouro: c.logradouro,
+          numero: c.numero,
+          complemento: c.complemento,
+          bairro: c.bairro,
+          cidade: c.cidade,
+          uf: c.uf,
+        },
+        getValues,
+        setValue,
+      );
+      preencherTelefonesVazios("telefones", c.telefones, getValues, setValue);
+    },
+  });
 
   useEffect(() => {
     if (aluno && isEditMode) {
@@ -811,7 +901,7 @@ function AlunoPageContent() {
   }
 
   return (
-    <BrainFormCtx.Provider value={{ watch, setValue }}>
+    <BrainFormCtx.Provider value={{ watch, setValue, getValues }}>
       <Box sx={{ backgroundColor: "#F7F8FA", minHeight: "100%" }}>
         <Box
           sx={{
@@ -844,7 +934,7 @@ function AlunoPageContent() {
               </BrainButtonSecondary>
               <BrainButtonPrimary
                 type="submit"
-                disabled={isSubmitting || isSaving}
+                disabled={isSubmitting || isSaving || pessoaExistente.conflito}
                 onClick={handleSubmit(onFormSubmit)}
               >
                 <SaveIcon sx={{ fontSize: 16, mr: 1 }} />
@@ -893,6 +983,7 @@ function AlunoPageContent() {
                       <BrainTextCPFControlled name="cpf" control={control} label="CPF" required />
                       <BrainTextRGControlled name="rg" control={control} label="RG" required />
                     </Box>
+                    <PessoaExistenteAviso estado={pessoaExistente} />
                     <BrainTextFieldControlled
                       name="email"
                       control={control}

@@ -247,7 +247,12 @@ public class DadosPessoais extends EntidadeBase {
             Telefone telefone = new Telefone();
             telefone.setNumero(numero);
             telefone.setDadosPessoaisId(this);
-            this.telefones.add(telefone);
+            // Com enableAssociationManagement (pom) o setter acima ja inclui o
+            // telefone nesta lista; sem a checagem ele entraria duas vezes.
+            // Comparacao por identidade: o equals do @Data percorre o grafo.
+            if (this.telefones.stream().noneMatch(t -> t == telefone)) {
+                this.telefones.add(telefone);
+            }
         }
     }
 }

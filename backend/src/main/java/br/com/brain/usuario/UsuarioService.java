@@ -69,6 +69,28 @@ public class UsuarioService {
         return usuarioCriado.getId();
     }
 
+    /**
+     * Da o perfil a pessoa, criando o login so se ela ainda nao tiver um.
+     *
+     * Quem ja entra no sistema por outro papel (o professor que agora tambem
+     * e responsavel) ganha so o perfil no mesmo login: nao recebe outra
+     * senha nem outro e-mail de verificacao, e escolhe o papel no seletor de
+     * perfil do frontend. A senha so e usada quando o login e criado.
+     */
+    @Transactional
+    public void concederPerfil(DadosPessoais dadosPessoais, PerfilNome nomePerfil, String senhaInicial) {
+        if (dadosPessoais.getId() != null && usuarioRepository.existsByDadosPessoaisId(dadosPessoais.getId())) {
+            var jaTemPerfil = dadosPessoais.getPerfis().stream()
+                    .anyMatch(perfil -> nomePerfil.equals(perfil.getNome()));
+            if (!jaTemPerfil) {
+                dadosPessoais.getPerfis().add(perfilRepository.findByNome(nomePerfil));
+                em.merge(dadosPessoais);
+            }
+            return;
+        }
+        cadastrarUsuario(dadosPessoais, nomePerfil, senhaInicial);
+    }
+
     public Page<ListagemUsuarioDto> listar(Pageable paginacao) {
         return usuarioRepository.findAll(paginacao).map(ListagemUsuarioDto::new);
     }

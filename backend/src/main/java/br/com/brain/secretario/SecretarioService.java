@@ -1,6 +1,7 @@
 package br.com.brain.secretario;
 
 import br.com.brain.dadosPessoais.DadosPessoais;
+import br.com.brain.dadosPessoais.DadosPessoaisService;
 import br.com.brain.endereco.EnderecoService;
 import br.com.brain.secretario.dto.AtualizacaoSecretarioDto;
 import br.com.brain.secretario.dto.CadastroSecretarioDto;
@@ -18,6 +19,7 @@ public class SecretarioService {
 
     private final SecretarioRepository repository;
     private final EnderecoService enderecoService;
+    private final DadosPessoaisService dadosPessoaisService;
 
     @Transactional
     public Secretario cadastrarSecretario(CadastroSecretarioDto dados) {
@@ -37,6 +39,13 @@ public class SecretarioService {
         dadosPessoais.setCarteiraDeTrabalho(dados.carteiraDeTrabalho());
         dadosPessoais.setCidadeNaturalidade(dados.cidadeNaturalidade());
         dadosPessoais.setTelefones(dados.telefones());
+
+        // A pessoa pode ja existir em outro papel (ex.: responsavel).
+        dadosPessoais = dadosPessoaisService.reaproveitarOuCriar(dadosPessoais);
+        if (repository.existsByDadosPessoaisId(dadosPessoais.getId())) {
+            throw new ErrosSistema.RecursoJaExisteException(
+                    dadosPessoais.getNome() + " já está cadastrado(a) na secretaria.");
+        }
         secretario.setDadosPessoais(dadosPessoais);
 
         repository.save(secretario);

@@ -13,6 +13,8 @@ public interface DadosPessoaisRepository extends JpaRepository<DadosPessoais, Lo
 
     Optional<DadosPessoais> findByCpf(String cpf);
 
+    Optional<DadosPessoais> findByEmailIgnoreCase(String email);
+
     /**
      * Quem tem determinado perfil. Base da distribuicao de alertas — antes
      * disso nao havia como perguntar "quem e da Orientacao?".

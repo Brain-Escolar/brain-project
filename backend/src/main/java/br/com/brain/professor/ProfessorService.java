@@ -4,6 +4,7 @@ import br.com.brain.dependente.DependenteService;
 import br.com.brain.endereco.EnderecoService;
 
 import br.com.brain.dadosPessoais.DadosPessoais;
+import br.com.brain.dadosPessoais.DadosPessoaisService;
 import br.com.brain.aula.dto.ListagemAulaDto;
 import br.com.brain.professor.dto.AtualizacaoProfessorDto;
 import br.com.brain.professor.dto.CadastroProfessorDto;
@@ -27,6 +28,7 @@ public class ProfessorService {
     private final AnoLetivoService anoLetivoService;
     private final EnderecoService enderecoService;
     private final DependenteService dependenteService;
+    private final DadosPessoaisService dadosPessoaisService;
 
     @PersistenceContext
     private EntityManager em;
@@ -46,10 +48,17 @@ public class ProfessorService {
         dadosPessoais.setGenero(dados.genero());
         dadosPessoais.setCorRaca(dados.corRaca());
         dadosPessoais.setRg(dados.rg());
-        dadosPessoais.setMatricula("M" + dados.cpf());
         dadosPessoais.setCarteiraDeTrabalho(dados.carteiraDeTrabalho());
         dadosPessoais.setCidadeNaturalidade(dados.cidadeNaturalidade());
         dadosPessoais.setTelefones(dados.telefones());
+
+        // A pessoa pode ja existir em outro papel (ex.: responsavel).
+        dadosPessoais = dadosPessoaisService.reaproveitarOuCriar(dadosPessoais);
+        garantirQueNaoEProfessor(dadosPessoais);
+        // Quem ja e aluno mantem a matricula que tem.
+        if (dadosPessoais.getMatricula() == null) {
+            dadosPessoais.setMatricula("M" + dados.cpf());
+        }
         professor.setDadosPessoais(dadosPessoais);
 
         repository.save(professor);
@@ -60,6 +69,17 @@ public class ProfessorService {
             }
         }
         return professor;
+    }
+
+    private void garantirQueNaoEProfessor(DadosPessoais dadosPessoais) {
+        repository.findByDadosPessoaisId(dadosPessoais.getId()).ifPresent(existente -> {
+            if (Boolean.FALSE.equals(existente.getAtivo())) {
+                throw ErrosSistema.OperacaoInvalidaException.com(
+                        dadosPessoais.getNome() + " já foi professor(a) e está inativo(a). Reative o cadastro na lista de professores.");
+            }
+            throw new ErrosSistema.RecursoJaExisteException(
+                    dadosPessoais.getNome() + " já está cadastrado(a) como professor(a).");
+        });
     }
 
     public Page<ListagemProfessorDto> listar(Pageable paginacao) {

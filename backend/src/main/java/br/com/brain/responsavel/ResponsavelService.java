@@ -3,7 +3,6 @@ import br.com.brain.autenticacao.DadosAutenticacaoRepository;
 import br.com.brain.dadosPessoais.DadosPessoaisService;
 import br.com.brain.endereco.EnderecoService;
 import br.com.brain.enums.PerfilNome;
-import br.com.brain.perfil.PerfilRepository;
 import br.com.brain.usuario.UsuarioService;
 
 import br.com.brain.aluno.Aluno;
@@ -33,7 +32,6 @@ public class ResponsavelService {
     private final EnderecoService enderecoService;
     private final DadosPessoaisService dadosPessoaisService;
     private final UsuarioService usuarioService;
-    private final PerfilRepository perfilRepository;
     private final DadosAutenticacaoRepository dadosAutenticacaoRepository;
 
     @PersistenceContext
@@ -42,13 +40,20 @@ public class ResponsavelService {
     @Transactional
     public Responsavel cadastrarResponsavel(CadastroResponsavelDto dados, Long alunoId) {
 
-        var responsavel = new Responsavel();
-        var dadosPessoais = dadosPessoaisService
-                .buscarDadosPessoaisPorCpf(dados.cpf())
-                .orElseGet(() -> criarDadosPessoais(dados));
-
-        responsavel.setDadosPessoais(dadosPessoais);
-        responsavel.setFinanceiro(dados.financeiro());
+        // A pessoa pode ja existir em outro papel (ex.: professor) ou ja ser
+        // responsavel de outro filho: nos dois casos e o mesmo dados_pessoais,
+        // e no segundo tambem o mesmo responsavel, so com mais um aluno.
+        var dadosPessoais = dadosPessoaisService.reaproveitarOuCriar(novosDadosPessoais(dados));
+        var responsavel = repository.findFirstByDadosPessoaisIdOrderByIdAsc(dadosPessoais.getId())
+                .orElseGet(() -> {
+                    var novo = new Responsavel();
+                    novo.setDadosPessoais(dadosPessoais);
+                    novo.setFinanceiro(dados.financeiro());
+                    return novo;
+                });
+        if (Boolean.TRUE.equals(dados.financeiro())) {
+            responsavel.setFinanceiro(true);
+        }
 
         var responsavelCadastrado = repository.save(responsavel);
 
@@ -116,8 +121,11 @@ public class ResponsavelService {
                 () -> ErrosSistema.RecursoNaoEncontradoException.para("Responsável", responsavelId));
         var alunos = responsavel.getAlunos();
         for (Long alunoId : alunoIds) {
-            var aluno = em.getReference(Aluno.class, alunoId);
-            alunos.add(aluno);
+            // O responsavel reaproveitado pode ja estar vinculado a este aluno.
+            if (alunos.stream().anyMatch(a -> alunoId.equals(a.getId()))) {
+                continue;
+            }
+            alunos.add(em.getReference(Aluno.class, alunoId));
         }
         responsavel.setAlunos(alunos);
         repository.save(responsavel);
@@ -147,27 +155,14 @@ public class ResponsavelService {
             return;
         }
 
-        var jaTemPerfil = dadosPessoais.getPerfis().stream()
-                .anyMatch(perfil -> PerfilNome.RESPONSAVEL.equals(perfil.getNome()));
-
-        if (dadosAutenticacaoRepository.existsByDadosPessoaisId(dadosPessoais.getId())) {
-            if (!jaTemPerfil) {
-                dadosPessoais.getPerfis().add(perfilRepository.findByNome(PerfilNome.RESPONSAVEL));
-                dadosPessoaisService.salvar(dadosPessoais);
-            }
-            return;
-        }
-
-        if (dadosPessoais.getEmail() == null || dadosPessoais.getEmail().isBlank()) {
+        var temLogin = dadosAutenticacaoRepository.existsByDadosPessoaisId(dadosPessoais.getId());
+        if (!temLogin && (dadosPessoais.getEmail() == null || dadosPessoais.getEmail().isBlank())) {
             // Sem e-mail nao ha login (e o identificador) nem para onde mandar a
             // verificacao. Acontece com lead vindo do CRM, que entra so com nome.
             return;
         }
 
-        usuarioService.cadastrarUsuario(
-                dadosPessoais,
-                PerfilNome.RESPONSAVEL,
-                senhaInicial(dadosPessoais));
+        usuarioService.concederPerfil(dadosPessoais, PerfilNome.RESPONSAVEL, senhaInicial(dadosPessoais));
     }
 
     /**
@@ -188,7 +183,7 @@ public class ResponsavelService {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
 
-    private DadosPessoais criarDadosPessoais(CadastroResponsavelDto dados) {
+    private DadosPessoais novosDadosPessoais(CadastroResponsavelDto dados) {
         var dadosPessoais = new DadosPessoais();
 
         dadosPessoais.setCpf(dados.cpf());
@@ -198,6 +193,6 @@ public class ResponsavelService {
         dadosPessoais.setEndereco(enderecoService.preencherEnderco(dados.endereco()));
         dadosPessoais.setTelefones(dados.telefones());
 
-        return dadosPessoaisService.salvar(dadosPessoais);
+        return dadosPessoais;
     }
 }

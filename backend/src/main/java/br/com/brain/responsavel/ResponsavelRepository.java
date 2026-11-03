@@ -10,6 +10,8 @@ public interface ResponsavelRepository extends JpaRepository<Responsavel, Long> 
 
   Optional<Responsavel> findByDadosPessoaisCpf(String cpf);
 
+  Optional<Responsavel> findFirstByDadosPessoaisIdOrderByIdAsc(Long dadosPessoaisId);
+
   /**
    * Recupera o responsavel a partir dos dados pessoais do usuario autenticado,
    * ja com os alunos vinculados e o contexto escolar de cada um carregados.
