@@ -59,6 +59,19 @@ export function useBolsaMutations(processoMatriculaId?: number) {
     mutationFn: (dados: ReservarBolsaRequest) => bolsaApi.reservar(dados),
     onSuccess: (concessao) => {
       invalidarDependentes(concessao.simulacaoId ?? undefined);
+      /**
+       * Acima da alçada de quem pediu, o backend não recusa mais: devolve o
+       * pedido PENDENTE_APROVACAO. Dizer "reservada" aqui seria mentir para
+       * quem está com a família na frente — ela sairia achando que tem bolsa.
+       */
+      if (concessao.status === "PENDENTE_APROVACAO") {
+        toast.info(
+          `Pedido de ${concessao.percentual}% enviado para aprovação: está acima da sua alçada.` +
+            " A bolsa só vale depois que alguém com alçada decidir.",
+        );
+        return;
+      }
+
       if (concessao.excedeuEnvelope) {
         toast.warning(
           `Bolsa de ${concessao.percentual}% concedida ACIMA do orçamento, com sua aprovação registrada.`,

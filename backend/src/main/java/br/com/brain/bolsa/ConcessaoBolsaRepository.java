@@ -60,4 +60,24 @@ public interface ConcessaoBolsaRepository extends JpaRepository<ConcessaoBolsa, 
              ORDER BY c.id
             """)
     List<ConcessaoBolsa> buscarReservasVencidas(@Param("agora") Instant agora);
+
+    /**
+     * A fila de aprovacao da direcao.
+     *
+     * O JOIN FETCH chega ate o nome do aluno porque e assim que quem aprova
+     * decide: ninguem aprova "concessao 412", aprova "30% para a Julia, 4o ano".
+     * Sem o fetch sairia uma consulta por linha, ou estouraria fora da transacao.
+     */
+    @Query("""
+            SELECT c FROM ConcessaoBolsa c
+              JOIN FETCH c.tipoBolsa
+              LEFT JOIN FETCH c.solicitadoPor
+              LEFT JOIN FETCH c.simulacao s
+              LEFT JOIN FETCH s.aluno a
+              LEFT JOIN FETCH a.dadosPessoais
+              LEFT JOIN FETCH s.serie
+             WHERE c.status = br.com.brain.enums.StatusConcessaoBolsa.PENDENTE_APROVACAO
+             ORDER BY c.criadoEm ASC, c.id ASC
+            """)
+    List<ConcessaoBolsa> buscarPendentes();
 }

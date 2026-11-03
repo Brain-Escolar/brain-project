@@ -784,6 +784,20 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.SECRETARIO],
   },
   {
+    text: RouteLabelsEnum.SECRETARIA_APROVACAO_BOLSA,
+    icon: <FlagOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_APROVACAO_BOLSA,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
+    text: RouteLabelsEnum.SECRETARIA_CATALOGO,
+    icon: <CategoryIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_CATALOGO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO],
+  },
+  {
     text: RouteLabelsEnum.SECRETARIA_FINANCEIRO,
     icon: <RequestQuoteOutlinedIcon fontSize="small" />,
     router: RoutesEnum.SECRETARIA_FINANCEIRO,

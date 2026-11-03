@@ -1,6 +1,8 @@
 package br.com.brain.bolsa;
 
+import br.com.brain.bolsa.dto.AprovacaoBolsaRequest;
 import br.com.brain.bolsa.dto.ConcessaoBolsaDto;
+import br.com.brain.bolsa.dto.RejeicaoBolsaRequest;
 import br.com.brain.bolsa.dto.ReservarBolsaRequest;
 import br.com.brain.bolsa.dto.TetoConcessaoDto;
 import br.com.brain.bolsa.dto.TipoBolsaDto;
@@ -117,6 +119,33 @@ public class BolsaController {
             @RequestParam("dataEncerramento") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataEncerramento,
             @RequestParam(value = "motivo", required = false) String motivo) {
         return ResponseEntity.ok(concessaoService.encerrar(concessaoId, dataEncerramento, motivo));
+    }
+
+    // ---------------------------------------------------------------- aprovacao
+    //
+    // Quem pode aprovar nao e decidido por esta URL, e pela ALCADA de quem
+    // chama: o servico recalcula o teto do usuario e recusa acima dele. Um
+    // matcher de perfil aqui seria uma segunda regra, que divergiria da
+    // primeira no dia em que alguem mexesse so numa delas.
+
+    /** A fila da direção: o que está esperando decisão, do mais antigo primeiro. */
+    @GetMapping("/concessoes/pendentes")
+    public ResponseEntity<List<ConcessaoBolsaDto>> pendentes() {
+        return ResponseEntity.ok(concessaoService.pendentes());
+    }
+
+    @PostMapping("/concessoes/{concessaoId}/aprovar")
+    public ResponseEntity<ConcessaoBolsaDto> aprovar(
+            @PathVariable Long concessaoId,
+            @RequestBody @Valid AprovacaoBolsaRequest decisao) {
+        return ResponseEntity.ok(concessaoService.aprovar(concessaoId, decisao));
+    }
+
+    @PostMapping("/concessoes/{concessaoId}/rejeitar")
+    public ResponseEntity<ConcessaoBolsaDto> rejeitar(
+            @PathVariable Long concessaoId,
+            @RequestBody @Valid RejeicaoBolsaRequest decisao) {
+        return ResponseEntity.ok(concessaoService.rejeitar(concessaoId, decisao.motivo()));
     }
 
     /** As bolsas de uma proposta, com o historico de status. */

@@ -292,6 +292,7 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.bolsa.all, "teto", params ?? {}] as const,
     concessoes: (simulacaoId: number) =>
       [...QUERY_KEYS.bolsa.all, "concessoes", simulacaoId] as const,
+    pendentes: () => [...QUERY_KEYS.bolsa.all, "pendentes"] as const,
   },
   anosLetivos: {
     all: ["anosLetivos"] as const,
@@ -329,5 +330,12 @@ export const QUERY_KEYS = {
   dadosPessoais: {
     all: ["dados-pessoais"] as const,
     existente: (cpf: string) => [...QUERY_KEYS.dadosPessoais.all, "existente", cpf] as const,
+  },
+  produtos: {
+    all: ["produtos"] as const,
+    lista: () => [...QUERY_KEYS.produtos.all, "lista"] as const,
+    detalhe: (id: number) => [...QUERY_KEYS.produtos.all, "detalhe", id] as const,
+    precos: (modalidadeId: number) =>
+      [...QUERY_KEYS.produtos.all, "precos", modalidadeId] as const,
   },
 } as const;

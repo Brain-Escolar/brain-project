@@ -65,6 +65,16 @@ public class ConcessaoBolsa extends EntidadeBase {
 
     private BigDecimal percentual;
 
+    /**
+     * O que foi PEDIDO, ao lado do que vale.
+     *
+     * Os dois juntos sao a historia da negociacao: "pediu 30, saiu 25" diz muito
+     * mais do que "25", e e o que a direcao olha para calibrar a matriz no ano
+     * seguinte. Guardar so o aprovado apagaria metade do fato.
+     */
+    @Column(name = "percentual_pedido")
+    private BigDecimal percentualPedido;
+
     /** O que a escola deixa de arrecadar no ano por causa desta bolsa. */
     @Column(name = "valor_renuncia_anual")
     private BigDecimal valorRenunciaAnual;
@@ -103,7 +113,24 @@ public class ConcessaoBolsa extends EntidadeBase {
     @Column(name = "excedeu_envelope")
     private Boolean excedeuEnvelope = false;
 
+    /** Por que aprovou, aprovou menos, ou recusou. */
+    @Column(name = "motivo_decisao")
+    private String motivoDecisao;
+
     public boolean seguraOrcamento() {
         return status == StatusConcessaoBolsa.RESERVADA || status == StatusConcessaoBolsa.ATIVA;
+    }
+
+    /**
+     * Pendente NAO segura orcamento, mas ocupa a vaga do tipo de bolsa na
+     * proposta: sem isto, daria para pedir a mesma bolsa duas vezes enquanto a
+     * primeira espera a direcao, e aprovar as duas.
+     */
+    public boolean ocupaOTipoDeBolsa() {
+        return seguraOrcamento() || status == StatusConcessaoBolsa.PENDENTE_APROVACAO;
+    }
+
+    public boolean estaPendente() {
+        return status == StatusConcessaoBolsa.PENDENTE_APROVACAO;
     }
 }
