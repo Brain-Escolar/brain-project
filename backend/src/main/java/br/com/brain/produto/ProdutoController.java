@@ -7,17 +7,22 @@ import br.com.brain.produto.dto.AtualizacaoProdutoModalidadeDto;
 import br.com.brain.produto.dto.CadastroAlunoProdutoDto;
 import br.com.brain.produto.dto.CadastroProdutoDto;
 import br.com.brain.produto.dto.CadastroProdutoModalidadeDto;
+import br.com.brain.produto.dto.CadastroProdutoPrecoDto;
 import br.com.brain.produto.dto.DetalhamentoProdutoDto;
 import br.com.brain.produto.dto.ListagemAlunoProdutoDto;
 import br.com.brain.produto.dto.ListagemProdutoDto;
 import br.com.brain.produto.dto.ListagemProdutoModalidadeDto;
+import br.com.brain.produto.dto.ListagemProdutoPrecoDto;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -29,6 +34,7 @@ public class ProdutoController {
 
     private final ProdutoService service;
     private final AlunoProdutoService alunoProdutoService;
+    private final ProdutoPrecoService precoService;
 
     @PostMapping
     public ResponseEntity<DetalhamentoProdutoDto> cadastrar(
@@ -112,6 +118,42 @@ public class ProdutoController {
     @DeleteMapping("/alunos/compras/{compraId}")
     public ResponseEntity<Void> cancelarCompra(@PathVariable Long compraId) {
         alunoProdutoService.cancelar(compraId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ------------------------------------------------------------------ precos
+    //
+    // A tabela de precos e o comeco da cadeia: sem preco nao ha proposta, sem
+    // proposta nao ha contrato, sem contrato nao ha carne. Ate agora isso so
+    // existia por SQL na mao.
+    //
+    // Nao ha PUT de valor de proposito. Reajuste e POST com `encerrarAnterior`:
+    // a linha antiga ganha fim e a nova entra. Ver ProdutoPrecoService.
+
+    @GetMapping("/modalidades/{modalidadeId}/precos")
+    public ResponseEntity<List<ListagemProdutoPrecoDto>> listarPrecos(@PathVariable Long modalidadeId) {
+        return ResponseEntity.ok(precoService.listar(modalidadeId));
+    }
+
+    @PostMapping("/modalidades/{modalidadeId}/precos")
+    public ResponseEntity<ListagemProdutoPrecoDto> cadastrarPreco(
+            @PathVariable Long modalidadeId,
+            @RequestBody @Valid CadastroProdutoPrecoDto dados) {
+        return ResponseEntity.ok(precoService.cadastrar(modalidadeId, dados));
+    }
+
+    /** Fecha a vigência de um preço. É a única alteração possível numa linha existente. */
+    @PutMapping("/precos/{precoId}/encerramento")
+    public ResponseEntity<ListagemProdutoPrecoDto> encerrarPreco(
+            @PathVariable Long precoId,
+            @RequestParam("dataFim") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim) {
+        return ResponseEntity.ok(precoService.encerrar(precoId, dataFim));
+    }
+
+    /** Só para preço que ainda não entrou em vigor — erro de digitação antes de valer. */
+    @DeleteMapping("/precos/{precoId}")
+    public ResponseEntity<Void> excluirPreco(@PathVariable Long precoId) {
+        precoService.excluir(precoId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -71,4 +71,26 @@ public interface ProdutoPrecoRepository extends JpaRepository<ProdutoPreco, Long
             @Param("serieId") Long serieId,
             @Param("turno") Turno turno,
             @Param("data") LocalDate data);
+
+    /**
+     * Todos os precos de uma modalidade, vigentes ou nao, do mais recente para o
+     * mais antigo.
+     *
+     * Traz os encerrados e os futuros de proposito: esta tabela E o historico de
+     * preco (nao ha gemea _AUD, ver V100), entao esconder as linhas antigas
+     * esconderia a unica resposta para "quanto custava quando o contrato foi
+     * assinado".
+     *
+     * LEFT JOIN FETCH em unidade e serie porque o DTO le o nome das duas, e
+     * ambas sao LAZY: sem isso sai uma consulta por linha, ou estoura fora da
+     * transacao.
+     */
+    @Query("""
+            SELECT p FROM ProdutoPreco p
+              LEFT JOIN FETCH p.unidade
+              LEFT JOIN FETCH p.serie
+             WHERE p.modalidade.id = :modalidadeId
+             ORDER BY p.vigenciaInicio DESC, p.id DESC
+            """)
+    List<ProdutoPreco> buscarDaModalidade(@Param("modalidadeId") Long modalidadeId);
 }

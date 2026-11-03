@@ -15,6 +15,7 @@ import br.com.brain.enums.BaseCalculoEnvelope;
 import br.com.brain.enums.NaturezaEnvelope;
 import br.com.brain.enums.UnidadeMedidaEnvelope;
 import br.com.brain.exception.ErrosSistema;
+import br.com.brain.shared.Vigencias;
 import br.com.brain.perfil.PerfilRepository;
 import br.com.brain.produto.Produto;
 import br.com.brain.serie.Serie;
@@ -323,9 +324,10 @@ public class BolsaConfiguracaoService {
      */
     static boolean vigenciasCruzam(
             LocalDate aInicio, LocalDate aFim, LocalDate bInicio, LocalDate bFim) {
-        var aComecaAntesDeBTerminar = bFim == null || !aInicio.isAfter(bFim);
-        var bComecaAntesDeATerminar = aFim == null || !bInicio.isAfter(aFim);
-        return aComecaAntesDeBTerminar && bComecaAntesDeATerminar;
+        // A regra mora em Vigencias desde que a tabela de precos passou a
+        // precisar dela. Este metodo fica como porta de entrada do pacote --
+        // e o que o teste desta classe chama.
+        return Vigencias.cruzam(aInicio, aFim, bInicio, bFim);
     }
 
     private boolean jaEntrouEmVigor(MatrizDesconto matriz) {
