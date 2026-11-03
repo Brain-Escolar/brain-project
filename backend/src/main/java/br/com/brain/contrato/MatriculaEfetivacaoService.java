@@ -239,8 +239,26 @@ public class MatriculaEfetivacaoService {
             copia.setValorUnitario(item.getValorUnitario());
             copia.setQuantidade(item.getQuantidade());
             copia.setElegivelBolsa(item.getElegivelBolsa());
+            // Snapshot, como os campos acima: e a natureza que decide quantos
+            // titulos o item gera, e ela precisa continuar valendo mesmo que o
+            // catalogo mude no ano que vem.
+            copia.setNatureza(item.getModalidade().getProduto().getNatureza());
+
+            // Sem natureza nao da para saber se o item vira carne ou cobranca
+            // unica, e o padrao silencioso erraria para o lado pior: a
+            // mensalidade sairia como um titulo so, do valor do ano inteiro.
+            if (copia.getNatureza() == null) {
+                throw ErrosSistema.OperacaoInvalidaException.com(
+                        "O produto \"" + item.getDescricao() + "\" não tem natureza definida"
+                                + " (mensalidade recorrente, cobrança única ou eventual)."
+                                + " Defina no cadastro do produto antes de efetivar.");
+            }
+
             contrato.adicionarItem(copia);
         }
+
+        conferirQueOsItensSomamOBruto(contrato);
+        distribuirDescontoEntreItens(contrato);
 
         return contrato;
     }
@@ -288,42 +306,112 @@ public class MatriculaEfetivacaoService {
      * 1.387,58 / bolsa -277,50 / a pagar 1.110,08" em vez de so o liquido. Bolsa
      * que nao aparece no boleto e bolsa que a familia nao percebe que recebeu.
      */
+    /**
+     * Emite o carne: um titulo por ITEM por competencia por responsavel.
+     *
+     * Antes era um titulo por competencia com tudo somado. Mudou porque servico
+     * opcional e contratado no meio do ano -- e nao ha como enfia-lo num carne
+     * ja emitido -- e porque material didatico costuma ser faturado por outra
+     * empresa, o que um titulo misturado nao consegue representar.
+     *
+     * Quantas parcelas cada item gera e a natureza que diz: mensalidade e
+     * contraturno sao RECORRENTE e viram carne; taxa de matricula e material sao
+     * cobranca unica e viram um titulo so, na primeira competencia.
+     */
     private void emitirTitulos(ContratoServico contrato, SimulacaoFinanceira simulacao,
             List<AlunoResponsavelFinanceiro> rateio, EfetivarMatriculaRequest pedido) {
-
-        var parcelas = contrato.getQtdParcelas();
-        var brutoPorParcela = RateioFinanceiro.dividirEmParcelas(contrato.getValorBruto(), parcelas);
-        var descontoPorParcela = RateioFinanceiro.dividirEmParcelas(contrato.getValorDesconto(), parcelas);
 
         var percentuais = rateio.stream()
                 .map(AlunoResponsavelFinanceiro::getPercentualRateio)
                 .toList();
 
-        var titulos = new ArrayList<Titulo>(parcelas * rateio.size());
+        var titulos = new ArrayList<Titulo>();
 
-        for (var i = 0; i < parcelas; i++) {
-            var competencia = contrato.getDataInicio().plusMonths(i);
-            var vencimento = competencia.withDayOfMonth(contrato.getDiaVencimento());
-            var descricao = "Parcela " + (i + 1) + "/" + parcelas + " — "
-                    + simulacao.getAnoLetivo();
+        for (var item : contrato.getItens()) {
+            var parcelas = item.quantidadeDeTitulos(contrato.getQtdParcelas());
 
-            var brutoRateado = RateioFinanceiro.ratear(brutoPorParcela.get(i), percentuais);
-            var descontoRateado = RateioFinanceiro.ratear(descontoPorParcela.get(i), percentuais);
+            var brutoPorParcela = RateioFinanceiro.dividirEmParcelas(item.total(), parcelas);
+            var descontoPorParcela =
+                    RateioFinanceiro.dividirEmParcelas(item.getValorDesconto(), parcelas);
 
-            for (var j = 0; j < rateio.size(); j++) {
-                titulos.add(Titulo.parcela(
-                        contrato,
-                        rateio.get(j).getResponsavel(),
-                        competencia,
-                        i + 1,
-                        vencimento,
-                        descricao,
-                        brutoRateado.get(j),
-                        descontoRateado.get(j)));
+            for (var i = 0; i < parcelas; i++) {
+                var competencia = contrato.getDataInicio().plusMonths(i);
+                var vencimento = competencia.withDayOfMonth(contrato.getDiaVencimento());
+
+                var brutoRateado = RateioFinanceiro.ratear(brutoPorParcela.get(i), percentuais);
+                var descontoRateado = RateioFinanceiro.ratear(descontoPorParcela.get(i), percentuais);
+
+                for (var j = 0; j < rateio.size(); j++) {
+                    titulos.add(Titulo.parcela(
+                            contrato,
+                            item,
+                            rateio.get(j).getResponsavel(),
+                            competencia,
+                            i + 1,
+                            vencimento,
+                            // A descricao e o NOME DO PRODUTO, nao "parcela 3/12".
+                            // A familia reconhece "Seguro Escolar EF - 5 ano"; o
+                            // numero da parcela ja viaja em numeroParcela, e a
+                            // tela compoe os dois.
+                            item.getDescricao(),
+                            brutoRateado.get(j),
+                            descontoRateado.get(j)));
+                }
             }
         }
 
         tituloRepository.saveAll(titulos);
+    }
+
+    /**
+     * O contrato copia bruto e desconto da simulacao e NAO recalcula -- e esse e
+     * o principio da classe. Mas agora os titulos saem dos ITENS, entao se a
+     * soma dos itens nao for o bruto do contrato o carne nasce diferente do que
+     * a familia aceitou, e ninguem percebe ate alguem somar os boletos na mao.
+     *
+     * Entao nao se corrige: recusa-se, com os dois numeros na mensagem.
+     */
+    private void conferirQueOsItensSomamOBruto(ContratoServico contrato) {
+        var somaDosItens = contrato.getItens().stream()
+                .map(ContratoItem::total)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (somaDosItens.compareTo(contrato.getValorBruto()) != 0) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Os itens da proposta somam " + somaDosItens.toPlainString()
+                            + ", mas o valor do contrato é " + contrato.getValorBruto().toPlainString()
+                            + ". O carnê sairia diferente do que a família aceitou."
+                            + " Refaça a proposta antes de efetivar.");
+        }
+    }
+
+    /**
+     * Espalha a bolsa do contrato entre os itens ELEGIVEIS, proporcionalmente ao
+     * valor de cada um.
+     *
+     * Item inelegivel recebe zero -- nao um pedaco pequeno. Seguro escolar nao
+     * tem bolsa, e ver "-R$2,31" na linha dele seria mentira em miniatura, do
+     * tipo que destroi a confianca da familia no boleto inteiro.
+     */
+    private void distribuirDescontoEntreItens(ContratoServico contrato) {
+        var itens = contrato.getItens();
+
+        var pesos = itens.stream()
+                .map(i -> Boolean.TRUE.equals(i.getElegivelBolsa()) ? i.total() : BigDecimal.ZERO)
+                .toList();
+
+        List<BigDecimal> porItem;
+        try {
+            porItem = RateioFinanceiro.distribuirProporcional(contrato.getValorDesconto(), pesos);
+        } catch (IllegalArgumentException e) {
+            // Traduz para 422 com a mensagem original: a causa comum e desconto
+            // concedido sobre um catalogo em que nenhum produto permite bolsa.
+            throw ErrosSistema.OperacaoInvalidaException.com(e.getMessage());
+        }
+
+        for (var i = 0; i < itens.size(); i++) {
+            itens.get(i).setValorDesconto(porItem.get(i));
+        }
     }
 
     // ------------------------------------------------------------------ leitura

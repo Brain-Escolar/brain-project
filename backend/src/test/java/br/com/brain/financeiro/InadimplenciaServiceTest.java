@@ -1,10 +1,12 @@
 package br.com.brain.financeiro;
 
 import br.com.brain.aluno.Aluno;
+import br.com.brain.contrato.ContratoItem;
 import br.com.brain.contrato.ContratoServico;
 import br.com.brain.contrato.Titulo;
 import br.com.brain.contrato.TituloRepository;
 import br.com.brain.enums.FaixaAging;
+import br.com.brain.enums.NaturezaProduto;
 import br.com.brain.financeiro.dto.FaixaResumoDto;
 import br.com.brain.financeiro.dto.InadimplenciaDto;
 import br.com.brain.matricula.Matricula;
@@ -60,8 +62,15 @@ class InadimplenciaServiceTest {
         var responsavel = new Responsavel();
         responsavel.setId(100 + alunoId);
 
-        return Titulo.parcela(contrato, responsavel, vencimento.withDayOfMonth(1), 1,
-                vencimento, "Parcela 1/12", new BigDecimal(liquido), BigDecimal.ZERO);
+        var item = new ContratoItem();
+        item.setId(50L + alunoId);
+        item.setDescricao("Mensalidade");
+        item.setValorUnitario(new BigDecimal(liquido));
+        item.setQuantidade(1);
+        item.setNatureza(NaturezaProduto.RECORRENTE);
+
+        return Titulo.parcela(contrato, item, responsavel, vencimento.withDayOfMonth(1), 1,
+                vencimento, "Mensalidade", new BigDecimal(liquido), BigDecimal.ZERO);
     }
 
     private void repositorioDevolve(List<Titulo> titulos) {

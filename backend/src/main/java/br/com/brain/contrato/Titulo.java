@@ -68,6 +68,19 @@ public class Titulo extends EntidadeBase {
     private Responsavel responsavel;
 
     /**
+     * QUAL item do contrato este titulo cobra.
+     *
+     * E a mudanca que separa "parcela 3 do contrato" de "parcela 3 da
+     * mensalidade" e "parcela 3 do seguro". Sem isto, servico contratado no meio
+     * do ano nao teria onde emitir, e um titulo que mistura mensalidade e
+     * material nao teria como ter um emitente so.
+     */
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contrato_item_id", referencedColumnName = "id")
+    private ContratoItem contratoItem;
+
+    /**
      * Mes de referencia, sempre no dia 1 -- o banco cobra isso com CHECK.
      * Competencia e vencimento sao coisas diferentes: a parcela de fevereiro pode
      * vencer em marco, e o relatorio de receita olha a competencia.
@@ -89,6 +102,18 @@ public class Titulo extends EntidadeBase {
 
     private LocalDate vencimento;
 
+    /**
+     * O vencimento com que o titulo nasceu. Nao muda nunca.
+     *
+     * Existe para adiar uma parcela sem perder de vista que ela era de novembro:
+     * a familia ve "vencimento original Nov/2026, vence 10/12/2026", e o
+     * relatorio de inadimplencia continua sabendo ha quanto tempo a divida e
+     * velha de verdade. Sem isto, adiar obrigaria a emitir titulo novo so para
+     * trocar uma data.
+     */
+    @Column(name = "vencimento_original")
+    private LocalDate vencimentoOriginal;
+
     private String descricao;
 
     @Column(name = "valor_bruto")
@@ -109,16 +134,23 @@ public class Titulo extends EntidadeBase {
     @JoinColumn(name = "titulo_origem_id", referencedColumnName = "id")
     private Titulo tituloOrigem;
 
-    private Titulo(ContratoServico contrato, Responsavel responsavel, LocalDate competencia,
-            Integer numeroParcela, LocalDate vencimento, String descricao,
+    private Titulo(ContratoServico contrato, ContratoItem contratoItem, Responsavel responsavel,
+            LocalDate competencia, Integer numeroParcela, LocalDate vencimento, String descricao,
             BigDecimal valorBruto, BigDecimal valorDesconto, Titulo tituloOrigem) {
         this.contrato = contrato;
+        this.contratoItem = contratoItem;
         this.responsavel = responsavel;
         // Normaliza para o dia 1: o CHECK do banco exige, e deixar o chamador
         // lembrar disso seria erro esperando acontecer.
         this.competencia = competencia.withDayOfMonth(1);
         this.numeroParcela = numeroParcela;
         this.vencimento = vencimento;
+        // O original atravessa a cadeia: reemitir nao apaga de que mes a parcela
+        // era. Sem isto, um titulo reemitido tres vezes perderia a data que a
+        // familia tem na cabeca.
+        this.vencimentoOriginal = tituloOrigem == null
+                ? vencimento
+                : tituloOrigem.getVencimentoOriginal();
         this.descricao = descricao;
         this.valorBruto = valorBruto;
         this.valorDesconto = valorDesconto;
@@ -128,11 +160,12 @@ public class Titulo extends EntidadeBase {
         this.versao = tituloOrigem == null ? 1 : tituloOrigem.getVersao() + 1;
     }
 
-    public static Titulo parcela(ContratoServico contrato, Responsavel responsavel,
-            LocalDate competencia, int numeroParcela, LocalDate vencimento, String descricao,
+    public static Titulo parcela(ContratoServico contrato, ContratoItem contratoItem,
+            Responsavel responsavel, LocalDate competencia, int numeroParcela,
+            LocalDate vencimento, String descricao,
             BigDecimal valorBruto, BigDecimal valorDesconto) {
-        return new Titulo(contrato, responsavel, competencia, numeroParcela, vencimento,
-                descricao, valorBruto, valorDesconto, null);
+        return new Titulo(contrato, contratoItem, responsavel, competencia, numeroParcela,
+                vencimento, descricao, valorBruto, valorDesconto, null);
     }
 
     /**
@@ -150,11 +183,34 @@ public class Titulo extends EntidadeBase {
                     "O título de origem ainda está ABERTO. Estorne, cancele ou renegocie antes de"
                             + " reemitir, senão a parcela fica cobrada duas vezes.");
         }
-        return new Titulo(origem.getContrato(), origem.getResponsavel(), origem.getCompetencia(),
-                origem.getNumeroParcela(), vencimento, descricao, valorBruto, valorDesconto, origem);
+        return new Titulo(origem.getContrato(), origem.getContratoItem(), origem.getResponsavel(),
+                origem.getCompetencia(), origem.getNumeroParcela(), vencimento, descricao,
+                valorBruto, valorDesconto, origem);
     }
 
     // --------------------------------------------------------------- transicoes
+
+    /**
+     * Adia o vencimento sem emitir titulo novo.
+     *
+     * O valor nao muda, entao nao ha motivo para outro documento -- e o original
+     * fica guardado em vencimentoOriginal, para o relatorio continuar sabendo de
+     * que mes a parcela era. So faz sentido em titulo ABERTO: adiar algo ja pago
+     * nao quer dizer nada.
+     */
+    public void adiarPara(LocalDate novoVencimento) {
+        exigirAberto("adiar");
+        if (novoVencimento == null) {
+            throw new IllegalArgumentException("Informe o novo vencimento.");
+        }
+        if (novoVencimento.isBefore(vencimentoOriginal)) {
+            throw new IllegalStateException(
+                    "O novo vencimento (" + novoVencimento + ") é anterior ao original ("
+                            + vencimentoOriginal + "). Antecipar não é adiar: para cobrar antes,"
+                            + " combine o pagamento com a família.");
+        }
+        this.vencimento = novoVencimento;
+    }
 
     public void pagar() {
         exigirAberto("baixar");

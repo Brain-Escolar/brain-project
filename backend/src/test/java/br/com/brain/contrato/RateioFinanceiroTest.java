@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -218,5 +220,160 @@ class RateioFinanceiroTest {
         }
 
         assertThat(liquidoTotal).isEqualByComparingTo(bruto.subtract(desconto));
+    }
+
+    @Nested
+    @DisplayName("distribuição entre os itens do contrato")
+    class EntreItens {
+
+        /**
+         * A invariante: a bolsa do contrato tem de pousar inteira nos itens, sem
+         * sobrar nem faltar centavo. Os pesos sao o valor de cada item elegivel.
+         */
+        @Test
+        @DisplayName("a soma do que cada item recebeu fecha com o desconto do contrato")
+        void somaFecha() {
+            String[][] casos = {
+                    {"3240.00", "16200.00,142.80"},
+                    {"7421.59", "29686.36,2698.76,435.76"},
+                    {"0.01", "16200.00,142.80"},
+                    {"999.99", "1000.00,1000.00,1000.00"},
+                    {"0.00", "16200.00,142.80"},
+            };
+
+            for (var caso : casos) {
+                var desconto = new BigDecimal(caso[0]);
+                var pesos = Arrays.stream(caso[1].split(",")).map(BigDecimal::new).toList();
+
+                var porItem = RateioFinanceiro.distribuirProporcional(desconto, pesos);
+
+                assertThat(porItem.stream().reduce(BigDecimal.ZERO, BigDecimal::add))
+                        .as("desconto %s entre pesos %s deu %s", caso[0], caso[1], porItem)
+                        .isEqualByComparingTo(desconto);
+            }
+        }
+
+        /**
+         * Esta e a razao de o metodo existir, e nao reaproveitar `ratear`.
+         *
+         * Seguro escolar nao e elegivel a bolsa. Ver "-R$2,31" na linha dele
+         * seria mentira em miniatura -- do tipo que faz a familia desconfiar do
+         * boleto inteiro. Elegibilidade e regra, nao arredondamento.
+         */
+        @Test
+        @DisplayName("item inelegível recebe exatamente zero, não um pedaço pequeno")
+        void inelegivelNaoRecebeNada() {
+            var pesos = List.of(
+                    new BigDecimal("16200.00"),  // mensalidade, elegível
+                    BigDecimal.ZERO,             // seguro, NÃO elegível
+                    new BigDecimal("435.76"));   // material, elegível
+
+            var porItem = RateioFinanceiro.distribuirProporcional(new BigDecimal("3240.00"), pesos);
+
+            assertThat(porItem.get(1)).isEqualByComparingTo("0.00");
+            assertThat(porItem.stream().reduce(BigDecimal.ZERO, BigDecimal::add))
+                    .isEqualByComparingTo("3240.00");
+        }
+
+        @Test
+        @DisplayName("a sobra vai na primeira posição COM peso, não na posição zero")
+        void sobraVaiNoPrimeiroComPeso() {
+            var porItem = RateioFinanceiro.distribuirProporcional(
+                    new BigDecimal("100.00"),
+                    List.of(BigDecimal.ZERO, BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE));
+
+            assertThat(porItem.getFirst()).isEqualByComparingTo("0.00");
+            assertThat(porItem.get(1)).isEqualByComparingTo("33.34");
+        }
+
+        /**
+         * Desconto concedido sobre um catalogo em que nenhum produto permite
+         * bolsa. Distribuir seria impossivel e ignorar faria o desconto evaporar
+         * entre a proposta e o carne -- a familia pagaria mais do que aceitou.
+         */
+        @Test
+        @DisplayName("desconto sem nenhum item elegível é recusado")
+        void semItemElegivel() {
+            assertThatThrownBy(() -> RateioFinanceiro.distribuirProporcional(
+                    new BigDecimal("500.00"), List.of(BigDecimal.ZERO, BigDecimal.ZERO)))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("elegível");
+        }
+
+        /** Zero sem item elegível é trivial, não erro: contrato sem bolsa nenhuma. */
+        @Test
+        @DisplayName("zero sem item elegível passa")
+        void zeroSemElegivel() {
+            var porItem = RateioFinanceiro.distribuirProporcional(
+                    BigDecimal.ZERO, List.of(BigDecimal.ZERO, BigDecimal.ZERO));
+
+            assertThat(porItem.stream().reduce(BigDecimal.ZERO, BigDecimal::add))
+                    .isEqualByComparingTo("0.00");
+        }
+    }
+
+    /**
+     * A composicao que MatriculaEfetivacaoService faz desde que o titulo passou a
+     * ser por item: distribui a bolsa entre os itens, parcela cada item conforme
+     * a natureza dele, e rateia cada parcela entre os responsaveis.
+     *
+     * Tres invariantes, e cada uma falha de um jeito diferente em producao:
+     * a soma dos titulos tem de dar o liquido do contrato (senao o carne nao
+     * fecha), item inelegivel nao pode ter desconto (senao a familia ve bolsa
+     * onde nao ha), e nenhum titulo pode ter desconto maior que o bruto (senao o
+     * CHECK do banco recusa a efetivacao inteira).
+     */
+    @Test
+    @DisplayName("emissão por item: o carnê fecha, a bolsa fica onde deve e nenhum título fura o CHECK")
+    void composicaoPorItemFecha() {
+        // Mensalidade elegível (12x), seguro NÃO elegível (12x), material elegível (à vista).
+        var valores = List.of(
+                new BigDecimal("16200.00"),
+                new BigDecimal("142.80"),
+                new BigDecimal("435.76"));
+        var elegiveis = List.of(true, false, true);
+        var parcelasDoItem = List.of(12, 12, 1);
+
+        var bruto = valores.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        var desconto = new BigDecimal("3240.00");
+        var percentuais = List.of(new BigDecimal("60.00"), new BigDecimal("40.00"));
+
+        var pesos = new ArrayList<BigDecimal>();
+        for (var i = 0; i < valores.size(); i++) {
+            pesos.add(elegiveis.get(i) ? valores.get(i) : BigDecimal.ZERO);
+        }
+        var descontoPorItem = RateioFinanceiro.distribuirProporcional(desconto, pesos);
+
+        var liquidoTotal = BigDecimal.ZERO;
+
+        for (var item = 0; item < valores.size(); item++) {
+            var parcelas = parcelasDoItem.get(item);
+            var brutoPorParcela = RateioFinanceiro.dividirEmParcelas(valores.get(item), parcelas);
+            var descPorParcela = RateioFinanceiro.dividirEmParcelas(descontoPorItem.get(item), parcelas);
+
+            if (!elegiveis.get(item)) {
+                assertThat(descontoPorItem.get(item))
+                        .as("item %d não é elegível e não pode ter desconto", item)
+                        .isEqualByComparingTo("0.00");
+            }
+
+            for (var i = 0; i < parcelas; i++) {
+                var brutoRateado = RateioFinanceiro.ratear(brutoPorParcela.get(i), percentuais);
+                var descRateado = RateioFinanceiro.ratear(descPorParcela.get(i), percentuais);
+
+                for (var j = 0; j < percentuais.size(); j++) {
+                    assertThat(descRateado.get(j))
+                            .as("item %d, parcela %d, responsável %d", item, i + 1, j)
+                            .isLessThanOrEqualTo(brutoRateado.get(j));
+
+                    liquidoTotal = liquidoTotal.add(
+                            brutoRateado.get(j).subtract(descRateado.get(j)));
+                }
+            }
+        }
+
+        assertThat(liquidoTotal)
+                .as("a soma de todos os títulos tem de ser o líquido do contrato")
+                .isEqualByComparingTo(bruto.subtract(desconto));
     }
 }
