@@ -2,6 +2,7 @@ package br.com.brain.contrato;
 
 import br.com.brain.contrato.dto.ContratoDto;
 import br.com.brain.contrato.dto.EfetivarMatriculaRequest;
+import br.com.brain.contrato.dto.PendenciaDoPagadorDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +43,19 @@ public class ContratoController {
             @RequestParam("alunoId") Long alunoId,
             @RequestParam(value = "anoLetivo", required = false) Integer anoLetivo) {
         return ResponseEntity.ok(efetivacaoService.contratosDoAluno(alunoId, anoLetivo));
+    }
+
+    /**
+     * O que impede cada pagador de receber cobrança, antes de efetivar.
+     *
+     * A tela chama isto ao abrir, não ao clicar: a efetivação é transacional e
+     * não sai pela metade, então descobrir que falta o CEP depois de gerar
+     * contrato e títulos seria descobrir tarde demais.
+     */
+    @GetMapping("/pendencias")
+    public ResponseEntity<List<PendenciaDoPagadorDto>> pendencias(
+            @RequestParam("simulacaoId") Long simulacaoId) {
+        return ResponseEntity.ok(efetivacaoService.pendenciasDosPagadores(simulacaoId));
     }
 
     @GetMapping("/{id}")

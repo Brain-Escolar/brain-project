@@ -315,6 +315,8 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.contratos.all, "matricula", matriculaId] as const,
     doAluno: (alunoId: number, anoLetivo?: number) =>
       [...QUERY_KEYS.contratos.all, "aluno", alunoId, anoLetivo ?? "todos"] as const,
+    pendencias: (simulacaoId: number) =>
+      [...QUERY_KEYS.contratos.all, "pendencias", simulacaoId] as const,
   },
   financeiro: {
     all: ["financeiro"] as const,

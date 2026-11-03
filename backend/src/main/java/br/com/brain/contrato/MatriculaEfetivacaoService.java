@@ -5,6 +5,7 @@ import br.com.brain.bolsa.BolsaConcessaoService;
 import br.com.brain.configuracaoAcademica.AnoLetivoService;
 import br.com.brain.matricula.EnturmacaoService;
 import br.com.brain.contrato.dto.ContratoDto;
+import br.com.brain.contrato.dto.PendenciaDoPagadorDto;
 import br.com.brain.contrato.dto.EfetivarMatriculaRequest;
 import br.com.brain.enums.StatusContratoServico;
 import br.com.brain.enums.StatusMatricula;
@@ -85,6 +86,11 @@ public class MatriculaEfetivacaoService {
 
         var matricula = obterOuCriarMatricula(simulacao, aluno, pedido, dataEfetivacao);
         var rateio = resolverRateio(aluno, simulacao, dataEfetivacao);
+
+        // Antes de montar qualquer coisa: quem vai receber boleto precisa de
+        // cadastro completo. A efetivacao e transacional e nao sai pela metade,
+        // entao descobrir isso depois significaria desfazer tudo.
+        exigirPagadoresCobraveis(rateio);
 
         var contrato = montarContrato(simulacao, matricula, rateio.getFirst(), pedido, dataEfetivacao);
         contrato = contratoRepository.save(contrato);
@@ -361,6 +367,19 @@ public class MatriculaEfetivacaoService {
         }
 
         tituloRepository.saveAll(titulos);
+
+        // TODO(boleto): registrar os titulos no provedor de cobranca (PSP) e
+        // guardar nosso_numero/linha digitavel/QR Pix por titulo.
+        //
+        // Nao fica aqui dentro desta transacao. Chamada a terceiro dentro da
+        // transacao da efetivacao significaria que uma indisponibilidade do banco
+        // impede a matricula -- e a matricula nao depende do banco. O caminho e
+        // registrar o titulo como esta e emitir depois, de forma assincrona e
+        // idempotente por titulo (o mesmo titulo reprocessado nao gera segundo
+        // boleto para a mesma familia).
+        //
+        // Pre-requisito ja garantido: exigirPagadoresCobraveis acima -- boleto
+        // registrado sem endereco completo do pagador e recusado pelo banco.
     }
 
     /**
@@ -412,6 +431,80 @@ public class MatriculaEfetivacaoService {
         for (var i = 0; i < itens.size(); i++) {
             itens.get(i).setValorDesconto(porItem.get(i));
         }
+    }
+
+    /**
+     * Recusa a efetivacao enquanto algum pagador estiver sem cadastro completo.
+     *
+     * Vale para TODOS os responsaveis do rateio, nao so o titular: cada um
+     * recebe os proprios titulos, e portanto os proprios boletos. Um pagador
+     * secundario sem CEP derruba a cobranca dele do mesmo jeito.
+     */
+    private void exigirPagadoresCobraveis(List<AlunoResponsavelFinanceiro> rateio) {
+        var problemas = new ArrayList<String>();
+
+        for (var vinculo : rateio) {
+            var falta = CadastroDoPagador.oQueFalta(vinculo.getResponsavel());
+            if (!falta.isEmpty()) {
+                problemas.add(nomeDoPagador(vinculo) + ": falta " + String.join(", ", falta));
+            }
+        }
+
+        if (!problemas.isEmpty()) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Cadastro incompleto de quem paga — " + String.join("; ", problemas)
+                            + ". Sem isso o boleto registrado é recusado pelo banco,"
+                            + " e o erro só volta dias depois da emissão.");
+        }
+    }
+
+    /**
+     * O que impede cada pagador de receber cobranca, para a tela avisar ANTES do
+     * clique. Mesma regra da efetivacao, lida de outro jeito.
+     */
+    @Transactional(readOnly = true)
+    public List<PendenciaDoPagadorDto> pendenciasDosPagadores(Long simulacaoId) {
+        var simulacao = simulacaoRepository.findById(simulacaoId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException
+                        .para("Simulação financeira", simulacaoId));
+
+        var aluno = resolverAluno(simulacao);
+        var rateio = rateioRepository.buscarVigentes(aluno.getId(), LocalDate.now()).stream()
+                .filter(AlunoResponsavelFinanceiro::participaDaConta)
+                .toList();
+
+        // Sem vinculo vigente, quem paga sera o responsavel da proposta -- e a
+        // mesma decisao que resolverRateio toma na efetivacao.
+        if (rateio.isEmpty()) {
+            var responsavel = simulacao.getResponsavel();
+            if (responsavel == null) {
+                return List.of(new PendenciaDoPagadorDto(
+                        null, null, null, List.of("responsável financeiro")));
+            }
+            return List.of(new PendenciaDoPagadorDto(
+                    responsavel.getId(),
+                    responsavel.getDadosPessoais() == null
+                            ? null : responsavel.getDadosPessoais().getNome(),
+                    new BigDecimal("100.00"),
+                    CadastroDoPagador.oQueFalta(responsavel)));
+        }
+
+        return rateio.stream()
+                .map(v -> new PendenciaDoPagadorDto(
+                        v.getResponsavel().getId(),
+                        nomeDoPagador(v),
+                        v.getPercentualRateio(),
+                        CadastroDoPagador.oQueFalta(v.getResponsavel())))
+                .toList();
+    }
+
+    private String nomeDoPagador(AlunoResponsavelFinanceiro vinculo) {
+        var responsavel = vinculo.getResponsavel();
+        if (responsavel == null || responsavel.getDadosPessoais() == null
+                || responsavel.getDadosPessoais().getNome() == null) {
+            return "Responsável #" + (responsavel == null ? "?" : responsavel.getId());
+        }
+        return responsavel.getDadosPessoais().getNome();
     }
 
     // ------------------------------------------------------------------ leitura

@@ -22,11 +22,16 @@ import {
   Typography,
 } from "@mui/material";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
-import { useContrato } from "@/hooks/useContrato";
+import { useContrato, usePendenciasDosPagadores } from "@/hooks/useContrato";
 import { useContratoMutations } from "@/hooks/useContratoMutations";
 import { useSimulacoesDoProcesso } from "@/hooks/useSimulacoes";
 import { SimulacaoResponse } from "@/services/domains/simulacao";
-import { ContratoResponse, StatusTitulo, TituloResponse } from "@/services/domains/contrato";
+import {
+  ContratoResponse,
+  PendenciaDoPagadorResponse,
+  StatusTitulo,
+  TituloResponse,
+} from "@/services/domains/contrato";
 
 const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -93,6 +98,18 @@ export default function BlocoEfetivacao({ processoMatriculaId, anoLetivo }: Prop
   );
 
   /**
+   * O cadastro de quem paga, conferido ao abrir e nao no clique.
+   *
+   * Boleto registrado sem endereco completo do pagador e recusado pelo banco, e
+   * o erro volta em lote dias depois da emissao. O backend recusa a efetivacao
+   * por isso; aqui o funcionario descobre enquanto ainda tem a familia na frente
+   * para pedir o CEP.
+   */
+  const { comPendencia, loading: conferindoCadastro } = usePendenciasDosPagadores(
+    convertida ? null : (proposta?.id ?? null),
+  );
+
+  /**
    * A resposta da mutation vem primeiro: logo depois de efetivar ela já tem o
    * contrato inteiro, e esperar o refetch deixaria a tela em branco no momento
    * em que o funcionário mais quer ver o carnê.
@@ -117,7 +134,7 @@ export default function BlocoEfetivacao({ processoMatriculaId, anoLetivo }: Prop
         {contrato && <Chip size="small" color="success" label={contrato.numero} />}
       </Stack>
 
-      {carregandoSimulacoes || carregandoContrato ? (
+      {carregandoSimulacoes || carregandoContrato || conferindoCadastro ? (
         <Skeleton variant="rounded" height={160} />
       ) : contrato ? (
         <ContratoEfetivado contrato={contrato} />
@@ -125,6 +142,7 @@ export default function BlocoEfetivacao({ processoMatriculaId, anoLetivo }: Prop
         <PropostaPronta
           proposta={proposta}
           anoLetivo={anoLetivo}
+          comPendencia={comPendencia}
           onEfetivar={() => setConfirmando(true)}
         />
       ) : (
@@ -157,6 +175,12 @@ export default function BlocoEfetivacao({ processoMatriculaId, anoLetivo }: Prop
             />
             <Linha rotulo="A família paga" valor={moeda(proposta.valorLiquido)} destaque />
 
+            {comPendencia.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <CadastroIncompleto pendencias={comPendencia} />
+              </Box>
+            )}
+
             {proposta.status === "RASCUNHO" && proposta.valorDesconto === 0 && (
               <Alert severity="warning" sx={{ mt: 2 }}>
                 Esta proposta não tem bolsa concedida. Se era para ter, conceda no bloco acima antes
@@ -171,7 +195,7 @@ export default function BlocoEfetivacao({ processoMatriculaId, anoLetivo }: Prop
             <Button
               variant="contained"
               onClick={confirmarEfetivacao}
-              disabled={efetivar.isPending}
+              disabled={efetivar.isPending || comPendencia.length > 0}
             >
               {efetivar.isPending ? "Efetivando..." : "Efetivar matrícula"}
             </Button>
@@ -206,13 +230,16 @@ function Linha({
 function PropostaPronta({
   proposta,
   anoLetivo,
+  comPendencia,
   onEfetivar,
 }: {
   proposta: SimulacaoResponse;
   anoLetivo: number;
+  comPendencia: PendenciaDoPagadorResponse[];
   onEfetivar: () => void;
 }) {
   const semBolsa = proposta.valorDesconto === 0;
+  const travado = comPendencia.length > 0;
 
   return (
     <Box>
@@ -253,10 +280,47 @@ function PropostaPronta({
         </Alert>
       )}
 
-      <Button variant="contained" onClick={onEfetivar} sx={{ mt: 2 }}>
+      {travado && (
+        <Box sx={{ mt: 2 }}>
+          <CadastroIncompleto pendencias={comPendencia} />
+        </Box>
+      )}
+
+      <Button variant="contained" onClick={onEfetivar} disabled={travado} sx={{ mt: 2 }}>
         Efetivar matrícula
       </Button>
     </Box>
+  );
+}
+
+/**
+ * Quem ainda nao pode receber cobranca, e o que falta em cada um.
+ *
+ * Lista TODOS os pagadores do rateio, nao so o titular: cada um recebe os
+ * proprios boletos, entao um pagador secundario sem CEP derruba a cobranca
+ * dele do mesmo jeito. O percentual aparece porque e ele que diz o tamanho do
+ * problema -- quem paga 10% travando a matricula inteira merece ser visto.
+ */
+function CadastroIncompleto({ pendencias }: { pendencias: PendenciaDoPagadorResponse[] }) {
+  return (
+    <Alert severity="error">
+      <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+        Cadastro incompleto de quem paga
+      </Typography>
+      <Stack spacing={0.25} sx={{ mb: 1 }}>
+        {pendencias.map((p, i) => (
+          <Typography key={p.responsavelId ?? i} variant="body2">
+            {p.nome ?? "Responsável financeiro"}
+            {p.percentualRateio != null && ` (${Number(p.percentualRateio).toLocaleString("pt-BR")}%)`}
+            : falta {p.faltando.join(", ")}
+          </Typography>
+        ))}
+      </Stack>
+      <Typography variant="caption">
+        Complete o cadastro antes de efetivar. Boleto registrado sem esses dados é recusado pelo
+        banco, e o erro só volta dias depois da emissão — com a família esperando o carnê.
+      </Typography>
+    </Alert>
   );
 }
 
