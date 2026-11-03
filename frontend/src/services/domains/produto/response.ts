@@ -45,9 +45,13 @@ export interface ProdutoDetalheResponse extends ProdutoResponse {
  * — não há auditoria paralela —, então esconder as linhas antigas esconderia a
  * única resposta para "quanto custava quando o contrato foi assinado".
  */
+export type StatusProdutoPreco = "PENDENTE_APROVACAO" | "APROVADO" | "REJEITADO";
+
 export interface PrecoResponse {
   id: number;
   modalidadeId: number;
+  produtoNome: string | null;
+  modalidadeNome: string | null;
   anoLetivo: number | null;
   unidadeId: number | null;
   unidadeNome: string | null;
@@ -60,4 +64,9 @@ export interface PrecoResponse {
   /** Quantas dimensões a linha preenche: o preço geral fica em cima, as exceções embaixo. */
   especificidade: number;
   vigenteHoje: boolean;
+  /** Só APROVADO precifica proposta. Pendente aparece na fila de quem aprova. */
+  status: StatusProdutoPreco;
+  solicitadoPor: string | null;
+  aprovadoPor: string | null;
+  motivoDecisao: string | null;
 }

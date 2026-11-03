@@ -114,6 +114,7 @@ export enum RoutesEnum {
   SECRETARIA_FINANCEIRO = "/secretaria/financeiro",
   SECRETARIA_CATALOGO = "/secretaria/catalogo",
   SECRETARIA_APROVACAO_BOLSA = "/secretaria/aprovacao-bolsa",
+  SECRETARIA_APROVACAO_PRECO = "/secretaria/aprovacao-preco",
 
   // Orientacao routes
   ORIENTACAO_ALUNOS = "/orientacao/alunos",

@@ -277,13 +277,40 @@ function PrecosDaModalidade({ modalidade }: { modalidade: ModalidadeResponse }) 
                   <TableCell>
                     {dataBR(p.vigenciaInicio)}
                     {p.vigenciaFim ? ` a ${dataBR(p.vigenciaFim)}` : " — sem fim"}
-                    {p.vigenteHoje && (
+                    {/*
+                      "vigente" exige APROVADO, nao so data. Preco pendente com
+                      vigencia ja comecada nao cobra ninguem: as consultas da
+                      proposta so devolvem aprovado. Mostrar "vigente" aqui faria
+                      quem cadastrou achar que o reajuste entrou.
+                    */}
+                    {p.status === "APROVADO" && p.vigenteHoje && (
                       <Chip size="small" color="success" label="vigente" sx={{ ml: 1 }} />
+                    )}
+                    {p.status === "PENDENTE_APROVACAO" && (
+                      <Chip
+                        size="small"
+                        color="warning"
+                        label="esperando aprovação"
+                        sx={{ ml: 1 }}
+                      />
+                    )}
+                    {p.status === "REJEITADO" && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        label="recusado"
+                        sx={{ ml: 1 }}
+                        title={p.motivoDecisao ?? undefined}
+                      />
                     )}
                   </TableCell>
                   <TableCell align="right">
-                    {p.vigenciaInicio > hoje ? (
-                      // Ainda nao entrou em vigor: pode sumir, e erro de digitacao.
+                    {p.status === "PENDENTE_APROVACAO" || p.vigenciaInicio > hoje ? (
+                      // Pendente nunca precificou nada -- e um pedido, nao um
+                      // preco -- e preco futuro ainda nao precificou. Os dois
+                      // podem sumir; o que ja vigorou, nao: ele explica contrato
+                      // assinado, e so pode ser encerrado.
                       <Button
                         size="small"
                         color="error"

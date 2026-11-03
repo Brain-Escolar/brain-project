@@ -2,6 +2,8 @@ package br.com.brain.produto;
 
 import br.com.brain.enums.Turno;
 import br.com.brain.serie.Serie;
+import br.com.brain.dadosPessoais.DadosPessoais;
+import br.com.brain.enums.StatusProdutoPreco;
 import br.com.brain.shared.EntidadeBase;
 import br.com.brain.unidade.Unidade;
 import jakarta.persistence.Column;
@@ -19,6 +21,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 
 /**
@@ -67,6 +70,33 @@ public class ProdutoPreco extends EntidadeBase {
 
     @Column(name = "vigencia_fim")
     private LocalDate vigenciaFim;
+
+    /**
+     * So APROVADO precifica proposta, e o filtro esta nas consultas do
+     * repositorio -- nao so na tela. Reajuste e decisao, nao cadastro: quem muda
+     * o preco muda a receita do ano.
+     */
+    @Enumerated(EnumType.STRING)
+    private StatusProdutoPreco status = StatusProdutoPreco.PENDENTE_APROVACAO;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "solicitado_por")
+    private DadosPessoais solicitadoPor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "aprovado_por")
+    private DadosPessoais aprovadoPor;
+
+    @Column(name = "aprovado_em")
+    private Instant aprovadoEm;
+
+    /** Por que aprovou ou recusou. Em seis meses e a unica explicacao do preco. */
+    @Column(name = "motivo_decisao")
+    private String motivoDecisao;
+
+    public boolean vale() {
+        return status == StatusProdutoPreco.APROVADO;
+    }
 
     /** Quanto mais dimensoes preenchidas, mais especifica a linha. */
     public int especificidade() {

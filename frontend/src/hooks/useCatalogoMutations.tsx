@@ -55,6 +55,15 @@ export function useCatalogoMutations() {
       produtoApi.cadastrarPreco(modalidadeId, dados),
     onSuccess: (preco) => {
       invalidar();
+      // Nao dizer "ja vigente": o preco nasce pendente e nao precifica nada ate
+      // alguem aprovar. Prometer vigencia aqui faria quem cadastrou ir embora
+      // achando que o reajuste entrou -- e descobrir no boleto que nao entrou.
+      if (preco.status === "PENDENTE_APROVACAO") {
+        toast.info(
+          "Reajuste enviado para aprovação. Até a decisão, o preço anterior continua valendo.",
+        );
+        return;
+      }
       toast.success(
         preco.vigenteHoje
           ? "Preço cadastrado e já vigente."

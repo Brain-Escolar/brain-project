@@ -8,6 +8,7 @@ import br.com.brain.produto.dto.CadastroAlunoProdutoDto;
 import br.com.brain.produto.dto.CadastroProdutoDto;
 import br.com.brain.produto.dto.CadastroProdutoModalidadeDto;
 import br.com.brain.produto.dto.CadastroProdutoPrecoDto;
+import br.com.brain.produto.dto.DecisaoPrecoRequest;
 import br.com.brain.produto.dto.DetalhamentoProdutoDto;
 import br.com.brain.produto.dto.ListagemAlunoProdutoDto;
 import br.com.brain.produto.dto.ListagemProdutoDto;
@@ -140,6 +141,36 @@ public class ProdutoController {
             @PathVariable Long modalidadeId,
             @RequestBody @Valid CadastroProdutoPrecoDto dados) {
         return ResponseEntity.ok(precoService.cadastrar(modalidadeId, dados));
+    }
+
+    /**
+     * A fila de quem aprova preço.
+     *
+     * Antes de /precos/{precoId} de propósito: "pendentes" casaria como id e
+     * viraria NumberFormatException.
+     */
+    @GetMapping("/precos/pendentes")
+    public ResponseEntity<List<ListagemProdutoPrecoDto>> precosPendentes() {
+        return ResponseEntity.ok(precoService.pendentesDeAprovacao());
+    }
+
+    /**
+     * Aprova o reajuste: é aqui que o preço novo passa a valer e o anterior é
+     * encerrado. A sobreposição é reconferida neste instante.
+     */
+    @PutMapping("/precos/{precoId}/aprovacao")
+    public ResponseEntity<ListagemProdutoPrecoDto> aprovarPreco(
+            @PathVariable Long precoId,
+            @RequestBody(required = false) DecisaoPrecoRequest decisao) {
+        return ResponseEntity.ok(precoService.aprovar(precoId, decisao));
+    }
+
+    /** Recusa o reajuste. O motivo é obrigatório. */
+    @PutMapping("/precos/{precoId}/rejeicao")
+    public ResponseEntity<ListagemProdutoPrecoDto> rejeitarPreco(
+            @PathVariable Long precoId,
+            @RequestBody DecisaoPrecoRequest decisao) {
+        return ResponseEntity.ok(precoService.rejeitar(precoId, decisao));
     }
 
     /** Fecha a vigência de um preço. É a única alteração possível numa linha existente. */

@@ -339,5 +339,6 @@ export const QUERY_KEYS = {
     detalhe: (id: number) => [...QUERY_KEYS.produtos.all, "detalhe", id] as const,
     precos: (modalidadeId: number) =>
       [...QUERY_KEYS.produtos.all, "precos", modalidadeId] as const,
+    precosPendentes: () => [...QUERY_KEYS.produtos.all, "precos", "pendentes"] as const,
   },
 } as const;

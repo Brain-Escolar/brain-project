@@ -53,6 +53,25 @@ export class ProdutoApi {
 
   // --------------------------------------------------------------- preços
 
+  /** A fila de quem aprova preço. */
+  getPrecosPendentes(): Promise<PrecoResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/precos/pendentes`);
+  }
+
+  /**
+   * Aprova o reajuste. É aqui que o preço passa a valer e o anterior é
+   * encerrado — o backend reconfere a sobreposição neste instante, então um
+   * pedido antigo pode ser recusado aqui.
+   */
+  aprovarPreco(precoId: number, motivo?: string): Promise<PrecoResponse> {
+    return httpClient.put(`${BASE_ROUTE}/precos/${precoId}/aprovacao`, { motivo });
+  }
+
+  /** Recusa o reajuste. O motivo é obrigatório. */
+  rejeitarPreco(precoId: number, motivo: string): Promise<PrecoResponse> {
+    return httpClient.put(`${BASE_ROUTE}/precos/${precoId}/rejeicao`, { motivo });
+  }
+
   listarPrecos(modalidadeId: number): Promise<PrecoResponse[]> {
     return httpClient.get(`${BASE_ROUTE}/modalidades/${modalidadeId}/precos`);
   }

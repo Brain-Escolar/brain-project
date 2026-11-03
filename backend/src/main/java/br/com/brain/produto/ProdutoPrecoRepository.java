@@ -11,8 +11,13 @@ import java.util.List;
 public interface ProdutoPrecoRepository extends JpaRepository<ProdutoPreco, Long> {
 
     /**
-     * Todos os precos vigentes que casam com a dimensao, de qualquer modalidade
-     * dos produtos informados. O desempate por especificidade fica no servico.
+     * Todos os precos APROVADOS e vigentes que casam com a dimensao, de qualquer
+     * modalidade dos produtos informados. O desempate por especificidade fica no
+     * servico.
+     *
+     * O filtro de status esta aqui, e nao na tela, de proposito: e ele que faz a
+     * aprovacao ter dentes. Na tela, um preco pendente continuaria precificando
+     * proposta e a coluna de aprovacao serviria so para relatorio.
      *
      * O JOIN FETCH ate o produto e obrigatorio, nao otimizacao: quem consome
      * isto e o BolsaTetoService, que NAO e @Transactional de proposito e navega
@@ -35,6 +40,7 @@ public interface ProdutoPrecoRepository extends JpaRepository<ProdutoPreco, Long
                AND p.vigenciaInicio <= :data
                AND (p.vigenciaFim IS NULL OR p.vigenciaFim >= :data)
                AND m.ativo = true
+               AND p.status = br.com.brain.enums.StatusProdutoPreco.APROVADO
             """)
     List<ProdutoPreco> buscarVigentes(
             @Param("produtoIds") List<Long> produtoIds,
@@ -64,6 +70,7 @@ public interface ProdutoPrecoRepository extends JpaRepository<ProdutoPreco, Long
                AND (p.turno IS NULL OR p.turno = :turno)
                AND p.vigenciaInicio <= :data
                AND (p.vigenciaFim IS NULL OR p.vigenciaFim >= :data)
+               AND p.status = br.com.brain.enums.StatusProdutoPreco.APROVADO
             """)
     List<ProdutoPreco> buscarVigentesDoCatalogo(
             @Param("anoLetivo") Integer anoLetivo,
@@ -85,6 +92,24 @@ public interface ProdutoPrecoRepository extends JpaRepository<ProdutoPreco, Long
      * ambas sao LAZY: sem isso sai uma consulta por linha, ou estoura fora da
      * transacao.
      */
+    /**
+     * A fila de quem aprova preco: tudo pendente, do pedido mais antigo para o
+     * mais novo -- reajuste esquecido e reajuste que nao entra em vigor.
+     *
+     * Os FETCH nao sao enfeite: o DTO le nome de produto, modalidade, unidade e
+     * serie, e todos sao LAZY.
+     */
+    @Query("""
+            SELECT p FROM ProdutoPreco p
+              JOIN FETCH p.modalidade m
+              JOIN FETCH m.produto pr
+              LEFT JOIN FETCH p.unidade
+              LEFT JOIN FETCH p.serie
+             WHERE p.status = br.com.brain.enums.StatusProdutoPreco.PENDENTE_APROVACAO
+             ORDER BY p.criadoEm ASC, p.id ASC
+            """)
+    List<ProdutoPreco> buscarPendentesDeAprovacao();
+
     @Query("""
             SELECT p FROM ProdutoPreco p
               LEFT JOIN FETCH p.unidade
