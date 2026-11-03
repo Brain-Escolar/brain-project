@@ -3,6 +3,8 @@ package br.com.brain.secretario;
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.dadosPessoais.DadosPessoaisService;
 import br.com.brain.endereco.EnderecoService;
+import br.com.brain.enums.PerfilNome;
+import br.com.brain.usuario.UsuarioService;
 import br.com.brain.secretario.dto.AtualizacaoSecretarioDto;
 import br.com.brain.secretario.dto.CadastroSecretarioDto;
 import br.com.brain.secretario.dto.ListagemSecretarioDto;
@@ -20,6 +22,7 @@ public class SecretarioService {
     private final SecretarioRepository repository;
     private final EnderecoService enderecoService;
     private final DadosPessoaisService dadosPessoaisService;
+    private final UsuarioService usuarioService;
 
     @Transactional
     public Secretario cadastrarSecretario(CadastroSecretarioDto dados) {
@@ -79,6 +82,9 @@ public class SecretarioService {
     public void excluir(Long id) {
         var secretario = detalhar(id);
         repository.delete(secretario);
+        // Sem isso o login seguia com o perfil SECRETARIO e o acesso a
+        // secretaria. Os outros papeis da pessoa (ex.: responsavel) ficam.
+        usuarioService.revogarPerfil(secretario.getDadosPessoais(), PerfilNome.SECRETARIO);
     }
 
     public Secretario detalhar(Long id) {

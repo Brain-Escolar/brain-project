@@ -5,7 +5,7 @@ import br.com.brain.matricula.MatriculaRepository;
 import br.com.brain.aluno.Aluno;
 import br.com.brain.disciplina.Disciplina;
 import br.com.brain.horario.Horario;
-import br.com.brain.professor.Professor;
+import br.com.brain.professor.ProfessorRepository;
 import br.com.brain.turma.Turma;
 import br.com.brain.aula.dto.AtualizacaoAulaDto;
 import br.com.brain.aula.dto.CadastroAulaDto;
@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 public class AulaService {
 
     private final AulaRepository repository;
+    private final ProfessorRepository professorRepository;
 
 
     private final MatriculaRepository matriculaRepository;
@@ -55,8 +56,7 @@ public class AulaService {
         aula.setDiaSemana(dados.diaSemana());
         aula.setTurma(turma);
         if (dados.professorId() != null) {
-            Professor professor = em.getReference(Professor.class, dados.professorId());
-            aula.setProfessor(professor);
+            aula.setProfessor(professorRepository.exigirAtivo(dados.professorId()));
         }
         repository.save(aula);
 
@@ -77,8 +77,7 @@ public class AulaService {
             aula.setDisciplina(disciplina);
         }
         if (dados.professorId() != null) {
-            Professor professor = em.getReference(Professor.class, dados.professorId());
-            aula.setProfessor(professor);
+            aula.setProfessor(professorRepository.exigirAtivoSeMudou(dados.professorId(), aula.getProfessor()));
         }
         if (dados.horarioId() != null) {
             Horario horario = em.getReference(Horario.class, dados.horarioId());

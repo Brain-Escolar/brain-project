@@ -174,7 +174,8 @@ public class AlunoService {
         var aluno = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
-        usuarioService.desativarUsuario(aluno.getDadosPessoais().getId());
+        // So o papel de estudante: se a pessoa tambem e responsavel, segue entrando.
+        usuarioService.revogarPerfil(aluno.getDadosPessoais(), PerfilNome.ESTUDANTE);
         aluno.setMatriculado(false);
         aluno.setMotivoDesmatricula(motivo != null && !motivo.isBlank() ? motivo : "Não informado");
         aluno.setDataDesmatricula(LocalDate.now());
@@ -188,7 +189,8 @@ public class AlunoService {
         var aluno = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
-        usuarioService.reativarUsuario(aluno.getDadosPessoais().getId());
+        usuarioService.concederPerfil(aluno.getDadosPessoais(), PerfilNome.ESTUDANTE,
+                aluno.getDadosPessoais().getCpf());
         aluno.setMatriculado(true);
         aluno.setMotivoDesmatricula(null);
         aluno.setDataDesmatricula(null);
