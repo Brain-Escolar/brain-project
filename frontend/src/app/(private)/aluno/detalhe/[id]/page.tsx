@@ -92,6 +92,11 @@ const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
   [UserRoleEnum.SECRETARIO]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.ORIENTADOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
   [UserRoleEnum.DIRETOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
+  // Quem cuida do dinheiro precisa saber QUEM paga e se o cadastro dele está
+  // completo — nada além disso. Ocorrência e ficha médica ficam de fora de
+  // propósito: são registro pedagógico e dado de saúde de menor, e cobrança não
+  // é motivo para ler nenhum dos dois.
+  [UserRoleEnum.FINANCEIRO]: ["dadosCadastrais", "responsaveis"],
   // O responsável não acessa esta tela — ela é o detalhe administrativo do
   // aluno. Ele vê os dados do filho pelo portal (/portal-responsavel/**),
   // que valida o vínculo. Entrada vazia só para satisfazer o Record.

@@ -63,7 +63,8 @@ public class SecurityConfigurations {
                             // largo, porque a tela de matricula precisa explicar
                             // qual regra segurou a bolsa.
                             req.requestMatchers(HttpMethod.GET, "/bolsas/configuracao/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
+                                            "FINANCEIRO");
                             req.requestMatchers("/bolsas/configuracao/**")
                                     .hasAnyRole("DIRETOR", "ADMIN");
 
@@ -71,7 +72,8 @@ public class SecurityConfigurations {
                             // Efetivar gera cobranca: e operacao de secretaria,
                             // nao de quem so consulta.
                             req.requestMatchers("/contratos/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
+                                            "FINANCEIRO");
 
                             // Baixa, estorno, caixa e inadimplencia - acima do
                             // permitAll. NAO confundir com /portal-responsavel:
@@ -80,18 +82,21 @@ public class SecurityConfigurations {
                             // proposito, para um erro de matcher nao abrir o
                             // financeiro da escola para quem paga.
                             //
-                            // FINANCEIRO ainda nao existe em PerfilNome; quando
-                            // existir, entra aqui -- e dia em que vale rever se
-                            // estorno continua acessivel a SECRETARIO, porque
-                            // estorno tira dinheiro de um caixa ja fechado.
+                            // Estorno fica de fora de SECRETARIO de proposito: ele
+                            // tira dinheiro de um caixa que pode ja estar fechado, e
+                            // quem fecha caixa e quem responde por ele. A regra
+                            // prometida no comentario anterior era "rever quando
+                            // FINANCEIRO existir" -- e esta e a revisao.
+                            req.requestMatchers(HttpMethod.POST, "/financeiro/pagamentos/*/estorno")
+                                    .hasAnyRole("FINANCEIRO", "DIRETOR", "ADMIN");
                             req.requestMatchers("/financeiro/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
+                                            "FINANCEIRO");
 
                             // Bolsas - acima do permitAll para ja valer hoje.
-                            // FINANCEIRO ainda nao existe em PerfilNome; quando
-                            // existir, entra aqui.
                             req.requestMatchers("/bolsas/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
+                                            "FINANCEIRO");
 
                             // Simulacoes financeiras - acima do permitAll para ja valer hoje.
                             // Escrita e da secretaria; a leitura inclui o
@@ -99,9 +104,36 @@ public class SecurityConfigurations {
                             // Que seja a DELE e regra do servico, nao daqui:
                             // perfil diz quem entra, nao o que e de quem.
                             req.requestMatchers(HttpMethod.GET, "/simulacoes/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN", "RESPONSAVEL");
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
+                                            "RESPONSAVEL", "FINANCEIRO");
                             req.requestMatchers("/simulacoes/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
+                                            "FINANCEIRO");
+
+                            // Catalogo e tabela de precos - acima do permitAll.
+                            //
+                            // A aprovacao de preco e a linha que mais importa aqui:
+                            // preco aprovado e o que a proposta usa, entao quem
+                            // aprova decide a receita do ano. Cadastrar pode ser de
+                            // quem opera o catalogo; aprovar, nao.
+                            req.requestMatchers("/produto/precos/*/aprovacao",
+                                            "/produto/precos/*/rejeicao")
+                                    .hasAnyRole("FINANCEIRO", "DIRETOR", "ADMIN");
+
+                            // ANTES do GET largo abaixo, de proposito: os produtos
+                            // comprados por UM aluno aparecem na ficha dele, que
+                            // professor e orientador abrem. Trancar isso no mesmo
+                            // matcher do catalogo tiraria a secao de produtos da
+                            // ficha sem ninguem entender por que.
+                            req.requestMatchers(HttpMethod.GET, "/produto/alunos/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
+                                            "PROFESSOR", "ORIENTADOR", "FINANCEIRO");
+
+                            req.requestMatchers(HttpMethod.GET, "/produto/**")
+                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
+                                            "FINANCEIRO");
+                            req.requestMatchers("/produto/**")
+                                    .hasAnyRole("SECRETARIO", "DIRETOR", "ADMIN", "FINANCEIRO");
 
                             // Documentos de matricula - acima do permitAll para ja valer hoje.
                             // Dado pessoal de menor: professor fica de fora. A
