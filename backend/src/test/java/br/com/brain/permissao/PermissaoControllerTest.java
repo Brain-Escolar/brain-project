@@ -68,9 +68,9 @@ class PermissaoControllerTest {
                         new UsernamePasswordAuthenticationToken(secretaria, null, secretaria.getAuthorities()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gerenciaPermissoes").value(false))
-                .andExpect(jsonPath("$.perfis.SECRETARIO.telas", hasSize(12)))
+                .andExpect(jsonPath("$.perfis.SECRETARIO.telas", hasSize(14)))
                 .andExpect(jsonPath("$.perfis.SECRETARIO.controles", hasSize(5)))
-                .andExpect(jsonPath("$.telas", aMapWithSize(12)))
+                .andExpect(jsonPath("$.telas", aMapWithSize(14)))
                 .andExpect(jsonPath("$.telas.SECRETARIA_CRM.nome").value("CRM de matrículas"))
                 .andExpect(jsonPath("$.telas.SECRETARIA_CRM.rota").value("/secretaria/crm"))
                 .andExpect(jsonPath("$.telas.SECRETARIA_CRM.exibirMenu").value(true));

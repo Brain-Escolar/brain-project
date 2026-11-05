@@ -4,6 +4,7 @@ import br.com.brain.autenticacao.DadosAutenticacao;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,15 +40,28 @@ public class PerfilOuTela {
 
     public AuthorizationManager<RequestAuthorizationContext> regra(List<String> perfis, String... telas) {
         var codigos = Set.of(telas);
-        AuthorizationManager<RequestAuthorizationContext> porTela = (autenticacao, contexto) -> {
+        return perfilOu(perfis, usuario -> permissoesService.temAlgumaTela(usuario, codigos));
+    }
+
+    /**
+     * O mesmo para uma ação dentro da tela: abrir o financeiro não dá direito a
+     * estornar; fora dos perfis, só entra quem ganhou o controle (D39).
+     */
+    public AuthorizationManager<RequestAuthorizationContext> regraDeControle(List<String> perfis, String controle) {
+        return perfilOu(perfis, usuario -> permissoesService.temControle(usuario, controle));
+    }
+
+    private AuthorizationManager<RequestAuthorizationContext> perfilOu(List<String> perfis,
+            Predicate<DadosAutenticacao> liberado) {
+        AuthorizationManager<RequestAuthorizationContext> porPermissao = (autenticacao, contexto) -> {
             var atual = autenticacao.get();
             return new AuthorizationDecision(atual != null
                     && atual.getPrincipal() instanceof DadosAutenticacao usuario
-                    && permissoesService.temAlgumaTela(usuario, codigos));
+                    && liberado.test(usuario));
         };
         var porPerfil = AuthorityAuthorizationManager.<RequestAuthorizationContext>hasAnyRole(
                 perfis.toArray(String[]::new));
         porPerfil.setRoleHierarchy(hierarquia.getIfAvailable(NullRoleHierarchy::new));
-        return AuthorizationManagers.anyOf(porPerfil, porTela);
+        return AuthorizationManagers.anyOf(porPerfil, porPermissao);
     }
 }

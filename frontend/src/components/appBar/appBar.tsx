@@ -91,7 +91,7 @@ export default function AppBar() {
           <Link
             href="/"
             aria-label="Brain"
-            style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
+            style={{ display: "inline-flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}
           >
             <Image
               src={logoSrc}
@@ -109,7 +109,13 @@ export default function AppBar() {
               display: { xs: "none", md: "flex" },
               alignItems: "center",
               justifyContent: "flex-start",
-              gap: 2.5,
+              // Menu maior que a tela quebra em mais uma linha: sem isso, ele
+              // empurrava o sino e o avatar para fora, e não há como rolar até lá.
+              flexWrap: "wrap",
+              minWidth: 0,
+              columnGap: 2.5,
+              // Folga para o contador de "Fale conosco" não cortar no topo da tela.
+              py: 0.75,
               ml: 3,
             }}
           >
@@ -164,7 +170,7 @@ export default function AppBar() {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box sx={{ flexGrow: 0, flexShrink: 0, display: "flex", alignItems: "center", gap: 1.5 }}>
             <SeletorAnoLetivo />
             <SeletorPerfil />
             {atuarPorAlunoVinculado && <SeletorAluno />}

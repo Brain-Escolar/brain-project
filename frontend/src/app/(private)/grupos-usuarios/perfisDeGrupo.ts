@@ -8,6 +8,7 @@ export const PERFIS_COM_GRUPO: PerfilNomeEnum[] = [
   PerfilNomeEnum.DIRETOR,
   PerfilNomeEnum.COORDENADOR,
   PerfilNomeEnum.SECRETARIO,
+  PerfilNomeEnum.FINANCEIRO,
   PerfilNomeEnum.ORIENTADOR,
   PerfilNomeEnum.PROFESSOR,
   PerfilNomeEnum.RECURSOS_HUMANOS,

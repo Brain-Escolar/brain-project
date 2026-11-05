@@ -2,7 +2,7 @@
 
 > **Para quem implementa:** esta spec define o modelo de dados, a migration inicial, o cálculo da permissão efetiva e como backend e frontend passam a consultá-la. É a fonte da verdade para a migration e para as regras. As decisões de produto foram tomadas em 02/10/2026 e revistas em 05/10/2026, depois que o DIRETOR passou a usar as telas do ADMIN (commit `f2c7c91`) (seção 2).
 >
-> **Estado (08/10/2026):** na branch `feature/permissoes-grupos`, as permissões valem no frontend: o menu, a guarda de rota e os botões e seções das telas leem `GET /permissoes/me`. O vínculo automático ao grupo padrão no cadastro também já funciona. Ainda falta o backend recusar o que o grupo não libera, na fase F3 (seção 11). A tela de grupos (`/grupos-usuarios`) está pronta desde 06/10, e os acessos individuais (seção 4.1, migration V118) desde 15/10. O acesso individual pode liberar qualquer tela do sistema, e as áreas do backend que já eram restritas por perfil passaram a aceitar também quem tem a tela liberada (D22–D26). A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15. Em 29/10 a main entrou na branch: as migrations desta branch viraram V117–V119 (seção 7.2), o catálogo ganhou módulos e submódulos (D33, D34) e as 7 telas novas da main, e o DIRETOR passou a ter a área própria que a main criou (D35). Em 04/11, `GET /permissoes/me` passou a trazer também os dados de cada tela liberada (D36).
+> **Estado (04/11/2026):** na branch `feature/permissoes-grupos`, as permissões valem no frontend: o menu, a guarda de rota e os botões e seções das telas leem `GET /permissoes/me`. O vínculo automático ao grupo padrão no cadastro também já funciona. Ainda falta o backend recusar o que o grupo não libera, na fase F3 (seção 11). A tela de grupos (`/grupos-usuarios`) está pronta desde 06/10, e os acessos individuais (seção 4.1, migration V122) desde 15/10. O acesso individual pode liberar qualquer tela do sistema, e as áreas do backend que já eram restritas por perfil passaram a aceitar também quem tem a tela liberada (D22–D26). A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15. Em 29/10 a main entrou na branch: as migrations desta branch viraram V117–V119 (seção 7.2), o catálogo ganhou módulos e submódulos (D33, D34) e as 7 telas novas da main, e o DIRETOR passou a ter a área própria que a main criou (D35). Em 04/11, `GET /permissoes/me` passou a trazer também os dados de cada tela liberada (D36). No mesmo dia, a main entrou de novo, com o perfil FINANCEIRO e 3 telas: as migrations desta branch viraram V121–V125 (seção 7.3) e a V126 pôs tudo isso no catálogo (D37–D42).
 
 ---
 
@@ -31,13 +31,13 @@ Na implantação, cada perfil ganha um grupo padrão com tudo o que já acessa h
 | D8 (05/10) | O DIRETOR passa por grupos, com teto igual ao que o ADMIN abre hoje e um grupo padrão com tudo isso. **O teto foi revisto pela D35.** | No dia 1, o diretor vê o mesmo que vê desde `f2c7c91`, mas a escola pode restringir. No front, o apelido DIRETOR→ADMIN do `parseRoles` vira um perfil DIRETOR de verdade (seção 9.6). |
 | D9 (05/10) | Superusuário é o teto inteiro do perfil, e não "tudo". | O ADMIN recebe, sem grupo, o teto do perfil ADMIN. Situação familiar e atendimento psicológico ficam fora, porque hoje são exclusivos da orientação. |
 | D10 (06/10) | A tela de grupos entra antes de as permissões valerem, visível para ADMIN e diretor, com um aviso fixo de que os acessos ainda não estão em vigor. Fica em `/grupos-usuarios`, no menu do ADMIN. | Seção 11. |
-| D11 (06/10) | O vínculo automático ao grupo padrão no cadastro fica para depois. **Substituída pela D16.** | Quem foi cadastrado entre a V117 e a D16 ficou sem grupo (D15). |
+| D11 (06/10) | O vínculo automático ao grupo padrão no cadastro fica para depois. **Substituída pela D16.** | Quem foi cadastrado entre a V121 e a D16 ficou sem grupo (D15). |
 | D12 (07/10) | Na aba Acessos, as telas aparecem numa lista única em ordem alfabética, sem separar menu de páginas internas e sem agrupar por área. Cada linha mostra nome e rota e se expande para mostrar as ações. **Revista pela D34:** agora agrupa por módulo. | `exibir_menu` deixa de ser usado pela tela de grupos; o catálogo vem ordenado por nome. Seção 9.5. |
 | D13 (08/10) | O frontend busca as permissões numa chamada só, `GET /permissoes/me`, ao entrar e a cada carga da página (F5). A resposta traz telas e controles de todos os perfis da pessoa. O check de controle numa tela lê esse cache e não chama a API. | Seção 9.1. Não há endpoint por tela nem por controle. |
 | D14 (08/10) | O DIRETOR vira um perfil de verdade no frontend e herda as rotas do ADMIN. **A herança foi substituída pela D35.** | Seção 9.6. |
 | D15 (08/10) | Não haverá migration para pôr nos grupos quem ficou de fora. Quem ficou sem grupo num perfil é vinculado à mão, pela tela de grupos; até lá, não abre as telas desse perfil. | Seção 8.4, com a consulta que lista quem está sem grupo. |
 | D16 (08/10) | O vínculo automático ao grupo padrão no cadastro (D2) entra junto com a ativação no frontend, e a D11 deixa de valer. | Sem ele, toda pessoa cadastrada depois da ativação cairia em `/sem-acesso`. Seção 8.4. |
-| D17 (08/10) | As permissões entram em vigor sem chave de ativação. | O seed da V117 reproduz o acesso de antes, então quem está no grupo padrão não percebe a mudança. Uma chave obrigaria a manter as duas lógicas, por perfil e por grupo, enquanto existisse. |
+| D17 (08/10) | As permissões entram em vigor sem chave de ativação. | O seed da V121 reproduz o acesso de antes, então quem está no grupo padrão não percebe a mudança. Uma chave obrigaria a manter as duas lógicas, por perfil e por grupo, enquanto existisse. |
 | D18 (15/10) | Uma pessoa pode ter acessos individuais, além dos grupos dela. O acesso individual é um grupo de uma pessoa só, marcado por `grupos_usuarios.dados_pessoais_id`. | Soma pela mesma regra dos grupos (RP1). `/permissoes/me`, o hook, a guarda de tela e a futura checagem no backend não mudam. Seção 4.1. |
 | D19 (15/10) | O acesso individual fica dentro do teto do perfil, como um grupo. **Substituída pela D22.** | — |
 | D20 (15/10) | O acesso individual só soma; não retira o que um grupo dá. | Para tirar algo de uma pessoa, monta-se outro grupo sem aquilo e ela muda de grupo. |
@@ -48,10 +48,16 @@ Na implantação, cada perfil ganha um grupo padrão com tudo o que já acessa h
 | D25 (15/10) | O middleware passa a exigir só o login para as telas do catálogo; quem decide é a guarda de tela, pelas permissões. Rotas livres continuam presas ao perfil, e rota fora do `routesConfig` continua bloqueada. | Seção 9.3. Quem digita a URL de uma tela que não tem vê um carregamento e é redirecionado pela guarda. |
 | D26 (15/10) | As áreas que o backend restringia por perfil (`/crm/**`, `/bolsas/**`, `/simulacoes/**`, `/documentos/**`, `/documentos-escolares/**`) aceitam "o perfil de antes OU uma das telas que as usam liberada". | Só libera: não é o bloqueio da F3. O portal do responsável e a configuração de bolsas continuam só por perfil. Seção 8.2. |
 | D27 (15/10) | A lista de grupos ganha a aba "Por tela", só de consulta: escolhe-se uma tela e aparece quem a libera hoje, com grupos normais e acessos individuais de qualquer perfil numa lista só, identificados pelo chip "Grupo" ou "Individual". A consulta é da tela inteira, sem os controles. O filtro Situação (Ativos/Inativos) começa em Ativos. | `GET /grupos-usuarios/telas` e `GET /grupos-usuarios/por-tela?codigo=`. Mostra a concessão como está gravada, sem aplicar a RP1 inteira. Seção 9.5. |
-| D33 (29/10) | Módulo e submódulo entram no catálogo numa tabela só, `modulos`, em que o submódulo é um módulo com `modulo_pai_id`. A tela aponta para o nível mais baixo (`telas.modulo_id`). Os códigos são as chaves do `RoutesModuleEnum` e do `RoutesSectionEnum`. | V120 e seção 6.5. O teste de consistência confere o módulo de cada tela contra o `routesConfig`. |
+| D33 (29/10) | Módulo e submódulo entram no catálogo numa tabela só, `modulos`, em que o submódulo é um módulo com `modulo_pai_id`. A tela aponta para o nível mais baixo (`telas.modulo_id`). Os códigos são as chaves do `RoutesModuleEnum` e do `RoutesSectionEnum`. | V124 e seção 6.5. O teste de consistência confere o módulo de cada tela contra o `routesConfig`. |
 | D34 (29/10) | O módulo só organiza a tela de grupos. A aba Acessos, a página de acesso individual e a busca "Por tela" mostram as telas em Módulo › Submódulo, na ordem do menu, com liberar e retirar por módulo. Não há permissão por módulo, e o menu continua no `routesConfig` (D6). | Revê a D12 e a D24. Liberar continua sendo tela a tela. Seção 9.5. |
-| D35 (29/10) | O DIRETOR segue a área própria que ganhou na main: perde a herança das telas do ADMIN, o teto passa a ser o que a main mostra a ele e a rota inicial vira `/`. O ADMIN não recebe as telas da Direção. | Substitui a D14 e revê o teto da D8. V121 e seções 6.1, 6.3 e 9.6. |
+| D35 (29/10) | O DIRETOR segue a área própria que ganhou na main: perde a herança das telas do ADMIN, o teto passa a ser o que a main mostra a ele e a rota inicial vira `/`. O ADMIN não recebe as telas da Direção. | Substitui a D14 e revê o teto da D8. V125 e seções 6.1, 6.3 e 9.6. |
 | D36 (04/11) | `GET /permissoes/me` traz, além dos códigos por perfil, os dados de cada tela liberada: código, nome, rota, `exibirMenu` e módulo. Continua uma chamada só no login e no F5 (D13), e o menu continua no `routesConfig` (D6). | Campo novo `telas`, um dicionário por código, que não muda o que já se lia na resposta. Seção 8.2. Por ora nenhuma tela do front usa esses dados (seção 9.1). |
+| D37 (04/11) | O perfil FINANCEIRO, que veio da main, passa por grupos como os outros: tem grupo padrão ("Financeiro (padrão)") e o teto é o das rotas dele no `routesConfig`. | Sem isso ele faria login e não veria nada (D2). V126 e seções 6.1 e 9.7. |
+| D38 (04/11) | O FINANCEIRO abre a lista e a ficha do aluno, só com dados cadastrais e responsáveis. Ocorrências e boletim somem por regra de perfil na tela, como a do calendário. | Os comentários da main prometem isso, mas ela não o pôs nessas rotas, e o middleware o redireciona. Diverge da main até corrigirem lá (seção 12, item 11). |
+| D39 (04/11) | Estornar pagamento é o controle `PAGAMENTO.ESTORNAR`, só no teto do FINANCEIRO. Sem ele, o botão não aparece. Baixa e catálogo continuam valendo pela tela. | A main tirou o estorno da secretaria no backend, mas deixou o botão, que respondia 403. O backend segue por perfil (FINANCEIRO, DIRETOR, ADMIN) e aceita também quem ganhou o controle. |
+| D40 (04/11) | A fila de aprovação de bolsa é também de DIRETOR e ADMIN, como a de preço. | Na main ela é só de SECRETARIO e FINANCEIRO, embora a V118 diga que "a direção abre a tela". Revê a D35 nesse ponto e diverge da main até corrigirem lá (seção 12, item 12). |
+| D41 (04/11) | Conceder perfil a quem já tem login também vincula ao grupo padrão, a não ser que a pessoa já esteja em outro grupo normal daquele perfil. | O `concederPerfil`, da main, adicionava o perfil sem vincular. A exceção vem do `revogarPerfil`, também da main: quem perde o perfil continua nos grupos, e entrar no padrão ao voltar desfaria uma restrição (RP2). Seção 8.4. |
+| D42 (04/11) | A regra "perfil OU tela" (D26) vale também para as áreas que a main trancou por perfil (`/produto/**`, `/dados-pessoais/**`) e para `/financeiro/**` e `/contratos/**`. | Sem isso, quem recebe a tela por acesso individual abre a página e toma 403. O estorno pede o controle, não a tela (D39). Seção 8.2. |
 
 As D28–D32 foram usadas na branch `feature/permissoes-grupos-mult-perfis` (grupos de vários perfis), abandonada em 29/10. Os números ficaram sem uso para não confundir com ela.
 
@@ -163,7 +169,7 @@ O acesso individual de uma pessoa num perfil é um grupo comum, com `dados_pesso
 - **RV2 e RV6 valem para ele:** não há acesso individual de ADMIN, e só recebe quem tem o perfil.
 - **A RV3 não vale (D22):** o limite é o catálogo inteiro (`CatalogoPermissaoService.todos()`), e não o teto do perfil. Código que não existe ou está inativo é recusado.
 - **RV4 e RV5 valem dentro do próprio conjunto individual**, mesmo que um grupo da pessoa já dê o item exigido. Exemplo: liberar individualmente "Ver ficha médica" guarda também a tela "Detalhe do aluno" no grupo individual, ainda que o grupo dela já tenha essa tela. Assim o acesso individual continua funcionando se o grupo mudar depois. Para a pessoa, essa dependência não é um acesso a mais, e a tela e o contador não a contam.
-- **Sem `ON DELETE CASCADE`** na chave para `dados_pessoais`, como nos vínculos da V117. O sistema não apaga pessoas.
+- **Sem `ON DELETE CASCADE`** na chave para `dados_pessoais`, como nos vínculos da V121. O sistema não apaga pessoas.
 
 ## 5. Permissão efetiva
 
@@ -202,7 +208,7 @@ WHERE t.ativo = TRUE;
 
 ## 6. Catálogo inicial
 
-O catálogo foi gerado a partir do `routesConfig.tsx`: 84 entradas, 64 rotas distintas e 57 telas no catálogo. O merge da main de 29/10 trouxe mais 7 telas e a área própria do diretor (V121, D35), e hoje são 64 telas. As tabelas abaixo mostram o estado atual.
+O catálogo foi gerado a partir do `routesConfig.tsx`: 84 entradas, 64 rotas distintas e 57 telas no catálogo. O merge da main de 29/10 trouxe mais 7 telas e a área própria do diretor (V125, D35). O de 04/11 trouxe mais 3 e o perfil FINANCEIRO (V126, D37), e hoje são 67 telas. As tabelas abaixo mostram o estado atual.
 
 ### 6.1 Telas por perfil
 
@@ -210,21 +216,22 @@ Em cada perfil, a lista abaixo é ao mesmo tempo o teto e o conteúdo do grupo p
 
 | Perfil | Telas |
 |---|---|
-| ADMIN (43) | As 31 telas de cadastro listadas abaixo, mais `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `AVALIACOES`, `AVALIACAO_DETALHE`, `AVALIACAO_TURMA_NOTAS`, `DIARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO` e `RELATORIOS` |
-| DIRETOR (43) | As 31 telas de cadastro, mais `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO` e a área da Direção: `GESTAO_PROFESSORES`, `GESTAO_PROFESSOR_DETALHE`, `GESTAO_ANO_LETIVO` e `RELATORIO_ACOMPANHAMENTO_TURMA` |
+| ADMIN (45) | As 31 telas de cadastro listadas abaixo, mais `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `AVALIACOES`, `AVALIACAO_DETALHE`, `AVALIACAO_TURMA_NOTAS`, `DIARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO`, `RELATORIOS` e as filas `SECRETARIA_APROVACAO_BOLSA` e `SECRETARIA_APROVACAO_PRECO` |
+| DIRETOR (45) | As 31 telas de cadastro, mais `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO`, as filas `SECRETARIA_APROVACAO_BOLSA` e `SECRETARIA_APROVACAO_PRECO` e a área da Direção: `GESTAO_PROFESSORES`, `GESTAO_PROFESSOR_DETALHE`, `GESTAO_ANO_LETIVO` e `RELATORIO_ACOMPANHAMENTO_TURMA` |
 | PROFESSOR (14) | `ALUNO_DETALHE`, `MINHAS_TURMAS`, `MINHAS_TURMAS_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `AVALIACOES`, `AVALIACAO_DETALHE`, `AVALIACAO_TURMA_NOTAS`, `DIARIO`, `CONTRACHEQUE`, `CALENDARIO`, `COMUNICADOS`, `COMUNICACAO`, `MATERIAIS_COMPLEMENTARES` |
-| SECRETARIO (12) | `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `SECRETARIA_MATRICULAS`, `SECRETARIA_CRM`, `SECRETARIA_FINANCEIRO`, `SECRETARIA_DOCUMENTOS`, `SECRETARIA_ENTURMACAO`, `SECRETARIA_TURMA_GERENCIAR`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO` |
+| SECRETARIO (14) | `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `SECRETARIA_MATRICULAS`, `SECRETARIA_CRM`, `SECRETARIA_FINANCEIRO`, `SECRETARIA_CATALOGO`, `SECRETARIA_APROVACAO_BOLSA`, `SECRETARIA_DOCUMENTOS`, `SECRETARIA_ENTURMACAO`, `SECRETARIA_TURMA_GERENCIAR`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO` |
+| FINANCEIRO (6) | `SECRETARIA_FINANCEIRO`, `SECRETARIA_CATALOGO`, `SECRETARIA_APROVACAO_BOLSA`, `SECRETARIA_APROVACAO_PRECO`, `ALUNO_LISTA`, `ALUNO_DETALHE` |
 | ORIENTADOR (6) | `ALUNO_DETALHE`, `ORIENTACAO_ALUNOS`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO` |
 | ESTUDANTE (6) | `ALUNO_AULA`, `CALENDARIO`, `COMUNICADOS`, `COMUNICACAO`, `MATERIAIS_COMPLEMENTARES`, `RELATORIOS` |
 | RESPONSAVEL (9) | `OCORRENCIAS`, `FICHA_MEDICA_RESPONSAVEL`, `DOCUMENTOS_RESPONSAVEL`, `FINANCEIRO`, `CALENDARIO`, `COMUNICADOS`, `COMUNICACAO`, `MATERIAIS_COMPLEMENTARES`, `RELATORIOS` |
 | COORDENADOR, RECURSOS_HUMANOS | Nenhuma hoje. O grupo padrão nasce vazio. |
 
-Até 29/10, o DIRETOR tinha o mesmo teto do ADMIN, porque desde `f2c7c91` o front mostrava a ele as telas do ADMIN (D8). A main deu ao diretor área própria, e a V121 trocou o teto dele pelo que a main mostra a ele (D35). As telas da Direção não são do ADMIN, como na main.
+Até 29/10, o DIRETOR tinha o mesmo teto do ADMIN, porque desde `f2c7c91` o front mostrava a ele as telas do ADMIN (D8). A main deu ao diretor área própria, e a V125 trocou o teto dele pelo que a main mostra a ele (D35). As telas da Direção não são do ADMIN, como na main.
 
 **Telas de cadastro, só de ADMIN e DIRETOR (31):** listas e cadastros de:
 
 - professor e secretário (`SECRETARIO_LISTA` e `SECRETARIO_CADASTRO`, da main);
-- aluno (`ALUNO_LISTA`);
+- aluno (`ALUNO_LISTA`, que também é do FINANCEIRO, D38);
 - turma, incluindo vincular alunos e definir horários;
 - grade curricular, grupo de disciplina, disciplina e série;
 - aula (`AULA_LISTA`) e horário;
@@ -250,7 +257,7 @@ Entram só as diferenças que já existem hoje entre perfis dentro de uma mesma 
 
 | Código | Tela | Teto (= grupo padrão) | Frontend | Backend |
 |---|---|---|---|---|
-| `ALUNO.DADOS_PESSOAIS.VER` | — (dado) | SECRETARIO, ORIENTADOR, ADMIN, DIRETOR | Seções "Dados cadastrais" e "Responsáveis" do detalhe do aluno | Campos `Administrativo` de `GET /aluno/{id}` (hoje decididos por perfil em `AlunoViews`) |
+| `ALUNO.DADOS_PESSOAIS.VER` | — (dado) | SECRETARIO, ORIENTADOR, ADMIN, DIRETOR, FINANCEIRO | Seções "Dados cadastrais" e "Responsáveis" do detalhe do aluno | Campos `Administrativo` de `GET /aluno/{id}` (hoje decididos por perfil em `AlunoViews`) |
 | `ALUNO.EDITAR` | — (lista e detalhe) | ADMIN, DIRETOR | Botões "Novo" (lista) e "Editar" (lista e detalhe), que levam a `ALUNO_CADASTRO` | — (a escrita é checada pela tela `ALUNO_CADASTRO`) |
 | `ALUNO.EXCLUIR` | `ALUNO_LISTA` | ADMIN, DIRETOR | Botão "Excluir" da lista | `DELETE /aluno/{id}`, que não existe hoje ⚠️ |
 | `ALUNO.MATRICULA.ALTERAR` | `ALUNO_DETALHE` | ADMIN | Botões "Matricular" e "Desmatricular" do detalhe | `POST /aluno/matricular/{id}` e `…/desmatricular/{id}`, junto com a tela `SECRETARIA_MATRICULAS` (seção 8.3) |
@@ -265,11 +272,12 @@ Entram só as diferenças que já existem hoje entre perfis dentro de uma mesma 
 | `EVENTO.GERENCIAR` | `CALENDARIO` | PROFESSOR, SECRETARIO, DIRETOR, ESTUDANTE ⚠️ | Botão "Novo evento" e edição. Secretaria e diretor só criam eventos institucionais, por regra de perfil na tela (seção 9.4) | Escritas em `/evento` |
 | `MATERIAL_COMPLEMENTAR.PUBLICAR` | `MATERIAIS_COMPLEMENTARES` | PROFESSOR | Publicar e remover, na página do professor | `POST`/`DELETE /material-complementar` |
 | `FICHA_MEDICA.INCLUIR` | `FICHA_MEDICA_RESPONSAVEL` | RESPONSAVEL | Incluir medicação e laudo (`usePermissoes().incluirNaFichaMedica`) | Inclusões em `/portal-responsavel/aluno/{alunoId}/ficha-medica/laudos` e `…/medicacoes` |
-| `GRUPO_USUARIO.HISTORICO.VER` | — (tela de grupos, fora do catálogo) | ADMIN, DIRETOR | Botão "Histórico" no detalhe do grupo (V119) | `GET /grupos-usuarios/{id}/historico` |
+| `GRUPO_USUARIO.HISTORICO.VER` | — (tela de grupos, fora do catálogo) | ADMIN, DIRETOR | Botão "Histórico" no detalhe do grupo (V123) | `GET /grupos-usuarios/{id}/historico` |
+| `PAGAMENTO.ESTORNAR` | `SECRETARIA_FINANCEIRO` | FINANCEIRO | Botão "Estornar" no carnê do aluno | `POST /financeiro/pagamentos/{id}/estorno`: por perfil (FINANCEIRO, DIRETOR, ADMIN) ou pelo controle (D39) |
 
 ⚠️ Ver a seção 12.
 
-Situação familiar e atendimento psicológico ficam fora do teto de ADMIN e DIRETOR (D9). No total são 16 controles. O ADMIN recebe 9 deles (o de histórico veio na V119). O diretor também recebia 9 até a V121. Hoje recebe 7: ganhou `EVENTO.GERENCIAR` e perdeu `FICHA_MEDICA.EDITAR`, `ALUNO.PRODUTOS.VER` e `ALUNO.MATRICULA.ALTERAR`, como na main, onde ele vê a ficha sem editar, não vê produtos e não tem os botões de matrícula do detalhe (D35).
+Situação familiar e atendimento psicológico ficam fora do teto de ADMIN e DIRETOR (D9). No total são 17 controles. O ADMIN recebe 9 deles (o de histórico veio na V123). O diretor também recebia 9 até a V125. Hoje recebe 7: ganhou `EVENTO.GERENCIAR` e perdeu `FICHA_MEDICA.EDITAR`, `ALUNO.PRODUTOS.VER` e `ALUNO.MATRICULA.ALTERAR`, como na main, onde ele vê a ficha sem editar, não vê produtos e não tem os botões de matrícula do detalhe (D35).
 
 ### 6.4 Dependências
 
@@ -284,7 +292,7 @@ As dependências ficam declaradas no código (`DependenciasPermissao`). O endpoi
 | `SITUACAO_FAMILIAR.EDITAR` | `SITUACAO_FAMILIAR.VER` | — |
 | `ATENDIMENTO_PSICOLOGICO.REGISTRAR` | `ATENDIMENTO_PSICOLOGICO.VER` | — |
 
-### 6.5 Módulos e submódulos (V120, D33)
+### 6.5 Módulos e submódulos (V124, D33)
 
 Os módulos são os do menu (`RoutesModuleEnum`, `MODULE_CONFIG`). Os submódulos são os setores que a main criou dentro de Cadastros (`RoutesSectionEnum`, `SECTION_CONFIG`). No banco ficam numa tabela só, `modulos`, e o submódulo é o módulo que tem `modulo_pai_id`. A tela aponta para o nível mais baixo.
 
@@ -297,7 +305,7 @@ Os módulos são os do menu (`RoutesModuleEnum`, `MODULE_CONFIG`). Os submódulo
 | Rotinas Acadêmicas | — | `CALENDARIO` |
 | Gestão Escolar | — | `GESTAO_PROFESSORES`, `GESTAO_PROFESSOR_DETALHE`, `GESTAO_ANO_LETIVO` |
 | Relatórios | — | `RELATORIO_ACOMPANHAMENTO_TURMA` |
-| (sem módulo) | — | As outras 25: itens soltos no menu e as páginas internas deles |
+| (sem módulo) | — | As outras 28: itens soltos no menu e as páginas internas deles |
 
 **Regra de atribuição.**
 
@@ -310,7 +318,7 @@ Os módulos são os do menu (`RoutesModuleEnum`, `MODULE_CONFIG`). Os submódulo
 
 ## 7. Migration
 
-O arquivo é `V117__create-tables-permissoes.sql`. Nasceu como V111 e foi renumerado em 29/10, no merge da main, que tinha criado as V111–V116 nesse meio-tempo. O mesmo aconteceu com a V112 (agora V118) e a V113 (agora V119). O conteúdo dos arquivos não mudou, então o checksum é o mesmo. Um banco que rodou as versões antigas precisa só renumerar o `flyway_schema_history` e aplicar as V111–V116 da main (seção 7.2).
+O arquivo é `V121__create-tables-permissoes.sql`. Nasceu como V111 e foi renumerado duas vezes: para V117 no merge da main de 29/10 e para V121 no de 04/11, porque a main criou as mesmas versões nesse meio-tempo. O mesmo aconteceu com as outras migrations desta branch. O conteúdo dos arquivos não mudou, então o checksum é o mesmo, e as citações dentro deles continuam com o número antigo. Um banco que rodou as versões antigas precisa só renumerar o `flyway_schema_history` e aplicar as migrations da main (seções 7.2 e 7.3).
 
 A migration foi validada assim:
 
@@ -803,9 +811,9 @@ JOIN grupos_usuarios g ON g.perfil_id = dpp.perfil_id AND g.padrao = TRUE;
 
 </details>
 
-### 7.1 Acessos individuais (V118)
+### 7.1 Acessos individuais (V122)
 
-O arquivo é `V118__grupos-usuarios-individuais.sql` (era V112 até o merge de 29/10). Ficou numa migration separada, em vez de entrar na V117, porque um banco que já rodou a V117 recusaria a versão alterada (o Flyway confere o checksum). Rodou em H2 (testes) e em PostgreSQL 18.
+O arquivo é `V122__grupos-usuarios-individuais.sql` (foi V112 até o merge de 29/10 e V118 até o de 04/11). Ficou numa migration separada, em vez de entrar na da seção 7, porque um banco que já a rodou recusaria a versão alterada (o Flyway confere o checksum). Rodou em H2 (testes) e em PostgreSQL 18.
 
 ```sql
 -- Acessos individuais (docs/permissoes.md, D18–D21).
@@ -832,6 +840,8 @@ ALTER TABLE grupos_usuarios_AUD ADD COLUMN dados_pessoais_id BIGINT;
 
 ### 7.2 Renumeração no merge da main (29/10)
 
+Os números desta seção são os daquele merge. Em 04/11 eles mudaram de novo (seção 7.3).
+
 A main criou as V111–V116 (pagamentos, versão de títulos, anos letivos, matrículas, período da avaliação e resultados finais) enquanto esta branch tinha as V111–V113. Duas migrations com a mesma versão impedem o Flyway de subir, e as da main são as que valem nos outros ambientes. Por isso as desta branch viraram V117–V119, sem mudar uma linha do conteúdo: o checksum continua o mesmo, inclusive o comentário da V118 que ainda cita a V111.
 
 Um banco que rodou as versões antigas não tem as V111–V116 da main e tem 111–113 com outros scripts, então o Flyway recusa a validação. O conserto, por schema de escola e numa transação só (feito em 29/10 nos tenants locais `sigma` e `teste`, depois de um `pg_dump`):
@@ -848,6 +858,39 @@ WHERE version = '113' AND script = 'V113__controle-ver-historico-grupos.sql';
 ```
 
 Em seguida, ainda na mesma transação, roda-se o conteúdo das V111–V116 da main e registra-se cada uma no `flyway_schema_history` com o `checksum` que o Flyway calcularia: o CRC32 das linhas do arquivo, sem as quebras de linha, como inteiro de 32 bits com sinal. O `installed_rank` de cada uma é o próximo número livre. Sem esse registro, o Flyway trataria as V111–V116 como pendentes abaixo da última versão aplicada e recusaria subir, porque o `outOfOrder` está desligado no `TenantFlywayMigrationService`.
+
+### 7.3 Renumeração no merge da main (04/11)
+
+A main criou as V117–V120 (título por item de contrato, aprovação de bolsa, perfil FINANCEIRO e aprovação de preço) enquanto esta branch tinha as V117–V121. Pelo mesmo motivo de 29/10, as desta branch subiram quatro números, sem mudar uma linha do conteúdo:
+
+| Antes | Agora | Arquivo |
+|---|---|---|
+| V117 | V121 | `create-tables-permissoes` |
+| V118 | V122 | `grupos-usuarios-individuais` |
+| V119 | V123 | `controle-ver-historico-grupos` |
+| V120 | V124 | `create-table-modulos` |
+| V121 | V125 | `telas-da-main-e-teto-do-diretor` |
+
+Um banco que rodou as versões antigas não tem as V117–V120 da main e tem 117–121 com outros scripts. O conserto é o mesmo da seção 7.2, por schema de escola e numa transação só. Foi feito em 04/11 nos tenants locais `sigma` e `teste`, depois de um `pg_dump` e de um ensaio numa cópia em container descartável:
+
+```sql
+SET LOCAL search_path TO "<schema>", "$user", public;
+
+UPDATE flyway_schema_history SET version = '125', script = 'V125__telas-da-main-e-teto-do-diretor.sql'
+WHERE version = '121' AND script = 'V121__telas-da-main-e-teto-do-diretor.sql';
+UPDATE flyway_schema_history SET version = '124', script = 'V124__create-table-modulos.sql'
+WHERE version = '120' AND script = 'V120__create-table-modulos.sql';
+UPDATE flyway_schema_history SET version = '123', script = 'V123__controle-ver-historico-grupos.sql'
+WHERE version = '119' AND script = 'V119__controle-ver-historico-grupos.sql';
+UPDATE flyway_schema_history SET version = '122', script = 'V122__grupos-usuarios-individuais.sql'
+WHERE version = '118' AND script = 'V118__grupos-usuarios-individuais.sql';
+UPDATE flyway_schema_history SET version = '121', script = 'V121__create-tables-permissoes.sql'
+WHERE version = '117' AND script = 'V117__create-tables-permissoes.sql';
+```
+
+Em seguida, ainda na mesma transação, roda-se o conteúdo das V117–V120 da main e registra-se cada uma no `flyway_schema_history` com o `checksum` calculado como na seção 7.2. A V126 fica de fora do conserto: quem a aplica é o Flyway, ao subir o backend.
+
+**A V126 chega por dois caminhos.** Quem aplica as migrations em ordem, como um ambiente que vem da main, chega à V121 com o FINANCEIRO da V119 já em `perfis`. O seed cria então o grupo padrão dele, vazio e com o nome cru ("FINANCEIRO (padrão)"), e já inclui as pessoas que têm o perfil. Quem rodou as permissões antes de a main criar o perfil não tem esse grupo. Por isso a V126 cria o grupo só se ele não existir, acerta o nome e só então o preenche. Os dois caminhos foram conferidos em PostgreSQL 15 e dão o mesmo resultado.
 
 ## 8. Backend
 
@@ -868,7 +911,7 @@ Tudo fica no pacote `br.com.brain.permissao`.
 - **`CodigosPermissao`:** constantes Java dos códigos usados no backend.
 - **`DependenciasPermissao`:** o mapa da seção 6.4.
 - **`GrupoPadraoService.vincular(DadosPessoais, PerfilNome)`:** o vínculo automático da seção 8.4.
-- **`PerfilOuTela` (15/10):** monta as regras de URL "perfil OU tela" da D26. Testa o perfil primeiro, com a mesma hierarquia de perfis do `SecurityConfigurations` (o diretor entra onde a secretaria entra), e só então consulta `PermissoesUsuarioService.temAlgumaTela`, que olha a união dos perfis da pessoa.
+- **`PerfilOuTela` (15/10):** monta as regras de URL "perfil OU tela" da D26. Testa o perfil primeiro, com a mesma hierarquia de perfis do `SecurityConfigurations` (o diretor entra onde a secretaria entra), e só então consulta `PermissoesUsuarioService.temAlgumaTela`, que olha a união dos perfis da pessoa. Desde 04/11, `regraDeControle` faz o mesmo com um controle (`temControle`), para a ação que abrir a tela não libera (D39).
 - **`ControlesSensiveis` (15/10):** os controles de dado sensível da D23.
 
 ### 8.2 Endpoints
@@ -926,13 +969,21 @@ Resposta de `GET /permissoes/me`:
   | Área | Perfis (como antes) | Ou uma destas telas |
   |---|---|---|
   | `/crm/**` | SECRETARIO | `SECRETARIA_CRM` |
-  | `/bolsas/**` | SECRETARIO, COORDENADOR, DIRETOR, ADMIN | `SECRETARIA_CRM` (bloco de bolsa) |
+  | `/contratos/**` (D42) | SECRETARIO, COORDENADOR, DIRETOR, ADMIN, FINANCEIRO | `SECRETARIA_CRM` (efetivação), `SECRETARIA_FINANCEIRO` (carnê) |
+  | `POST /financeiro/pagamentos/*/estorno` (D39) | FINANCEIRO, DIRETOR, ADMIN | Só o controle `PAGAMENTO.ESTORNAR` |
+  | `/financeiro/**` (D42) | SECRETARIO, COORDENADOR, DIRETOR, ADMIN, FINANCEIRO | `SECRETARIA_FINANCEIRO` |
+  | `/bolsas/**` | SECRETARIO, COORDENADOR, DIRETOR, ADMIN, FINANCEIRO | `SECRETARIA_CRM` (bloco de bolsa), `SECRETARIA_APROVACAO_BOLSA` |
   | `GET /simulacoes/**` | os mesmos e RESPONSAVEL | `SECRETARIA_CRM` |
-  | `/simulacoes/**` (escrita) | SECRETARIO, COORDENADOR, DIRETOR, ADMIN | `SECRETARIA_CRM` |
+  | `/simulacoes/**` (escrita) | SECRETARIO, COORDENADOR, DIRETOR, ADMIN, FINANCEIRO | `SECRETARIA_CRM` |
+  | `/produto/precos/*/aprovacao` e `/rejeicao` (D42) | FINANCEIRO, DIRETOR, ADMIN | `SECRETARIA_APROVACAO_PRECO` |
+  | `GET /produto/alunos/**` (D42) | SECRETARIO, COORDENADOR, DIRETOR, ADMIN, PROFESSOR, ORIENTADOR, FINANCEIRO | `ALUNO_DETALHE` |
+  | `GET /produto/**` (D42) | SECRETARIO, COORDENADOR, DIRETOR, ADMIN, FINANCEIRO | `SECRETARIA_CATALOGO`, `SECRETARIA_APROVACAO_PRECO` |
+  | `/produto/**` (escrita, D42) | SECRETARIO, DIRETOR, ADMIN, FINANCEIRO | `SECRETARIA_CATALOGO` |
   | `/documentos/**` | SECRETARIO, COORDENADOR, DIRETOR, ADMIN | `SECRETARIA_DOCUMENTOS`, `SECRETARIA_MATRICULAS`, `SECRETARIA_CRM` |
   | `/documentos-escolares/**` | SECRETARIO, COORDENADOR, DIRETOR, ADMIN | `SECRETARIA_DOCUMENTOS` |
+  | `/dados-pessoais/**` (D42) | SECRETARIO, COORDENADOR, DIRETOR, ADMIN | `ALUNO_CADASTRO`, `PROFESSOR_CADASTRO`, `SECRETARIO_CADASTRO` |
 
-  Ficam só por perfil: `/portal-responsavel/**`, porque mostra os filhos de quem está logado e não tem o que mostrar a outra pessoa; e `/bolsas/configuracao/**`, que nenhuma tela chama.
+  O FINANCEIRO fica de fora de documentos e de dados pessoais de propósito: é dado pessoal de menor, e cobrança não é motivo para ler. Ficam só por perfil: `/portal-responsavel/**`, porque mostra os filhos de quem está logado e não tem o que mostrar a outra pessoa; `/bolsas/configuracao/**`, que nenhuma tela chama; e `/secretario/**`, `/diretor/**` e a escrita de `/anos-letivos/**` (seção 12, item 14).
 - `GET /permissoes/me` existe desde 08/10 e exige login, com uma regra `authenticated()` no mesmo lugar.
 - Recusas de regra (RV2–RV7) respondem 422 com a explicação em `message`; nome repetido responde 409.
 
@@ -970,14 +1021,14 @@ Qual código checar em cada tipo de endpoint (D5):
 
 ### 8.4 Vínculo automático ao grupo padrão (D2)
 
-**Implementado em 08/10 (D16).** O [GrupoPadraoService.java](../backend/src/main/java/br/com/brain/permissao/GrupoPadraoService.java) tem `vincular(dadosPessoais, perfil)`, que põe a pessoa no grupo padrão do perfil se ela ainda não estiver nele. Não faz nada para o ADMIN, que não tem grupo. Um perfil é concedido em dois lugares, e os dois o chamam:
+**Implementado em 08/10 (D16), revisto em 04/11 (D41).** O [GrupoPadraoService.java](../backend/src/main/java/br/com/brain/permissao/GrupoPadraoService.java) tem `vincular(dadosPessoais, perfil)`, que põe a pessoa no grupo padrão do perfil, a não ser que ela já esteja em algum grupo normal daquele perfil. O grupo individual não conta, porque só soma (D20, D21). Não faz nada para o ADMIN, que não tem grupo. Os perfis são concedidos no `UsuarioService`, em dois métodos, e os dois o chamam:
 
-- `UsuarioService.cadastrarUsuario`, depois de gravar o login. É chamado nos cadastros de aluno, professor, secretário, responsável e escola;
-- `ResponsavelService.garantirAcessoAoPortal`, que adiciona RESPONSAVEL a uma pessoa que já existe.
+- `cadastrarUsuario`, depois de gravar o login. O cadastro de escola o usa direto;
+- `concederPerfil`, que veio da main. Cria o login se a pessoa não tiver um, caindo no `cadastrarUsuario`. Se tiver, só adiciona o perfil e vincula. É o caminho dos cadastros de aluno, professor, secretário e responsável.
 
-O vínculo não adiciona o perfil: cada cadastro continua cuidando disso como antes.
+O vínculo não adiciona o perfil: quem faz isso é o `UsuarioService`.
 
-**Quem ficou de fora (D15).** A V117 pôs nos grupos padrão quem já tinha perfil. Quem foi cadastrado depois dela e antes deste vínculo ficou sem grupo, e não abre as telas daquele perfil até alguém o incluir pela aba Pessoas da tela de grupos. Não haverá migration para isso. Esta consulta lista quem está nessa situação (rode no schema da escola):
+**Quem ficou de fora (D15).** A V121 pôs nos grupos padrão quem já tinha perfil. Quem foi cadastrado depois dela e antes deste vínculo ficou sem grupo, e não abre as telas daquele perfil até alguém o incluir pela aba Pessoas da tela de grupos. Não haverá migration para isso. Esta consulta lista quem está nessa situação (rode no schema da escola):
 
 ```sql
 SELECT dp.id, dp.nome, p.nome AS perfil
@@ -994,7 +1045,7 @@ WHERE NOT EXISTS (
 ORDER BY p.nome, dp.nome;
 ```
 
-Hoje não existe remoção de perfil no código. Se ela vier a existir, não será preciso limpar vínculos: a regra RP1 já ignora grupos de perfis que a pessoa não tem mais.
+**Quem perde o perfil e volta (D41).** O `UsuarioService.revogarPerfil`, que veio da main, tira o perfil e não mexe nos vínculos, porque a regra RP1 já ignora grupos de perfis que a pessoa não tem mais. Quando o perfil volta, ela continua nos grupos que tinha. Por isso o `vincular` não a põe no padrão se ela já estiver em outro grupo normal: quem foi movido para um grupo menor perderia a restrição, porque os grupos somam (RP2).
 
 ### 8.5 Segurança: pré-requisitos e cuidados
 
@@ -1015,6 +1066,7 @@ Hoje não existe remoção de perfil no código. Se ela vier a existir, não ser
   - todo código citado num `@PreAuthorize` (`@permissao.tela('…')` ou `controle('…')`, lido via `RequestMappingHandlerMapping`) existe em `telas` ou `controles`;
   - todo `telas.codigo` é uma chave de `frontend/src/enums/RoutesEnum.ts`. A CI roda o backend com `working-directory: backend` e checkout completo, então o teste consegue ler `../frontend`;
   - desde 29/10, também contra o `routesConfig.tsx`, lido pelo texto: toda rota que não é livre tem tela no catálogo; o teto de cada tela ativa é a soma dos perfis das entradas dela, nos dois sentidos; o módulo da tela é o da entrada dela no menu (D33); e os módulos são chaves do `RoutesModuleEnum` e os submódulos, do `RoutesSectionEnum`, em dois níveis. Foi o que faltou no merge da main, que trouxe sete telas sem migration;
+  - desde 04/11, todo perfil, menos o ADMIN, tem grupo padrão e está no `PERFIS_COM_GRUPO` da tela de grupos. Foi o que faltou no perfil FINANCEIRO, que veio pela main;
   - todo perfil no teto de um controle com tela também está no teto dessa tela;
   - as dependências de `DependenciasPermissao` apontam para códigos que existem.
 - **`PermissaoService`:**
@@ -1028,7 +1080,7 @@ Hoje não existe remoção de perfil no código. Se ela vier a existir, não ser
 - **`GrupoUsuarioService`:** as validações RV1–RV8.
 - **Controllers:** para cada linha da tabela 6.3, 403 sem o controle e 200 com ele.
 
-**Já existem (08/10):** `PermissoesUsuarioServiceIntegracaoTest` cobre o cálculo de `/permissoes/me`: grupo padrão, sem grupo, grupo inativo, perfil perdido, dois perfis, item fora do teto, ADMIN com o teto inteiro, DIRETOR por grupo, vínculo no cadastro e vínculo repetido. Desde 04/11, os mesmos testes cobrem os dados das telas (D36): só as liberadas, o teto inteiro do ADMIN com o submódulo, perfil perdido, dois perfis e acesso individual. `PermissaoControllerTest` cobre o login exigido e o formato da resposta. Desde 15/10, `AcessosIndividuaisIntegracaoTest` cobre a seção 4.1: soma com o grupo, valer sem grupo, grupo inativo, as regras de um grupo, as recusas, o grupo individual apagado quando fica vazio e escondido dos endpoints de grupo, o contador da aba Pessoas e pessoas com o mesmo nome. Depois da D22, cobre também passar do teto (com dado sensível), o grupo normal ainda preso ao teto e o catálogo individual. `PerfilOuTelaTest` cobre a D26 pelo CRM: secretaria e diretor entram pelo perfil; o professor só entra depois de ganhar a tela.
+**Já existem (08/10):** `PermissoesUsuarioServiceIntegracaoTest` cobre o cálculo de `/permissoes/me`: grupo padrão, sem grupo, grupo inativo, perfil perdido, dois perfis, item fora do teto, ADMIN com o teto inteiro, DIRETOR por grupo, vínculo no cadastro e vínculo repetido. Desde 04/11, os mesmos testes cobrem os dados das telas (D36): só as liberadas, o teto inteiro do ADMIN com o submódulo, perfil perdido, dois perfis e acesso individual. `PermissaoControllerTest` cobre o login exigido e o formato da resposta. Desde 15/10, `AcessosIndividuaisIntegracaoTest` cobre a seção 4.1: soma com o grupo, valer sem grupo, grupo inativo, as regras de um grupo, as recusas, o grupo individual apagado quando fica vazio e escondido dos endpoints de grupo, o contador da aba Pessoas e pessoas com o mesmo nome. Depois da D22, cobre também passar do teto (com dado sensível), o grupo normal ainda preso ao teto e o catálogo individual. `PerfilOuTelaTest` cobre a D26 pelo CRM: secretaria e diretor entram pelo perfil; o professor só entra depois de ganhar a tela. Desde 04/11, cobre também as áreas do FINANCEIRO, o estorno pelo perfil e pelo controle (D39), a aprovação de preço, o catálogo e a busca de pessoa (D42). `PermissoesUsuarioServiceIntegracaoTest` ganhou o teto do FINANCEIRO, da secretaria e da direção (D37–D40) e a concessão a quem já tem login, com e sem grupo menor (D41). `UsuarioServiceTest` confere que o `concederPerfil` só vincula quando o perfil é novo.
 
 ## 9. Frontend
 
@@ -1060,7 +1112,7 @@ podeControle(CONTROLES.EVENTO_GERENCIAR);
 - **Código da tela = chave do `RoutesEnum`.** O `codigoDaTela(rota)` deriva o código do `router` de cada entrada, então não precisa de campo novo. As entradas fora do catálogo ganham `livre: true`: início, perfil próprio, `/grupos-usuarios`, `/sem-acesso` e as entradas ainda sem página (`/usuarios`, `/configuracoes`, `/ficha-medica/cadastro`, `/dashAluno/inicio`, seção 6.2).
 - **Menu (perfil ativo).** `getMenuRoutes`, `getRoutesByModule`, `getRoutesWithoutModule` e `getMenuModules` recebem o predicado `podeVerRota` do `usePermissoes`: `rota.livre || telas do perfil ativo têm o código`. O filtro por `roles` continua, porque define a variante da tela por perfil.
   - **Entrada emprestada (D22):** se o perfil ativo ganhou uma tela que não tem entrada para ele no `routesConfig`, vale a entrada que a rota tem no menu de outro perfil (a primeira com `isShowMenu`), com o ícone e o módulo de lá. Uma lista de alunos liberada para a secretaria aparece em "Cadastros", como no ADMIN. Rota livre não se empresta, e sem o predicado (sem as permissões) nada é emprestado.
-- **Middleware (edge, D25).** Continua checando login e expiração do token, mas não as telas, que ele não conhece: tela do catálogo passa só com o login, e a guarda decide. Rota livre continua presa ao perfil (`roles`), e rota fora do `routesConfig` continua bloqueada para todos. A rota inicial vem de `rotaInicialDoPerfil` (o DIRETOR vai para `/admin`, como o ADMIN).
+- **Middleware (edge, D25).** Continua checando login e expiração do token, mas não as telas, que ele não conhece: tela do catálogo passa só com o login, e a guarda decide. Rota livre continua presa ao perfil (`roles`), e rota fora do `routesConfig` continua bloqueada para todos. A rota inicial vem de `rotaInicialDoPerfil`.
 - **Guarda de tela (união dos perfis).** O `GuardaDeTela`, no layout privado, resolve a rota atual pelo **prefixo mais longo** (`findRouteByPath`) e exige que a tela esteja liberada em **algum** perfil da pessoa, como o middleware e o backend fazem. O menu mostra só o perfil ativo, mas uma URL digitada de outro perfil da mesma pessoa abre.
   - Enquanto as permissões carregam, ele mostra um carregamento sem renderizar a página.
   - Tela não liberada: redireciona com `rotaPermitidaDoPerfil(perfilAtivo)`. Vai para a rota inicial do perfil, se ela estiver liberada; senão, para a primeira rota de menu liberada; senão, para `/sem-acesso`. Como nunca devolve uma rota bloqueada, não há loop quando a rota inicial (ex.: `/secretaria/matriculas`) não foi concedida.
@@ -1083,6 +1135,8 @@ Todos feitos em 08/10.
 | `AlunosView` (lista do ADMIN) | `isAdminCrud` | "Novo" e "Editar" ← `ALUNO.EDITAR`; "Excluir" ← `ALUNO.EXCLUIR`. A condição `!listaExterna && !compacto` continua. |
 | `comunicados` | `PERFIS_QUE_PUBLICAM` e `podeGerenciar` | Publicar ← `podeTela('COMUNICADOS_CADASTRO')`. Gerenciar ← ter essa tela e (`COMUNICADO.GERENCIAR_TODOS` ou ser o autor). |
 
+Em 04/11 entrou mais um: o botão "Estornar" do carnê, que aparecia para todos, passou a depender de `PAGAMENTO.ESTORNAR` (D39).
+
 No merge de 29/10, os testes de perfil que a main acrescentou para o diretor nessas mesmas telas (ficha médica, produtos, CRUD da lista, comunicados, eventos) ficaram de fora do código. O que eles decidiam entrou no teto do DIRETOR (D35).
 
 Continuam decididos por perfil (RP7):
@@ -1093,6 +1147,7 @@ Continuam decididos por perfil (RP7):
 - o seletor de aluno do responsável;
 - as disciplinas do professor no detalhe do aluno;
 - as regras da secretaria e da direção no calendário: as duas só criam eventos institucionais (reunião, feriado, outro). A main estendeu ao diretor a regra que era só da secretaria (`isSecretario`), e no merge ela continuou sendo regra de perfil;
+- as seções de ocorrências e boletim na ficha do aluno, que o FINANCEIRO não vê (D38);
 - a categoria RH;
 - a busca no servidor da orientação (`AlunosView`).
 
@@ -1150,9 +1205,20 @@ Até 15/10, o [perfis.ts](../frontend/src/utils/perfis.ts) trocava DIRETOR por A
 - **Rota inicial:** `/`, onde fica o painel dele (`rotaInicialDoPerfil`, o middleware e o breadcrumb). `/admin` ficou só do ADMIN.
 - **Mapas por perfil:** o seletor de perfil usa o ícone que a main deu ao diretor. A lista de alunos usa as colunas de cadastro, e quem tem o CRUD continua sendo decidido pelos controles.
 - **`/grupos-usuarios`:** a entrada declara ADMIN e DIRETOR.
-- **Teto:** a V121 trocou o teto do diretor pelo que a main mostra a ele (seções 6.1 e 6.3).
+- **Teto:** a V125 trocou o teto do diretor pelo que a main mostra a ele (seções 6.1 e 6.3).
 
 No backend, o cadastro de diretor com login continua todo comentado em [DiretorService.java](../backend/src/main/java/br/com/brain/diretor/DiretorService.java). Nenhum outro ponto do código concede o perfil DIRETOR. Hoje, um diretor com login só existe se for criado direto no banco.
+
+### 9.7 FINANCEIRO no frontend
+
+O perfil veio da main em 04/11, com os enums e a precedência (acima de SECRETARIO). No merge:
+
+- **Rota inicial:** `/secretaria/financeiro`, em `rotaInicialDoPerfil`. O `switch` que a main acrescentou ao middleware saiu junto com os outros (seção 9.3).
+- **Rotas:** além do financeiro, do catálogo e das filas de aprovação, ele entra em `/aluno/lista`, `/aluno/detalhe` e `/perfil`. Os comentários da main prometem as três, mas o middleware lê o `routesConfig`, e não o `ROLE_ROUTES`, onde ela as declarou (D38).
+- **Ficha do aluno:** vê dados cadastrais e responsáveis, pelo controle `ALUNO.DADOS_PESSOAIS.VER`. Ocorrências e boletim somem no perfil ativo FINANCEIRO, e as notas e anotações nem são buscadas. Quem acumula perfis vê tudo ao navegar como secretaria.
+- **Tela de grupos:** o perfil entrou no `PERFIS_COM_GRUPO`, logo depois de SECRETARIO.
+
+**Menu.** Com as filas de aprovação, o menu passou da largura da tela: no ADMIN até 1440 px, no DIRETOR até 1366 px e no SECRETARIO em 1280 px. O sino e o avatar iam para fora, e não há como rolar até eles. Agora o menu quebra em mais uma linha quando falta espaço ([appBar.tsx](../frontend/src/components/appBar/appBar.tsx)). A barra fica com até 79 px, abaixo dos 80 px em que o conteúdo começa. Agrupar as telas de dinheiro num módulo encolheria o menu, mas muda o que a secretaria vê e diverge da main, então ficou para decidir depois.
 
 ## 10. Telas e controles novos (convenção)
 
@@ -1181,14 +1247,15 @@ No backend, o cadastro de diretor com login continua todo comentado em [DiretorS
    O ADMIN não tem grupo: recebe a tela nova se o teto tiver uma linha para o perfil ADMIN. Entre os grupos, só os padrão recebem a tela nova. Os grupos personalizados foram restringidos de propósito, e quem os mantém decide se libera ou não. Sem essa regra, cada escola teria que liberar à mão toda funcionalidade nova.
 2. **Controle novo.** Segue o mesmo padrão em `controles`, `controles_perfis` e `grupos_usuarios_controles`, e ganha a constante em `CodigosPermissao` (Java) e em `CONTROLES` (TS).
 3. **Módulo novo.** Entra no `RoutesModuleEnum` (ou no `RoutesSectionEnum`, se for setor) e no `MODULE_CONFIG` (ou `SECTION_CONFIG`). A mesma PR traz uma migration com a linha em `modulos` e o `modulo_id` das telas que mudam de lugar.
-4. **Proteção contra esquecimento.** O teste de consistência (seção 8.6) quebra se algum desses lugares ficar desatualizado. Desde 29/10, isso inclui página nova no `routesConfig` sem tela no catálogo, perfil novo numa rota sem o teto correspondente e módulo diferente do menu. Um merge que traga telas de outra branch é pego aqui.
+4. **Perfil novo.** Além dos enums, a mesma PR traz uma migration com o teto e o grupo padrão (a V121 só cria grupo para os perfis que já existem nela), a entrada no `PERFIS_COM_GRUPO` e o caso em `rotaInicialDoPerfil`, se a rota inicial não for `/`.
+5. **Proteção contra esquecimento.** O teste de consistência (seção 8.6) quebra se algum desses lugares ficar desatualizado. Desde 29/10, isso inclui página nova no `routesConfig` sem tela no catálogo, perfil novo numa rota sem o teto correspondente e módulo diferente do menu. Desde 04/11, também perfil sem grupo padrão ou fora do `PERFIS_COM_GRUPO`. Um merge que traga telas de outra branch é pego aqui.
 
 ## 11. Fases de entrega
 
 | Fase | Entrega | Muda algo para o usuário? |
 |---|---|---|
 | F0 | Fechar `/usuario/**`; habilitar `@EnableMethodSecurity`. | Não, exceto para chamadas anônimas a `/usuario`. |
-| F1 | Migration V117 (era V111), entidades, `PermissaoService`, `GET /permissoes/me`, vínculo automático e testes de consistência. **Feito:** migration, entidades e testes (06/10); `/permissoes/me` e vínculo automático (08/10). **Fica para a F3:** `PermissaoService` e `PermissaoGuard`, que só servem à proteção no backend. | Não. |
+| F1 | Migration V121 (era V111), entidades, `PermissaoService`, `GET /permissoes/me`, vínculo automático e testes de consistência. **Feito:** migration, entidades e testes (06/10); `/permissoes/me` e vínculo automático (08/10). **Fica para a F3:** `PermissaoService` e `PermissaoGuard`, que só servem à proteção no backend. | Não. |
 | F2 | Frontend lendo as permissões: `usePermissoes`, menu, guarda de rota, `/sem-acesso`, rota padrão única e os checks da tabela 9.4. DIRETOR como perfil de verdade, com a herança de rotas (seção 9.6). **Feito em 08/10**, menos a troca dos `switch` do login pela rota inicial única (seção 9.3). | Para quem está no grupo padrão, só as mudanças intencionais da seção 12 (itens 5 e 8). Quem está sem grupo vai para `/sem-acesso` (D15). |
 | F3 | Backend protegendo os controles da tabela 6.3; endpoints de gestão; tela de grupos. **Adiantado em 06/10 (D10):** endpoints de gestão e tela de grupos. **Falta:** a proteção no backend. | Sim: as escolas passam a montar grupos. |
 | F4 | Escritas restantes, por domínio (179 endpoints em 46 controllers); remover o `permitAll("/**")`. | Endpoints chamados sem permissão passam a responder 403. |
@@ -1211,6 +1278,10 @@ O seed reproduz o comportamento de hoje, inclusive nestes pontos. Cada um é uma
 8. **Mudança intencional: diretor gerenciando comunicados de outros autores.** Hoje o front mostra ao diretor os botões de editar e remover em todos os comunicados (pela troca DIRETOR→ADMIN), mas o backend recusa, porque `verificarPermissaoDeEdicao` testa o perfil ADMIN real. Com `COMUNICADO.GERENCIAR_TODOS`, front e backend passam a concordar: o diretor consegue. **Até a F3 ainda não concordam:** o front já mostra os botões ao diretor pelo controle, e o backend continua recusando, porque `verificarPermissaoDeEdicao` ainda testa o perfil ADMIN.
 9. **Secretaria sem o botão "Editar" no detalhe do aluno.** Ela tem a tela de cadastro (`ALUNO_CADASTRO`), mas o botão no detalhe só aparece para o ADMIN; o seed mantém isso (`ALUNO.EDITAR` sem SECRETARIO no teto). Se a secretaria deve editar dali, basta incluí-la no teto e no grupo padrão.
 10. **Diretor edita aluno pela lista e pelo detalhe.** Na main, o CRUD da lista de alunos é de ADMIN e DIRETOR, mas o botão "Editar" do detalhe é só do ADMIN. `ALUNO.EDITAR` vale nos dois lugares, e o diretor ficou com ele (D35), então passa a ver o "Editar" também no detalhe. "Matricular" e "Desmatricular" seguem a main e saíram do teto dele.
+11. **FINANCEIRO na ficha do aluno (D38).** Na main, os comentários dizem que ele abre a lista e a ficha, mas ele não está nessas rotas e o middleware o redireciona. O mesmo acontece com `/perfil`. Aqui as rotas foram incluídas. Vale avisar quem cuida da main. Se ela corrigir, as seções da ficha precisam continuar restritas, porque aqui ocorrências e boletim aparecem para todos que abrem a tela, menos para esse perfil.
+12. **Direção na fila de bolsa (D40).** A main mostra a fila só a SECRETARIO e FINANCEIRO, mas a V118 diz que "a direção abre a tela", e `/bolsas/**` aceita DIRETOR e ADMIN. Aqui os dois receberam a tela. Vale avisar quem cuida da main.
+13. **Estorno sem tela para a direção.** O backend aceita FINANCEIRO, DIRETOR e ADMIN, mas `SECRETARIA_FINANCEIRO` não é de DIRETOR nem de ADMIN, na main e aqui. Na prática, só o FINANCEIRO estorna pela tela. Dar a tela à direção é uma decisão à parte.
+14. **Áreas que continuam só por perfil.** `/secretario/**`, `/diretor/**` e a escrita de `/anos-letivos/**` têm telas no catálogo, mas não passaram para "perfil OU tela". Quem recebe uma dessas telas por acesso individual abre a página e toma 403 até a F3 ou até elas entrarem na D42.
 
 ## 13. Fora do escopo
 

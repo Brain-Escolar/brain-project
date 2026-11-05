@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * GET /permissoes/me contra o banco: o seed da V117 e as regras RP1 e RP4 da
+ * GET /permissoes/me contra o banco: o seed da V121 e as regras RP1 e RP4 da
  * spec. Cada teste roda numa transação desfeita no fim.
  */
 @SpringBootTest
@@ -64,7 +64,7 @@ class PermissoesUsuarioServiceIntegracaoTest {
 
         assertThat(permissoes.gerenciaPermissoes()).isFalse();
         assertThat(permissoes.perfis()).containsOnlyKeys(PerfilNome.SECRETARIO);
-        assertThat(permissoes.perfis().get(PerfilNome.SECRETARIO).telas()).hasSize(12)
+        assertThat(permissoes.perfis().get(PerfilNome.SECRETARIO).telas()).hasSize(14)
                 .contains("SECRETARIA_CRM", "SECRETARIA_FINANCEIRO");
         assertThat(permissoes.perfis().get(PerfilNome.SECRETARIO).controles()).hasSize(5);
     }
@@ -178,7 +178,7 @@ class PermissoesUsuarioServiceIntegracaoTest {
 
         assertThat(permissoes.gerenciaPermissoes()).isTrue();
         // Ganhou o cadastro de secretários; a área da Direção não é dele (D35).
-        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).telas()).hasSize(43)
+        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).telas()).hasSize(45)
                 .contains("SECRETARIO_LISTA", "AVALIACOES")
                 .doesNotContain("GESTAO_ANO_LETIVO", "RELATORIO_ACOMPANHAMENTO_TURMA");
         assertThat(permissoes.perfis().get(PerfilNome.ADMIN).controles()).hasSize(9)
@@ -196,7 +196,7 @@ class PermissoesUsuarioServiceIntegracaoTest {
 
         assertThat(permissoes.gerenciaPermissoes()).isTrue();
         // A área própria da main (D35): sem a herança das telas do ADMIN.
-        assertThat(permissoes.perfis().get(PerfilNome.DIRETOR).telas()).hasSize(43)
+        assertThat(permissoes.perfis().get(PerfilNome.DIRETOR).telas()).hasSize(45)
                 .contains("GESTAO_PROFESSORES", "GESTAO_ANO_LETIVO", "RELATORIO_ACOMPANHAMENTO_TURMA",
                         "CALENDARIO", "SECRETARIO_LISTA", "ALUNO_LISTA")
                 .doesNotContain("AVALIACOES", "DIARIO", "RELATORIOS");
@@ -233,6 +233,96 @@ class PermissoesUsuarioServiceIntegracaoTest {
                 "select count(*) from dados_pessoais_grupos_usuarios where dados_pessoais_id = ?",
                 Long.class, pessoa.getDadosPessoais().getId());
         assertThat(grupos).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("quem já tem login e recebe outro perfil entra no grupo padrão dele (D2)")
+    void concederVinculaAoPadrao() {
+        var pessoa = login(PerfilNome.PROFESSOR);
+
+        usuarioService.concederPerfil(pessoa.getDadosPessoais(), PerfilNome.RESPONSAVEL, "senha-inicial");
+
+        var padrao = grupoRepository.findPadraoDoPerfil(PerfilNome.RESPONSAVEL).orElseThrow();
+        assertThat(membroRepository.findByGrupoUsuarioIdAndDadosPessoaisId(padrao.getId(),
+                pessoa.getDadosPessoais().getId())).isPresent();
+    }
+
+    @Test
+    @DisplayName("perfil devolvido não desfaz a restrição: quem estava num grupo menor não volta ao padrão (D41)")
+    void perfilDevolvidoMantemARestricao() {
+        var secretaria = login(PerfilNome.SECRETARIO);
+        var pessoa = secretaria.getDadosPessoais();
+        var grupo = grupoService.cadastrar(new CadastroGrupoUsuarioDto(PerfilNome.SECRETARIO, "Só CRM", null));
+        grupoService.salvarAcessos(grupo.id(), new AcessosGrupoUsuarioDto(Set.of("SECRETARIA_CRM"), Set.of()));
+        grupoService.adicionarMembros(grupo.id(), new AdicaoMembrosDto(Set.of(pessoa.getId())));
+
+        usuarioService.revogarPerfil(pessoa, PerfilNome.SECRETARIO);
+        assertThat(service.doUsuario(secretaria).perfis()).doesNotContainKey(PerfilNome.SECRETARIO);
+        usuarioService.concederPerfil(pessoa, PerfilNome.SECRETARIO, "senha-inicial");
+
+        assertThat(service.doUsuario(secretaria).perfis().get(PerfilNome.SECRETARIO).telas())
+                .containsExactly("SECRETARIA_CRM");
+    }
+
+    @Test
+    @DisplayName("o acesso individual não conta como grupo: a pessoa ainda entra no padrão do perfil")
+    void individualNaoImpedeOPadrao() {
+        var professora = login(PerfilNome.PROFESSOR);
+        var pessoa = professora.getDadosPessoais();
+        grupoService.salvarAcessosIndividuais(pessoa.getId(), PerfilNome.PROFESSOR,
+                new AcessosGrupoUsuarioDto(Set.of("SECRETARIA_CRM"), Set.of()));
+
+        grupoPadraoService.vincular(pessoa, PerfilNome.PROFESSOR);
+
+        var padrao = grupoRepository.findPadraoDoPerfil(PerfilNome.PROFESSOR).orElseThrow();
+        assertThat(membroRepository.findByGrupoUsuarioIdAndDadosPessoaisId(padrao.getId(), pessoa.getId())).isPresent();
+    }
+
+    @Test
+    @DisplayName("o FINANCEIRO recebe as telas de dinheiro e a ficha, com o estorno (D37, D38, D39)")
+    void financeiroNoGrupoPadrao() {
+        var financeiro = login(PerfilNome.FINANCEIRO);
+        grupoPadraoService.vincular(financeiro.getDadosPessoais(), PerfilNome.FINANCEIRO);
+
+        var permissoes = service.doUsuario(financeiro).perfis().get(PerfilNome.FINANCEIRO);
+
+        assertThat(grupoRepository.findPadraoDoPerfil(PerfilNome.FINANCEIRO).orElseThrow().getNome())
+                .isEqualTo("Financeiro (padrão)");
+        assertThat(permissoes.telas()).containsExactly("ALUNO_DETALHE", "ALUNO_LISTA",
+                "SECRETARIA_APROVACAO_BOLSA", "SECRETARIA_APROVACAO_PRECO", "SECRETARIA_CATALOGO",
+                "SECRETARIA_FINANCEIRO");
+        assertThat(permissoes.controles()).containsExactly("ALUNO.DADOS_PESSOAIS.VER", "PAGAMENTO.ESTORNAR");
+    }
+
+    @Test
+    @DisplayName("a secretaria abre o financeiro e o catálogo, mas não recebe o estorno nem a aprovação de preço (D39)")
+    void secretariaSemEstorno() {
+        var secretaria = login(PerfilNome.SECRETARIO);
+        grupoPadraoService.vincular(secretaria.getDadosPessoais(), PerfilNome.SECRETARIO);
+
+        var permissoes = service.doUsuario(secretaria).perfis().get(PerfilNome.SECRETARIO);
+
+        assertThat(permissoes.telas())
+                .contains("SECRETARIA_FINANCEIRO", "SECRETARIA_CATALOGO", "SECRETARIA_APROVACAO_BOLSA")
+                .doesNotContain("SECRETARIA_APROVACAO_PRECO");
+        assertThat(permissoes.controles()).doesNotContain("PAGAMENTO.ESTORNAR");
+    }
+
+    @Test
+    @DisplayName("diretor e admin recebem as duas filas de aprovação, mas não o catálogo nem o estorno (D40)")
+    void direcaoComAsFilas() {
+        var diretor = login(PerfilNome.DIRETOR);
+        grupoPadraoService.vincular(diretor.getDadosPessoais(), PerfilNome.DIRETOR);
+
+        var doDiretor = service.doUsuario(diretor).perfis().get(PerfilNome.DIRETOR);
+        var doAdmin = service.doUsuario(login(PerfilNome.ADMIN)).perfis().get(PerfilNome.ADMIN);
+
+        assertThat(doDiretor.telas()).contains("SECRETARIA_APROVACAO_BOLSA", "SECRETARIA_APROVACAO_PRECO")
+                .doesNotContain("SECRETARIA_CATALOGO", "SECRETARIA_FINANCEIRO");
+        assertThat(doAdmin.telas()).contains("SECRETARIA_APROVACAO_BOLSA", "SECRETARIA_APROVACAO_PRECO")
+                .doesNotContain("SECRETARIA_CATALOGO", "SECRETARIA_FINANCEIRO");
+        assertThat(doDiretor.controles()).doesNotContain("PAGAMENTO.ESTORNAR");
+        assertThat(doAdmin.controles()).doesNotContain("PAGAMENTO.ESTORNAR");
     }
 
     // ------------------------------------------------------------ apoio

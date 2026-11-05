@@ -28,13 +28,13 @@ public class GrupoPadraoService {
         if (perfil == PerfilNome.ADMIN || pessoa == null || pessoa.getId() == null) {
             return;
         }
-        grupoRepository.findPadraoDoPerfil(perfil).ifPresent(grupo -> {
-            var jaEstaNoGrupo = membroRepository
-                    .findByGrupoUsuarioIdAndDadosPessoaisId(grupo.getId(), pessoa.getId())
-                    .isPresent();
-            if (!jaEstaNoGrupo) {
-                membroRepository.save(new GrupoUsuarioMembro(grupo, pessoa));
-            }
-        });
+        // Quem perdeu o perfil e o recebeu de volta continua nos grupos que tinha. Se
+        // foi posto num grupo menor para restringir, entrar no padrão desfaria a
+        // restrição, porque os grupos somam (RP2, D41).
+        if (membroRepository.estaEmGrupoNormalDoPerfil(pessoa.getId(), perfil)) {
+            return;
+        }
+        grupoRepository.findPadraoDoPerfil(perfil)
+                .ifPresent(grupo -> membroRepository.save(new GrupoUsuarioMembro(grupo, pessoa)));
     }
 }

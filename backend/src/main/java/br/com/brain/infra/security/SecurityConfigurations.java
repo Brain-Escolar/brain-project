@@ -84,9 +84,10 @@ public class SecurityConfigurations {
                             // Contratos e efetivacao de matricula - acima do permitAll.
                             // Efetivar gera cobranca: e operacao de secretaria,
                             // nao de quem so consulta.
+                            // Quem chama: a efetivacao no CRM e o carne no financeiro.
                             req.requestMatchers("/contratos/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
-                                            "FINANCEIRO");
+                                    .access(perfilOuTela.regra(GESTAO_E_FINANCEIRO,
+                                            "SECRETARIA_CRM", "SECRETARIA_FINANCEIRO"));
 
                             // Baixa, estorno, caixa e inadimplencia - acima do
                             // permitAll. NAO confundir com /portal-responsavel:
@@ -100,16 +101,20 @@ public class SecurityConfigurations {
                             // quem fecha caixa e quem responde por ele. A regra
                             // prometida no comentario anterior era "rever quando
                             // FINANCEIRO existir" -- e esta e a revisao.
+                            //
+                            // Fora do perfil, so entra quem ganhou o controle, nao
+                            // a tela: abrir o financeiro nao da direito a estornar.
                             req.requestMatchers(HttpMethod.POST, "/financeiro/pagamentos/*/estorno")
-                                    .hasAnyRole("FINANCEIRO", "DIRETOR", "ADMIN");
+                                    .access(perfilOuTela.regraDeControle(List.of("FINANCEIRO", "DIRETOR", "ADMIN"),
+                                            "PAGAMENTO.ESTORNAR"));
                             req.requestMatchers("/financeiro/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
-                                            "FINANCEIRO");
+                                    .access(perfilOuTela.regra(GESTAO_E_FINANCEIRO, "SECRETARIA_FINANCEIRO"));
 
                             // Bolsas - acima do permitAll para ja valer hoje.
-                            // A tela que usa bolsas e simulacoes e o bloco de bolsa do CRM.
+                            // Quem chama: o bloco de bolsa do CRM e a fila de aprovacao.
                             req.requestMatchers("/bolsas/**")
-                                    .access(perfilOuTela.regra(GESTAO_E_FINANCEIRO, "SECRETARIA_CRM"));
+                                    .access(perfilOuTela.regra(GESTAO_E_FINANCEIRO,
+                                            "SECRETARIA_CRM", "SECRETARIA_APROVACAO_BOLSA"));
 
                             // Simulacoes financeiras - acima do permitAll para ja valer hoje.
                             // Escrita e da secretaria; a leitura inclui o
@@ -132,7 +137,8 @@ public class SecurityConfigurations {
                             // quem opera o catalogo; aprovar, nao.
                             req.requestMatchers("/produto/precos/*/aprovacao",
                                             "/produto/precos/*/rejeicao")
-                                    .hasAnyRole("FINANCEIRO", "DIRETOR", "ADMIN");
+                                    .access(perfilOuTela.regra(List.of("FINANCEIRO", "DIRETOR", "ADMIN"),
+                                            "SECRETARIA_APROVACAO_PRECO"));
 
                             // ANTES do GET largo abaixo, de proposito: os produtos
                             // comprados por UM aluno aparecem na ficha dele, que
@@ -140,14 +146,19 @@ public class SecurityConfigurations {
                             // matcher do catalogo tiraria a secao de produtos da
                             // ficha sem ninguem entender por que.
                             req.requestMatchers(HttpMethod.GET, "/produto/alunos/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
-                                            "PROFESSOR", "ORIENTADOR", "FINANCEIRO");
+                                    .access(perfilOuTela.regra(
+                                            List.of("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
+                                                    "PROFESSOR", "ORIENTADOR", "FINANCEIRO"),
+                                            "ALUNO_DETALHE"));
 
+                            // A fila de aprovacao le GET /produto/precos/pendentes.
                             req.requestMatchers(HttpMethod.GET, "/produto/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN",
-                                            "FINANCEIRO");
+                                    .access(perfilOuTela.regra(GESTAO_E_FINANCEIRO,
+                                            "SECRETARIA_CATALOGO", "SECRETARIA_APROVACAO_PRECO"));
                             req.requestMatchers("/produto/**")
-                                    .hasAnyRole("SECRETARIO", "DIRETOR", "ADMIN", "FINANCEIRO");
+                                    .access(perfilOuTela.regra(
+                                            List.of("SECRETARIO", "DIRETOR", "ADMIN", "FINANCEIRO"),
+                                            "SECRETARIA_CATALOGO"));
 
                             // Documentos de matricula - acima do permitAll para ja valer hoje.
                             // Dado pessoal de menor: professor fica de fora. A
@@ -180,7 +191,8 @@ public class SecurityConfigurations {
                             // Busca de pessoa por CPF/e-mail - acima do permitAll.
                             // Devolve dado pessoal completo: so quem cadastra.
                             req.requestMatchers("/dados-pessoais/**")
-                                    .hasAnyRole("SECRETARIO", "COORDENADOR", "DIRETOR", "ADMIN");
+                                    .access(perfilOuTela.regra(GESTAO_DA_SECRETARIA, "ALUNO_CADASTRO",
+                                            "PROFESSOR_CADASTRO", "SECRETARIO_CADASTRO"));
 
                             // Telas da Direcao - acima do permitAll para ja valer hoje.
                             // Desempenho e comportamento da escola inteira.

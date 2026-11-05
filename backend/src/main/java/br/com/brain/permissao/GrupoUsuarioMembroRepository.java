@@ -27,6 +27,15 @@ public interface GrupoUsuarioMembroRepository extends JpaRepository<GrupoUsuario
 
     long countByGrupoUsuarioId(Long grupoId);
 
+    /** O grupo individual não conta: ele só soma, e vale para quem não tem grupo normal (D20, D21). */
+    @Query("""
+            select count(m) > 0 from GrupoUsuarioMembro m
+            where m.dadosPessoais.id = :pessoaId
+              and m.grupoUsuario.perfil.nome = :perfil
+              and m.grupoUsuario.dadosPessoais is null
+            """)
+    boolean estaEmGrupoNormalDoPerfil(@Param("pessoaId") Long pessoaId, @Param("perfil") PerfilNome perfil);
+
     @Query("""
             select m.dadosPessoais.id from GrupoUsuarioMembro m
             where m.grupoUsuario.id = :grupoId and m.dadosPessoais.id in :ids

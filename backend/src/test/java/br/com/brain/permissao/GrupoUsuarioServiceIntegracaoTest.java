@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * O que depende de SQL de verdade: o seed da V117, as consultas de membros e
+ * O que depende de SQL de verdade: o seed da V121, as consultas de membros e
  * candidatos (join com o login, nome social) e a exclusão com vínculos.
  * Cada teste roda numa transação desfeita no fim.
  */
@@ -61,10 +61,10 @@ class GrupoUsuarioServiceIntegracaoTest {
     void seedDosGruposPadrao() {
         var padroes = service.listar(null).stream().filter(ListagemGrupoUsuarioDto::padrao).toList();
 
-        assertThat(padroes).hasSize(8);
+        assertThat(padroes).hasSize(9);
         assertThat(padroes).extracting(ListagemGrupoUsuarioDto::perfil).doesNotContain(PerfilNome.ADMIN);
         var secretaria = padroes.stream().filter(g -> g.perfil() == PerfilNome.SECRETARIO).findFirst().orElseThrow();
-        assertThat(secretaria.quantidadeTelas()).isEqualTo(12);
+        assertThat(secretaria.quantidadeTelas()).isEqualTo(14);
         assertThat(secretaria.quantidadeControles()).isEqualTo(5);
     }
 
@@ -73,7 +73,7 @@ class GrupoUsuarioServiceIntegracaoTest {
     void catalogoDaSecretaria() {
         var catalogo = catalogoService.catalogo(PerfilNome.SECRETARIO);
 
-        assertThat(catalogo.telas()).hasSize(12);
+        assertThat(catalogo.telas()).hasSize(14);
         var detalhe = catalogo.telas().stream().filter(t -> t.codigo().equals("ALUNO_DETALHE")).findFirst()
                 .orElseThrow();
         // O detalhe do aluno fica no setor da lista de alunos (D33), com o módulo acima dele.

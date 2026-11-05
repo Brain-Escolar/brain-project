@@ -40,7 +40,8 @@ const CORES_STATUS: Record<StatusTitulo, "default" | "success" | "warning" | "er
 
 interface Props {
   onBaixar: (parcela: ParcelaParaBaixa) => void;
-  onEstornar: (parcela: ParcelaParaBaixa) => void;
+  /** Sem ele, o botão Estornar não aparece. */
+  onEstornar?: (parcela: ParcelaParaBaixa) => void;
 }
 
 /**
@@ -148,7 +149,7 @@ function CarneDoContrato({
   contrato: ContratoResponse;
   alunoNome: string;
   onBaixar: (parcela: ParcelaParaBaixa) => void;
-  onEstornar: (parcela: ParcelaParaBaixa) => void;
+  onEstornar?: (parcela: ParcelaParaBaixa) => void;
 }) {
   const titulos = [...contrato.titulos].sort(
     (a, b) =>
@@ -231,7 +232,7 @@ function LinhaDoCarne({
   alunoNome: string;
   contratoNumero: string;
   onBaixar: (parcela: ParcelaParaBaixa) => void;
-  onEstornar: (parcela: ParcelaParaBaixa) => void;
+  onEstornar?: (parcela: ParcelaParaBaixa) => void;
 }) {
   const parcela: ParcelaParaBaixa = {
     tituloId: titulo.id,
@@ -277,7 +278,7 @@ function LinhaDoCarne({
             Dar baixa
           </Button>
         )}
-        {titulo.status === "PAGO" && (
+        {titulo.status === "PAGO" && onEstornar && (
           <Button size="small" color="error" onClick={() => onEstornar(parcela)}>
             Estornar
           </Button>

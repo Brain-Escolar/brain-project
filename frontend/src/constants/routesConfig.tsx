@@ -196,7 +196,7 @@ export const ROUTES: RouteConfig[] = [
     icon: <PersonIcon fontSize="small" />,
     router: RoutesEnum.ALUNO_LISTA,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR],
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR, UserRoleEnum.FINANCEIRO],
     moduleMenu: RoutesModuleEnum.CADASTROS,
     section: RoutesSectionEnum.PESSOAS,
   },
@@ -218,6 +218,7 @@ export const ROUTES: RouteConfig[] = [
       UserRoleEnum.PROFESSOR,
       UserRoleEnum.SECRETARIO,
       UserRoleEnum.ORIENTADOR,
+      UserRoleEnum.FINANCEIRO,
     ],
   },
   {
@@ -724,6 +725,7 @@ export const ROUTES: RouteConfig[] = [
       UserRoleEnum.DIRETOR,
       UserRoleEnum.SECRETARIO,
       UserRoleEnum.ORIENTADOR,
+      UserRoleEnum.FINANCEIRO,
     ],
     livre: true,
   },
@@ -818,7 +820,12 @@ export const ROUTES: RouteConfig[] = [
     icon: <FlagOutlinedIcon fontSize="small" />,
     router: RoutesEnum.SECRETARIA_APROVACAO_BOLSA,
     isShowMenu: true,
-    roles: [UserRoleEnum.SECRETARIO, UserRoleEnum.FINANCEIRO],
+    roles: [
+      UserRoleEnum.SECRETARIO,
+      UserRoleEnum.FINANCEIRO,
+      UserRoleEnum.DIRETOR,
+      UserRoleEnum.ADMIN,
+    ],
   },
   {
     text: RouteLabelsEnum.SECRETARIA_APROVACAO_PRECO,

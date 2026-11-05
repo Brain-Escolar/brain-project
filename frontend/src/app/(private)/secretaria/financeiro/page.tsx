@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Paper, Tab, Tabs } from "@mui/material";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
+import { CONTROLES } from "@/constants/permissoes";
+import { usePermissao } from "@/hooks/usePermissoes";
 import AbaCarneDoAluno from "./_components/AbaCarneDoAluno";
 import AbaInadimplencia from "./_components/AbaInadimplencia";
 import DialogBaixa from "./_components/DialogBaixa";
@@ -25,6 +27,9 @@ export default function FinanceiroSecretariaPage() {
   const [aba, setAba] = useState(0);
   const [paraBaixar, setParaBaixar] = useState<ParcelaParaBaixa | null>(null);
   const [paraEstornar, setParaEstornar] = useState<ParcelaParaBaixa | null>(null);
+  // A secretaria abre esta tela, mas não estorna: estorno tira dinheiro de um
+  // caixa que pode já estar fechado.
+  const podeEstornar = usePermissao(CONTROLES.PAGAMENTO_ESTORNAR);
 
   return (
     <PageScaffold
@@ -40,7 +45,10 @@ export default function FinanceiroSecretariaPage() {
 
       {aba === 0 && <AbaInadimplencia onBaixar={setParaBaixar} />}
       {aba === 1 && (
-        <AbaCarneDoAluno onBaixar={setParaBaixar} onEstornar={setParaEstornar} />
+        <AbaCarneDoAluno
+          onBaixar={setParaBaixar}
+          onEstornar={podeEstornar ? setParaEstornar : undefined}
+        />
       )}
 
       <DialogBaixa parcela={paraBaixar} onClose={() => setParaBaixar(null)} />

@@ -12,6 +12,7 @@ import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { useProfessorDisciplinas } from "@/hooks/useProfessorDisciplinas";
 import { useUnidades } from "@/hooks/useUnidades";
 import { useAuth } from "@/hooks/useAuth";
+import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { usePermissoes } from "@/hooks/usePermissoes";
 import { CONTROLES } from "@/constants/permissoes";
 import { RoutesEnum } from "@/enums/RoutesEnum";
@@ -348,11 +349,15 @@ export default function AlunoDetalhePage() {
   const podeEditarAtendimento = podeControle(CONTROLES.ATENDIMENTO_PSICOLOGICO_REGISTRAR);
   const podeEditarAluno = podeControle(CONTROLES.ALUNO_EDITAR);
   const podeAlterarMatricula = podeControle(CONTROLES.ALUNO_MATRICULA_ALTERAR);
-  // Ocorrências e boletim ficam para todos que abrem a tela.
+  // Quem cuida do dinheiro precisa saber quem paga e se o cadastro dele está
+  // completo, nada além disso: ocorrência e boletim são registro pedagógico de
+  // menor. É regra do perfil, como a do calendário, e não um controle dos grupos.
+  const { perfilAtivo } = usePerfilAtivo();
+  const soCadastro = perfilAtivo === UserRoleEnum.FINANCEIRO;
+  // Ocorrências e boletim ficam para os outros que abrem a tela.
   const secoesVisiveis: SecaoKey[] = [
     ...(verDadosPessoais ? (["dadosCadastrais", "responsaveis"] as SecaoKey[]) : []),
-    "ocorrencias",
-    "boletimResumo",
+    ...(soCadastro ? [] : (["ocorrencias", "boletimResumo"] as SecaoKey[])),
     ...(temFichaMedica ? (["fichaMedica"] as SecaoKey[]) : []),
   ];
   const abasDoRole: TabKey[] = [
@@ -370,7 +375,9 @@ export default function AlunoDetalhePage() {
   const { produtos, loading: loadingProdutos } = useAlunoProdutos(alunoId, !!user && temProdutos);
   const { disciplinas: todasDisciplinas } = useDisciplinas();
   const { disciplinas: disciplinasProfessor } = useProfessorDisciplinas();
-  const disciplinas = role === UserRoleEnum.PROFESSOR ? disciplinasProfessor : todasDisciplinas;
+  const disciplinasDoPerfil = role === UserRoleEnum.PROFESSOR ? disciplinasProfessor : todasDisciplinas;
+  // Sem disciplinas, as notas e as anotações nem são buscadas para quem não as vê.
+  const disciplinas = soCadastro ? [] : disciplinasDoPerfil;
   const { unidades } = useUnidades();
   const unidadeNome = unidades.find((u) => u.id === aluno?.unidadeId)?.nome;
   const { matricular, desmatricular } = useAlunoMatriculaMutations(alunoId);

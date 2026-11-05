@@ -39,6 +39,8 @@ class CatalogoPermissaoConsistenciaTest {
     private static final Path MODULOS_ENUM = Path.of("..", "frontend", "src", "enums", "RoutesModuleEnum.ts");
     private static final Path SETORES_ENUM = Path.of("..", "frontend", "src", "enums", "RoutesSectionEnum.ts");
     private static final Path ROUTES_CONFIG = Path.of("..", "frontend", "src", "constants", "routesConfig.tsx");
+    private static final Path PERFIS_DE_GRUPO = Path.of("..", "frontend", "src", "app", "(private)", "grupos-usuarios",
+            "perfisDeGrupo.ts");
 
     @Autowired
     private JdbcTemplate jdbc;
@@ -121,6 +123,24 @@ class CatalogoPermissaoConsistenciaTest {
             assertThat(modulos).as("a tela %s está em mais de um módulo no menu", tela).hasSize(1);
             assertThat(doBanco.get(tela)).as("módulo de %s", tela).isEqualTo(modulos.iterator().next());
         });
+    }
+
+    @Test
+    @DisplayName("todo perfil, menos o ADMIN, tem grupo padrão e aparece na tela de grupos")
+    void todoPerfilTemGrupoPadrao() throws IOException {
+        // Foi o que faltou no perfil FINANCEIRO, que entrou pela main em 04/11: quem
+        // recebe um perfil sem grupo padrão faz login e não vê nada (D2).
+        assertThat(jdbc.queryForList("""
+                select p.nome from perfis p
+                where p.nome <> 'ADMIN'
+                  and not exists (select 1 from grupos_usuarios g where g.perfil_id = p.id and g.padrao = true)
+                """, String.class)).as("perfil sem grupo padrão").isEmpty();
+
+        Assumptions.assumeTrue(Files.exists(PERFIS_DE_GRUPO), "frontend fora do checkout");
+        var tela = Files.readString(PERFIS_DE_GRUPO);
+        assertThat(jdbc.queryForList("select nome from perfis where nome <> 'ADMIN'", String.class))
+                .as("perfil fora do PERFIS_COM_GRUPO")
+                .allMatch(perfil -> tela.contains("PerfilNomeEnum." + perfil));
     }
 
     @Test
