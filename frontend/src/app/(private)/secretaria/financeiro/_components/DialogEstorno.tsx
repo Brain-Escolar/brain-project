@@ -137,7 +137,7 @@ export default function DialogEstorno({ parcela, onClose }: Props) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={estornar.isPending}>
+        <Button variant="outlined" onClick={onClose} disabled={estornar.isPending}>
           Cancelar
         </Button>
         <Button

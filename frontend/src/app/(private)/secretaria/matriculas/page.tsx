@@ -344,7 +344,7 @@ export default function MatriculasPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={fecharModal} disabled={matricular.isPending}>
+          <Button variant="outlined" onClick={fecharModal} disabled={matricular.isPending}>
             Cancelar
           </Button>
           <Button
@@ -378,7 +378,7 @@ export default function MatriculasPage() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={fecharModal}>Fechar</Button>
+          <Button variant="outlined" onClick={fecharModal}>Fechar</Button>
           <Button
             variant="contained"
             startIcon={<SwapHorizIcon />}
@@ -451,7 +451,7 @@ export default function MatriculasPage() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={fecharModal} disabled={vincularMutation.isPending}>
+          <Button variant="outlined" onClick={fecharModal} disabled={vincularMutation.isPending}>
             Cancelar
           </Button>
           <Button
@@ -481,7 +481,7 @@ export default function MatriculasPage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={fecharModal} disabled={desmatricular.isPending}>
+          <Button variant="outlined" onClick={fecharModal} disabled={desmatricular.isPending}>
             Cancelar
           </Button>
           <Button
@@ -506,7 +506,7 @@ export default function MatriculasPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={fecharModal} disabled={rematricular.isPending}>
+          <Button variant="outlined" onClick={fecharModal} disabled={rematricular.isPending}>
             Cancelar
           </Button>
           <Button

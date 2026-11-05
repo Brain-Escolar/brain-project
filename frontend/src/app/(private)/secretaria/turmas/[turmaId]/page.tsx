@@ -378,7 +378,7 @@ export default function GerenciarAlunosTurmaPage() {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setModalAdicionar(false)} disabled={vincularMutation.isPending}>
+          <Button variant="outlined" onClick={() => setModalAdicionar(false)} disabled={vincularMutation.isPending}>
             Cancelar
           </Button>
           <Button
@@ -401,7 +401,7 @@ export default function GerenciarAlunosTurmaPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAlunoRemover(null)} disabled={desvincularMutation.isPending}>
+          <Button variant="outlined" onClick={() => setAlunoRemover(null)} disabled={desvincularMutation.isPending}>
             Cancelar
           </Button>
           <Button

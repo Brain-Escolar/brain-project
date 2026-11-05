@@ -189,7 +189,7 @@ export default function BlocoEfetivacao({ processoMatriculaId, anoLetivo }: Prop
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setConfirmando(false)} disabled={efetivar.isPending}>
+            <Button variant="outlined" onClick={() => setConfirmando(false)} disabled={efetivar.isPending}>
               Cancelar
             </Button>
             <Button

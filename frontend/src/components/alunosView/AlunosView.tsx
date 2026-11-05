@@ -727,7 +727,7 @@ export default function AlunosView({
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button
+            <Button variant="outlined"
               onClick={() => setAlunoParaExcluir(null)}
               color="inherit"
               disabled={deleteAluno.isPending}

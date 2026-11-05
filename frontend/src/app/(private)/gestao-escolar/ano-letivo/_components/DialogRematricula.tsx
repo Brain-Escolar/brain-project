@@ -97,7 +97,7 @@ export default function DialogRematricula({ ano, onClose }: Props) {
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant="outlined" onClick={onClose}>Cancelar</Button>
         <Button
           variant="contained"
           disabled={loading || rematricular.isPending}

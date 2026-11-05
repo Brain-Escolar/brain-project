@@ -190,7 +190,7 @@ export default function RegistrarInteracaoDialog({
           </Alert>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} disabled={registrarInteracao.isPending}>
+          <Button variant="outlined" onClick={onClose} disabled={registrarInteracao.isPending}>
             Cancelar
           </Button>
           <Button

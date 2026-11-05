@@ -133,7 +133,7 @@ export default function DialogNovoProduto({ aberto, onClose }: Props) {
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={criarProduto.isPending}>
+        <Button variant="outlined" onClick={onClose} disabled={criarProduto.isPending}>
           Cancelar
         </Button>
         <Button

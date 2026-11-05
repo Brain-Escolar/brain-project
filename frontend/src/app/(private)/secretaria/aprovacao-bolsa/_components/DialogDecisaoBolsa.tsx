@@ -154,13 +154,13 @@ export default function DialogDecisaoBolsa({ concessao, onClose }: Props) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={aprovar.isPending || rejeitar.isPending}>
+        <Button variant="outlined" onClick={onClose} disabled={aprovar.isPending || rejeitar.isPending}>
           Cancelar
         </Button>
 
         {recusando ? (
           <>
-            <Button onClick={() => setRecusando(false)} disabled={rejeitar.isPending}>
+            <Button variant="outlined" onClick={() => setRecusando(false)} disabled={rejeitar.isPending}>
               Voltar
             </Button>
             <Button
@@ -179,7 +179,7 @@ export default function DialogDecisaoBolsa({ concessao, onClose }: Props) {
           </>
         ) : (
           <>
-            <Button color="error" onClick={() => setRecusando(true)}>
+            <Button variant="outlined" color="error" onClick={() => setRecusando(true)}>
               Recusar
             </Button>
             <Button

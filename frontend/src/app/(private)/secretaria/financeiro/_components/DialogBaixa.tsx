@@ -169,7 +169,7 @@ export default function DialogBaixa({ parcela, onClose }: Props) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={baixar.isPending}>
+        <Button variant="outlined" onClick={onClose} disabled={baixar.isPending}>
           Cancelar
         </Button>
         <Button

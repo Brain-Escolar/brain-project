@@ -125,13 +125,13 @@ export default function DialogDecisaoPreco({ preco, onClose }: Props) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={ocupado}>
+        <Button variant="outlined" onClick={onClose} disabled={ocupado}>
           Cancelar
         </Button>
 
         {recusando ? (
           <>
-            <Button onClick={() => setRecusando(false)} disabled={rejeitar.isPending}>
+            <Button variant="outlined" onClick={() => setRecusando(false)} disabled={rejeitar.isPending}>
               Voltar
             </Button>
             <Button
@@ -150,7 +150,7 @@ export default function DialogDecisaoPreco({ preco, onClose }: Props) {
           </>
         ) : (
           <>
-            <Button color="error" onClick={() => setRecusando(true)}>
+            <Button variant="outlined" color="error" onClick={() => setRecusando(true)}>
               Recusar
             </Button>
             <Button

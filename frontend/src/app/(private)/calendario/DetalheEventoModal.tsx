@@ -164,7 +164,7 @@ export default function DetalheEventoModal({
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setConfirmandoExclusao(false)} disabled={excluirEvento.isPending}>
+          <Button variant="outlined" onClick={() => setConfirmandoExclusao(false)} disabled={excluirEvento.isPending}>
             Cancelar
           </Button>
           <Button

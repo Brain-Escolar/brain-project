@@ -218,7 +218,7 @@ export default function NovoLeadDialog({ open, onClose }: NovoLeadDialogProps) {
         </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={fechar} disabled={criarLead.isPending}>
+        <Button variant="outlined" onClick={fechar} disabled={criarLead.isPending}>
           Cancelar
         </Button>
         <Button

@@ -72,7 +72,7 @@ export default function EnviarDocumentoDialog({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={enviando}>
+        <Button variant="outlined" onClick={onClose} disabled={enviando}>
           Cancelar
         </Button>
         <Button

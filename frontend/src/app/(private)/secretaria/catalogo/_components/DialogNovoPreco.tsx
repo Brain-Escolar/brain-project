@@ -191,7 +191,7 @@ export default function DialogNovoPreco({ modalidadeId, modalidadeNome, onClose 
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={criarPreco.isPending}>
+        <Button variant="outlined" onClick={onClose} disabled={criarPreco.isPending}>
           Cancelar
         </Button>
         <Button

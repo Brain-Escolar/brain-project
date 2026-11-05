@@ -457,7 +457,7 @@ function DialogLaudo({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onFechar} color="inherit" disabled={salvando}>
+        <Button variant="outlined" onClick={onFechar} color="inherit" disabled={salvando}>
           Cancelar
         </Button>
         <Button
@@ -608,7 +608,7 @@ function DialogMedicacao({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onFechar} color="inherit" disabled={salvando}>
+        <Button variant="outlined" onClick={onFechar} color="inherit" disabled={salvando}>
           Cancelar
         </Button>
         <Button

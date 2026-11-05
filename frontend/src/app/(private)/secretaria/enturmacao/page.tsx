@@ -509,7 +509,7 @@ export default function EnturmacaoPage() {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={fecharVincular} disabled={vincularMutation.isPending}>
+          <Button variant="outlined" onClick={fecharVincular} disabled={vincularMutation.isPending}>
             Cancelar
           </Button>
           <Button

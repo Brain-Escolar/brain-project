@@ -909,7 +909,7 @@ export default function CrmPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setModalDistribuir(false)}>Cancelar</Button>
+          <Button variant="outlined" onClick={() => setModalDistribuir(false)}>Cancelar</Button>
           <Button
             variant="contained"
             startIcon={<RotateRightIcon />}
@@ -939,7 +939,7 @@ export default function CrmPage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setNovoEstagio(null)}>Cancelar</Button>
+          <Button variant="outlined" onClick={() => setNovoEstagio(null)}>Cancelar</Button>
           <Button
             variant="contained"
             disabled={!novoEstagio?.nome.trim()}
@@ -982,7 +982,7 @@ export default function CrmPage() {
           />
         </DialogContent>
         <DialogActions sx={{ justifyContent: "space-between" }}>
-          <Button
+          <Button variant="outlined"
             color="error"
             startIcon={<DeleteIcon />}
             onClick={() => {
@@ -994,7 +994,7 @@ export default function CrmPage() {
             Excluir
           </Button>
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Button onClick={() => setEditandoEstagio(null)}>Cancelar</Button>
+            <Button variant="outlined" onClick={() => setEditandoEstagio(null)}>Cancelar</Button>
             <Button
               variant="contained"
               onClick={async () => {
@@ -1025,7 +1025,7 @@ export default function CrmPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEstagioParaExcluir(null)} disabled={excluirEstagio.isPending}>
+          <Button variant="outlined" onClick={() => setEstagioParaExcluir(null)} disabled={excluirEstagio.isPending}>
             Cancelar
           </Button>
           <Button

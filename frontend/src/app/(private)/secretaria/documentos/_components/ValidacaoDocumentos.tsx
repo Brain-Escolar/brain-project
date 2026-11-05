@@ -186,7 +186,7 @@ export default function ValidacaoDocumentos() {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setSelecionado(null)}>Fechar</Button>
+            <Button variant="outlined" onClick={() => setSelecionado(null)}>Fechar</Button>
           </DialogActions>
         </Dialog>
       )}

@@ -420,7 +420,7 @@ export default function DetalheLeadCrmPage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setModalPerdido(false)}>Cancelar</Button>
+          <Button variant="outlined" onClick={() => setModalPerdido(false)}>Cancelar</Button>
           <Button
             variant="contained"
             color="error"
@@ -453,7 +453,7 @@ export default function DetalheLeadCrmPage() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setModalReatribuir(false)}>Cancelar</Button>
+          <Button variant="outlined" onClick={() => setModalReatribuir(false)}>Cancelar</Button>
           <Button
             variant="contained"
             disabled={!novoFuncionarioId || reatribuir.isPending}

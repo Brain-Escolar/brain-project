@@ -535,7 +535,7 @@ export default function ComunicadosPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAvisoParaExcluir(null)} disabled={deleteComunicado.isPending}>
+          <Button variant="outlined" onClick={() => setAvisoParaExcluir(null)} disabled={deleteComunicado.isPending}>
             Cancelar
           </Button>
           <Button

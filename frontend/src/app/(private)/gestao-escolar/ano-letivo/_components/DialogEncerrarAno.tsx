@@ -69,7 +69,7 @@ export default function DialogEncerrarAno({ ano, onClose }: Props) {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant="outlined" onClick={onClose}>Cancelar</Button>
         <Button
           variant="contained"
           color="warning"

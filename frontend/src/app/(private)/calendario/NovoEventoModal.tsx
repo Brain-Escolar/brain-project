@@ -135,7 +135,7 @@ export default function NovoEventoModal({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} disabled={isSaving}>
+        <Button variant="outlined" onClick={onClose} disabled={isSaving}>
           Cancelar
         </Button>
         <Button

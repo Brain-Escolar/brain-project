@@ -269,7 +269,7 @@ function TurmaPageContent() {
               )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setImportDialogOpen(false)}>Cancelar</Button>
+              <Button variant="outlined" onClick={() => setImportDialogOpen(false)}>Cancelar</Button>
             </DialogActions>
           </Dialog>
 

@@ -116,7 +116,7 @@ export default function ValidarDocumentoDialog({
       <DialogActions>
         {modo === "aprovar" ? (
           <>
-            <Button
+            <Button variant="outlined"
               color="error"
               startIcon={<CloseRoundedIcon />}
               onClick={() => setModo("rejeitar")}
@@ -125,7 +125,7 @@ export default function ValidarDocumentoDialog({
             >
               Rejeitar
             </Button>
-            <Button onClick={onClose} disabled={salvando}>
+            <Button variant="outlined" onClick={onClose} disabled={salvando}>
               Cancelar
             </Button>
             <Button
@@ -140,7 +140,7 @@ export default function ValidarDocumentoDialog({
           </>
         ) : (
           <>
-            <Button onClick={() => setModo("aprovar")} disabled={salvando}>
+            <Button variant="outlined" onClick={() => setModo("aprovar")} disabled={salvando}>
               Voltar
             </Button>
             <Button

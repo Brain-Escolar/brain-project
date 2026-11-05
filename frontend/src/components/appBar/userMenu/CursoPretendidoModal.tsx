@@ -138,7 +138,7 @@ export function CursoPretendidoModal({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} disabled={isPending}>
+        <Button variant="outlined" onClick={onClose} disabled={isPending}>
           Cancelar
         </Button>
         <Button

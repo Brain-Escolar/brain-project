@@ -586,7 +586,7 @@ export default function NotificationsPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete} color="inherit" disabled={deleteAlerta.isPending}>
+          <Button variant="outlined" onClick={handleCancelDelete} color="inherit" disabled={deleteAlerta.isPending}>
             Cancelar
           </Button>
           <Button

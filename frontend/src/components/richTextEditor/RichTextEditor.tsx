@@ -350,7 +350,7 @@ export function RichTextEditor({
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setLinkDialogOpen(false)} color="inherit">Cancelar</Button>
+          <Button variant="outlined" onClick={() => setLinkDialogOpen(false)} color="inherit">Cancelar</Button>
           <Button onClick={applyLink} variant="contained" disabled={!linkUrl.trim()}>Aplicar</Button>
         </DialogActions>
       </Dialog>

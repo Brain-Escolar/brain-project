@@ -611,7 +611,7 @@ function ComunicacaoRemetenteView() {
             </Stack>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseNovaConversa}>Cancelar</Button>
+            <Button variant="outlined" onClick={handleCloseNovaConversa}>Cancelar</Button>
             <Button
               type="submit"
               variant="contained"

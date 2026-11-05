@@ -251,7 +251,7 @@ function DialogAtendimento({
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onFechar} color="inherit" disabled={salvando}>
+          <Button variant="outlined" onClick={onFechar} color="inherit" disabled={salvando}>
             Cancelar
           </Button>
           <Button
@@ -339,7 +339,7 @@ function DialogSelecionarLaudo({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onFechar} color="inherit">
+        <Button variant="outlined" onClick={onFechar} color="inherit">
           Cancelar
         </Button>
         <Button
