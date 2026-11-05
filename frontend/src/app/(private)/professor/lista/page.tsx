@@ -97,7 +97,7 @@ export default function ProfessorPage() {
 
       {!loading && !error && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de professores">
+          <Table sx={{ minWidth: { xs: 0, sm: 650 } }} aria-label="tabela de professores">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Matrícula</TableCell>
@@ -173,7 +173,7 @@ export default function ProfessorPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
+          <Button variant="outlined"
             onClick={handleCancelDelete}
             color="inherit"
             disabled={deleteProfessor.isPending}

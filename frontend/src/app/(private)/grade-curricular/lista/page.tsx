@@ -98,7 +98,7 @@ export default function ListaGradeCurricularPage() {
 
       {!loading && !error && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de grades curriculares">
+          <Table sx={{ minWidth: { xs: 0, sm: 650 } }} aria-label="tabela de grades curriculares">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Nome</TableCell>
@@ -183,7 +183,7 @@ export default function ListaGradeCurricularPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
+          <Button variant="outlined"
             onClick={handleCancelDelete}
             color="inherit"
             disabled={deleteGradeCurricular.isPending}

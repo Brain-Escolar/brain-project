@@ -113,7 +113,7 @@ export default function ListaAulaPage() {
 
       {!loading && !error && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de aulas">
+          <Table sx={{ minWidth: { xs: 0, sm: 650 } }} aria-label="tabela de aulas">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Disciplina</TableCell>
@@ -199,7 +199,7 @@ export default function ListaAulaPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete} color="inherit" disabled={deleteAula.isPending}>
+          <Button variant="outlined" onClick={handleCancelDelete} color="inherit" disabled={deleteAula.isPending}>
             Cancelar
           </Button>
           <Button

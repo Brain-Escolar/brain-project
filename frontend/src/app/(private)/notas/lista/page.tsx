@@ -161,7 +161,7 @@ export default function NotaListaPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete} color="primary">
+          <Button variant="outlined" onClick={handleCancelDelete} color="primary">
             Cancelar
           </Button>
           <Button

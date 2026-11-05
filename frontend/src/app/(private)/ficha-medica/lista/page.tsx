@@ -154,7 +154,7 @@ export default function ListaFichaMedicaPage() {
 
       {!loading && !error && fichasMedicas.length > 0 && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de fichas médicas">
+          <Table sx={{ minWidth: { xs: 0, sm: 650 } }} aria-label="tabela de fichas médicas">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Usuário</TableCell>
@@ -289,7 +289,7 @@ export default function ListaFichaMedicaPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
+          <Button variant="outlined"
             onClick={handleCancelDelete}
             color="inherit"
             disabled={deleteFichaMedica.isPending}

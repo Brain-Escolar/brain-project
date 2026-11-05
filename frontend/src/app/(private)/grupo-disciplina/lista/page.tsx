@@ -99,7 +99,7 @@ export default function ListaGrupoDisciplinaPage() {
 
       {!loading && !error && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de grupos de disciplina">
+          <Table sx={{ minWidth: { xs: 0, sm: 650 } }} aria-label="tabela de grupos de disciplina">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Nome</TableCell>
@@ -172,7 +172,7 @@ export default function ListaGrupoDisciplinaPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
+          <Button variant="outlined"
             onClick={handleCancelDelete}
             color="inherit"
             disabled={deleteGrupoDisciplina.isPending}

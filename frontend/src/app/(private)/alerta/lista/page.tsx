@@ -122,7 +122,7 @@ export default function ListaAlertaPage() {
 
       {!loading && !error && alertas.length > 0 && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de alertas">
+          <Table sx={{ minWidth: { xs: 0, sm: 650 } }} aria-label="tabela de alertas">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Título</TableCell>
@@ -202,7 +202,7 @@ export default function ListaAlertaPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete} color="inherit" disabled={deleteAlerta.isPending}>
+          <Button variant="outlined" onClick={handleCancelDelete} color="inherit" disabled={deleteAlerta.isPending}>
             Cancelar
           </Button>
           <Button

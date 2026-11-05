@@ -147,6 +147,23 @@ export const Tabela = styled.table<{ $clicavel?: boolean }>`
   width: 100%;
   min-width: 900px;
   border-collapse: collapse;
+
+  /*
+   * No celular a tabela encolhe em vez de obrigar o dedo a arrastar de lado.
+   * O texto passa a quebrar; fica mais apertado, mas legivel sem arrastar --
+   * que e a troca certa num aparelho de 390px.
+   */
+  @media (max-width: 720px) {
+    min-width: 0;
+
+    th,
+    td {
+      white-space: normal;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+  }
+
   font-size: ${cssVarFontSize("body2")};
 
   th {

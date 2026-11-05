@@ -99,7 +99,7 @@ export default function ListaHorarioPage() {
 
       {!loading && !error && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de horários">
+          <Table sx={{ minWidth: { xs: 0, sm: 650 } }} aria-label="tabela de horários">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Nome</TableCell>
@@ -189,7 +189,7 @@ export default function ListaHorarioPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete} color="inherit" disabled={deleteHorario.isPending}>
+          <Button variant="outlined" onClick={handleCancelDelete} color="inherit" disabled={deleteHorario.isPending}>
             Cancelar
           </Button>
           <Button

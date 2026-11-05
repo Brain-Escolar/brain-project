@@ -96,7 +96,7 @@ export default function ListaUnidadePage() {
 
       {!loading && !error && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de unidades">
+          <Table sx={{ minWidth: { xs: 0, sm: 650 } }} aria-label="tabela de unidades">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Código</TableCell>
@@ -169,7 +169,7 @@ export default function ListaUnidadePage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelDelete} color="inherit" disabled={deleteUnidade.isPending}>
+          <Button variant="outlined" onClick={handleCancelDelete} color="inherit" disabled={deleteUnidade.isPending}>
             Cancelar
           </Button>
           <Button

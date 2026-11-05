@@ -193,6 +193,23 @@ export const Rolagem = styled.div`
 export const Tabela = styled.table`
   width: 100%;
   min-width: 860px;
+
+  /*
+   * No celular a tabela encolhe em vez de obrigar o dedo a arrastar de lado.
+   * O texto passa a quebrar; fica mais apertado, mas legivel sem arrastar --
+   * que e a troca certa num aparelho de 390px.
+   */
+  @media (max-width: 720px) {
+    min-width: 0;
+
+    th,
+    td {
+      white-space: normal;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+  }
+
   border-collapse: collapse;
   font-size: ${cssVarFontSize("body2")};
 

@@ -98,7 +98,7 @@ export default function DisciplinaPage() {
 
       {!loading && !error && (
         <TableContainer component={Paper} sx={{ boxShadow: 1 }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de disciplinas">
+          <Table sx={{ minWidth: { xs: 0, sm: 650 } }} aria-label="tabela de disciplinas">
             <TableHead>
               <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableCell sx={{ fontWeight: "bold" }}>Nome</TableCell>
@@ -182,7 +182,7 @@ export default function DisciplinaPage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
+          <Button variant="outlined"
             onClick={handleCancelDelete}
             color="inherit"
             disabled={deleteDisciplina.isPending}
