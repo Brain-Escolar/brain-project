@@ -115,6 +115,7 @@ class AcessosIndividuaisIntegracaoTest {
         var permissoes = permissoesService.doUsuario(dani).perfis().get(SECRETARIO);
         assertThat(permissoes.telas()).containsExactlyInAnyOrder("ALUNO_LISTA", "ALUNO_DETALHE");
         assertThat(permissoes.controles()).containsExactly("SITUACAO_FAMILIAR.VER");
+        assertThat(permissoesService.doUsuario(dani).telas()).containsOnlyKeys("ALUNO_LISTA", "ALUNO_DETALHE");
         assertThat(permissoesService.temAlgumaTela(dani, Set.of("ALUNO_LISTA", "SECRETARIA_CRM"))).isTrue();
         assertThat(permissoesService.temAlgumaTela(dani, Set.of("SECRETARIA_CRM"))).isFalse();
     }

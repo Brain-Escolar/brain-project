@@ -85,11 +85,12 @@ export interface GrupoDaPessoaResponse {
   ativo: boolean;
 }
 
-/** Tela do catálogo, para a busca da aba "Por tela" (independe de perfil). */
+/** Tela do catálogo (independe de perfil): a busca da aba "Por tela" e GET /permissoes/me. */
 export interface TelaResumoResponse {
   codigo: string;
   nome: string;
   rota: string;
+  exibirMenu: boolean;
   modulo: ModuloResponse | null;
 }
 

@@ -2,7 +2,7 @@
 
 > **Para quem implementa:** esta spec define o modelo de dados, a migration inicial, o cálculo da permissão efetiva e como backend e frontend passam a consultá-la. É a fonte da verdade para a migration e para as regras. As decisões de produto foram tomadas em 02/10/2026 e revistas em 05/10/2026, depois que o DIRETOR passou a usar as telas do ADMIN (commit `f2c7c91`) (seção 2).
 >
-> **Estado (08/10/2026):** na branch `feature/permissoes-grupos`, as permissões valem no frontend: o menu, a guarda de rota e os botões e seções das telas leem `GET /permissoes/me`. O vínculo automático ao grupo padrão no cadastro também já funciona. Ainda falta o backend recusar o que o grupo não libera, na fase F3 (seção 11). A tela de grupos (`/grupos-usuarios`) está pronta desde 06/10, e os acessos individuais (seção 4.1, migration V118) desde 15/10. O acesso individual pode liberar qualquer tela do sistema, e as áreas do backend que já eram restritas por perfil passaram a aceitar também quem tem a tela liberada (D22–D26). A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15. Em 29/10 a main entrou na branch: as migrations desta branch viraram V117–V119 (seção 7.2), o catálogo ganhou módulos e submódulos (D33, D34) e as 7 telas novas da main, e o DIRETOR passou a ter a área própria que a main criou (D35).
+> **Estado (08/10/2026):** na branch `feature/permissoes-grupos`, as permissões valem no frontend: o menu, a guarda de rota e os botões e seções das telas leem `GET /permissoes/me`. O vínculo automático ao grupo padrão no cadastro também já funciona. Ainda falta o backend recusar o que o grupo não libera, na fase F3 (seção 11). A tela de grupos (`/grupos-usuarios`) está pronta desde 06/10, e os acessos individuais (seção 4.1, migration V118) desde 15/10. O acesso individual pode liberar qualquer tela do sistema, e as áreas do backend que já eram restritas por perfil passaram a aceitar também quem tem a tela liberada (D22–D26). A migration da seção 7 foi executada em H2 2.4 (modo PostgreSQL, como nos testes) e em PostgreSQL 15. Em 29/10 a main entrou na branch: as migrations desta branch viraram V117–V119 (seção 7.2), o catálogo ganhou módulos e submódulos (D33, D34) e as 7 telas novas da main, e o DIRETOR passou a ter a área própria que a main criou (D35). Em 04/11, `GET /permissoes/me` passou a trazer também os dados de cada tela liberada (D36).
 
 ---
 
@@ -51,6 +51,7 @@ Na implantação, cada perfil ganha um grupo padrão com tudo o que já acessa h
 | D33 (29/10) | Módulo e submódulo entram no catálogo numa tabela só, `modulos`, em que o submódulo é um módulo com `modulo_pai_id`. A tela aponta para o nível mais baixo (`telas.modulo_id`). Os códigos são as chaves do `RoutesModuleEnum` e do `RoutesSectionEnum`. | V120 e seção 6.5. O teste de consistência confere o módulo de cada tela contra o `routesConfig`. |
 | D34 (29/10) | O módulo só organiza a tela de grupos. A aba Acessos, a página de acesso individual e a busca "Por tela" mostram as telas em Módulo › Submódulo, na ordem do menu, com liberar e retirar por módulo. Não há permissão por módulo, e o menu continua no `routesConfig` (D6). | Revê a D12 e a D24. Liberar continua sendo tela a tela. Seção 9.5. |
 | D35 (29/10) | O DIRETOR segue a área própria que ganhou na main: perde a herança das telas do ADMIN, o teto passa a ser o que a main mostra a ele e a rota inicial vira `/`. O ADMIN não recebe as telas da Direção. | Substitui a D14 e revê o teto da D8. V121 e seções 6.1, 6.3 e 9.6. |
+| D36 (04/11) | `GET /permissoes/me` traz, além dos códigos por perfil, os dados de cada tela liberada: código, nome, rota, `exibirMenu` e módulo. Continua uma chamada só no login e no F5 (D13), e o menu continua no `routesConfig` (D6). | Campo novo `telas`, um dicionário por código, que não muda o que já se lia na resposta. Seção 8.2. Por ora nenhuma tela do front usa esses dados (seção 9.1). |
 
 As D28–D32 foram usadas na branch `feature/permissoes-grupos-mult-perfis` (grupos de vários perfis), abandonada em 29/10. Os números ficaram sem uso para não confundir com ela.
 
@@ -858,7 +859,7 @@ Tudo fica no pacote `br.com.brain.permissao`.
   - `Tela` e `Controle` mapeiam o teto com um `@ManyToMany Set<Perfil>`, só para leitura.
   - `GrupoUsuarioMembro` mapeia a tabela `dados_pessoais_grupos_usuarios`.
   - `GrupoUsuario` e os três vínculos são `@Audited`. A relação com `Tela` e `Controle`, que não são auditadas, usa `@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)`.
-- **`PermissoesUsuarioService` (existe desde 08/10):** calcula, para uma pessoa, o mapa perfil → telas e controles que `GET /permissoes/me` devolve. Para o perfil ADMIN, usa o teto (`CatalogoPermissaoService.teto`); para os demais, as consultas `findTelasEfetivas` e `findControlesEfetivos` do `GrupoUsuarioMembroRepository`, que aplicam a RP1 no próprio JPQL (grupo ativo, item ativo e dentro do teto do perfil do grupo). Perfis que a pessoa não tem mais saem do resultado.
+- **`PermissoesUsuarioService` (existe desde 08/10):** calcula, para uma pessoa, o mapa perfil → telas e controles que `GET /permissoes/me` devolve. Para o perfil ADMIN, usa o teto (`CatalogoPermissaoService.teto`); para os demais, as consultas `findTelasEfetivas` e `findControlesEfetivos` do `GrupoUsuarioMembroRepository`, que aplicam a RP1 no próprio JPQL (grupo ativo, item ativo e dentro do teto do perfil do grupo). Perfis que a pessoa não tem mais saem do resultado. Os dados das telas (D36) entram só em `doUsuario`: `temAlgumaTela` e `temControle` olham os códigos e não leem o catálogo.
 - **`PermissaoService` (F3):**
   - usa o `PermissoesUsuarioService` e guarda o resultado durante a requisição;
   - expõe, para o usuário logado, `podeTela(String...)` (basta ter qualquer uma das telas) e `podeControle(String)`, olhando a união de todos os perfis.
@@ -874,7 +875,7 @@ Tudo fica no pacote `br.com.brain.permissao`.
 
 | Método e rota | Quem | Faz |
 |---|---|---|
-| `GET /permissoes/me` | autenticado | Permissões efetivas por perfil (formato abaixo). |
+| `GET /permissoes/me` | autenticado | Permissões efetivas por perfil e os dados de cada tela liberada (formato abaixo). |
 | `GET /permissoes/catalogo?perfil=&individual=` | ADMIN, DIRETOR | Telas e controles do teto do perfil, agrupados por tela, mais as dependências. Com `individual=true`, o sistema inteiro (D22); cada tela e controle traz `doPerfil` (está no teto) e cada controle traz `sensivel`. Cada tela traz o `modulo` (código, nome, ordem e o `pai`, quando é submódulo), ou nulo (D33). |
 | `GET /grupos-usuarios/telas` | ADMIN, DIRETOR | Telas ativas do catálogo, de qualquer perfil, com o módulo: as opções da aba "Por tela" (D27). |
 | `GET /grupos-usuarios/por-tela?codigo=` | ADMIN, DIRETOR | Grupos normais e individuais que concedem a tela, normais primeiro (D27). |
@@ -901,12 +902,24 @@ Resposta de `GET /permissoes/me`:
   "perfis": {
     "PROFESSOR":   { "telas": ["CALENDARIO", "DIARIO"], "controles": ["EVENTO.GERENCIAR"] },
     "RESPONSAVEL": { "telas": ["FINANCEIRO"], "controles": ["FICHA_MEDICA.INCLUIR"] }
+  },
+  "telas": {
+    "CALENDARIO": {
+      "codigo": "CALENDARIO", "nome": "Calendário", "rota": "/calendario", "exibirMenu": true,
+      "modulo": { "codigo": "ROTINAS_ACADEMICAS", "nome": "Rotinas Acadêmicas", "ordem": 2, "pai": null }
+    },
+    "DIARIO": { "codigo": "DIARIO", "nome": "Diário", "rota": "/diario", "exibirMenu": true, "modulo": null },
+    "FINANCEIRO": { "codigo": "FINANCEIRO", "nome": "Financeiro", "rota": "/financeiro", "exibirMenu": true, "modulo": null }
   }
 }
 ```
 
 - O ADMIN vem no mesmo formato, com as listas do teto do perfil. O frontend não trata o superusuário como caso especial: só lê as listas.
 - `gerenciaPermissoes` é verdadeiro para quem tem ADMIN ou DIRETOR.
+- **`telas` (D36):** os dados de toda tela que aparece na lista de algum perfil, por código e em ordem de nome, inclusive as páginas internas (`exibirMenu` falso).
+  - O `modulo` é o do catálogo, um por tela (D33), e não o do menu de cada perfil: o Calendário vem em Rotinas Acadêmicas para todos, mesmo sendo item solto no menu de quem não é diretor.
+  - As rotas livres (seção 9.3) não vêm, porque não estão no catálogo nem dependem de grupo.
+  - O ícone, o rótulo por perfil e a ordem no menu continuam só no `routesConfig`.
 - **Como está hoje:** a restrição a ADMIN e DIRETOR de `/grupos-usuarios/**` e `/permissoes/catalogo` é uma regra de URL no `SecurityConfigurations`, acima do `permitAll("/**")`, no estilo das regras que já existem ali. O `@EnableMethodSecurity` continua para a fase F3.
 - **Regras "perfil OU tela" (D26):** no mesmo lugar, as áreas abaixo trocaram o `hasRole`/`hasAnyRole` por `perfilOuTela.regra(perfis, telas...)`. As telas são as que chamam a área no frontend.
 
@@ -1015,7 +1028,7 @@ Hoje não existe remoção de perfil no código. Se ela vier a existir, não ser
 - **`GrupoUsuarioService`:** as validações RV1–RV8.
 - **Controllers:** para cada linha da tabela 6.3, 403 sem o controle e 200 com ele.
 
-**Já existem (08/10):** `PermissoesUsuarioServiceIntegracaoTest` cobre o cálculo de `/permissoes/me`: grupo padrão, sem grupo, grupo inativo, perfil perdido, dois perfis, item fora do teto, ADMIN com o teto inteiro, DIRETOR por grupo, vínculo no cadastro e vínculo repetido. `PermissaoControllerTest` cobre o login exigido e o formato da resposta. Desde 15/10, `AcessosIndividuaisIntegracaoTest` cobre a seção 4.1: soma com o grupo, valer sem grupo, grupo inativo, as regras de um grupo, as recusas, o grupo individual apagado quando fica vazio e escondido dos endpoints de grupo, o contador da aba Pessoas e pessoas com o mesmo nome. Depois da D22, cobre também passar do teto (com dado sensível), o grupo normal ainda preso ao teto e o catálogo individual. `PerfilOuTelaTest` cobre a D26 pelo CRM: secretaria e diretor entram pelo perfil; o professor só entra depois de ganhar a tela.
+**Já existem (08/10):** `PermissoesUsuarioServiceIntegracaoTest` cobre o cálculo de `/permissoes/me`: grupo padrão, sem grupo, grupo inativo, perfil perdido, dois perfis, item fora do teto, ADMIN com o teto inteiro, DIRETOR por grupo, vínculo no cadastro e vínculo repetido. Desde 04/11, os mesmos testes cobrem os dados das telas (D36): só as liberadas, o teto inteiro do ADMIN com o submódulo, perfil perdido, dois perfis e acesso individual. `PermissaoControllerTest` cobre o login exigido e o formato da resposta. Desde 15/10, `AcessosIndividuaisIntegracaoTest` cobre a seção 4.1: soma com o grupo, valer sem grupo, grupo inativo, as regras de um grupo, as recusas, o grupo individual apagado quando fica vazio e escondido dos endpoints de grupo, o contador da aba Pessoas e pessoas com o mesmo nome. Depois da D22, cobre também passar do teto (com dado sensível), o grupo normal ainda preso ao teto e o catálogo individual. `PerfilOuTelaTest` cobre a D26 pelo CRM: secretaria e diretor entram pelo perfil; o professor só entra depois de ganhar a tela.
 
 ## 9. Frontend
 
@@ -1024,6 +1037,7 @@ Hoje não existe remoção de perfil no código. Se ela vier a existir, não ser
 - **Busca (D13):** `permissaoApi.minhas()`, em `services/domains/permissoes`, com React Query na chave `queryKeys.permissoes.minhas(dadosPessoaisId)`. O `usePermissoes` faz a busca; como todos os usos compartilham a mesma chave, há uma chamada por carga de página, e não uma por componente.
 - **Atualização:** `staleTime` de 5 minutos e nova busca quando a janela recebe foco. O login e o logout recarregam a página inteira, então o cache começa vazio a cada sessão; o F5 também busca de novo. O frontend é só experiência de uso; quem protege de fato é o backend.
 - **Invalidação:** depois de qualquer escrita na tela de grupos (`useGrupoUsuarioMutations`), porque quem edita pode estar no grupo editado.
+- **Dados das telas (D36):** chegam na mesma resposta e ficam no mesmo cache, e o tipo está em `PermissoesUsuarioResponse`, mas nenhuma tela os usa ainda: o `usePermissoes` lê só as listas de códigos.
 
 ### 9.2 `usePermissoes` passa a ler do servidor
 

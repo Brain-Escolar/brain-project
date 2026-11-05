@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -58,7 +59,7 @@ class PermissaoControllerTest {
     }
 
     @Test
-    @DisplayName("devolve telas e controles por perfil de quem está logado")
+    @DisplayName("devolve telas e controles por perfil de quem está logado, com os dados das telas")
     void devolvePorPerfil() throws Exception {
         var secretaria = login(PerfilNome.SECRETARIO);
         grupoPadraoService.vincular(secretaria.getDadosPessoais(), PerfilNome.SECRETARIO);
@@ -68,7 +69,11 @@ class PermissaoControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gerenciaPermissoes").value(false))
                 .andExpect(jsonPath("$.perfis.SECRETARIO.telas", hasSize(12)))
-                .andExpect(jsonPath("$.perfis.SECRETARIO.controles", hasSize(5)));
+                .andExpect(jsonPath("$.perfis.SECRETARIO.controles", hasSize(5)))
+                .andExpect(jsonPath("$.telas", aMapWithSize(12)))
+                .andExpect(jsonPath("$.telas.SECRETARIA_CRM.nome").value("CRM de matrículas"))
+                .andExpect(jsonPath("$.telas.SECRETARIA_CRM.rota").value("/secretaria/crm"))
+                .andExpect(jsonPath("$.telas.SECRETARIA_CRM.exibirMenu").value(true));
     }
 
     private DadosAutenticacao login(PerfilNome perfil) {

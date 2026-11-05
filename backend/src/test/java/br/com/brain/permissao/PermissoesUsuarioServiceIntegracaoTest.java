@@ -76,6 +76,38 @@ class PermissoesUsuarioServiceIntegracaoTest {
 
         assertThat(permissoes.perfis().get(PerfilNome.SECRETARIO).telas()).isEmpty();
         assertThat(permissoes.perfis().get(PerfilNome.SECRETARIO).controles()).isEmpty();
+        assertThat(permissoes.telas()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("traz os dados só das telas que o grupo libera")
+    void dadosDasTelas() {
+        var secretaria = login(PerfilNome.SECRETARIO);
+        var grupo = grupoService.cadastrar(new CadastroGrupoUsuarioDto(PerfilNome.SECRETARIO, "Só CRM", null));
+        grupoService.salvarAcessos(grupo.id(), new AcessosGrupoUsuarioDto(Set.of("SECRETARIA_CRM"), Set.of()));
+        grupoService.adicionarMembros(grupo.id(), new AdicaoMembrosDto(Set.of(secretaria.getDadosPessoais().getId())));
+
+        var telas = service.doUsuario(secretaria).telas();
+
+        assertThat(telas).containsOnlyKeys("SECRETARIA_CRM");
+        var crm = telas.get("SECRETARIA_CRM");
+        assertThat(crm.nome()).isEqualTo("CRM de matrículas");
+        assertThat(crm.rota()).isEqualTo("/secretaria/crm");
+        assertThat(crm.exibirMenu()).isTrue();
+        assertThat(crm.modulo()).isNull();
+    }
+
+    @Test
+    @DisplayName("ADMIN recebe os dados de todo o teto, com submódulo e páginas internas")
+    void dadosDasTelasDoAdmin() {
+        var permissoes = service.doUsuario(login(PerfilNome.ADMIN));
+
+        assertThat(permissoes.telas()).containsOnlyKeys(permissoes.perfis().get(PerfilNome.ADMIN).telas());
+        var alunos = permissoes.telas().get("ALUNO_LISTA");
+        assertThat(alunos.exibirMenu()).isTrue();
+        assertThat(alunos.modulo().codigo()).isEqualTo("PESSOAS");
+        assertThat(alunos.modulo().pai().codigo()).isEqualTo("CADASTROS");
+        assertThat(permissoes.telas().get("ALUNO_CADASTRO").exibirMenu()).isFalse();
     }
 
     @Test
@@ -102,7 +134,9 @@ class PermissoesUsuarioServiceIntegracaoTest {
 
         pessoa.getDadosPessoais().getPerfis().removeIf(perfil -> perfil.getNome() == PerfilNome.SECRETARIO);
 
-        assertThat(service.doUsuario(pessoa).perfis()).containsOnlyKeys(PerfilNome.PROFESSOR);
+        var permissoes = service.doUsuario(pessoa);
+        assertThat(permissoes.perfis()).containsOnlyKeys(PerfilNome.PROFESSOR);
+        assertThat(permissoes.telas()).containsKey("DIARIO").doesNotContainKey("SECRETARIA_CRM");
     }
 
     @Test
@@ -117,6 +151,7 @@ class PermissoesUsuarioServiceIntegracaoTest {
         assertThat(perfis.get(PerfilNome.PROFESSOR).telas()).hasSize(14).contains("DIARIO");
         assertThat(perfis.get(PerfilNome.RESPONSAVEL).telas()).hasSize(9).contains("FINANCEIRO");
         assertThat(perfis.get(PerfilNome.RESPONSAVEL).controles()).containsExactly("FICHA_MEDICA.INCLUIR");
+        assertThat(service.doUsuario(pessoa).telas()).containsKeys("DIARIO", "FINANCEIRO");
     }
 
     @Test

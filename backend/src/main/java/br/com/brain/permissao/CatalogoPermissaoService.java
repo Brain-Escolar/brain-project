@@ -50,11 +50,11 @@ public class CatalogoPermissaoService {
                 indexar(controleRepository.findAtivos(), Controle::getCodigo));
     }
 
-    /** Telas ativas do catálogo, de qualquer perfil: a busca da aba "Por tela". */
+    /** Telas ativas do catálogo, de qualquer perfil, por nome. */
     @Transactional(readOnly = true)
     public List<TelaResumoDto> telas() {
         return telaRepository.findAtivas().stream()
-                .map(t -> new TelaResumoDto(t.getCodigo(), t.getNome(), t.getRota(), ModuloDto.de(t.getModulo())))
+                .map(TelaResumoDto::de)
                 .toList();
     }
 

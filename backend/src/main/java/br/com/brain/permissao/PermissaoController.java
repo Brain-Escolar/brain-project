@@ -23,8 +23,9 @@ public class PermissaoController {
     private final PermissoesUsuarioService permissoesUsuarioService;
 
     /**
-     * Telas e controles de quem está logado, por perfil. O frontend chama no
-     * login e ao recarregar a página, e guarda em cache (docs/permissoes.md, 9.1).
+     * Telas e controles de quem está logado, por perfil, com os dados de cada
+     * tela liberada. O frontend chama no login e ao recarregar a página, e guarda
+     * em cache (docs/permissoes.md, 9.1).
      */
     @GetMapping("/me")
     public ResponseEntity<PermissoesUsuarioDto> minhas(@AuthenticationPrincipal DadosAutenticacao usuario) {
