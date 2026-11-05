@@ -175,6 +175,85 @@ export const Table = styled.table`
   min-width: 860px;
   white-space: nowrap;
 
+  /*
+   * No celular a tabela deixa de ser tabela.
+   *
+   * Com 860px de largura mínima numa tela de 390, ler uma linha do boletim
+   * exigia arrastar o dedo de lado -- e boletim é justamente o que o pai
+   * abre no celular. Cada linha vira um cartão da disciplina, e cada célula
+   * carrega o próprio rótulo (o \`data-rotulo\` do TSX), porque sem o
+   * cabeçalho em cima um número solto não diz se é nota, falta ou média.
+   *
+   * O cabeçalho some em vez de virar outra coisa: ele já está repetido
+   * dentro de cada cartão.
+   */
+  @media (max-width: 720px) {
+    min-width: 0;
+    white-space: normal;
+    display: block;
+
+    thead {
+      display: none;
+    }
+
+    tbody,
+    tr {
+      display: block;
+    }
+
+    tr {
+      border: 1px solid ${cssVarColor("border")};
+      border-radius: ${cssVarRadius("md")};
+      padding: 10px 12px 4px;
+      margin-bottom: 10px;
+      background: ${cssVarColor("backgroundSection")};
+    }
+
+    td {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      text-align: right;
+      border-bottom: none;
+      padding: 6px 0;
+      min-height: 32px;
+    }
+
+    td[data-rotulo]::before {
+      content: attr(data-rotulo);
+      flex: 0 0 auto;
+      text-align: left;
+      font-size: ${cssVarFontSize("small")};
+      font-weight: ${cssVarFontWeight("semibold")};
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: ${cssVarColor("textSecondary")};
+    }
+
+    /* A disciplina é o título do cartão, não mais uma célula entre outras. */
+    td.disc {
+      display: block;
+      text-align: left;
+      font-size: ${cssVarFontSize("body1")};
+      font-weight: ${cssVarFontWeight("bold")};
+      padding-bottom: 8px;
+      margin-bottom: 4px;
+      border-bottom: 1px solid ${cssVarColor("borderSubtle")};
+    }
+
+    /* A barra de frequência ocupa a largura toda, sem rótulo. */
+    td.barra {
+      display: block;
+      padding-top: 2px;
+    }
+
+    /* Separadores verticais não fazem sentido empilhado. */
+    td.sep {
+      border-left: none;
+    }
+  }
+
   th {
     padding: 11px 10px;
     text-align: center;

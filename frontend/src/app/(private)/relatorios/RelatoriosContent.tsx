@@ -203,20 +203,24 @@ export default function RelatoriosContent() {
                           {periodos.map((p) => {
                             const np = porPeriodo.get(p.id);
                             return (
-                              <td key={p.id} className={p.isCurrent ? "cur" : ""}>
+                              <td
+                                key={p.id}
+                                className={p.isCurrent ? "cur" : ""}
+                                data-rotulo={p.name}
+                              >
                                 <S.Nota $bad={abaixo(np?.nota ?? null)}>
                                   {fmtNota(np?.nota ?? null)}
                                 </S.Nota>
                               </td>
                             );
                           })}
-                          <td className="sep">
+                          <td className="sep" data-rotulo="Nota anual">
                             <S.Nota $bad={abaixo(d.notaAnual)}>{fmtNota(d.notaAnual)}</S.Nota>
                           </td>
-                          <td>
+                          <td data-rotulo="Rec./Aval. esp.">
                             <S.Rec>{fmtNota(d.recuperacao)}</S.Rec>
                           </td>
-                          <td>
+                          <td data-rotulo="Nota final">
                             {d.notaFinal == null ? (
                               <S.Rec>–</S.Rec>
                             ) : (
@@ -225,7 +229,7 @@ export default function RelatoriosContent() {
                               </S.GradePill>
                             )}
                           </td>
-                          <td className="sep">
+                          <td className="sep" data-rotulo="Situação">
                             <Badge $tone={SITUACAO_TONE[d.situacao]}>
                               {situacaoIcon(d.situacao)}
                               {SITUACAO_LABEL[d.situacao]}
@@ -321,21 +325,27 @@ export default function RelatoriosContent() {
                           {periodos.map((p) => {
                             const np = porPeriodo.get(p.id);
                             return (
-                              <td key={p.id} className={p.isCurrent ? "cur" : ""}>
+                              <td
+                                key={p.id}
+                                className={p.isCurrent ? "cur" : ""}
+                                data-rotulo={p.name}
+                              >
                                 <S.Faltas>{np?.faltas ?? 0}</S.Faltas>
                               </td>
                             );
                           })}
-                          <td className="sep">{d.totalFaltas}</td>
-                          <td>
+                          <td className="sep" data-rotulo="Total de faltas">
+                            {d.totalFaltas}
+                          </td>
+                          <td data-rotulo="Frequência">
                             <S.Faltas $alert={alerta}>{fmtFreq(d.frequencia)}</S.Faltas>
                           </td>
-                          <td>
+                          <td className="barra">
                             <S.Bar>
                               <S.BarFill $pct={d.frequencia ?? 0} $alert={alerta} />
                             </S.Bar>
                           </td>
-                          <td className="sep">
+                          <td className="sep" data-rotulo="Situação">
                             {d.frequencia == null ? (
                               <S.Rec>–</S.Rec>
                             ) : alerta ? (
