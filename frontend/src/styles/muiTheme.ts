@@ -67,11 +67,17 @@ export function buildMuiTheme(mode: "light" | "dark") {
     components: {
       MuiButton: {
         styleOverrides: {
-          root: {
+          root: ({ theme }) => ({
             borderRadius: 12,
             boxShadow: "none",
             "&:hover": { boxShadow: "none" },
-          },
+            // 44px e o minimo confortavel para o dedo (Apple HIG). Abaixo
+            // disso o erro de toque deixa de ser raro -- e `size="small"`
+            // aparece 324 vezes no projeto.
+            [theme.breakpoints.down("sm")]: {
+              minHeight: 44,
+            },
+          }),
         },
       },
       MuiTab: {
@@ -80,6 +86,83 @@ export function buildMuiTheme(mode: "light" | "dark") {
             padding: 0,
             minHeight: 48,
           },
+        },
+      },
+
+      // ------------------------------------------------------------ celular
+      //
+      // O que segue vale só abaixo de `sm` e existe porque o sistema foi
+      // desenhado no desktop: das 74 telas privadas, 12 consideravam tela
+      // pequena. Resolver no tema alcança o app inteiro sem tocar em página
+      // nenhuma -- e, mais importante, alcança as telas que ainda nem foram
+      // escritas.
+
+      /**
+       * Modal ocupa a tela inteira no celular.
+       *
+       * Antes disto, um Dialog media 326x648 numa tela de 390x844: conteúdo
+       * espremido numa janelinha com margem dos quatro lados, rolando por
+       * dentro. Nenhum dos 57 arquivos com <Dialog> passava `fullScreen`.
+       *
+       * Feito por CSS e não por `fullScreen`, de propósito: a prop exigiria
+       * um `useMediaQuery` em cada um dos 57 arquivos, e um esquecido volta
+       * a ser janelinha. Aqui não há como esquecer.
+       */
+      MuiDialog: {
+        styleOverrides: {
+          paper: ({ theme }) => ({
+            [theme.breakpoints.down("sm")]: {
+              margin: 0,
+              width: "100%",
+              maxWidth: "100%",
+              height: "100%",
+              maxHeight: "100%",
+              borderRadius: 0,
+            },
+          }),
+        },
+      },
+
+      /**
+       * A barra de ações do modal.
+       *
+       * `space-between` empurra o primeiro botão para a esquerda: em 58 dos
+       * 64 blocos <DialogActions> do projeto o primeiro é a ação de sair
+       * (Cancelar ou Fechar), e sair fica longe de confirmar para o polegar
+       * não errar. Os botões também ganham altura de dedo e dividem a
+       * largura, porque num modal de tela cheia eles sao o rodape.
+       */
+      MuiDialogActions: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            [theme.breakpoints.down("sm")]: {
+              padding: theme.spacing(2),
+              gap: theme.spacing(1),
+              justifyContent: "space-between",
+              "& > .MuiButton-root": {
+                minHeight: 44,
+                flex: 1,
+              },
+            },
+          }),
+        },
+      },
+
+      /**
+       * Alvo de toque mínimo.
+       *
+       * `size="small"` aparece 324 vezes no projeto -- no desktop fica
+       * elegante, no dedo vira alvo de ~32px. 44px é o mínimo confortável
+       * (Apple HIG); abaixo disso o erro de toque deixa de ser raro.
+       */
+      MuiIconButton: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            [theme.breakpoints.down("sm")]: {
+              minHeight: 44,
+              minWidth: 44,
+            },
+          }),
         },
       },
     },
