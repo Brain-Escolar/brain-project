@@ -46,6 +46,9 @@ public interface TituloRepository extends JpaRepository<Titulo, Long> {
      * associacoes todas LAZY, e sem o fetch isto quebra em
      * LazyInitializationException ou vira uma consulta por parcela.
      *
+     * `contratoItem` entra por LEFT: titulo anterior a V117 nao tem item, e um
+     * JOIN interno sumiria com ele da fatura da familia sem aviso nenhum.
+     *
      * A comparacao tipada vem ANTES do IS NULL de proposito -- mesma razao
      * documentada em AlunoRepository.buscarMatriculadosParaOrientacao: o
      * Hibernate infere o tipo do parametro pelo contexto, e `:param IS NULL`
@@ -58,6 +61,7 @@ public interface TituloRepository extends JpaRepository<Titulo, Long> {
               JOIN FETCH c.matricula m
               JOIN FETCH m.aluno a
               LEFT JOIN FETCH a.dadosPessoais
+              LEFT JOIN FETCH t.contratoItem
              WHERE t.responsavel.id = :responsavelId
                AND (m.anoLetivo = :anoLetivo OR :anoLetivo IS NULL)
              ORDER BY t.vencimento ASC, t.numeroParcela ASC, t.versao ASC

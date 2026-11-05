@@ -1,6 +1,7 @@
 package br.com.brain.responsavel.portal;
 
 import br.com.brain.autenticacao.DadosAutenticacao;
+import br.com.brain.contrato.ContratoServico;
 import br.com.brain.contrato.Titulo;
 import br.com.brain.contrato.TituloRepository;
 import br.com.brain.enums.SituacaoParcela;
@@ -138,6 +139,23 @@ public class ResponsavelFinanceiroService {
                         (a, b) -> a));
     }
 
+    /**
+     * Quantas parcelas tem O ITEM, nao o contrato.
+     *
+     * Desde que o titulo passou a sair por item (V117), uma taxa de material num
+     * contrato de 12x e UM titulo -- e usar qtdParcelas do contrato fazia a
+     * familia ler "Parcela 1/12" numa cobranca unica, esperando outras onze que
+     * nunca viriam. E o tipo de erro que gera ligacao para a secretaria.
+     *
+     * Titulo sem item e anterior a V117: ali o contrato ainda e a melhor resposta.
+     */
+    private int totalDeParcelasDoItem(Titulo titulo, ContratoServico contrato) {
+        var item = titulo.getContratoItem();
+        return item == null
+                ? contrato.getQtdParcelas()
+                : item.quantidadeDeTitulos(contrato.getQtdParcelas());
+    }
+
     private ParcelaPortalDto montarParcela(Titulo titulo, Pagamento pagamento, LocalDate hoje) {
         var contrato = titulo.getContrato();
         var aluno = contrato.getMatricula().getAluno();
@@ -149,7 +167,7 @@ public class ResponsavelFinanceiroService {
                 dadosDoAluno == null ? null : dadosDoAluno.getNome(),
                 contrato.getNumero(),
                 titulo.getNumeroParcela(),
-                contrato.getQtdParcelas(),
+                totalDeParcelasDoItem(titulo, contrato),
                 titulo.getCompetencia(),
                 titulo.getVencimento(),
                 titulo.getDescricao(),

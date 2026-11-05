@@ -170,12 +170,27 @@ function LinhaDaParcela({ parcela }: { parcela: ParcelaPortalResponse }) {
       </S.ProdutoIcone>
 
       <S.ProdutoCorpo>
+        {/*
+          O NOME DO PRODUTO vem primeiro, e nao a numeracao da parcela.
+          Desde que o titulo sai por item, a familia pode ter duas linhas na
+          mesma competencia -- mensalidade e taxa de material, por exemplo. Com
+          "Parcela 3/12" como titulo, as duas ficavam visualmente iguais e so o
+          valor as distinguia.
+        */}
         <S.ProdutoNome>
-          Parcela {parcela.numeroParcela}/{parcela.totalParcelas} ·{" "}
-          {competenciaBR(parcela.competencia)}
+          {parcela.descricao?.trim() || "Parcela"} · {competenciaBR(parcela.competencia)}
         </S.ProdutoNome>
 
         <S.ProdutoModalidade>
+          {/*
+            "Parcela 1/1" nao informa nada: cobranca unica nao tem de que ser
+            parcela. So aparece quando ha mais de uma.
+          */}
+          {parcela.totalParcelas > 1 && (
+            <>
+              Parcela {parcela.numeroParcela}/{parcela.totalParcelas} ·{" "}
+            </>
+          )}
           {parcela.alunoNome ?? "Aluno"} · {parcela.contratoNumero}
         </S.ProdutoModalidade>
 
