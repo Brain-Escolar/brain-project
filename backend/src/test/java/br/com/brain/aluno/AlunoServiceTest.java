@@ -3,7 +3,7 @@ package br.com.brain.aluno;
 import br.com.brain.matricula.EnturmacaoService;
 import br.com.brain.aluno.dto.AtualizacaoAlunoDto;
 import br.com.brain.dadosPessoais.DadosPessoais;
-import br.com.brain.dadosPessoais.DadosPessoaisRepository;
+import br.com.brain.dadosPessoais.DadosPessoaisService;
 import br.com.brain.endereco.Endereco;
 import br.com.brain.endereco.EnderecoService;
 import br.com.brain.endereco.dto.EnderecoDto;
@@ -42,7 +42,7 @@ class AlunoServiceTest {
     @Mock
     private AlunoRepository repository;
     @Mock
-    private DadosPessoaisRepository dadosPessoaisRepository;
+    private DadosPessoaisService dadosPessoaisService;
     @Mock
     private EnderecoService enderecoService;
     @Mock
@@ -56,7 +56,7 @@ class AlunoServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new AlunoService(repository, dadosPessoaisRepository, enderecoService, usuarioService,
+        service = new AlunoService(repository, dadosPessoaisService, enderecoService, usuarioService,
                 responsavelService, enturmacaoService);
         lenient().when(repository.save(any(Aluno.class))).thenAnswer(inv -> inv.getArgument(0));
     }

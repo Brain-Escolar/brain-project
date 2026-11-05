@@ -19,7 +19,7 @@ import br.com.brain.evento.EventoRepository;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.notas.Notas;
 import br.com.brain.notas.NotasRepository;
-import br.com.brain.professor.Professor;
+import br.com.brain.professor.ProfessorRepository;
 import br.com.brain.turma.Turma;
 
 import jakarta.persistence.EntityManager;
@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 public class AvaliacaoTurmaService {
 
     private final AvaliacaoTurmaRepository repository;
+    private final ProfessorRepository professorRepository;
     private final AvaliacaoRepository avaliacaoRepository;
     private final EventoRepository eventoRepository;
     private final MatriculaRepository matriculaRepository;
@@ -59,7 +60,7 @@ public class AvaliacaoTurmaService {
         var avaliacaoTurma = new AvaliacaoTurma();
         avaliacaoTurma.setAvaliacao(avaliacao);
         avaliacaoTurma.setTurma(turma);
-        avaliacaoTurma.setProfessor(em.getReference(Professor.class, professorId));
+        avaliacaoTurma.setProfessor(professorRepository.exigirAtivo(professorId));
         avaliacaoTurma.setDataAplicacao(dados.dataAplicacao());
         avaliacaoTurma.setDataEntregaNotas(dados.dataEntregaNotas());
         avaliacaoTurma.setPeriodoLetivo(periodo);
@@ -104,7 +105,8 @@ public class AvaliacaoTurmaService {
         }
 
         if (dados.professorId() != null) {
-            avaliacaoTurma.setProfessor(em.getReference(Professor.class, dados.professorId()));
+            avaliacaoTurma.setProfessor(
+                    professorRepository.exigirAtivoSeMudou(dados.professorId(), avaliacaoTurma.getProfessor()));
         }
         if (dados.dataAplicacao() != null) {
             avaliacaoTurma.setDataAplicacao(dados.dataAplicacao());

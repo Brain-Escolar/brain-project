@@ -49,7 +49,7 @@ public class ProfessorController {
     public ResponseEntity<DetalhamentoProfessorDto> cadastrar(
             @RequestBody @Valid CadastroProfessorDto dados, UriComponentsBuilder uriBuilder) {
         var professor = service.cadastrarProfessor(dados);
-        usuarioService.cadastrarUsuario(professor.getDadosPessoais(), PerfilNome.PROFESSOR, dados.cpf());
+        usuarioService.concederPerfil(professor.getDadosPessoais(), PerfilNome.PROFESSOR, dados.cpf());
         var uri = uriBuilder.path("/professor/{id}").buildAndExpand(professor.getId()).toUri();
         return ResponseEntity.created(uri).body(new DetalhamentoProfessorDto(professor));
     }

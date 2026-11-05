@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * D2: quem recebe um perfil entra no grupo padrão daquele perfil.
  *
- * Chamado nos dois pontos que concedem perfil hoje: UsuarioService.cadastrarUsuario
- * e ResponsavelService.garantirAcessoAoPortal. Quem já existia antes desta regra e
- * ficou fora de qualquer grupo é vinculado à mão, pela tela de grupos.
+ * Os perfis são concedidos no UsuarioService: cadastrarUsuario, no login novo, e
+ * concederPerfil, em quem já tem login. Quem já existia antes desta regra e ficou
+ * fora de qualquer grupo é vinculado à mão, pela tela de grupos.
  */
 @Service
 @RequiredArgsConstructor

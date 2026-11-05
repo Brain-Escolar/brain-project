@@ -18,6 +18,9 @@ const PERFIS_VALIDOS = new Set<string>(Object.values(UserRoleEnum));
 export const PRECEDENCIA_PERFIL: UserRoleEnum[] = [
   UserRoleEnum.ADMIN,
   UserRoleEnum.DIRETOR,
+  // Acima de SECRETARIO de proposito: quem acumula os dois cuida do dinheiro, e
+  // a tela que ele quer ao entrar e a do financeiro, nao a de matriculas.
+  UserRoleEnum.FINANCEIRO,
   UserRoleEnum.SECRETARIO,
   UserRoleEnum.PROFESSOR,
   UserRoleEnum.ORIENTADOR,

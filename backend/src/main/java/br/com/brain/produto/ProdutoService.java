@@ -36,6 +36,14 @@ public class ProdutoService {
         var produto = new Produto();
         produto.setNome(dados.nome());
         produto.setDescricao(dados.descricao());
+        // natureza decide se o item entra no carne todo mes, uma vez no ano ou
+        // nunca; permiteBolsa decide se a bolsa incide sobre ele. Os dois sao
+        // lidos pela simulacao, e produto cadastrado sem eles some da proposta
+        // sem erro nenhum aparecer.
+        produto.setNatureza(dados.natureza());
+        if (dados.permiteBolsa() != null) {
+            produto.setPermiteBolsa(dados.permiteBolsa());
+        }
         repository.save(produto);
         return produto;
     }
@@ -64,6 +72,12 @@ public class ProdutoService {
         }
         if (dados.ativo() != null) {
             produto.setAtivo(dados.ativo());
+        }
+        if (dados.natureza() != null) {
+            produto.setNatureza(dados.natureza());
+        }
+        if (dados.permiteBolsa() != null) {
+            produto.setPermiteBolsa(dados.permiteBolsa());
         }
         repository.save(produto);
 

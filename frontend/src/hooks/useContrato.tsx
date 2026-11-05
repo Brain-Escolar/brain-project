@@ -51,3 +51,31 @@ export function useContratosDaMatricula(matriculaId: number | null) {
 
   return { contratos: data ?? [], loading: isLoading };
 }
+
+/**
+ * O que falta no cadastro de quem paga, antes de efetivar.
+ *
+ * Carregado ao abrir a tela e nao no clique, de proposito: a efetivacao e
+ * transacional, entao um endereco incompleto nao estraga um contrato pela
+ * metade -- ele simplesmente impede a efetivacao. O custo e o funcionario
+ * descobrir isso com a familia na frente, depois de ter prometido o carne.
+ * Carregando antes, ele descobre enquanto ainda pode pedir o CEP.
+ */
+export function usePendenciasDosPagadores(simulacaoId: number | null) {
+  const { data, isLoading } = useQuery({
+    queryKey: QUERY_KEYS.contratos.pendencias(simulacaoId ?? 0),
+    queryFn: () => contratoApi.getPendencias(simulacaoId!),
+    enabled: simulacaoId !== null,
+    refetchOnWindowFocus: false,
+    meta: { errorMessage: "Erro ao conferir o cadastro de quem paga." },
+  });
+
+  const pendencias = data ?? [];
+
+  return {
+    pendencias,
+    /** Só quem tem algo faltando. É o que a tela mostra. */
+    comPendencia: pendencias.filter((p) => p.faltando.length > 0),
+    loading: isLoading,
+  };
+}

@@ -8,6 +8,7 @@ import br.com.brain.aula.AulaRepository;
 import br.com.brain.conteudo.Conteudo;
 import br.com.brain.conteudo.ConteudoRepository;
 import br.com.brain.professor.Professor;
+import br.com.brain.professor.ProfessorRepository;
 import br.com.brain.tarefa.dto.AtualizacaoTarefaDto;
 import br.com.brain.tarefa.dto.CadastroTarefaDto;
 import br.com.brain.tarefa.dto.CadastroTarefaConteudoLoteDto;
@@ -41,6 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class TarefaService {
 
     private final TarefaRepository repository;
+    private final ProfessorRepository professorRepository;
     private final AulaRepository aulaRepository;
     private final AnoLetivoService anoLetivoService;
     private final ConteudoRepository conteudoRepository;
@@ -184,7 +186,7 @@ public class TarefaService {
         if (dados.conteudo() != null)
             tarefa.setConteudo(dados.conteudo());
         if (dados.professorId() != null)
-            tarefa.setProfessor(em.getReference(Professor.class, dados.professorId()));
+            tarefa.setProfessor(professorRepository.exigirAtivoSeMudou(dados.professorId(), tarefa.getProfessor()));
         if (dados.aulaId() != null)
             tarefa.setAula(em.getReference(Aula.class, dados.aulaId()));
         if (dados.prazo() != null)

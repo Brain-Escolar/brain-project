@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { alunoApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "react-toastify";
+import { mensagemDoBackend } from "@/utils/erroApi";
 import { AlunoPostRequest, AlunoPutRequest } from "@/services/domains/aluno/request";
 
 /**
@@ -23,7 +24,9 @@ export function useAlunoMutations() {
     },
     onError: (error) => {
       console.error("Erro ao criar aluno:", error);
-      toast.error("Ocorreu um erro ao criar o aluno no servidor. Tente novamente.");
+      toast.error(
+        mensagemDoBackend(error, "Ocorreu um erro ao criar o aluno no servidor. Tente novamente."),
+      );
     },
   });
 
@@ -51,7 +54,9 @@ export function useAlunoMutations() {
     },
     onError: (error) => {
       console.error("Erro ao atualizar aluno:", error);
-      toast.error("Ocorreu um erro ao atualizar o aluno. Tente novamente.");
+      toast.error(
+        mensagemDoBackend(error, "Ocorreu um erro ao atualizar o aluno. Tente novamente."),
+      );
     },
   });
 

@@ -1,10 +1,12 @@
 package br.com.brain.financeiro;
 
+import br.com.brain.contrato.ContratoItem;
 import br.com.brain.contrato.ContratoServico;
 import br.com.brain.contrato.Titulo;
 import br.com.brain.contrato.TituloRepository;
 import br.com.brain.dadosPessoais.DadosPessoaisRepository;
 import br.com.brain.enums.FormaPagamento;
+import br.com.brain.enums.NaturezaProduto;
 import br.com.brain.enums.StatusTitulo;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.financeiro.dto.BaixaRequest;
@@ -68,8 +70,17 @@ class BaixaTituloServiceTest {
         contrato.setNumero("CT-2027-1");
         contrato.setQtdParcelas(12);
 
-        return Titulo.parcela(contrato, responsavel,
-                vencimento.withDayOfMonth(1), 1, vencimento, "Parcela 1/12",
+        // O titulo agora cobra UM item do contrato, nao o contrato inteiro.
+        var item = new ContratoItem();
+        item.setId(50L);
+        item.setDescricao("Mensalidade 5º ano");
+        item.setValorUnitario(new BigDecimal("16200.00"));
+        item.setQuantidade(1);
+        item.setElegivelBolsa(true);
+        item.setNatureza(NaturezaProduto.RECORRENTE);
+
+        return Titulo.parcela(contrato, item, responsavel,
+                vencimento.withDayOfMonth(1), 1, vencimento, "Mensalidade 5º ano",
                 new BigDecimal("1350.00"), new BigDecimal("270.00"));
     }
 

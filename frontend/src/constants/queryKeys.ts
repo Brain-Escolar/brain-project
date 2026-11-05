@@ -316,6 +316,7 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.bolsa.all, "teto", params ?? {}] as const,
     concessoes: (simulacaoId: number) =>
       [...QUERY_KEYS.bolsa.all, "concessoes", simulacaoId] as const,
+    pendentes: () => [...QUERY_KEYS.bolsa.all, "pendentes"] as const,
   },
   anosLetivos: {
     all: ["anosLetivos"] as const,
@@ -338,6 +339,8 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.contratos.all, "matricula", matriculaId] as const,
     doAluno: (alunoId: number, anoLetivo?: number) =>
       [...QUERY_KEYS.contratos.all, "aluno", alunoId, anoLetivo ?? "todos"] as const,
+    pendencias: (simulacaoId: number) =>
+      [...QUERY_KEYS.contratos.all, "pendencias", simulacaoId] as const,
   },
   financeiro: {
     all: ["financeiro"] as const,
@@ -349,5 +352,17 @@ export const QUERY_KEYS = {
     caixa: (data?: string) => [...QUERY_KEYS.financeiro.all, "caixa", data ?? "hoje"] as const,
     pagamentosDoTitulo: (tituloId: number) =>
       [...QUERY_KEYS.financeiro.all, "pagamentos", tituloId] as const,
+  },
+  dadosPessoais: {
+    all: ["dados-pessoais"] as const,
+    existente: (cpf: string) => [...QUERY_KEYS.dadosPessoais.all, "existente", cpf] as const,
+  },
+  produtos: {
+    all: ["produtos"] as const,
+    lista: () => [...QUERY_KEYS.produtos.all, "lista"] as const,
+    detalhe: (id: number) => [...QUERY_KEYS.produtos.all, "detalhe", id] as const,
+    precos: (modalidadeId: number) =>
+      [...QUERY_KEYS.produtos.all, "precos", modalidadeId] as const,
+    precosPendentes: () => [...QUERY_KEYS.produtos.all, "precos", "pendentes"] as const,
   },
 } as const;

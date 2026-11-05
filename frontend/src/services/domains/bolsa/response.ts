@@ -9,7 +9,16 @@ export type UnidadeMedidaEnvelope =
   | "QUANTIDADE_EQUIVALENTE"
   | "SEM_LIMITE";
 
-export type StatusConcessaoBolsa = "SIMULADA" | "RESERVADA" | "ATIVA" | "ENCERRADA" | "CANCELADA";
+export type StatusConcessaoBolsa =
+  | "SIMULADA"
+  /** Pedida acima da alçada de quem pediu. Ainda não segura orçamento. */
+  | "PENDENTE_APROVACAO"
+  | "RESERVADA"
+  | "ATIVA"
+  | "ENCERRADA"
+  | "CANCELADA"
+  /** Quem tinha alçada olhou e disse não. Diferente de cancelada: houve decisão. */
+  | "REJEITADA";
 
 export interface TipoBolsaResponse {
   id: number;
@@ -70,13 +79,23 @@ export interface ConcessaoBolsaResponse {
   simulacaoId: number | null;
   contratoId: number | null;
   tipoBolsa: string;
+  /** Quem aprova decide por aluno e série, não por id de concessão. */
+  alunoNome: string | null;
+  serieNome: string | null;
   percentual: number;
+  /** O que foi pedido. Diferente de `percentual` quando a aprovação cortou. */
+  percentualPedido: number | null;
   valorRenunciaAnual: number;
   equivalenteBolsa: number;
   status: StatusConcessaoBolsa;
   vigenciaInicio: string;
   vigenciaFim: string | null;
   motivo: string | null;
+  /** Por que aprovou, aprovou menos, ou recusou. */
+  motivoDecisao: string | null;
+  solicitadoPor: string | null;
+  aprovadoPor: string | null;
+  aprovadoEm: string | null;
   /** Concedida acima do que o envelope comportava, com aprovação registrada. */
   excedeuEnvelope: boolean;
   reservaExpiraEm: string | null;

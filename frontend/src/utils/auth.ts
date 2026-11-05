@@ -154,6 +154,11 @@ export const ROLE_ROUTES: Record<UserRoleEnum, string[]> = {
     "/perfil",
   ],
   SECRETARIO: ["/secretaria", "/aluno", "/perfil"],
+  // Mesmas telas de /secretaria que lidam com dinheiro -- financeiro, catalogo,
+  // aprovacao de preco e de bolsa -- mais a ficha do aluno, que e onde ele
+  // descobre quem paga. O filtro fino de QUAL tela do /secretaria aparece no
+  // menu esta em routesConfig; aqui e o prefixo que o middleware libera.
+  FINANCEIRO: ["/secretaria", "/aluno", "/perfil"],
   ORIENTADOR: [
     "/",
     "/orientacao",
@@ -214,6 +219,8 @@ export function getDefaultRoute(userRole: UserRoleEnum): string {
       return "/";
     case "ORIENTADOR":
       return "/";
+    case "FINANCEIRO":
+      return "/secretaria/financeiro";
     default:
       return "/";
   }

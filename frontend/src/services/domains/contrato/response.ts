@@ -59,3 +59,19 @@ export interface ContratoResponse {
   somaDosTitulos: number;
   carneFecha: boolean;
 }
+
+/**
+ * O que impede este pagador de receber cobrança.
+ *
+ * A tela usa isto ANTES do clique de efetivar. Boleto registrado sem endereço
+ * completo do pagador é recusado pelo banco, e o erro volta em lote dias depois
+ * da emissão — quando a escola já contava com aquele dinheiro.
+ */
+export interface PendenciaDoPagadorResponse {
+  responsavelId: number | null;
+  nome: string | null;
+  /** Quanto deste contrato é pago por ele. */
+  percentualRateio: number | null;
+  /** Campos faltando, com o nome que aparece na tela. Vazio = pronto. */
+  faltando: string[];
+}

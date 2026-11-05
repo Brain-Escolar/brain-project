@@ -1,7 +1,7 @@
 package br.com.brain.evento;
 
 import br.com.brain.avaliacao.AvaliacaoTurma;
-import br.com.brain.professor.Professor;
+import br.com.brain.professor.ProfessorRepository;
 import br.com.brain.serie.Serie;
 import br.com.brain.turma.Turma;
 import br.com.brain.unidade.Unidade;
@@ -25,6 +25,7 @@ import java.time.LocalDate;
 public class EventoService {
 
     private final EventoRepository repository;
+    private final ProfessorRepository professorRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -47,7 +48,7 @@ public class EventoService {
             evento.setUnidade(em.getReference(Unidade.class, dados.unidadeId()));
         }
         if (dados.professorId() != null) {
-            evento.setProfessor(em.getReference(Professor.class, dados.professorId()));
+            evento.setProfessor(professorRepository.exigirAtivo(dados.professorId()));
         }
         if (dados.avaliacaoTurmaId() != null) {
             evento.setAvaliacaoTurma(em.getReference(AvaliacaoTurma.class, dados.avaliacaoTurmaId()));
@@ -108,7 +109,7 @@ public class EventoService {
             evento.setUnidade(em.getReference(Unidade.class, dados.unidadeId()));
         }
         if (dados.professorId() != null) {
-            evento.setProfessor(em.getReference(Professor.class, dados.professorId()));
+            evento.setProfessor(professorRepository.exigirAtivoSeMudou(dados.professorId(), evento.getProfessor()));
         }
         if (dados.avaliacaoTurmaId() != null) {
             evento.setAvaliacaoTurma(em.getReference(AvaliacaoTurma.class, dados.avaliacaoTurmaId()));

@@ -8,6 +8,7 @@ export enum PerfilNomeEnum {
   RECURSOS_HUMANOS = "RECURSOS_HUMANOS",
   RESPONSAVEL = "RESPONSAVEL",
   ADMIN = "ADMIN",
+  FINANCEIRO = "FINANCEIRO",
 }
 
 export const PERFIL_DISPLAY_NAME: Record<string, string> = {
@@ -20,4 +21,5 @@ export const PERFIL_DISPLAY_NAME: Record<string, string> = {
   RECURSOS_HUMANOS: "Recursos Humanos",
   RESPONSAVEL: "Responsável",
   ADMIN: "Administração",
+  FINANCEIRO: "Financeiro",
 };

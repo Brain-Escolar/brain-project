@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { secretarioApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "react-toastify";
+import { mensagemDoBackend } from "@/utils/erroApi";
 import { SecretarioPostRequest } from "@/services/domains/secretario/request";
 
 /**
@@ -20,7 +21,12 @@ export function useSecretarioMutations() {
     },
     onError: (error) => {
       console.error("Erro ao criar secretário:", error);
-      toast.error("Ocorreu um erro ao criar o secretário no servidor. Tente novamente.");
+      toast.error(
+        mensagemDoBackend(
+          error,
+          "Ocorreu um erro ao criar o secretário no servidor. Tente novamente.",
+        ),
+      );
     },
   });
 

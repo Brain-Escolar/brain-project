@@ -96,4 +96,69 @@ public final class RateioFinanceiro {
         valores.set(0, valor.subtract(distribuido));
         return valores;
     }
+
+    /**
+     * Distribui um total entre pesos, proporcionalmente, somando exatamente o
+     * total. E como a bolsa do contrato encontra o item em que ela incide.
+     *
+     * Peso zero recebe zero -- e e por isso que este metodo existe em vez de
+     * `ratear`: o seguro escolar nao e elegivel a bolsa e nao pode receber
+     * centavo nenhum de desconto, por mais que a divisao proporcional fosse
+     * "justa". Elegibilidade e regra, nao arredondamento.
+     *
+     * A sobra vai para a primeira posicao COM peso, pela mesma razao das outras
+     * duas divisoes desta classe: alguem tem de levar o centavo, e tem de ser
+     * sempre o mesmo alguem, senao a conta muda conforme a ordem da lista.
+     */
+    public static List<BigDecimal> distribuirProporcional(BigDecimal total, List<BigDecimal> pesos) {
+        if (pesos == null || pesos.isEmpty()) {
+            throw new IllegalArgumentException("Sem itens não há como distribuir.");
+        }
+        if (total.signum() < 0) {
+            throw new IllegalArgumentException("Não se distribui valor negativo.");
+        }
+        if (total.stripTrailingZeros().scale() > ESCALA) {
+            throw new IllegalArgumentException(
+                    "Valor a distribuir tem mais de duas casas decimais (" + total.toPlainString()
+                            + "). Arredonde antes de distribuir.");
+        }
+
+        var somaDosPesos = pesos.stream()
+                .filter(p -> p != null && p.signum() > 0)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (somaDosPesos.signum() == 0) {
+            // Sem nenhum item elegivel, distribuir zero e trivial e distribuir
+            // qualquer outra coisa e impossivel. Recusar aqui evita emitir um
+            // carne em que o desconto simplesmente evaporou.
+            if (total.signum() != 0) {
+                throw new IllegalArgumentException(
+                        "Não há item elegível para receber " + total.toPlainString()
+                                + " de desconto. Confira a elegibilidade dos produtos do contrato.");
+            }
+            return pesos.stream().map(p -> BigDecimal.ZERO.setScale(ESCALA)).toList();
+        }
+
+        var valores = new ArrayList<BigDecimal>(pesos.size());
+        var distribuido = BigDecimal.ZERO;
+        var primeiroComPeso = -1;
+
+        for (var i = 0; i < pesos.size(); i++) {
+            var peso = pesos.get(i);
+            if (peso == null || peso.signum() <= 0) {
+                valores.add(BigDecimal.ZERO.setScale(ESCALA));
+                continue;
+            }
+            if (primeiroComPeso < 0) {
+                primeiroComPeso = i;
+            }
+            var parte = total.multiply(peso).divide(somaDosPesos, ESCALA, RoundingMode.DOWN);
+            valores.add(parte);
+            distribuido = distribuido.add(parte);
+        }
+
+        var sobra = total.setScale(ESCALA, RoundingMode.UNNECESSARY).subtract(distribuido);
+        valores.set(primeiroComPeso, valores.get(primeiroComPeso).add(sobra));
+        return valores;
+    }
 }

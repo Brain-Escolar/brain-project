@@ -2,6 +2,7 @@ package br.com.brain.gradeCurricular;
 
 import br.com.brain.disciplina.Disciplina;
 import br.com.brain.disciplinaGrade.DisciplinaGrade;
+import br.com.brain.disciplinaGrade.DisciplinaGradeId;
 import br.com.brain.disciplinaGrade.DisciplinaGradeRepository;
 import br.com.brain.gradeCurricular.dto.AtualizacaoGradeCurricularDto;
 import br.com.brain.gradeCurricular.dto.CadastroDisciplinaGradeDto;
@@ -42,6 +43,8 @@ public class GradeCurricularService {
                 var disciplina = em.find(Disciplina.class, disciplinaId);
                 if (disciplina != null) {
                     var disciplinaGrade = new DisciplinaGrade();
+            disciplinaGrade.setId(new DisciplinaGradeId(gradeCurricular, disciplina));
+                    disciplinaGrade.setId(new DisciplinaGradeId(gradeCurricular, disciplina));
                     disciplinaGrade.setDisciplina(disciplina);
                     disciplinaGrade.setGradeCurricular(gradeCurricular);
                     disciplinaGrade.setCargaHoraria(0);
@@ -100,6 +103,7 @@ public class GradeCurricularService {
             var disciplina = em.find(Disciplina.class, disciplinaId);
 
             var disciplinaGrade = new DisciplinaGrade();
+            disciplinaGrade.setId(new DisciplinaGradeId(gradeCurricular, disciplina));
             disciplinaGrade.setDisciplina(disciplina);
             disciplinaGrade.setGradeCurricular(gradeCurricular);
             disciplinaGrade.setCargaHoraria(dados.cargaHoraria());

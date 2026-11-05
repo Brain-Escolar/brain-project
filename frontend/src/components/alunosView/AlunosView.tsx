@@ -189,6 +189,9 @@ const COLUNAS_POR_PERFIL: Record<UserRoleEnum, ColunaAluno[]> = {
   [UserRoleEnum.RESPONSAVEL]: COLUNAS_CONSULTA,
   [UserRoleEnum.ADMIN]: COLUNAS_CADASTRO,
   [UserRoleEnum.DIRETOR]: COLUNAS_CADASTRO,
+  // COLUNAS_CADASTRO porque traz a coluna "Cadastro: completo/incompleto" --
+  // que e exatamente o que impede a cobranca de sair.
+  [UserRoleEnum.FINANCEIRO]: COLUNAS_CADASTRO,
 };
 
 function valorPadrao(aluno: AlunoListaResponse, key: string): React.ReactNode {

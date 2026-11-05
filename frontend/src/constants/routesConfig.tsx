@@ -14,6 +14,7 @@ import ScheduleIcon from "@mui/icons-material/Schedule";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import GradeIcon from "@mui/icons-material/Grade";
 import CategoryIcon from "@mui/icons-material/Category";
+import PriceChangeOutlinedIcon from "@mui/icons-material/PriceChangeOutlined";
 import FolderIcon from "@mui/icons-material/Folder";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
@@ -813,11 +814,32 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.SECRETARIO],
   },
   {
+    text: RouteLabelsEnum.SECRETARIA_APROVACAO_BOLSA,
+    icon: <FlagOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_APROVACAO_BOLSA,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO, UserRoleEnum.FINANCEIRO],
+  },
+  {
+    text: RouteLabelsEnum.SECRETARIA_APROVACAO_PRECO,
+    icon: <PriceChangeOutlinedIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_APROVACAO_PRECO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.FINANCEIRO, UserRoleEnum.DIRETOR, UserRoleEnum.ADMIN],
+  },
+  {
+    text: RouteLabelsEnum.SECRETARIA_CATALOGO,
+    icon: <CategoryIcon fontSize="small" />,
+    router: RoutesEnum.SECRETARIA_CATALOGO,
+    isShowMenu: true,
+    roles: [UserRoleEnum.SECRETARIO, UserRoleEnum.FINANCEIRO],
+  },
+  {
     text: RouteLabelsEnum.SECRETARIA_FINANCEIRO,
     icon: <RequestQuoteOutlinedIcon fontSize="small" />,
     router: RoutesEnum.SECRETARIA_FINANCEIRO,
     isShowMenu: true,
-    roles: [UserRoleEnum.SECRETARIO],
+    roles: [UserRoleEnum.SECRETARIO, UserRoleEnum.FINANCEIRO],
   },
   {
     text: RouteLabelsEnum.DOCUMENTOS,
@@ -958,6 +980,8 @@ export function rotaInicialDoPerfil(perfil: UserRoleEnum): RoutesEnum {
       return RoutesEnum.HOME_ADMIN;
     case UserRoleEnum.SECRETARIO:
       return RoutesEnum.SECRETARIA_MATRICULAS;
+    case UserRoleEnum.FINANCEIRO:
+      return RoutesEnum.SECRETARIA_FINANCEIRO;
     default:
       return RoutesEnum.HOME;
   }

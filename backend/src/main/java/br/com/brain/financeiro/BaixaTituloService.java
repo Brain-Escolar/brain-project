@@ -139,6 +139,16 @@ public class BaixaTituloService {
                     titulo.getId(), titulo.getNumeroParcela(), pedido.motivo());
         }
 
+        // TODO(NFS-e): emitir a nota de servico do municipio para o valor baixado.
+        //
+        // Depende do municipio: cada prefeitura tem seu padrao (ABRASF, proprio),
+        // seu certificado e seu ambiente, entao isto vai atras de um provedor de
+        // emissao, nao de codigo nosso por cidade.
+        //
+        // Nasce do PAGAMENTO, nao do titulo: a nota se emite sobre o servico
+        // prestado e recebido -- parcela aberta nao gera nota, e estorno exige
+        // cancelamento ou carta de correcao da nota ja emitida. Fora da
+        // transacao, pela mesma razao do boleto, e idempotente por pagamento.
         return new BaixaDto(montarDto(pagamento), new TituloDto(titulo), reemitidoDto);
     }
 

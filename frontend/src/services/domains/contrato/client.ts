@@ -1,6 +1,6 @@
 import { httpClient } from "@/services/http";
 import { EfetivarMatriculaRequest } from "./request";
-import { ContratoResponse } from "./response";
+import { ContratoResponse, PendenciaDoPagadorResponse } from "./response";
 
 const BASE_ROUTE = "contratos";
 
@@ -12,6 +12,17 @@ export class ContratoApi {
    */
   efetivar(dados: EfetivarMatriculaRequest): Promise<ContratoResponse> {
     return httpClient.post(`${BASE_ROUTE}/efetivar`, dados);
+  }
+
+  /**
+   * O que falta no cadastro de quem paga, antes de efetivar.
+   *
+   * Mesma regra que a efetivação aplica, lida de outro jeito: a efetivação é
+   * transacional e não sai pela metade, então descobrir que falta o CEP depois
+   * de gerar contrato e títulos seria descobrir tarde demais.
+   */
+  getPendencias(simulacaoId: number): Promise<PendenciaDoPagadorResponse[]> {
+    return httpClient.get(`${BASE_ROUTE}/pendencias`, { params: { simulacaoId } });
   }
 
   getPorId(id: number): Promise<ContratoResponse> {

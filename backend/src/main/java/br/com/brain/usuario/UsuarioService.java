@@ -73,6 +73,58 @@ public class UsuarioService {
         return usuarioCriado.getId();
     }
 
+    /**
+     * Da o perfil a pessoa, criando o login so se ela ainda nao tiver um.
+     *
+     * Quem ja entra no sistema por outro papel (o professor que agora tambem
+     * e responsavel) ganha so o perfil no mesmo login: nao recebe outra
+     * senha nem outro e-mail de verificacao, e escolhe o papel no seletor de
+     * perfil do frontend. A senha so e usada quando o login e criado.
+     */
+    @Transactional
+    public void concederPerfil(DadosPessoais dadosPessoais, PerfilNome nomePerfil, String senhaInicial) {
+        var login = dadosPessoais.getId() == null ? null
+                : usuarioRepository.findByDadosPessoaisId(dadosPessoais.getId()).orElse(null);
+        if (login == null) {
+            cadastrarUsuario(dadosPessoais, nomePerfil, senhaInicial);
+            return;
+        }
+
+        var jaTemPerfil = dadosPessoais.getPerfis().stream()
+                .anyMatch(perfil -> nomePerfil.equals(perfil.getNome()));
+        if (!jaTemPerfil) {
+            dadosPessoais.getPerfis().add(perfilRepository.findByNome(nomePerfil));
+            em.merge(dadosPessoais);
+            // Sem grupo a pessoa não acessa as telas do perfil (D2).
+            grupoPadraoService.vincular(dadosPessoais, nomePerfil);
+        }
+        // Login desligado por revogarPerfil (ficou sem papel) volta com o papel.
+        // Nao verificado continua inativo: quem ativa e o link do e-mail.
+        if (Boolean.TRUE.equals(login.getVerificado()) && !Boolean.TRUE.equals(login.getAtivo())) {
+            login.reativar();
+            usuarioRepository.save(login);
+        }
+    }
+
+    /**
+     * Tira um papel da pessoa sem mexer nos outros: o professor desligado que
+     * tambem e responsavel continua entrando no portal. So quando nao sobra
+     * papel nenhum o login e desativado.
+     */
+    @Transactional
+    public void revogarPerfil(DadosPessoais dadosPessoais, PerfilNome nomePerfil) {
+        var removeu = dadosPessoais.getPerfis().removeIf(perfil -> nomePerfil.equals(perfil.getNome()));
+        if (removeu) {
+            em.merge(dadosPessoais);
+        }
+        if (dadosPessoais.getPerfis().isEmpty()) {
+            usuarioRepository.findByDadosPessoaisId(dadosPessoais.getId()).ifPresent(login -> {
+                login.desativar();
+                usuarioRepository.save(login);
+            });
+        }
+    }
+
     public Page<ListagemUsuarioDto> listar(Pageable paginacao) {
         return usuarioRepository.findAll(paginacao).map(ListagemUsuarioDto::new);
     }
@@ -107,32 +159,6 @@ public class UsuarioService {
                 .orElseThrow(() -> new ErrosSistema.RecursoNaoEncontradoException("Usuário não encontrado"));
         usuario.verificar();
         usuarioRepository.save(usuario);
-    }
-
-    /**
-     * Busca o login pelo DadosPessoais e nao pelo e-mail: logins antigos usam o
-     * e-mail institucional e os novos o e-mail cadastrado.
-     */
-    @Transactional
-    public DadosAutenticacao desativarUsuario(Long dadosPessoaisId) {
-        var usuario = recuperarUsuarioPorDadosPessoais(dadosPessoaisId);
-        usuario.desativar();
-        usuarioRepository.save(usuario);
-        return usuario;
-    }
-
-    @Transactional
-    public DadosAutenticacao reativarUsuario(Long dadosPessoaisId) {
-        var usuario = recuperarUsuarioPorDadosPessoais(dadosPessoaisId);
-        usuario.reativar();
-        usuarioRepository.save(usuario);
-        return usuario;
-    }
-
-    private DadosAutenticacao recuperarUsuarioPorDadosPessoais(Long dadosPessoaisId) {
-        return usuarioRepository.findByDadosPessoaisId(dadosPessoaisId)
-                .orElseThrow(() -> new ErrosSistema.RecursoNaoEncontradoException(
-                        "Usuário não encontrado para os dados pessoais " + dadosPessoaisId));
     }
 
     @Transactional

@@ -1,5 +1,6 @@
 package br.com.brain.bolsa;
 
+import br.com.brain.bolsa.dto.AprovacaoBolsaRequest;
 import br.com.brain.bolsa.dto.ConcessaoBolsaDto;
 import br.com.brain.bolsa.dto.ReservarBolsaRequest;
 import br.com.brain.bolsa.dto.TetoConcessaoDto;
@@ -13,6 +14,7 @@ import br.com.brain.simulacao.SimulacaoFinanceira;
 import br.com.brain.simulacao.SimulacaoFinanceiraRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +46,7 @@ import java.util.List;
  * mesma coisa: reservado e dinheiro segurado com validade, comprometido e
  * dinheiro gasto, e o que expira volta para o bolo sem intervencao humana.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BolsaConcessaoService {
@@ -90,7 +93,7 @@ public class BolsaConcessaoService {
 
         var jaTemDesteTipo = concessaoRepository
                 .findBySimulacaoIdOrderByIdAsc(simulacao.getId()).stream()
-                .filter(ConcessaoBolsa::seguraOrcamento)
+                .filter(ConcessaoBolsa::ocupaOTipoDeBolsa)
                 .anyMatch(c -> c.getTipoBolsa().getId().equals(pedido.tipoBolsaId()));
         if (jaTemDesteTipo) {
             throw ErrosSistema.OperacaoInvalidaException.com(
@@ -118,42 +121,224 @@ public class BolsaConcessaoService {
 
         var percentual = pedido.percentual().setScale(ESCALA, RoundingMode.DOWN);
 
-        // 3. Valida. Matriz e alcada nao se excedem nunca; envelope se excede com
-        //    aprovacao -- e essa e a diferenca entre regra e orcamento.
+        // 3. Valida. A MATRIZ e limite duro: e a regra que a escola escreveu, e
+        //    ninguem a excede, nem a direcao. A ALCADA nao e limite, e quem
+        //    DECIDE: acima dela o pedido nao morre, escala. O ENVELOPE se excede
+        //    com aprovacao -- essa e a diferenca entre regra e orcamento.
         if (percentual.compareTo(teto.tetoMatrizPct()) > 0) {
             throw ErrosSistema.OperacaoInvalidaException.com(
                     "A matriz de descontos permite no máximo " + teto.tetoMatrizPct()
                             + "% para esta série e tipo de bolsa.");
         }
-        if (percentual.compareTo(teto.tetoAlcadaPct()) > 0) {
-            throw ErrosSistema.OperacaoInvalidaException.com(
-                    "Sua alçada vai até " + teto.tetoAlcadaPct()
-                            + "%. Acima disso, encaminhe para aprovação da direção.");
-        }
 
-        var excedeEnvelope = percentual.compareTo(teto.tetoEnvelopePct()) > 0;
-        if (excedeEnvelope) {
-            validarExcedente(politica.getId(), teto);
+        var usuario = usuarioAtual();
+
+        if (percentual.compareTo(teto.tetoAlcadaPct()) > 0) {
+            return new ConcessaoBolsaDto(
+                    registrarPedido(simulacao, tipoBolsa, teto, percentual, pedido, usuario));
         }
 
         // 4. Grava. Concessao primeiro: o movimento tem FK para ela.
-        var valorRenuncia = valorDe(teto.valorCheioAnual(), percentual);
-        var equivalente = percentual.divide(CEM, ESCALA, RoundingMode.HALF_UP);
+        var concessao = new ConcessaoBolsa();
+        concessao.setTipoBolsa(tipoBolsa);
+        concessao.setSimulacao(simulacao);
+        concessao.setPercentualPedido(percentual);
+        concessao.setVigenciaInicio(inicioDoAnoLetivo(simulacao.getAnoLetivo()));
+        concessao.setVigenciaFim(fimDoAnoLetivo(simulacao.getAnoLetivo()));
+        concessao.setMotivo(pedido.motivo());
+        concessao.setSolicitadoPor(usuario);
+
+        return new ConcessaoBolsaDto(efetivarReserva(
+                concessao, simulacao, politica.getId(), envelopes, teto, percentual,
+                pedido.diasValidade(), usuario));
+    }
+
+    // ---------------------------------------------------------------- aprovacao
+
+    /**
+     * Aprova um pedido que ficou acima da alcada de quem pediu.
+     *
+     * O teto e recalculado AGORA, nao no momento do pedido: entre um e outro
+     * outras bolsas podem ter consumido o envelope, e aprovar contra um numero
+     * velho furaria o orcamento sem que ninguem visse. Se nao couber mais, o
+     * aprovador descobre aqui -- que e o lugar certo para descobrir.
+     *
+     * Pode aprovar MENOS do que foi pedido. "Pediu 30, saiu 25" e o caso comum
+     * da negociacao, e os dois numeros ficam guardados.
+     */
+    @Transactional
+    public ConcessaoBolsaDto aprovar(Long concessaoId, AprovacaoBolsaRequest decisao) {
+        var concessao = concessaoRepository.findById(concessaoId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException
+                        .para("Concessão de bolsa", concessaoId));
+
+        if (!concessao.estaPendente()) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Esta concessão está " + concessao.getStatus()
+                            + " e não está esperando aprovação.");
+        }
+
         var usuario = usuarioAtual();
+        garantirQueNaoEOProprioSolicitante(concessao, usuario, "aprovar");
+
+        var simulacao = concessao.getSimulacao();
+        if (simulacao == null) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Pedido sem proposta associada não pode ser aprovado.");
+        }
+        if (simulacao.getStatus() != StatusSimulacaoFinanceira.RASCUNHO
+                && simulacao.getStatus() != StatusSimulacaoFinanceira.RESERVADA) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "A proposta está " + simulacao.getStatus()
+                            + " e não aceita mais bolsa. O pedido perdeu a validade.");
+        }
+
+        var percentual = (decisao.percentualAprovado() == null
+                ? concessao.getPercentualPedido()
+                : decisao.percentualAprovado()).setScale(ESCALA, RoundingMode.DOWN);
+
+        if (percentual.signum() <= 0) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Aprovar com 0% não é aprovar: rejeite o pedido, com o motivo.");
+        }
+
+        var politica = politicaRepository.findByAnoLetivo(simulacao.getAnoLetivo())
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException
+                        .para("Política de bolsa do ano letivo", simulacao.getAnoLetivo()));
+
+        var unidadeId = simulacao.getUnidade().getId();
+        var serieId = simulacao.getSerie().getId();
+
+        var envelopes = travarEnvelopesDoEscopo(
+                politica.getId(), unidadeId, serieId, concessao.getTipoBolsa().getId());
+
+        var teto = tetoService.calcular(
+                simulacao.getAnoLetivo(), concessao.getTipoBolsa().getId(), unidadeId, serieId,
+                simulacao.getTurno(), simulacao.getQtdParcelas(), LocalDate.now());
+
+        if (percentual.compareTo(teto.tetoMatrizPct()) > 0) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "A matriz de descontos permite no máximo " + teto.tetoMatrizPct()
+                            + "% para esta série e tipo de bolsa — nem a direção excede a matriz.");
+        }
+        if (percentual.compareTo(teto.tetoAlcadaPct()) > 0) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Sua alçada vai até " + teto.tetoAlcadaPct() + "% e o pedido é de "
+                            + percentual + "%. Aprove um valor dentro da sua alçada ou encaminhe"
+                            + " a quem tem alçada maior.");
+        }
+
+        concessao.setAprovadoPor(usuario);
+        concessao.setAprovadoEm(Instant.now());
+        concessao.setMotivoDecisao(decisao.observacao());
+
+        log.info("BOLSA APROVADA: concessao id={} pedido={}% aprovado={}% por dadosPessoaisId={}",
+                concessao.getId(), concessao.getPercentualPedido(), percentual, usuario.getId());
+
+        return new ConcessaoBolsaDto(efetivarReserva(
+                concessao, simulacao, politica.getId(), envelopes, teto, percentual,
+                decisao.diasValidade(), usuario));
+    }
+
+    /**
+     * Recusa o pedido. Exige motivo: em seis meses e a unica resposta para "por
+     * que aquele aluno nao teve bolsa".
+     */
+    @Transactional
+    public ConcessaoBolsaDto rejeitar(Long concessaoId, String motivo) {
+        var concessao = concessaoRepository.findById(concessaoId)
+                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException
+                        .para("Concessão de bolsa", concessaoId));
+
+        if (!concessao.estaPendente()) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Esta concessão está " + concessao.getStatus()
+                            + " e não está esperando aprovação.");
+        }
+        if (motivo == null || motivo.isBlank()) {
+            throw ErrosSistema.OperacaoInvalidaException.com(
+                    "Rejeitar exige motivo. É o que a secretaria vai dizer à família.");
+        }
+
+        var usuario = usuarioAtual();
+        garantirQueNaoEOProprioSolicitante(concessao, usuario, "rejeitar");
+
+        concessao.setStatus(StatusConcessaoBolsa.REJEITADA);
+        concessao.setAprovadoPor(usuario);
+        concessao.setAprovadoEm(Instant.now());
+        concessao.setMotivoDecisao(motivo.strip());
+        concessaoRepository.save(concessao);
+
+        log.info("BOLSA REJEITADA: concessao id={} pedido={}% por dadosPessoaisId={}. Motivo: {}",
+                concessao.getId(), concessao.getPercentualPedido(), usuario.getId(), motivo);
+
+        return new ConcessaoBolsaDto(concessao);
+    }
+
+    /** A fila da direcao: o que esta esperando decisao, do mais antigo primeiro. */
+    @Transactional(readOnly = true)
+    public List<ConcessaoBolsaDto> pendentes() {
+        return concessaoRepository.buscarPendentes().stream()
+                .map(ConcessaoBolsaDto::new)
+                .toList();
+    }
+
+    // ------------------------------------------------------------------ apoio
+
+    /**
+     * Registra o pedido acima da alcada, sem tocar no orcamento.
+     *
+     * valorRenuncia e equivalente sao gravados porque a coluna e NOT NULL e
+     * porque a fila precisa mostrar quanto dinheiro esta em jogo -- mas sao
+     * estimativa do momento do pedido, e a aprovacao recalcula.
+     */
+    private ConcessaoBolsa registrarPedido(SimulacaoFinanceira simulacao, TipoBolsa tipoBolsa,
+            TetoConcessaoDto teto, BigDecimal percentual, ReservarBolsaRequest pedido,
+            DadosPessoais usuario) {
 
         var concessao = new ConcessaoBolsa();
         concessao.setTipoBolsa(tipoBolsa);
         concessao.setSimulacao(simulacao);
         concessao.setPercentual(percentual);
-        concessao.setValorRenunciaAnual(valorRenuncia);
-        concessao.setEquivalenteBolsa(equivalente);
-        concessao.setStatus(StatusConcessaoBolsa.RESERVADA);
+        concessao.setPercentualPedido(percentual);
+        concessao.setValorRenunciaAnual(valorDe(teto.valorCheioAnual(), percentual));
+        concessao.setEquivalenteBolsa(percentual.divide(CEM, ESCALA, RoundingMode.HALF_UP));
+        concessao.setStatus(StatusConcessaoBolsa.PENDENTE_APROVACAO);
         concessao.setVigenciaInicio(inicioDoAnoLetivo(simulacao.getAnoLetivo()));
         concessao.setVigenciaFim(fimDoAnoLetivo(simulacao.getAnoLetivo()));
         concessao.setMotivo(pedido.motivo());
         concessao.setSolicitadoPor(usuario);
-        concessao.setExcedeuEnvelope(excedeEnvelope);
+        concessao.setExcedeuEnvelope(false);
+
+        log.info("BOLSA PEDIDA acima da alçada: simulacao={} pedido={}% alçada={}% por dadosPessoaisId={}",
+                simulacao.getId(), percentual, teto.tetoAlcadaPct(), usuario.getId());
+
+        return concessaoRepository.save(concessao);
+    }
+
+    /**
+     * O caminho comum entre conceder dentro da alcada e aprovar um pedido: a
+     * partir daqui as duas coisas sao a mesma -- valida o envelope, grava a
+     * concessao, move o razao e segura o orcamento.
+     */
+    private ConcessaoBolsa efetivarReserva(ConcessaoBolsa concessao, SimulacaoFinanceira simulacao,
+            Long politicaId, List<EnvelopeBolsa> envelopes, TetoConcessaoDto teto,
+            BigDecimal percentual, Integer diasValidade, DadosPessoais usuario) {
+
+        var excedeEnvelope = percentual.compareTo(teto.tetoEnvelopePct()) > 0;
         if (excedeEnvelope) {
+            validarExcedente(politicaId, teto);
+        }
+
+        var valorRenuncia = valorDe(teto.valorCheioAnual(), percentual);
+        var equivalente = percentual.divide(CEM, ESCALA, RoundingMode.HALF_UP);
+
+        concessao.setPercentual(percentual);
+        concessao.setValorRenunciaAnual(valorRenuncia);
+        concessao.setEquivalenteBolsa(equivalente);
+        concessao.setStatus(StatusConcessaoBolsa.RESERVADA);
+        concessao.setExcedeuEnvelope(excedeEnvelope);
+        if (excedeEnvelope && concessao.getAprovadoPor() == null) {
             // O CHECK do banco exige aprovador quando excedeu: quem tem alcada
             // para exceder e, ele proprio, o aprovador do excedente.
             concessao.setAprovadoPor(usuario);
@@ -162,8 +347,7 @@ public class BolsaConcessaoService {
         concessao = concessaoRepository.save(concessao);
 
         var expiraEm = Instant.now().plus(
-                pedido.diasValidade() == null ? DIAS_VALIDADE_PADRAO : pedido.diasValidade(),
-                ChronoUnit.DAYS);
+                diasValidade == null ? DIAS_VALIDADE_PADRAO : diasValidade, ChronoUnit.DAYS);
 
         for (var envelope : envelopes) {
             movimentoRepository.save(
@@ -176,7 +360,24 @@ public class BolsaConcessaoService {
         simulacao.setReservaExpiraEm(expiraEm);
         sincronizarDesconto(simulacao);
 
-        return new ConcessaoBolsaDto(concessao);
+        return concessao;
+    }
+
+    /**
+     * Quem pede nao aprova o proprio pedido.
+     *
+     * Nao e desconfianca do funcionario: e o controle que torna a alcada real.
+     * Sem isso, qualquer um com acesso a tela de aprovacao teria, na pratica,
+     * alcada infinita -- bastaria pedir e aprovar.
+     */
+    private void garantirQueNaoEOProprioSolicitante(
+            ConcessaoBolsa concessao, DadosPessoais usuario, String acao) {
+        if (concessao.getSolicitadoPor() != null && usuario != null
+                && concessao.getSolicitadoPor().getId().equals(usuario.getId())) {
+            throw new ErrosSistema.AcessoNegadoException(
+                    "Quem pediu a bolsa não pode " + acao + " o próprio pedido."
+                            + " Encaminhe a outra pessoa com alçada.");
+        }
     }
 
     // ------------------------------------------------------------- compromisso

@@ -20,6 +20,12 @@ import { BrainTextPhoneControlled } from "@/components/brainForms/brainTextPhone
 import { BrainTextRGControlled } from "@/components/brainForms/brainTextRGControlled";
 import ContainerSection from "@/components/containerSection/containerSection";
 import PageScaffold from "@/components/pageScaffold/PageScaffold";
+import {
+  camposDeFuncionario,
+  PessoaExistenteAviso,
+  preencherVazios,
+  usePessoaExistente,
+} from "@/components/pessoaExistente";
 import { useBrainForm } from "@/hooks/useBrainForm";
 import { useBrainSearchParams } from "@/hooks/useBrainSearchParams";
 import { useDisciplinas } from "@/hooks/useDisciplinas";
@@ -264,6 +270,7 @@ function ProfessorPageContent() {
     reset,
     methodsHookForm,
     setValue,
+    getValues,
     watch,
   } = useBrainForm<ProfessorFormData>({
     schema: professorSchema,
@@ -283,6 +290,12 @@ function ProfessorPageContent() {
 
   const watcherCepValue = watch("cep");
   const watchExameRealizado = watch("exameAdmissionalRealizado");
+
+  // A pessoa pode já existir em outro papel (ex.: responsável): preenche só o que está vazio.
+  const pessoaExistente = usePessoaExistente(watch("cpf"), "PROFESSOR", {
+    enabled: !isEditMode,
+    onEncontrada: (pessoa) => preencherVazios(camposDeFuncionario(pessoa), getValues, setValue),
+  });
 
   const disciplinasOptions: KeyValue[] =
     disciplinas && disciplinas.length > 0
@@ -438,6 +451,7 @@ function ProfessorPageContent() {
                 required
               />
               <BrainTextCPFControlled name="cpf" control={control} label="CPF" required={true} />
+              <PessoaExistenteAviso estado={pessoaExistente} />
 
               {/* RG | Carteira de Trabalho */}
               <BrainTextRGControlled name="rg" control={control} label="RG" required={true} />
@@ -758,7 +772,7 @@ function ProfessorPageContent() {
                 <BrainButtonSecondary onClick={handleCancel}>Cancelar</BrainButtonSecondary>
                 <BrainButtonPrimary
                   type="submit"
-                  disabled={isSubmitting || isSaving}
+                  disabled={isSubmitting || isSaving || pessoaExistente.conflito}
                   isLoading={isSaving}
                 >
                   {isSaving ? "Salvando..." : "Salvar Professor"}

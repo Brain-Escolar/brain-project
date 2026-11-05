@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { professorApi } from "@/services/api";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { toast } from "react-toastify";
+import { mensagemDoBackend } from "@/utils/erroApi";
 import { ProfessorPostRequest, ProfessorPutRequest } from "@/services/domains/professor/request";
 
 /**
@@ -23,7 +24,12 @@ export function useProfessorMutations() {
     },
     onError: (error) => {
       console.error("Erro ao criar professor:", error);
-      toast.error("Ocorreu um erro ao criar o professor no servidor. Tente novamente.");
+      toast.error(
+        mensagemDoBackend(
+          error,
+          "Ocorreu um erro ao criar o professor no servidor. Tente novamente.",
+        ),
+      );
     },
   });
 

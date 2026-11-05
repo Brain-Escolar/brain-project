@@ -33,7 +33,7 @@ public class SecretarioController {
     public ResponseEntity<ListagemSecretarioDto> cadastrar(
             @RequestBody @Valid CadastroSecretarioDto dados, UriComponentsBuilder uriBuilder) {
         var secretario = service.cadastrarSecretario(dados);
-        usuarioService.cadastrarUsuario(secretario.getDadosPessoais(), PerfilNome.SECRETARIO, dados.cpf());
+        usuarioService.concederPerfil(secretario.getDadosPessoais(), PerfilNome.SECRETARIO, dados.cpf());
         var uri = uriBuilder.path("/secretario/{id}").buildAndExpand(secretario.getId()).toUri();
         return ResponseEntity.created(uri).body(new ListagemSecretarioDto(secretario));
     }

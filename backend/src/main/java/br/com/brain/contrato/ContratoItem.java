@@ -1,10 +1,13 @@
 package br.com.brain.contrato;
 
+import br.com.brain.enums.NaturezaProduto;
 import br.com.brain.produto.ProdutoModalidade;
 import br.com.brain.produto.ProdutoPreco;
 import br.com.brain.shared.EntidadeBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -70,7 +73,44 @@ public class ContratoItem extends EntidadeBase {
     @Column(name = "elegivel_bolsa")
     private Boolean elegivelBolsa = false;
 
+    /**
+     * Snapshot da natureza do produto no fechamento, como descricao e
+     * valorUnitario ja sao.
+     *
+     * E ela que decide quantos titulos este item gera: RECORRENTE gera um por
+     * competencia do contrato, UNICO e EVENTUAL geram um so. Congelada aqui
+     * porque, se o produto mudar de natureza no catalogo no ano que vem, o
+     * contrato deste ano tem de continuar explicando o carne que emitiu.
+     */
+    @Enumerated(EnumType.STRING)
+    private NaturezaProduto natureza;
+
+    /**
+     * Quanto da bolsa do contrato caiu NESTE item.
+     *
+     * O contrato guarda o total; isto diz onde ele pousou. Sem a conta por item,
+     * a bolsa ficaria diluida em todos os produtos -- inclusive nos que nao sao
+     * elegiveis -- e a familia veria desconto no seguro escolar, que nunca teve
+     * desconto nenhum.
+     */
+    @Column(name = "valor_desconto")
+    private BigDecimal valorDesconto = BigDecimal.ZERO;
+
     public BigDecimal total() {
         return valorUnitario.multiply(BigDecimal.valueOf(quantidade));
+    }
+
+    /** O que a familia paga por este item no ano, ja com a bolsa aplicada. */
+    public BigDecimal totalLiquido() {
+        return total().subtract(valorDesconto == null ? BigDecimal.ZERO : valorDesconto);
+    }
+
+    /**
+     * Quantos titulos este item gera. Produto de cobranca unica nao vira carne:
+     * taxa de matricula e material sao cobrados de uma vez, na primeira
+     * competencia.
+     */
+    public int quantidadeDeTitulos(int parcelasDoContrato) {
+        return natureza == NaturezaProduto.RECORRENTE ? parcelasDoContrato : 1;
     }
 }

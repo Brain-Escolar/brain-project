@@ -5,7 +5,7 @@ import br.com.brain.responsavel.ResponsavelService;
 import br.com.brain.usuario.UsuarioService;
 
 import br.com.brain.dadosPessoais.DadosPessoais;
-import br.com.brain.dadosPessoais.DadosPessoaisRepository;
+import br.com.brain.dadosPessoais.DadosPessoaisService;
 import br.com.brain.turma.Turma;
 import br.com.brain.aluno.dto.AtualizacaoAlunoDto;
 import br.com.brain.aluno.dto.CadastroAlunoDto;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 public class AlunoService {
 
     private final AlunoRepository repository;
-    private final DadosPessoaisRepository dadosPessoaisRepository;
+    private final DadosPessoaisService dadosPessoaisService;
     private final EnderecoService enderecoService;
     private final UsuarioService usuarioService;
     private final ResponsavelService responsavelService;
@@ -62,7 +62,13 @@ public class AlunoService {
         dadosPessoais.setCorRaca(dados.corRaca());
         dadosPessoais.setCidadeNaturalidade(dados.cidadeNaturalidade());
         dadosPessoais.setTelefones(dados.telefones());
-        dadosPessoaisRepository.save(dadosPessoais);
+
+        // A pessoa pode ja existir em outro papel (ex.: aluno adulto que ja e responsavel).
+        dadosPessoais = dadosPessoaisService.reaproveitarOuCriar(dadosPessoais);
+        if (repository.findByDadosPessoaisId(dadosPessoais.getId()).isPresent()) {
+            throw new ErrosSistema.RecursoJaExisteException(
+                    dadosPessoais.getNome() + " já está cadastrado(a) como aluno(a).");
+        }
         aluno.setDadosPessoais(dadosPessoais);
 
         var alunoCadastrado = repository.save(aluno);
@@ -71,7 +77,9 @@ public class AlunoService {
             for (CadastroResponsavelDto responsavel : dados.responsaveis()) {
                 var responsavelCadastrado = responsavelService.cadastrarResponsavel(responsavel,
                         alunoCadastrado.getId());
-                alunoCadastrado.getResponsaveis().add(responsavelCadastrado);
+                if (alunoCadastrado.getResponsaveis().stream().noneMatch(r -> r.getId().equals(responsavelCadastrado.getId()))) {
+                    alunoCadastrado.getResponsaveis().add(responsavelCadastrado);
+                }
             }
             repository.save(alunoCadastrado);
         }
@@ -119,7 +127,9 @@ public class AlunoService {
         if (dados.responsaveis() != null && !dados.responsaveis().isEmpty()) {
             for (CadastroResponsavelDto responsavelDto : dados.responsaveis()) {
                 var responsavelCadastrado = responsavelService.cadastrarResponsavel(responsavelDto, aluno.getId());
-                aluno.getResponsaveis().add(responsavelCadastrado);
+                if (aluno.getResponsaveis().stream().noneMatch(r -> r.getId().equals(responsavelCadastrado.getId()))) {
+                    aluno.getResponsaveis().add(responsavelCadastrado);
+                }
             }
         }
 
@@ -152,7 +162,7 @@ public class AlunoService {
         var dadosPessoais = aluno.getDadosPessoais();
         dadosPessoais.setMatricula("M" + aluno.getId());
         aluno.setMatriculado(true);
-        usuarioService.cadastrarUsuario(dadosPessoais,
+        usuarioService.concederPerfil(dadosPessoais,
                 PerfilNome.ESTUDANTE,
                 dadosPessoais.getCpf());
         repository.save(aluno);
@@ -164,7 +174,8 @@ public class AlunoService {
         var aluno = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
-        usuarioService.desativarUsuario(aluno.getDadosPessoais().getId());
+        // So o papel de estudante: se a pessoa tambem e responsavel, segue entrando.
+        usuarioService.revogarPerfil(aluno.getDadosPessoais(), PerfilNome.ESTUDANTE);
         aluno.setMatriculado(false);
         aluno.setMotivoDesmatricula(motivo != null && !motivo.isBlank() ? motivo : "Não informado");
         aluno.setDataDesmatricula(LocalDate.now());
@@ -178,7 +189,8 @@ public class AlunoService {
         var aluno = repository
                 .findById(id)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Aluno", id));
-        usuarioService.reativarUsuario(aluno.getDadosPessoais().getId());
+        usuarioService.concederPerfil(aluno.getDadosPessoais(), PerfilNome.ESTUDANTE,
+                aluno.getDadosPessoais().getCpf());
         aluno.setMatriculado(true);
         aluno.setMotivoDesmatricula(null);
         aluno.setDataDesmatricula(null);
