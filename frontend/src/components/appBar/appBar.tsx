@@ -15,6 +15,7 @@ import SeletorPerfil from "@/components/seletorPerfil";
 import SeletorAnoLetivo from "@/components/seletorAnoLetivo";
 import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { usePermissoes } from "@/hooks/usePermissoes";
+import { UserRoleEnum } from "@/enums";
 import { useTheme } from "@mui/material/styles";
 import { UserMenu } from "@/components/appBar/userMenu";
 import { DynamicModuleMenu } from "@/components/appBar/dynamicModuleMenu/DynamicModuleMenu";
@@ -28,19 +29,22 @@ export default function AppBar() {
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   const { perfilAtivo } = usePerfilAtivo();
-  const { atuarPorAlunoVinculado } = usePermissoes();
+  const { podeVerRota } = usePermissoes();
+  // Identidade, não permissão: o seletor de aluno é de quem navega como responsável.
+  const atuarPorAlunoVinculado = perfilAtivo === UserRoleEnum.RESPONSAVEL;
   const unreadConversas = useUnreadConversas();
 
   // O menu segue o perfil ATIVO, nao a uniao dos perfis: quem acumula troca no
-  // SeletorPerfil e ve um mundo por vez.
+  // SeletorPerfil e ve um mundo por vez. E so mostra as telas liberadas nos
+  // grupos da pessoa (podeVerRota).
   const directRoutes = React.useMemo(
-    () => (perfilAtivo ? getRoutesWithoutModule(perfilAtivo) : []),
-    [perfilAtivo],
+    () => (perfilAtivo ? getRoutesWithoutModule(perfilAtivo, podeVerRota) : []),
+    [perfilAtivo, podeVerRota],
   );
 
   const moduleMenus = React.useMemo(
-    () => (perfilAtivo ? getMenuModules(perfilAtivo) : []),
-    [perfilAtivo],
+    () => (perfilAtivo ? getMenuModules(perfilAtivo, podeVerRota) : []),
+    [perfilAtivo, podeVerRota],
   );
 
   // perfilAtivo resolve no primeiro efeito; ate la nao ha menu a montar.
@@ -87,7 +91,7 @@ export default function AppBar() {
           <Link
             href="/"
             aria-label="Brain"
-            style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
+            style={{ display: "inline-flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}
           >
             <Image
               src={logoSrc}
@@ -105,7 +109,13 @@ export default function AppBar() {
               display: { xs: "none", md: "flex" },
               alignItems: "center",
               justifyContent: "flex-start",
-              gap: 2.5,
+              // Menu maior que a tela quebra em mais uma linha: sem isso, ele
+              // empurrava o sino e o avatar para fora, e não há como rolar até lá.
+              flexWrap: "wrap",
+              minWidth: 0,
+              columnGap: 2.5,
+              // Folga para o contador de "Fale conosco" não cortar no topo da tela.
+              py: 0.75,
               ml: 3,
             }}
           >
@@ -160,7 +170,7 @@ export default function AppBar() {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Box sx={{ flexGrow: 0, display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box sx={{ flexGrow: 0, flexShrink: 0, display: "flex", alignItems: "center", gap: 1.5 }}>
             <SeletorAnoLetivo />
             <SeletorPerfil />
             {atuarPorAlunoVinculado && <SeletorAluno />}

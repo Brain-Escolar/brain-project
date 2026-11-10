@@ -39,6 +39,8 @@ import PageScaffold from "@/components/pageScaffold/PageScaffold";
 import { RoutesEnum } from "@/enums";
 import { UserRoleEnum } from "@/enums/UserRoleEnum";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissoes } from "@/hooks/usePermissoes";
+import { CONTROLES } from "@/constants/permissoes";
 import { useAlunoMutations } from "@/app/(private)/aluno/useAlunoMutations";
 import { MIN_CARACTERES_BUSCA, useBuscaAlunosOrientacao } from "@/hooks/useBuscaAlunosOrientacao";
 import { useAlunos } from "@/hooks/useAlunos";
@@ -238,9 +240,12 @@ export default function AlunosView({
   const [linhasPorPagina, setLinhasPorPagina] = useState(LINHAS_POR_PAGINA[0]);
   const [apenasIncompletos, setApenasIncompletos] = useState(false);
 
-  // Exclusivo de quem tem o módulo Cadastros (ADMIN e DIRETOR): CRUD da lista.
-  const isAdminCrud =
-    (role === UserRoleEnum.ADMIN || role === UserRoleEnum.DIRETOR) && !listaExterna && !compacto;
+  // CRUD da lista de cadastro: para quem pode cadastrar ou excluir aluno (hoje,
+  // pelos grupos padrão, ADMIN e DIRETOR). Os controles vêm do grupo da pessoa.
+  const { podeControle } = usePermissoes();
+  const podeEditarAluno = podeControle(CONTROLES.ALUNO_EDITAR);
+  const podeExcluirAluno = podeControle(CONTROLES.ALUNO_EXCLUIR);
+  const isAdminCrud = (podeEditarAluno || podeExcluirAluno) && !listaExterna && !compacto;
 
   const tituloVisivel = titulo ?? (isAdminCrud ? "Lista de Alunos" : "Alunos");
   const descricaoVisivel =
@@ -380,22 +385,26 @@ export default function AlunosView({
   // chamador que informe `acoes` continua no controle.
   const acoesAdmin = (aluno: AlunoListaResponse) => (
     <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
-      <IconButton
-        size="small"
-        onClick={() => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${aluno.id}`)}
-        sx={{ color: "primary.main" }}
-        title="Editar"
-      >
-        <Edit fontSize="small" />
-      </IconButton>
-      <IconButton
-        size="small"
-        onClick={() => setAlunoParaExcluir(aluno)}
-        sx={{ color: "error.main" }}
-        title="Excluir"
-      >
-        <Delete fontSize="small" />
-      </IconButton>
+      {podeEditarAluno && (
+        <IconButton
+          size="small"
+          onClick={() => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${aluno.id}`)}
+          sx={{ color: "primary.main" }}
+          title="Editar"
+        >
+          <Edit fontSize="small" />
+        </IconButton>
+      )}
+      {podeExcluirAluno && (
+        <IconButton
+          size="small"
+          onClick={() => setAlunoParaExcluir(aluno)}
+          sx={{ color: "error.main" }}
+          title="Excluir"
+        >
+          <Delete fontSize="small" />
+        </IconButton>
+      )}
     </Box>
   );
 
@@ -403,7 +412,7 @@ export default function AlunosView({
 
   const acoesCabecalho =
     acoesTopo ??
-    (isAdminCrud ? (
+    (isAdminCrud && podeEditarAluno ? (
       <Button
         variant="contained"
         startIcon={<Add />}

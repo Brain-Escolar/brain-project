@@ -11,12 +11,6 @@ import { UserRoleEnum } from "@/enums";
 const PERFIS_VALIDOS = new Set<string>(Object.values(UserRoleEnum));
 
 /**
- * Perfis do backend que ainda não têm área própria no front e herdam a de
- * outro. Vazio hoje: o DIRETOR ganhou a sua e deixou de usar as telas do ADMIN.
- */
-const PERFIL_ALIAS: Record<string, UserRoleEnum> = {};
-
-/**
  * Precedência do perfil principal — usado para despachar dashboard, breadcrumb
  * e rota padrão. Quem acumula perfis cai no do vínculo com a escola; as
  * capacidades dos demais continuam valendo pela lista completa.
@@ -45,7 +39,7 @@ export function parseRoles(claim: string | null | undefined): UserRoleEnum[] {
   const roles = claim
     .replace(/[[\]]/g, "")
     .split(",")
-    .map((parte) => PERFIL_ALIAS[parte.trim()] ?? parte.trim())
+    .map((parte) => parte.trim())
     .filter((parte) => PERFIS_VALIDOS.has(parte)) as UserRoleEnum[];
   return [...new Set(roles)];
 }

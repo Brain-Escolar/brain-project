@@ -38,7 +38,9 @@ import {
   ComunicadoDestinatario,
 } from "@/services/domains/comunicado/response";
 import { descreverDestinatario } from "@/app/(private)/comunicados/comunicadoUtils";
-import { RoutesEnum, UserRoleEnum } from "@/enums";
+import { RoutesEnum } from "@/enums";
+import { usePermissoes } from "@/hooks/usePermissoes";
+import { CONTROLES } from "@/constants/permissoes";
 import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
 
 // ─── Category config ──────────────────────────────────────────────────────────
@@ -76,14 +78,6 @@ interface AvisoItem {
   destinatarios?: ComunicadoDestinatario[];
 }
 
-/** Perfis autorizados a publicar no mural — espelha as regras de POST em SecurityConfigurations. */
-const PERFIS_QUE_PUBLICAM: UserRoleEnum[] = [
-  UserRoleEnum.SECRETARIO,
-  UserRoleEnum.ORIENTADOR,
-  UserRoleEnum.ADMIN,
-  UserRoleEnum.DIRETOR,
-];
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDate(iso: string): string {
@@ -97,6 +91,7 @@ function formatDate(iso: string): string {
 export default function ComunicadosPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { podeTela, podeControle } = usePermissoes();
   const { deleteComunicado } = useComunicadoMutations();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -116,15 +111,15 @@ export default function ComunicadosPage() {
     });
   }
 
-  const podeCriar = !!user?.role && PERFIS_QUE_PUBLICAM.includes(user.role);
+  // Publicar é ter a tela de cadastro de comunicado no grupo.
+  const podeCriar = podeTela("COMUNICADOS_CADASTRO");
+  const gerenciaTodos = podeControle(CONTROLES.COMUNICADO_GERENCIAR_TODOS);
 
   function podeGerenciar(aviso: AvisoItem): boolean {
-    if (user?.role === UserRoleEnum.ADMIN || user?.role === UserRoleEnum.DIRETOR) return true;
-    // Secretaria e Orientação gerenciam apenas os comunicados que publicaram.
-    if (user?.role === UserRoleEnum.SECRETARIO || user?.role === UserRoleEnum.ORIENTADOR) {
-      return aviso.autorId != null && aviso.autorId === user.dadosPessoaisId;
-    }
-    return false;
+    if (!podeCriar) return false;
+    if (gerenciaTodos) return true;
+    // Sem o controle, quem publica gerencia apenas os comunicados que publicou.
+    return aviso.autorId != null && aviso.autorId === user?.dadosPessoaisId;
   }
 
   async function handleConfirmarExclusao() {

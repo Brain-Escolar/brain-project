@@ -65,6 +65,30 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.disciplinas.all, "detail"] as const,
     detail: (id: string | number) => [...QUERY_KEYS.disciplinas.details(), id] as const,
   },
+  permissoes: {
+    all: ["permissoes"] as const,
+    /** Por pessoa: troca de login no mesmo navegador não reaproveita o cache. */
+    minhas: (dadosPessoaisId?: number) =>
+      [...QUERY_KEYS.permissoes.all, "me", dadosPessoaisId] as const,
+  },
+  gruposUsuarios: {
+    all: ["gruposUsuarios"] as const,
+    lists: () => [...QUERY_KEYS.gruposUsuarios.all, "list"] as const,
+    detail: (id: number) => [...QUERY_KEYS.gruposUsuarios.all, "detail", id] as const,
+    membros: (id: number, busca: string, page: number) =>
+      [...QUERY_KEYS.gruposUsuarios.all, "membros", id, busca, page] as const,
+    candidatos: (id: number, busca: string, page: number) =>
+      [...QUERY_KEYS.gruposUsuarios.all, "candidatos", id, busca, page] as const,
+    individuais: (dadosPessoaisId: number, perfil: string) =>
+      [...QUERY_KEYS.gruposUsuarios.all, "individuais", dadosPessoaisId, perfil] as const,
+    // Fora de "all": o catálogo só muda por migration, salvar um grupo não o invalida.
+    catalogo: (perfil: string, individual: boolean) =>
+      ["catalogoPermissoes", perfil, individual ? "individual" : "teto"] as const,
+    // Fora de "all" pelo mesmo motivo do catálogo: só muda por migration.
+    telas: () => ["catalogoPermissoes", "telas"] as const,
+    porTela: (codigo: string) => [...QUERY_KEYS.gruposUsuarios.all, "porTela", codigo] as const,
+    historico: (id: number) => [...QUERY_KEYS.gruposUsuarios.all, "historico", id] as const,
+  },
   gruposDisciplina: {
     all: ["gruposDisciplina"] as const,
     lists: () => [...QUERY_KEYS.gruposDisciplina.all, "list"] as const,

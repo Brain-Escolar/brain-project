@@ -6,6 +6,7 @@ import Breadcrumbs from "@/components/breadcrumbs";
 import { BreadcrumbProvider } from "@/contexts/BreadcrumbContext";
 import { AlunoSelecionadoProvider } from "@/contexts/AlunoSelecionadoContext";
 import { PerfilAtivoProvider } from "@/contexts/PerfilAtivoContext";
+import GuardaDeTela from "@/components/guardaDeTela/GuardaDeTela";
 import { AnoLetivoProvider } from "@/contexts/AnoLetivoContext";
 import AvisoAnoLetivo from "@/components/seletorAnoLetivo/AvisoAnoLetivo";
 import * as S from "./styles";
@@ -20,7 +21,7 @@ function PrivateLayoutContent({ children }: { children: React.ReactNode }) {
         <Container maxWidth="lg" sx={{ py: 2 }}>
           <Breadcrumbs />
           <AvisoAnoLetivo />
-          {children}
+          <GuardaDeTela>{children}</GuardaDeTela>
         </Container>
       </S.Content>
     </S.Container>

@@ -7,6 +7,7 @@ import br.com.brain.enums.PerfilNome;
 import br.com.brain.infra.email.EmailService;
 import br.com.brain.perfil.Perfil;
 import br.com.brain.perfil.PerfilRepository;
+import br.com.brain.permissao.GrupoPadraoService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +22,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -40,6 +43,8 @@ class UsuarioServiceTest {
     @Mock
     private EmailService emailService;
     @Mock
+    private GrupoPadraoService grupoPadraoService;
+    @Mock
     private EntityManager em;
 
     private UsuarioService service;
@@ -48,7 +53,7 @@ class UsuarioServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new UsuarioService(perfilRepository, usuarioRepository, passwordEncoder, emailService);
+        service = new UsuarioService(perfilRepository, usuarioRepository, passwordEncoder, emailService, grupoPadraoService);
         ReflectionTestUtils.setField(service, "em", em);
 
         pessoa = new DadosPessoais();
@@ -110,5 +115,25 @@ class UsuarioServiceTest {
         service.concederPerfil(pessoa, PerfilNome.RESPONSAVEL, "senha");
 
         assertThat(login.getAtivo()).isFalse();
+    }
+
+    @Test
+    @DisplayName("conceder perfil novo a quem ja tem login: entra no grupo padrao do perfil (D2)")
+    void concederVinculaAoGrupoPadrao() {
+        when(perfilRepository.findByNome(PerfilNome.RESPONSAVEL)).thenReturn(perfil(PerfilNome.RESPONSAVEL));
+
+        service.concederPerfil(pessoa, PerfilNome.RESPONSAVEL, "senha");
+
+        verify(grupoPadraoService).vincular(pessoa, PerfilNome.RESPONSAVEL);
+    }
+
+    @Test
+    @DisplayName("conceder perfil que a pessoa ja tem: nao mexe nos grupos dela")
+    void concederRepetidoNaoVincula() {
+        pessoa.getPerfis().add(perfil(PerfilNome.RESPONSAVEL));
+
+        service.concederPerfil(pessoa, PerfilNome.RESPONSAVEL, "senha");
+
+        verifyNoInteractions(grupoPadraoService);
     }
 }

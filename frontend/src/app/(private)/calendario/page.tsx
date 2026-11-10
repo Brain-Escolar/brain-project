@@ -21,7 +21,8 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AddIcon from "@mui/icons-material/Add";
 import { useEventos } from "@/hooks/useEventos";
 import { useContextoAluno } from "@/hooks/useContextoAluno";
-import { usePermissoes } from "@/hooks/usePermissoes";
+import { usePermissao } from "@/hooks/usePermissoes";
+import { CONTROLES } from "@/constants/permissoes";
 import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { EventoResponse, TipoEvento } from "@/services/domains/evento";
 import { UserRoleEnum } from "@/enums";
@@ -125,8 +126,14 @@ export default function Calendario() {
   // um teste de perfil espalhado pela tela.
   const { turmaId, ehResponsavel } = useContextoAluno();
   const { eventos: eventosRecebidos, loading } = useEventos({ dataInicio, dataFim, turmaId });
-  const { criarEvento: podeCriarEvento, soEventosInstitucionais } = usePermissoes();
+  const podeCriarEvento = usePermissao(CONTROLES.EVENTO_GERENCIAR);
   const { perfilAtivo } = usePerfilAtivo();
+
+  // Secretaria e direcao so criam eventos institucionais (reuniao, feriado,
+  // outro): provas e entregas nascem do fluxo de avaliacao do professor. E
+  // regra do perfil, como era o isSecretario, e nao um controle dos grupos.
+  const soEventosInstitucionais =
+    perfilAtivo === UserRoleEnum.SECRETARIO || perfilAtivo === UserRoleEnum.DIRETOR;
 
   // Aluno e responsavel nao veem prazos internos dos professores (ex.: entrega de notas).
   const visaoDoAluno = perfilAtivo === UserRoleEnum.ESTUDANTE || ehResponsavel;

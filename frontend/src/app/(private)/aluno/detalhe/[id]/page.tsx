@@ -12,6 +12,9 @@ import { useDisciplinas } from "@/hooks/useDisciplinas";
 import { useProfessorDisciplinas } from "@/hooks/useProfessorDisciplinas";
 import { useUnidades } from "@/hooks/useUnidades";
 import { useAuth } from "@/hooks/useAuth";
+import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
+import { usePermissoes } from "@/hooks/usePermissoes";
+import { CONTROLES } from "@/constants/permissoes";
 import { RoutesEnum } from "@/enums/RoutesEnum";
 import { UserRoleEnum } from "@/enums/UserRoleEnum";
 import { AlunoDetalheResponse, FichaMedicaAlunoResponse, ResponsavelResumoResponse } from "@/services/domains/aluno/response";
@@ -54,54 +57,6 @@ import * as S from "./styles";
 
 type TabKey = "geral" | "fichaMedica" | "situacaoFamiliar" | "atendimento" | "produtos";
 type SecaoKey = "dadosCadastrais" | "responsaveis" | "ocorrencias" | "boletimResumo" | "fichaMedica";
-
-// ─── Configuração por perfil ──────────────────────────────────────────────────
-
-const PRODUTOS_ROLES: UserRoleEnum[] = [UserRoleEnum.ADMIN, UserRoleEnum.SECRETARIO];
-
-/** Quem enxerga a aba de ficha médica. */
-const FICHA_MEDICA_ROLES: UserRoleEnum[] = [
-  UserRoleEnum.ADMIN,
-  UserRoleEnum.DIRETOR,
-  UserRoleEnum.SECRETARIO,
-  UserRoleEnum.ORIENTADOR,
-];
-
-/** Quem também pode anexar laudos/medicações e editar os dados clínicos. */
-const FICHA_MEDICA_EDICAO_ROLES: UserRoleEnum[] = [
-  UserRoleEnum.ADMIN,
-  UserRoleEnum.SECRETARIO,
-  UserRoleEnum.ORIENTADOR,
-];
-
-/**
- * Situação familiar é registro sensível de acompanhamento socioemocional —
- * exclusivo da orientação, que também é quem edita.
- */
-const SITUACAO_FAMILIAR_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
-const SITUACAO_FAMILIAR_EDICAO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
-
-/** Atendimento psicológico — mesmo tratamento sensível da situação familiar. */
-const ATENDIMENTO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
-const ATENDIMENTO_EDICAO_ROLES: UserRoleEnum[] = [UserRoleEnum.ORIENTADOR];
-
-const SECOES_POR_PERFIL: Record<UserRoleEnum, SecaoKey[]> = {
-  [UserRoleEnum.PROFESSOR]: ["ocorrencias", "boletimResumo"],
-  [UserRoleEnum.ADMIN]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
-  [UserRoleEnum.ESTUDANTE]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
-  [UserRoleEnum.SECRETARIO]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
-  [UserRoleEnum.ORIENTADOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
-  [UserRoleEnum.DIRETOR]: ["dadosCadastrais", "responsaveis", "ocorrencias", "boletimResumo", "fichaMedica"],
-  // Quem cuida do dinheiro precisa saber QUEM paga e se o cadastro dele está
-  // completo — nada além disso. Ocorrência e ficha médica ficam de fora de
-  // propósito: são registro pedagógico e dado de saúde de menor, e cobrança não
-  // é motivo para ler nenhum dos dois.
-  [UserRoleEnum.FINANCEIRO]: ["dadosCadastrais", "responsaveis"],
-  // O responsável não acessa esta tela — ela é o detalhe administrativo do
-  // aluno. Ele vê os dados do filho pelo portal (/portal-responsavel/**),
-  // que valida o vínculo. Entrada vazia só para satisfazer o Record.
-  [UserRoleEnum.RESPONSAVEL]: [],
-};
 
 const LABEL_ABA: Record<TabKey, string> = {
   geral: "Visão geral",
@@ -380,15 +335,31 @@ export default function AlunoDetalhePage() {
 
   const alunoId = params.id as string;
   const role = user?.role ?? UserRoleEnum.ADMIN;
-  const isAdmin = role === UserRoleEnum.ADMIN;
-  const secoesDoRole = SECOES_POR_PERFIL[role] ?? SECOES_POR_PERFIL[UserRoleEnum.ADMIN];
-  const temProdutos = PRODUTOS_ROLES.includes(role);
-  const temFichaMedica = FICHA_MEDICA_ROLES.includes(role);
-  const podeEditarFichaMedica = FICHA_MEDICA_EDICAO_ROLES.includes(role);
-  const temSituacaoFamiliar = SITUACAO_FAMILIAR_ROLES.includes(role);
-  const podeEditarSituacaoFamiliar = SITUACAO_FAMILIAR_EDICAO_ROLES.includes(role);
-  const temAtendimento = ATENDIMENTO_ROLES.includes(role);
-  const podeEditarAtendimento = ATENDIMENTO_EDICAO_ROLES.includes(role);
+
+  // O que aparece vem dos controles do grupo da pessoa, no perfil ativo
+  // (docs/permissoes.md, tabela 6.3), e não mais de listas de perfis.
+  const { podeControle } = usePermissoes();
+  const verDadosPessoais = podeControle(CONTROLES.ALUNO_DADOS_PESSOAIS_VER);
+  const temProdutos = podeControle(CONTROLES.ALUNO_PRODUTOS_VER);
+  const temFichaMedica = podeControle(CONTROLES.FICHA_MEDICA_VER);
+  const podeEditarFichaMedica = podeControle(CONTROLES.FICHA_MEDICA_EDITAR);
+  const temSituacaoFamiliar = podeControle(CONTROLES.SITUACAO_FAMILIAR_VER);
+  const podeEditarSituacaoFamiliar = podeControle(CONTROLES.SITUACAO_FAMILIAR_EDITAR);
+  const temAtendimento = podeControle(CONTROLES.ATENDIMENTO_PSICOLOGICO_VER);
+  const podeEditarAtendimento = podeControle(CONTROLES.ATENDIMENTO_PSICOLOGICO_REGISTRAR);
+  const podeEditarAluno = podeControle(CONTROLES.ALUNO_EDITAR);
+  const podeAlterarMatricula = podeControle(CONTROLES.ALUNO_MATRICULA_ALTERAR);
+  // Quem cuida do dinheiro precisa saber quem paga e se o cadastro dele está
+  // completo, nada além disso: ocorrência e boletim são registro pedagógico de
+  // menor. É regra do perfil, como a do calendário, e não um controle dos grupos.
+  const { perfilAtivo } = usePerfilAtivo();
+  const soCadastro = perfilAtivo === UserRoleEnum.FINANCEIRO;
+  // Ocorrências e boletim ficam para os outros que abrem a tela.
+  const secoesVisiveis: SecaoKey[] = [
+    ...(verDadosPessoais ? (["dadosCadastrais", "responsaveis"] as SecaoKey[]) : []),
+    ...(soCadastro ? [] : (["ocorrencias", "boletimResumo"] as SecaoKey[])),
+    ...(temFichaMedica ? (["fichaMedica"] as SecaoKey[]) : []),
+  ];
   const abasDoRole: TabKey[] = [
     "geral",
     ...(temFichaMedica ? (["fichaMedica"] as TabKey[]) : []),
@@ -399,12 +370,14 @@ export default function AlunoDetalhePage() {
 
   const { aluno, loading, error } = useAluno(alunoId);
   // A aba de Atendimento também consome os laudos, no popup de vínculo.
-  const precisaFichaMedica = secoesDoRole.includes("fichaMedica") || temFichaMedica || temAtendimento;
+  const precisaFichaMedica = temFichaMedica || temAtendimento;
   const { fichaMedica, loading: loadingFicha } = useAlunoFichaMedica(alunoId, !!user && precisaFichaMedica);
   const { produtos, loading: loadingProdutos } = useAlunoProdutos(alunoId, !!user && temProdutos);
   const { disciplinas: todasDisciplinas } = useDisciplinas();
   const { disciplinas: disciplinasProfessor } = useProfessorDisciplinas();
-  const disciplinas = role === UserRoleEnum.PROFESSOR ? disciplinasProfessor : todasDisciplinas;
+  const disciplinasDoPerfil = role === UserRoleEnum.PROFESSOR ? disciplinasProfessor : todasDisciplinas;
+  // Sem disciplinas, as notas e as anotações nem são buscadas para quem não as vê.
+  const disciplinas = soCadastro ? [] : disciplinasDoPerfil;
   const { unidades } = useUnidades();
   const unidadeNome = unidades.find((u) => u.id === aluno?.unidadeId)?.nome;
   const { matricular, desmatricular } = useAlunoMatriculaMutations(alunoId);
@@ -427,8 +400,8 @@ export default function AlunoDetalhePage() {
     fichaMedica: <FichaMedicaResumoCard fichaMedica={fichaMedica} loading={loadingFicha} onAbrirFicha={() => { const i = abasDoRole.indexOf("fichaMedica"); if (i >= 0) setActiveTab(i); }} />,
   };
 
-  const colunaEsquerda = SECAO_COLUNA_ESQUERDA.filter((k) => secoesDoRole.includes(k));
-  const colunaDireita = SECAO_COLUNA_DIREITA.filter((k) => secoesDoRole.includes(k));
+  const colunaEsquerda = SECAO_COLUNA_ESQUERDA.filter((k) => secoesVisiveis.includes(k));
+  const colunaDireita = SECAO_COLUNA_DIREITA.filter((k) => secoesVisiveis.includes(k));
 
   const PAINEL_MAP: Record<TabKey, React.ReactNode> = {
     geral: (
@@ -472,12 +445,14 @@ export default function AlunoDetalhePage() {
       title={loading ? "Carregando..." : aluno?.nome ?? "Detalhe do Aluno"}
       description="Informações completas do aluno"
       actions={
-        isAdmin && !loading && aluno ? (
+        (podeEditarAluno || podeAlterarMatricula) && !loading && aluno ? (
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Button variant="outlined" startIcon={<EditIcon />} onClick={() => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${alunoId}`)} size="small">
-              Editar
-            </Button>
-            {aluno.matriculado ? (
+            {podeEditarAluno && (
+              <Button variant="outlined" startIcon={<EditIcon />} onClick={() => router.push(`${RoutesEnum.ALUNO_CADASTRO}?id=${alunoId}`)} size="small">
+                Editar
+              </Button>
+            )}
+            {podeAlterarMatricula && (aluno.matriculado ? (
               <Button variant="outlined" color="error" size="small" onClick={() => desmatricular.mutate(undefined)} disabled={desmatricular.isPending}>
                 {desmatricular.isPending ? "Desmatriculando..." : "Desmatricular"}
               </Button>
@@ -485,7 +460,7 @@ export default function AlunoDetalhePage() {
               <Button variant="contained" color="success" size="small" onClick={() => matricular.mutate()} disabled={matricular.isPending}>
                 {matricular.isPending ? "Matriculando..." : "Matricular"}
               </Button>
-            )}
+            ))}
           </Box>
         ) : undefined
       }

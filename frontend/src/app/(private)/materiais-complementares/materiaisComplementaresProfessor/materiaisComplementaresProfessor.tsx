@@ -19,8 +19,16 @@ import ModalAdicionarMaterial from "../components/ModalAdicionarMaterial";
 import * as S from "../styles";
 import { formatFileSize } from "../utils";
 import { useMaterialComplementarMutations } from "../useMaterialComplementarMutations";
+import { usePermissao } from "@/hooks/usePermissoes";
+import { CONTROLES } from "@/constants/permissoes";
 
-function MaterialCard({ material }: { material: MaterialComplementarResponse }) {
+function MaterialCard({
+  material,
+  podePublicar,
+}: {
+  material: MaterialComplementarResponse;
+  podePublicar: boolean;
+}) {
   const { deleteMaterial } = useMaterialComplementarMutations();
   const isLink = material.tipo === "LINK";
 
@@ -28,14 +36,16 @@ function MaterialCard({ material }: { material: MaterialComplementarResponse }) 
     <S.MatCard>
       <S.MatCardTop>
         <S.MatCardIcon>{isLink ? <LinkRounded /> : <DescriptionRounded />}</S.MatCardIcon>
-        <IconButton
-          size="small"
-          aria-label="Remover material"
-          onClick={() => deleteMaterial.mutate(material.id)}
-          disabled={deleteMaterial.isPending}
-        >
-          <DeleteOutlineRounded fontSize="small" />
-        </IconButton>
+        {podePublicar && (
+          <IconButton
+            size="small"
+            aria-label="Remover material"
+            onClick={() => deleteMaterial.mutate(material.id)}
+            disabled={deleteMaterial.isPending}
+          >
+            <DeleteOutlineRounded fontSize="small" />
+          </IconButton>
+        )}
       </S.MatCardTop>
       <S.MatCardTitle>{material.titulo}</S.MatCardTitle>
       {material.descricao && <S.MatCardDesc>{material.descricao}</S.MatCardDesc>}
@@ -64,6 +74,8 @@ export default function MateriaisComplementaresProfessorPage() {
   const { disciplinas, loading: loadingDisciplinas } = useMinhasTurmas();
   const [modalDisciplinaId, setModalDisciplinaId] = useState<number | undefined>(undefined);
   const [modalOpen, setModalOpen] = useState(false);
+  // Publicar e remover materiais é um controle da tela (docs/permissoes.md, 6.3).
+  const podePublicar = usePermissao(CONTROLES.MATERIAL_COMPLEMENTAR_PUBLICAR);
 
   function abrirModal(disciplinaId?: number) {
     setModalDisciplinaId(disciplinaId);
@@ -77,9 +89,11 @@ export default function MateriaisComplementaresProfessorPage() {
       title="Materiais complementares"
       description="Compartilhe arquivos e links de apoio para cada disciplina que você leciona."
       actions={
-        <Button variant="contained" startIcon={<AddRounded />} onClick={() => abrirModal()}>
-          Adicionar material
-        </Button>
+        podePublicar ? (
+          <Button variant="contained" startIcon={<AddRounded />} onClick={() => abrirModal()}>
+            Adicionar material
+          </Button>
+        ) : undefined
       }
     >
       {disciplinas.length === 0 ? (
@@ -102,10 +116,12 @@ export default function MateriaisComplementaresProfessorPage() {
                     </S.DiscCount>
                   </div>
                 </S.DiscTitleWrap>
-                <S.AddBtn onClick={() => abrirModal(d.disciplinaId)}>
-                  <AddRounded />
-                  Adicionar
-                </S.AddBtn>
+                {podePublicar && (
+                  <S.AddBtn onClick={() => abrirModal(d.disciplinaId)}>
+                    <AddRounded />
+                    Adicionar
+                  </S.AddBtn>
+                )}
               </S.DiscHead>
 
               {itens.length === 0 ? (
@@ -113,7 +129,7 @@ export default function MateriaisComplementaresProfessorPage() {
               ) : (
                 <S.MatGrid>
                   {itens.map((m) => (
-                    <MaterialCard key={m.id} material={m} />
+                    <MaterialCard key={m.id} material={m} podePublicar={podePublicar} />
                   ))}
                 </S.MatGrid>
               )}

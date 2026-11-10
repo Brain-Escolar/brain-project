@@ -17,6 +17,7 @@ import Box from "@mui/material/Box";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { getRoutesByModule, getSectionsByModule } from "@/constants/routesConfig";
 import type { RouteConfig } from "@/constants/routesConfig";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import type { UserRoleEnum, RoutesModuleEnum } from "@/enums";
 
 export interface DynamicModuleMenuProps {
@@ -50,8 +51,15 @@ export function DynamicModuleMenu({
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  const routes = React.useMemo(() => getRoutesByModule(role, moduleId), [role, moduleId]);
-  const sections = React.useMemo(() => getSectionsByModule(role, moduleId), [role, moduleId]);
+  const { podeVerRota } = usePermissoes();
+  const routes = React.useMemo(
+    () => getRoutesByModule(role, moduleId, podeVerRota),
+    [role, moduleId, podeVerRota],
+  );
+  const sections = React.useMemo(
+    () => getSectionsByModule(role, moduleId, podeVerRota),
+    [role, moduleId, podeVerRota],
+  );
   const [sectionId, setSectionId] = React.useState(sections[0]?.id);
 
   if (routes.length === 0) return null;
