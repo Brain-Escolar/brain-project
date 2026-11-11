@@ -53,7 +53,9 @@ export default function ExcluirGrupoDialog({ open, onClose, grupo }: ExcluirGrup
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant="outlined" onClick={onClose}>
+          Cancelar
+        </Button>
         <Button color="error" variant="contained" onClick={confirmar} disabled={excluir.isPending}>
           {excluir.isPending ? "Excluindo..." : "Excluir"}
         </Button>

@@ -92,7 +92,9 @@ export default function EditarGrupoDialog({ open, onClose, grupo }: EditarGrupoD
         </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant="outlined" onClick={onClose}>
+          Cancelar
+        </Button>
         <Button
           variant="contained"
           onClick={confirmar}

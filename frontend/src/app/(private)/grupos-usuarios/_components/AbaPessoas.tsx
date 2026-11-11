@@ -232,7 +232,9 @@ export default function AbaPessoas({ grupo }: AbaPessoasProps) {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setParaRemover(null)}>Cancelar</Button>
+          <Button variant="outlined" onClick={() => setParaRemover(null)}>
+            Cancelar
+          </Button>
           <Button
             color="error"
             variant="contained"

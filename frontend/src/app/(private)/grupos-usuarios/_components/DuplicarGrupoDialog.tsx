@@ -58,7 +58,9 @@ export default function DuplicarGrupoDialog({ open, onClose, grupo }: DuplicarGr
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant="outlined" onClick={onClose}>
+          Cancelar
+        </Button>
         <Button
           variant="contained"
           onClick={confirmar}

@@ -92,7 +92,9 @@ export default function NovoGrupoDialog({ open, onClose, perfilInicial }: NovoGr
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button variant="outlined" onClick={onClose}>
+          Cancelar
+        </Button>
         <Button
           variant="contained"
           onClick={confirmar}

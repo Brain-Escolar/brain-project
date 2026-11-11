@@ -73,7 +73,9 @@ export default function HistoricoGrupoDialog({ open, onClose, grupo }: Historico
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Fechar</Button>
+        <Button variant="outlined" onClick={onClose}>
+          Fechar
+        </Button>
       </DialogActions>
     </Dialog>
   );

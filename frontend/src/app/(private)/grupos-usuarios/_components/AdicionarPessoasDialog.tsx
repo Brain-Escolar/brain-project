@@ -165,7 +165,9 @@ export default function AdicionarPessoasDialog({
           {selecionadas.size === 1 ? "1 selecionada" : `${selecionadas.size} selecionadas`}
         </Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
-          <Button onClick={onClose}>Cancelar</Button>
+          <Button variant="outlined" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button
             variant="contained"
             onClick={confirmar}
