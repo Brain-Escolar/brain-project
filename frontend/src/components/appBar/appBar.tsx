@@ -4,7 +4,14 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { AppBar as MuiAppBar, Badge, Container, IconButton, Toolbar, Typography } from "@mui/material";
+import {
+  AppBar as MuiAppBar,
+  Badge,
+  Container,
+  IconButton,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 import Box from "@mui/material/Box";
 import MenuRounded from "@mui/icons-material/MenuRounded";
 import { useAuth } from "@/hooks/useAuth";
@@ -91,7 +98,12 @@ export default function AppBar() {
           <Link
             href="/"
             aria-label="Brain"
-            style={{ display: "inline-flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              textDecoration: "none",
+              flexShrink: 0,
+            }}
           >
             <Image
               src={logoSrc}
@@ -140,7 +152,11 @@ export default function AppBar() {
                       {React.cloneElement(route.icon, { sx: { fontSize: 20, color: "inherit" } })}
                       <Typography
                         variant="caption"
-                        sx={{ fontWeight: isActive ? 600 : 500, color: "inherit", fontSize: "14px" }}
+                        sx={{
+                          fontWeight: isActive ? 600 : 500,
+                          color: "inherit",
+                          fontSize: "14px",
+                        }}
                       >
                         {route.text}
                       </Typography>
@@ -170,7 +186,20 @@ export default function AppBar() {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Box sx={{ flexGrow: 0, flexShrink: 0, display: "flex", alignItems: "center", gap: 1.5 }}>
+          {/*
+            `ml` porque o espacador flex acima colapsa para zero quando o grupo
+            ocupa a largura toda -- no celular o nome do aluno encostava no logo.
+          */}
+          <Box
+            sx={{
+              flexGrow: 0,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              ml: 2,
+            }}
+          >
             <SeletorAnoLetivo />
             <SeletorPerfil />
             {atuarPorAlunoVinculado && <SeletorAluno />}

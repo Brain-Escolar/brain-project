@@ -89,6 +89,25 @@ export function buildMuiTheme(mode: "light" | "dark") {
         },
       },
 
+      /*
+       * Respiro entre as abas.
+       *
+       * O `padding: 0` do MuiTab acima alinha a primeira aba com a borda do
+       * conteudo, mas tirava junto o espaco ENTRE elas: os rotulos se
+       * encostavam ("InadimplênciaCarnê do aluno"). A folga vai entre as
+       * abas, para a primeira seguir rente a esquerda.
+       *
+       * So nas horizontais: o menu de modulos da barra do topo usa Tabs
+       * vertical, e ali uma margem a esquerda indentaria a lista inteira.
+       */
+      MuiTabs: {
+        styleOverrides: {
+          root: {
+            "&:not(.MuiTabs-vertical) .MuiTab-root + .MuiTab-root": { marginLeft: 24 },
+          },
+        },
+      },
+
       // ------------------------------------------------------------ celular
       //
       // O que segue vale só abaixo de `sm` e existe porque o sistema foi

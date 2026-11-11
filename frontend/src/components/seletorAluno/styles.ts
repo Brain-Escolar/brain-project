@@ -38,6 +38,13 @@ export const NomeEstatico = styled.span`
   font-size: ${cssVarFontSize("body2")};
   color: ${cssVarColor("textSecondary")};
   white-space: nowrap;
+
+  /* Nome comprido nao pode empurrar o sino e o avatar para fora da tela. */
+  @media (max-width: 640px) {
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 `;
 
 export const Dropdown = styled.div`

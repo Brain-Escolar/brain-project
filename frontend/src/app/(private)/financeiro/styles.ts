@@ -86,6 +86,24 @@ export const ProdutoDireita = styled.div`
   display: flex;
   align-items: center;
   gap: 16px;
+
+  /*
+    No celular o valor e a situacao descem para uma linha propria.
+
+    O container ja tinha flex-wrap, mas nada chegava a quebrar: com o corpo
+    em flex:1 e min-width:0, quem cedia espaco era sempre o texto. O nome do
+    produto cabia, e a linha de baixo saia picada -- "Parcela 1/12 · Daniel
+    Moraes (demo) · CT-2026-2" em cinco linhas de duas palavras, numa coluna
+    de ~100px, enquanto o valor ficava inteiro do lado.
+
+    Com flex-basis 100% este bloco nao cabe ao lado do corpo e desce, que e
+    a ordem de leitura certa: do que e a cobranca, depois quanto e.
+  */
+  @media (max-width: 640px) {
+    flex-basis: 100%;
+    justify-content: space-between;
+    margin-top: 12px;
+  }
 `;
 
 export const Valor = styled.span<{ $cancelado: boolean }>`
