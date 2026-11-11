@@ -56,7 +56,9 @@ export default function AvisoCadastroIncompletoDialog({
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ flexWrap: "wrap", gap: 1 }}>
-          <Button onClick={onClose}>Seguir sem preencher</Button>
+          <Button variant="outlined" onClick={onClose}>
+            Seguir sem preencher
+          </Button>
           {!documentacaoCompleta && (
             <Button
               variant={dadosCompletos ? "contained" : "outlined"}

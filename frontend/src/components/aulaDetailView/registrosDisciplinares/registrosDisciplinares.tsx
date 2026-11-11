@@ -288,7 +288,12 @@ function RegistrosDisciplinares({ aulaId, data }: RegistrosDisciplinaresProps) {
           <Button variant="outlined" onClick={() => setConfirmId(null)} disabled={excluindo}>
             Cancelar
           </Button>
-          <Button color="error" onClick={handleConfirmarExclusao} disabled={excluindo}>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleConfirmarExclusao}
+            disabled={excluindo}
+          >
             {excluindo ? <CircularProgress size={18} color="inherit" /> : "Remover"}
           </Button>
         </DialogActions>

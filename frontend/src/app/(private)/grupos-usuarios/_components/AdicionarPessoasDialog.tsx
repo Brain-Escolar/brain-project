@@ -160,11 +160,29 @@ export default function AdicionarPessoasDialog({
           </Box>
         )}
       </DialogContent>
-      <DialogActions sx={{ justifyContent: "space-between", px: 3 }}>
+      <DialogActions
+        sx={{
+          justifyContent: "space-between",
+          px: 3,
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: { xs: 1, sm: 0 },
+        }}
+      >
         <Typography variant="body2" color="text.secondary">
           {selecionadas.size === 1 ? "1 selecionada" : `${selecionadas.size} selecionadas`}
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            // O contador à esquerda obriga os botões a morar num Box, e a
+            // regra de empilhar do tema só alcança filho direto do
+            // DialogActions. Mesmo comportamento, repetido aqui.
+            flexDirection: { xs: "column-reverse", sm: "row" },
+            "& > .MuiButton-root": { minHeight: { xs: 44, sm: "auto" } },
+          }}
+        >
           <Button variant="outlined" onClick={onClose}>
             Cancelar
           </Button>

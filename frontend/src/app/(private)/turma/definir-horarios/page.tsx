@@ -317,7 +317,7 @@ function DefinirHorariosPageContent() {
               </Box>
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleDialogClear} color="error">
+              <Button variant="outlined" onClick={handleDialogClear} color="error">
                 Limpar
               </Button>
               <Button variant="outlined" onClick={() => setDialogOpen(false)} color="inherit">

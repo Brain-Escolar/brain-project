@@ -126,11 +126,21 @@ export function buildMuiTheme(mode: "light" | "dark") {
       /**
        * A barra de ações do modal.
        *
-       * `space-between` empurra o primeiro botão para a esquerda: em 58 dos
-       * 64 blocos <DialogActions> do projeto o primeiro é a ação de sair
-       * (Cancelar ou Fechar), e sair fica longe de confirmar para o polegar
-       * não errar. Os botões também ganham altura de dedo e dividem a
-       * largura, porque num modal de tela cheia eles sao o rodape.
+       * No celular os botões empilham, um por linha. Num modal de tela cheia
+       * esta barra é o rodapé, e lado a lado em 390px de largura cada botão
+       * fica com ~175px: "Confirmar rejeição" e "Completar cadastro agora"
+       * não cabem sem quebrar o rótulo no meio.
+       *
+       * `column-reverse` e não `column` porque em 65 dos 71 blocos
+       * <DialogActions> o primeiro do DOM é a ação de sair (Cancelar, Fechar,
+       * Voltar). Invertendo, a principal sobe e o sair desce, como nos apps,
+       * sem reordenar o JSX de 65 arquivos -- e a ordem visual passa a ser a
+       * mesma do desktop lida de outra direção: o botão mais à direita lá é o
+       * de cima aqui.
+       *
+       * Com um botão só (5 blocos) não há o que empilhar: o `:has` pede um
+       * irmão, e aí vale a regra de cima, onde o botão sozinho ocupa a
+       * largura inteira.
        */
       MuiDialogActions: {
         styleOverrides: {
@@ -142,6 +152,18 @@ export function buildMuiTheme(mode: "light" | "dark") {
               "& > .MuiButton-root": {
                 minHeight: 44,
                 flex: 1,
+              },
+              "&:has(> .MuiButton-root ~ .MuiButton-root)": {
+                flexDirection: "column-reverse",
+                alignItems: "stretch",
+                "& > .MuiButton-root": {
+                  minHeight: 44,
+                  width: "100%",
+                  // em coluna, `flex: 1` esticaria a altura, não a largura
+                  flex: "none",
+                  // o espaço lateral que o MUI põe entre irmãos vira o `gap`
+                  marginLeft: 0,
+                },
               },
             },
           }),
