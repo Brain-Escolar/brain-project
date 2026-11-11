@@ -11,6 +11,11 @@ import {
   Checkbox,
   FormControlLabel,
   Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Paper,
+  Chip,
+  Alert,
   useTheme,
   useMediaQuery,
   CircularProgress,
@@ -41,7 +46,34 @@ const MESES_PT = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
+type VisaoCalendario = "MES" | "SEMANA" | "DIA";
+
+const VISOES: { valor: VisaoCalendario; rotulo: string }[] = [
+  { valor: "MES", rotulo: "Mês" },
+  { valor: "SEMANA", rotulo: "Semana" },
+  { valor: "DIA", rotulo: "Dia" },
+];
+
+/** Domingo da semana da data, que e como o grid do mes ja comeca a semana. */
+function inicioDaSemana(data: Date): Date {
+  const d = new Date(data);
+  d.setDate(d.getDate() - d.getDay());
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 const daysOfWeek = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"];
+
+/** Por extenso para a agenda do celular, onde ha largura para a palavra. */
+const diasSemanaExtenso = [
+  "domingo",
+  "segunda-feira",
+  "terça-feira",
+  "quarta-feira",
+  "quinta-feira",
+  "sexta-feira",
+  "sábado",
+];
 
 /** Altura da linha "Hoje / < > / Mês" — usada para alinhar o topo do título "Eventos" com o grid. */
 const CALENDAR_HEADER_HEIGHT = 32;
@@ -104,8 +136,21 @@ function buildCalendarDays(year: number, month: number): CalendarDay[] {
 
 export default function Calendario() {
   const today = new Date();
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  /**
+   * O dia em foco e a unica fonte de verdade da navegacao.
+   *
+   * Antes eram ano e mes separados, que bastavam para o grid mensal. Com
+   * semana e dia, a navegacao anda em unidades diferentes e a semana pode
+   * cruzar a virada do mes -- dois estados separados nao representam isso.
+   */
+  const [foco, setFoco] = useState(() => new Date());
+
+  /**
+   * null = ainda nao escolheram, entao vale o padrao do aparelho: mes no
+   * navegador, dia no celular. Depois de escolher, a escolha manda -- trocar
+   * a largura da janela nao desfaz o que a pessoa pediu.
+   */
+  const [visaoEscolhida, setVisaoEscolhida] = useState<VisaoCalendario | null>(null);
   const [tiposAtivos, setTiposAtivos] = useState<Set<TipoEvento>>(
     new Set(Object.keys(TIPO_CONFIG) as TipoEvento[]),
   );
@@ -118,8 +163,39 @@ export default function Calendario() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const dataInicio = formatDate(currentYear, currentMonth, 1);
-  const dataFim = formatDate(currentYear, currentMonth, new Date(currentYear, currentMonth + 1, 0).getDate());
+  const visao: VisaoCalendario = visaoEscolhida ?? (isMobile ? "DIA" : "MES");
+
+  const currentYear = foco.getFullYear();
+  const currentMonth = foco.getMonth();
+
+  /**
+   * O periodo carregado acompanha a visao.
+   *
+   * Na semana isso importa de verdade: uma semana que cruza a virada do mes
+   * perderia metade dos eventos se o intervalo continuasse sendo o mes do
+   * dia em foco.
+   */
+  const { dataInicio, dataFim } = useMemo(() => {
+    if (visao === "DIA") {
+      const d = formatDate(foco.getFullYear(), foco.getMonth(), foco.getDate());
+      return { dataInicio: d, dataFim: d };
+    }
+    if (visao === "SEMANA") {
+      const ini = inicioDaSemana(foco);
+      const fim = new Date(ini);
+      fim.setDate(ini.getDate() + 6);
+      return {
+        dataInicio: formatDate(ini.getFullYear(), ini.getMonth(), ini.getDate()),
+        dataFim: formatDate(fim.getFullYear(), fim.getMonth(), fim.getDate()),
+      };
+    }
+    const ano = foco.getFullYear();
+    const mes = foco.getMonth();
+    return {
+      dataInicio: formatDate(ano, mes, 1),
+      dataFim: formatDate(ano, mes, new Date(ano, mes + 1, 0).getDate()),
+    };
+  }, [visao, foco]);
 
   // Quem atua por um aluno vinculado ve o calendario da turma dele, nao o da
   // escola inteira. A permissao de criar evento vem de usePermissoes, nao de
@@ -173,27 +249,27 @@ export default function Calendario() {
     return counts;
   }, [eventosFiltrados]);
 
+  /** As setas andam na unidade da visao: um mes, uma semana, um dia. */
+  function andar(passos: number) {
+    setFoco((atual) => {
+      const d = new Date(atual);
+      if (visao === "MES") d.setMonth(d.getMonth() + passos);
+      else if (visao === "SEMANA") d.setDate(d.getDate() + passos * 7);
+      else d.setDate(d.getDate() + passos);
+      return d;
+    });
+  }
+
   function navigatePrev() {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonth((m) => m - 1);
-    }
+    andar(-1);
   }
 
   function navigateNext() {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonth((m) => m + 1);
-    }
+    andar(1);
   }
 
   function goToToday() {
-    setCurrentYear(today.getFullYear());
-    setCurrentMonth(today.getMonth());
+    setFoco(new Date());
   }
 
   function toggleTipo(tipo: TipoEvento) {
@@ -235,7 +311,24 @@ export default function Calendario() {
     setModalAberto(true);
   }
 
-  const tituloMes = `${MESES_PT[currentMonth]} ${currentYear}`;
+  /** O titulo diz o periodo da visao, nao sempre o mes. */
+  const tituloPeriodo = (() => {
+    if (visao === "DIA") {
+      return `${diasSemanaExtenso[foco.getDay()]}, ${foco.getDate()} de ${MESES_PT[currentMonth].toLowerCase()}`;
+    }
+    if (visao === "SEMANA") {
+      const ini = inicioDaSemana(foco);
+      const fim = new Date(ini);
+      fim.setDate(ini.getDate() + 6);
+      const mesmoMes = ini.getMonth() === fim.getMonth();
+      return mesmoMes
+        ? `${ini.getDate()} – ${fim.getDate()} de ${MESES_PT[ini.getMonth()].toLowerCase()}`
+        : `${ini.getDate()} de ${MESES_PT[ini.getMonth()].toLowerCase()} – ${fim.getDate()} de ${MESES_PT[fim.getMonth()].toLowerCase()}`;
+    }
+    return `${MESES_PT[currentMonth]} ${currentYear}`;
+  })();
+
+  const tituloMes = tituloPeriodo;
 
   // Provas e entregas nascem do fluxo de avaliacao do professor: quem so cria
   // eventos institucionais (secretaria, diretor) apenas os visualiza.
@@ -316,10 +409,10 @@ export default function Calendario() {
         >
           Hoje
         </Button>
-        <IconButton size="small" onClick={navigatePrev}>
+        <IconButton size="small" onClick={navigatePrev} aria-label="Período anterior">
           <ChevronLeftIcon fontSize={isMobile ? "small" : "medium"} />
         </IconButton>
-        <IconButton size="small" onClick={navigateNext}>
+        <IconButton size="small" onClick={navigateNext} aria-label="Próximo período">
           <ChevronRightIcon fontSize={isMobile ? "small" : "medium"} />
         </IconButton>
         <Typography
@@ -330,8 +423,114 @@ export default function Calendario() {
         </Typography>
         {loading && <CircularProgress size={16} sx={{ ml: 1 }} />}
       </Box>
+
+      {/*
+        O seletor de visao, no espirito do Google Calendar.
+        Mes continua sendo o padrao no navegador; no celular o padrao e Dia,
+        onde o grid de 7 colunas nao cabe de forma legivel.
+      */}
+      <ToggleButtonGroup
+        size="small"
+        exclusive
+        value={visao}
+        onChange={(_, nova) => nova && setVisaoEscolhida(nova as VisaoCalendario)}
+        aria-label="Visão do calendário"
+      >
+        {VISOES.map((v) => (
+          <ToggleButton key={v.valor} value={v.valor} sx={{ px: 1.75, textTransform: "none" }}>
+            {v.rotulo}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
     </Box>
   );
+
+  /**
+   * Os eventos de uma lista de dias, em cartoes legiveis.
+   *
+   * Serve a visao de semana e a de dia -- as duas sao a mesma lista, com
+   * janelas diferentes. A cor do tipo vira faixa lateral: identifica sem
+   * gastar largura, que e o que falta no celular.
+   */
+  function listaDeDias(dias: Date[], vazio: string) {
+    const comEventos = dias
+      .map((d) => {
+        const chave = formatDate(d.getFullYear(), d.getMonth(), d.getDate());
+        return { data: d, chave, eventos: (eventosPorDia[chave] ?? []).filter((e) => tiposAtivos.has(e.tipo)) };
+      })
+      .filter((d) => d.eventos.length > 0);
+
+    if (comEventos.length === 0) {
+      return <Alert severity="info">{vazio}</Alert>;
+    }
+
+    const hojeChave = formatDate(today.getFullYear(), today.getMonth(), today.getDate());
+
+    return (
+      <Stack spacing={1.5}>
+        {comEventos.map(({ data, chave, eventos: doDia }) => (
+          <Box key={chave}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                {String(data.getDate()).padStart(2, "0")}/{String(data.getMonth() + 1).padStart(2, "0")}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {diasSemanaExtenso[data.getDay()]}
+              </Typography>
+              {chave === hojeChave && <Chip size="small" color="primary" label="hoje" />}
+            </Stack>
+
+            <Stack spacing={0.75}>
+              {doDia.map((evento) => {
+                const cfg = TIPO_CONFIG[evento.tipo];
+                return (
+                  <Paper
+                    key={evento.id}
+                    variant="outlined"
+                    onClick={() => abrirDetalheEvento(evento)}
+                    sx={{
+                      p: 1.25,
+                      display: "flex",
+                      gap: 1.25,
+                      alignItems: "flex-start",
+                      cursor: "pointer",
+                      borderLeft: `4px solid ${cfg.color}`,
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {evento.titulo}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: cfg.color, fontWeight: 600 }}>
+                        {cfg.labelSingular}
+                      </Typography>
+                      {evento.descricao && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
+                          {evento.descricao}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Paper>
+                );
+              })}
+            </Stack>
+          </Box>
+        ))}
+      </Stack>
+    );
+  }
+
+  const visaoSemana = (() => {
+    const ini = inicioDaSemana(foco);
+    const dias = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(ini);
+      d.setDate(ini.getDate() + i);
+      return d;
+    });
+    return listaDeDias(dias, "Nenhum evento nesta semana para os filtros marcados.");
+  })();
+
+  const visaoDia = listaDeDias([foco], "Nenhum evento neste dia para os filtros marcados.");
 
   const calendarGrid = (
     <Card>
@@ -518,6 +717,9 @@ export default function Calendario() {
     </Card>
   );
 
+  /** O miolo muda com a visao; o cabecalho e os filtros ficam. */
+  const corpoDaVisao = visao === "MES" ? calendarGrid : visao === "SEMANA" ? visaoSemana : visaoDia;
+
   return (
     <PageScaffold
       title="Calendário"
@@ -546,7 +748,7 @@ export default function Calendario() {
       {isMobile ? (
         <Stack spacing={3}>
           {calendarHeader}
-          {calendarGrid}
+          {corpoDaVisao}
           <Box>
             <Typography variant="h6" gutterBottom sx={{ fontSize: "1.1rem" }}>
               Filtros de Eventos
@@ -560,7 +762,7 @@ export default function Calendario() {
         <LayoutColumns sizeLeft="80%" sizeRight="20%">
           <Box>
             {calendarHeader}
-            {calendarGrid}
+            {corpoDaVisao}
           </Box>
           <Box>
             <Box sx={{ height: CALENDAR_HEADER_HEIGHT + 24 }} />
