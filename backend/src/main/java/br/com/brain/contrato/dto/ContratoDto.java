@@ -50,7 +50,7 @@ public record ContratoDto(
                 c.getDataInicio(),
                 c.getDataFim(),
                 c.getItens().stream().map(ContratoItemDto::new).toList(),
-                titulos.stream().map(TituloDto::new).toList(),
+                titulos.stream().map(t -> new TituloDto(t, c.getQtdParcelas())).toList(),
                 somar(titulos),
                 somar(titulos).compareTo(c.getValorLiquido()) == 0);
     }

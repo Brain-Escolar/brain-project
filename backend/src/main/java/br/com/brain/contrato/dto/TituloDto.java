@@ -24,9 +24,24 @@ public record TituloDto(
         BigDecimal valorDesconto,
         BigDecimal valorLiquido,
         StatusTitulo status,
+        /**
+         * Quantos titulos o ITEM que gerou esta cobranca produz -- nao quantas
+         * parcelas o contrato tem.
+         *
+         * Nem todo item vira carne: taxa de matricula e material sao cobrados
+         * de uma vez, na primeira competencia. Enquanto esta tela dividia o
+         * numero da parcela pelas parcelas do contrato, a taxa de material
+         * aparecia como "parcela 1/12" -- uma cobranca unica fingindo que
+         * teriam mais onze.
+         */
+        Integer totalParcelas,
         Boolean vencido) {
 
-    public TituloDto(Titulo t) {
+    /**
+     * @param parcelasDoContrato usado so quando o titulo nao tem item (anterior
+     *                           a V117): ali o contrato inteiro era uma coisa so.
+     */
+    public TituloDto(Titulo t, int parcelasDoContrato) {
         this(
                 t.getId(),
                 t.getResponsavel().getId(),
@@ -39,6 +54,9 @@ public record TituloDto(
                 t.getValorDesconto(),
                 t.getValorLiquido(),
                 t.getStatus(),
+                t.getContratoItem() == null
+                        ? parcelasDoContrato
+                        : t.getContratoItem().quantidadeDeTitulos(parcelasDoContrato),
                 t.estaAberto() && t.getVencimento().isBefore(LocalDate.now()));
     }
 }

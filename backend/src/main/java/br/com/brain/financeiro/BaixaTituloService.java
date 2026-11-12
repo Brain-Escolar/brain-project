@@ -87,7 +87,8 @@ public class BaixaTituloService {
         log.info("BAIXA: titulo id={} parcela={} valor={} forma={} por dadosPessoaisId={}",
                 titulo.getId(), titulo.getNumeroParcela(), valorPago, pedido.forma(), operadorId);
 
-        return BaixaDto.de(montarDto(pagamento), new TituloDto(titulo));
+        return BaixaDto.de(montarDto(pagamento),
+                new TituloDto(titulo, titulo.getContrato().getQtdParcelas()));
     }
 
     /**
@@ -131,7 +132,7 @@ public class BaixaTituloService {
                     titulo.getValorBruto(),
                     titulo.getValorDesconto(),
                     titulo.getDescricao()));
-            reemitidoDto = new TituloDto(reemitido);
+            reemitidoDto = new TituloDto(reemitido, reemitido.getContrato().getQtdParcelas());
             log.info("ESTORNO com reemissão: titulo estornado id={} -> novo id={} versao={} venc={}",
                     titulo.getId(), reemitido.getId(), reemitido.getVersao(), reemitido.getVencimento());
         } else {
@@ -149,7 +150,8 @@ public class BaixaTituloService {
         // prestado e recebido -- parcela aberta nao gera nota, e estorno exige
         // cancelamento ou carta de correcao da nota ja emitida. Fora da
         // transacao, pela mesma razao do boleto, e idempotente por pagamento.
-        return new BaixaDto(montarDto(pagamento), new TituloDto(titulo), reemitidoDto);
+        return new BaixaDto(montarDto(pagamento),
+                new TituloDto(titulo, titulo.getContrato().getQtdParcelas()), reemitidoDto);
     }
 
     @Transactional(readOnly = true)

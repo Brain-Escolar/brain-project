@@ -31,6 +31,12 @@ export interface TituloResponse {
   valorDesconto: number;
   valorLiquido: number;
   status: StatusTitulo;
+  /**
+   * Quantos títulos o item que gerou esta cobrança produz — não quantas
+   * parcelas o contrato tem. Taxa de matrícula e material são cobradas de uma
+   * vez: para elas isto é 1, e a linha não deve dizer "1/12".
+   */
+  totalParcelas: number;
   vencido: boolean;
 }
 

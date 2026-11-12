@@ -172,8 +172,8 @@ function CarneDoContrato({
       </Stack>
 
       <Typography variant="body2" color="text.secondary">
-        {dataBR(contrato.dataInicio)} a {dataBR(contrato.dataFim)} · {contrato.qtdParcelas}x ·
-        a família paga {moeda(contrato.valorLiquido)}
+        {dataBR(contrato.dataInicio)} a {dataBR(contrato.dataFim)} · {contrato.qtdParcelas}x · a
+        família paga {moeda(contrato.valorLiquido)}
         {contrato.valorDesconto > 0 ? ` (bolsa de ${moeda(contrato.valorDesconto)})` : ""}
       </Typography>
 
@@ -205,7 +205,6 @@ function CarneDoContrato({
               <LinhaDoCarne
                 key={t.id}
                 titulo={t}
-                totalParcelas={contrato.qtdParcelas}
                 alunoNome={alunoNome}
                 contratoNumero={contrato.numero}
                 onBaixar={onBaixar}
@@ -221,14 +220,12 @@ function CarneDoContrato({
 
 function LinhaDoCarne({
   titulo,
-  totalParcelas,
   alunoNome,
   contratoNumero,
   onBaixar,
   onEstornar,
 }: {
   titulo: TituloResponse;
-  totalParcelas: number;
   alunoNome: string;
   contratoNumero: string;
   onBaixar: (parcela: ParcelaParaBaixa) => void;
@@ -248,7 +245,12 @@ function LinhaDoCarne({
   return (
     <TableRow>
       <TableCell>
-        {titulo.numeroParcela}/{totalParcelas}
+        {/*
+          O total vem do ITEM, nao do contrato. Antes esta linha dividia o
+          numero da parcela pelas parcelas do contrato, e a taxa de material --
+          cobrada de uma vez -- aparecia como "1/12".
+        */}
+        {titulo.totalParcelas > 1 ? `${titulo.numeroParcela}/${titulo.totalParcelas}` : "única"}
         {titulo.versao > 1 && (
           <Chip
             size="small"

@@ -11,7 +11,23 @@ import java.util.Optional;
 
 public interface TituloRepository extends JpaRepository<Titulo, Long> {
 
-    List<Titulo> findByContratoIdOrderByNumeroParcelaAscIdAsc(Long contratoId);
+    /**
+     * Os titulos de um contrato, com o item que originou cada um.
+     *
+     * O LEFT JOIN FETCH nao e otimizacao: o DTO pergunta ao item quantos
+     * titulos ele gera, para a tela nao chamar de "parcela 1/12" uma taxa que
+     * e cobrada de uma vez so. Sem o fetch seria uma consulta por parcela.
+     *
+     * LEFT, e nao INNER, pela mesma razao do carne da familia: titulo anterior
+     * a V117 nao tem item, e um JOIN interno sumiria com ele do carne.
+     */
+    @Query("""
+            SELECT t FROM Titulo t
+              LEFT JOIN FETCH t.contratoItem
+             WHERE t.contrato.id = :contratoId
+             ORDER BY t.numeroParcela ASC, t.id ASC
+            """)
+    List<Titulo> findByContratoIdOrderByNumeroParcelaAscIdAsc(@Param("contratoId") Long contratoId);
 
     /** A tela do responsavel: o indice idx_titulos_portal cobre exatamente isto. */
     List<Titulo> findByResponsavelIdAndStatusOrderByVencimentoAsc(Long responsavelId, StatusTitulo status);
