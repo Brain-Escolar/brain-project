@@ -73,7 +73,8 @@ class GrupoUsuarioServiceIntegracaoTest {
     void catalogoDaSecretaria() {
         var catalogo = catalogoService.catalogo(PerfilNome.SECRETARIO);
 
-        assertThat(catalogo.telas()).hasSize(14);
+        // 14 do grupo padrão e a de Usuários, que está no teto, mas não no padrão (D45).
+        assertThat(catalogo.telas()).hasSize(15);
         var detalhe = catalogo.telas().stream().filter(t -> t.codigo().equals("ALUNO_DETALHE")).findFirst()
                 .orElseThrow();
         // O detalhe do aluno fica no setor da lista de alunos (D33), com o módulo acima dele.

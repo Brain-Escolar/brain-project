@@ -177,11 +177,11 @@ class PermissoesUsuarioServiceIntegracaoTest {
         var permissoes = service.doUsuario(login(PerfilNome.ADMIN));
 
         assertThat(permissoes.gerenciaPermissoes()).isTrue();
-        // Ganhou o cadastro de secretários; a área da Direção não é dele (D35).
-        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).telas()).hasSize(45)
-                .contains("SECRETARIO_LISTA", "AVALIACOES")
+        // Ganhou o cadastro de secretários e a tela de Usuários; a área da Direção não é dele (D35).
+        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).telas()).hasSize(46)
+                .contains("SECRETARIO_LISTA", "AVALIACOES", "USUARIOS")
                 .doesNotContain("GESTAO_ANO_LETIVO", "RELATORIO_ACOMPANHAMENTO_TURMA");
-        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).controles()).hasSize(9)
+        assertThat(permissoes.perfis().get(PerfilNome.ADMIN).controles()).hasSize(14)
                 .noneMatch(codigo -> codigo.startsWith("SITUACAO_FAMILIAR.")
                         || codigo.startsWith("ATENDIMENTO_PSICOLOGICO."));
     }
@@ -196,12 +196,13 @@ class PermissoesUsuarioServiceIntegracaoTest {
 
         assertThat(permissoes.gerenciaPermissoes()).isTrue();
         // A área própria da main (D35): sem a herança das telas do ADMIN.
-        assertThat(permissoes.perfis().get(PerfilNome.DIRETOR).telas()).hasSize(45)
-                .contains("GESTAO_PROFESSORES", "GESTAO_ANO_LETIVO", "RELATORIO_ACOMPANHAMENTO_TURMA",
+        assertThat(permissoes.perfis().get(PerfilNome.DIRETOR).telas()).hasSize(46)
+                .contains("USUARIOS", "GESTAO_PROFESSORES", "GESTAO_ANO_LETIVO", "RELATORIO_ACOMPANHAMENTO_TURMA",
                         "CALENDARIO", "SECRETARIO_LISTA", "ALUNO_LISTA")
                 .doesNotContain("AVALIACOES", "DIARIO", "RELATORIOS");
         assertThat(permissoes.perfis().get(PerfilNome.DIRETOR).controles())
-                .contains("EVENTO.GERENCIAR", "FICHA_MEDICA.VER", "ALUNO.EDITAR", "COMUNICADO.GERENCIAR_TODOS")
+                .contains("EVENTO.GERENCIAR", "FICHA_MEDICA.VER", "ALUNO.EDITAR", "COMUNICADO.GERENCIAR_TODOS",
+                        "USUARIO.LOGIN.GERENCIAR", "USUARIO.PERFIS.GERENCIAR")
                 .doesNotContain("FICHA_MEDICA.EDITAR", "ALUNO.PRODUTOS.VER", "ALUNO.MATRICULA.ALTERAR");
     }
 

@@ -2,6 +2,7 @@ package br.com.brain.usuario;
 
 import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.autenticacao.DadosAutenticacaoRepository;
+import br.com.brain.autenticacao.MotivoDesativacao;
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.infra.email.EmailService;
@@ -45,6 +46,8 @@ class UsuarioServiceTest {
     @Mock
     private GrupoPadraoService grupoPadraoService;
     @Mock
+    private LinkDeSenhaService linkDeSenhaService;
+    @Mock
     private EntityManager em;
 
     private UsuarioService service;
@@ -53,7 +56,8 @@ class UsuarioServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new UsuarioService(perfilRepository, usuarioRepository, passwordEncoder, emailService, grupoPadraoService);
+        service = new UsuarioService(perfilRepository, usuarioRepository, passwordEncoder, emailService, grupoPadraoService,
+                linkDeSenhaService);
         ReflectionTestUtils.setField(service, "em", em);
 
         pessoa = new DadosPessoais();
@@ -91,18 +95,43 @@ class UsuarioServiceTest {
 
         assertThat(pessoa.getPerfis()).isEmpty();
         assertThat(login.getAtivo()).isFalse();
+        assertThat(login.getMotivoDesativacao()).isEqualTo(MotivoDesativacao.SEM_PERFIL);
+    }
+
+    @Test
+    @DisplayName("revogar o unico papel de quem foi desativado pela tela: o motivo continua administrativo")
+    void revogarNaoTrocaDesativacaoAdministrativa() {
+        pessoa.getPerfis().add(perfil(PerfilNome.ESTUDANTE));
+        login.desativarAdministrativamente();
+
+        service.revogarPerfil(pessoa, PerfilNome.ESTUDANTE);
+
+        assertThat(login.getMotivoDesativacao()).isEqualTo(MotivoDesativacao.ADMINISTRATIVA);
+    }
+
+    @Test
+    @DisplayName("conceder de volta a quem foi desativado pela tela: o login continua desligado (RU8)")
+    void concederNaoDesfazDesativacaoAdministrativa() {
+        login.desativarAdministrativamente();
+        when(perfilRepository.findByNome(PerfilNome.ESTUDANTE)).thenReturn(perfil(PerfilNome.ESTUDANTE));
+
+        service.concederPerfil(pessoa, PerfilNome.ESTUDANTE, "senha");
+
+        assertThat(login.getAtivo()).isFalse();
+        assertThat(login.getMotivoDesativacao()).isEqualTo(MotivoDesativacao.ADMINISTRATIVA);
     }
 
     @Test
     @DisplayName("conceder de volta: devolve o perfil e reativa o login verificado")
     void concederReativaLoginVerificado() {
-        login.setAtivo(false);
+        login.desativarSemPerfil();
         when(perfilRepository.findByNome(PerfilNome.PROFESSOR)).thenReturn(perfil(PerfilNome.PROFESSOR));
 
         service.concederPerfil(pessoa, PerfilNome.PROFESSOR, "senha");
 
         assertThat(pessoa.getPerfis()).extracting(Perfil::getNome).containsExactly(PerfilNome.PROFESSOR);
         assertThat(login.getAtivo()).isTrue();
+        assertThat(login.getMotivoDesativacao()).isNull();
     }
 
     @Test

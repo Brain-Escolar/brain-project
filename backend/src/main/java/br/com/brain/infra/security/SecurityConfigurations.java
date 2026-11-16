@@ -182,6 +182,12 @@ public class SecurityConfigurations {
                             // Permissões de quem está logado: qualquer perfil, mas com login.
                             req.requestMatchers("/permissoes/me").authenticated();
 
+                            // Tela de Usuarios: quem tem a tela por grupo, ou ADMIN e
+                            // DIRETOR pelo perfil (D44). Cada acao confere o controle
+                            // dela no GestaoUsuariosService.
+                            req.requestMatchers("/usuarios", "/usuarios/**")
+                                    .access(perfilOuTela.regra(List.of("DIRETOR", "ADMIN"), "USUARIOS"));
+
                             // Cadastro de secretarios - acima do permitAll para ja valer hoje.
                             // Criar secretario gera login com acesso a dados de
                             // alunos: e decisao de direcao.
