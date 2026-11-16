@@ -157,6 +157,16 @@ export default function AbaPessoas({ grupo }: AbaPessoasProps) {
                   <TableCell>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
                       {pessoa.nome}
+                      {pessoa.semOPerfil && (
+                        <Tooltip title="A pessoa perdeu o perfil deste grupo. O vínculo fica guardado e volta a valer se o perfil voltar.">
+                          <Chip
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            label="Sem o perfil"
+                          />
+                        </Tooltip>
+                      )}
                       {!!pessoa.acessosIndividuais && (
                         <Chip
                           size="small"

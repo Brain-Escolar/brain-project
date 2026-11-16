@@ -77,6 +77,8 @@ export interface PessoaGrupoResponse {
   email: string | null;
   /** Só na lista de membros: telas e controles além dos grupos, no perfil do grupo. */
   acessosIndividuais?: number;
+  /** Só na lista de membros: perdeu o perfil do grupo. O vínculo fica guardado e não dá nada. */
+  semOPerfil?: boolean;
 }
 
 export interface GrupoDaPessoaResponse {

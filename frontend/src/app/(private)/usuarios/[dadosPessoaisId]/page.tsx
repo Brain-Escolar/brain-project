@@ -30,13 +30,16 @@ import { useUsuario, useUsuarioMutations } from "@/hooks/useUsuarios";
 import { OrigemCadastroResponse, UsuarioDetalheResponse } from "@/services/domains/usuario";
 import { nomeDoPerfil } from "../../grupos-usuarios/perfisDeGrupo";
 import { ChipSituacao, NOME_MOTIVO } from "../situacaoLogin";
+import { SecaoAcessoEfetivo } from "./_components/SecaoAcessoEfetivo";
+import { SecaoPerfis } from "./_components/SecaoPerfis";
 
 type Acao = "desativar" | "reativar" | "reenviarVerificacao" | "enviarRedefinicao";
 
 /**
- * Página da pessoa na tela de Usuários (docs/permissoes.md, seção 9.8). Nesta
- * entrega: cabeçalho e login. Perfis, acesso efetivo, grupos e acessos
- * individuais entram nas próximas.
+ * Página da pessoa na tela de Usuários (docs/permissoes.md, seção 9.8):
+ * cabeçalho, login, perfis e acesso efetivo. Cada seção aparece só para quem
+ * tem o controle dela. Grupos e acessos individuais a partir da pessoa entram
+ * na próxima entrega.
  */
 export default function UsuarioDetalhePage() {
   const params = useParams<{ dadosPessoaisId: string }>();
@@ -80,6 +83,12 @@ export default function UsuarioDetalhePage() {
       <Box sx={{ display: "flex", flexDirection: "column", gap: 3, maxWidth: 880 }}>
         <Cabecalho usuario={usuario} />
         <SecaoLogin usuario={usuario} />
+        {usuario.secoes.perfis && usuario.perfisDeFuncao.length > 0 && (
+          <SecaoPerfis usuario={usuario} />
+        )}
+        {usuario.secoes.acessoEfetivo && (
+          <SecaoAcessoEfetivo dadosPessoaisId={usuario.dadosPessoaisId} />
+        )}
       </Box>
     </PageScaffold>
   );

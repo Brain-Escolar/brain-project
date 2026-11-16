@@ -11,6 +11,9 @@ import java.util.List;
  *
  * O e-mail pessoal vai mascarado: é para onde seguem os links de senha (D48),
  * e a tela só precisa mostrar que ele existe e reconhecível.
+ *
+ * secoes diz o que mais quem vê pode abrir. perfisDeFuncao vem vazio para
+ * quem não tem USUARIO.PERFIS.GERENCIAR.
  */
 public record UsuarioDetalheDto(
         Long dadosPessoaisId,
@@ -22,5 +25,7 @@ public record UsuarioDetalheDto(
         SituacaoLogin situacao,
         MotivoDesativacao motivoDesativacao,
         List<OrigemCadastroDto> origens,
-        AcoesLoginDto acoes) {
+        AcoesLoginDto acoes,
+        SecoesDto secoes,
+        List<PerfilDeFuncaoDto> perfisDeFuncao) {
 }

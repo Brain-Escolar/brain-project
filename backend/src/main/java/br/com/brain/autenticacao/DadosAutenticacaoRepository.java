@@ -1,5 +1,7 @@
 package br.com.brain.autenticacao;
 
+import br.com.brain.enums.PerfilNome;
+
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -53,4 +55,18 @@ public interface DadosAutenticacaoRepository extends JpaRepository<DadosAutentic
               and ativo = true and verificado = true and motivo_desativacao is null
             """, nativeQuery = true)
     long contarAtivosVerificadosEntre(@Param("ids") List<Long> ids, @Param("excluido") Long excluido);
+
+    /**
+     * Quantas outras pessoas têm o perfil com login ativo, para o aviso de
+     * "última com o perfil" ao remover (RU10): conversas e alertas vão para o
+     * perfil, e sem ninguém nele ficam sem leitor.
+     */
+    @Query("""
+            select count(da) from DadosAutenticacao da
+            join da.dadosPessoais dp
+            join dp.perfis p
+            where p.nome = :perfil and dp.id <> :excluido
+              and da.ativo = true and da.motivoDesativacao is null
+            """)
+    long contarAtivosComPerfilExceto(@Param("perfil") PerfilNome perfil, @Param("excluido") Long excluido);
 }

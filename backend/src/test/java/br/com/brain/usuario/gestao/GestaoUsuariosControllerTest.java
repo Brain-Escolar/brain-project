@@ -92,6 +92,32 @@ class GestaoUsuariosControllerTest {
         assertThat(loginRepository.findById(alvo.getId())).isPresent();
     }
 
+    @Test
+    @DisplayName("acesso efetivo e perfis: o diretor usa pelo perfil; a secretaria com só a tela recebe 403")
+    void acessosEPerfis() throws Exception {
+        var diretor = login(PerfilNome.DIRETOR);
+        var secretaria = login(PerfilNome.SECRETARIO);
+        var professor = login(PerfilNome.PROFESSOR);
+        var base = "/usuarios/" + professor.getDadosPessoais().getId();
+        grupoService.salvarAcessosIndividuais(secretaria.getDadosPessoais().getId(), PerfilNome.SECRETARIO,
+                new AcessosGrupoUsuarioDto(Set.of("USUARIOS"), Set.of()));
+
+        mvc.perform(get(base + "/acessos").with(como(diretor))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.perfis[0].perfil").value("PROFESSOR"));
+        mvc.perform(get(base + "/perfis/ORIENTADOR/previa").with(como(diretor))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.concessao").value(true));
+        mvc.perform(post(base + "/perfis/ORIENTADOR").with(como(diretor))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.perfis").value(org.hamcrest.Matchers.hasItem("ORIENTADOR")));
+        mvc.perform(delete(base + "/perfis/ORIENTADOR").with(como(diretor))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.perfis").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.hasItem("ORIENTADOR"))));
+
+        mvc.perform(get(base + "/acessos").with(como(secretaria))).andExpect(status().isForbidden());
+        mvc.perform(post(base + "/perfis/ORIENTADOR").with(como(secretaria))).andExpect(status().isForbidden());
+        mvc.perform(get(base).with(como(secretaria))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.secoes.perfis").value(false))
+                .andExpect(jsonPath("$.perfisDeFuncao").isEmpty());
+    }
+
     private static RequestPostProcessor como(DadosAutenticacao login) {
         return authentication(new UsernamePasswordAuthenticationToken(login, null, login.getAuthorities()));
     }

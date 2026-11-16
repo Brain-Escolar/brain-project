@@ -65,6 +65,9 @@ Na implantação, cada perfil ganha um grupo padrão com tudo o que já acessa h
 | D47 (16/11) | O login desativado tem motivo: `SEM_PERFIL`, quando a pessoa ficou sem papel nenhum (desmatrícula, desligamento), e `ADMINISTRATIVA`, pela tela. A tela não reativa `SEM_PERFIL`: ele volta sozinho quando a pessoa recebe um perfil de novo. Uma rematrícula não desfaz a `ADMINISTRATIVA`. O link de verificação não religa um login desativado (F4). | Coluna `motivo_desativacao` (V127). Quem já estava verificado e desligado recebeu `SEM_PERFIL`. O DELETE de login saiu (U4). |
 | D48 (16/11) | Link de senha único para definir (primeiro acesso, que também verifica) e redefinir. Vai sempre para o e-mail pessoal (`dados_pessoais.email`), com a escola dentro de um token assinado e um código de uso único no banco. Sem e-mail pessoal, a redefinição pela gestão é bloqueada. "Esqueci a senha" passa a funcionar e responde igual exista ou não o login (F5). | `LinkDeSenhaService`, `POST /login/esqueci-minha-senha`, `GET`/`POST /login/nova-senha` e a página pública `/nova-senha`. Substitui o reenvio do e-mail de verificação, que exigia a senha em texto puro. O token antigo fica só para o link de verificação. |
 | D49 (16/11) | Conceder e remover perfil passa pelo Envers (F6), e `dados_autenticacao.dados_pessoais_id` é único (uma linha por pessoa com login). | V127: `dados_pessoais_perfis_AUD`, o UNIQUE e os tokens do Google como TEXT no `_AUD`. Se houver duplicata, a migration para com o id repetido na mensagem. |
+| D50 (16/11) | A tela de Usuários concede e remove DIRETOR, ORIENTADOR e SECRETARIO, e o ADMIN para quem é ADMIN (U7, U13). Os outros perfis aparecem sem ação (RU6). Conceder põe a pessoa no grupo padrão só se ela não tiver nenhum grupo normal no perfil; quem volta ao perfil volta aos grupos de antes (RU3). Remover guarda os vínculos (RU4) e não tira o único perfil (RU5) nem o ADMIN do último administrador ativo (RU7). Perfil de funcionário não vai para quem só tem ESTUDANTE. | `PerfisUsuarioService` e `RegrasDePerfil`. Antes de confirmar, o diálogo mostra a prévia (`…/previa`): grupos que voltam ou o padrão, o que o perfil vai abrir com o dado sensível marcado, o que abre direto no servidor e, ao remover, se a pessoa é a última com o perfil (RU10). |
+| D51 (16/11) | Conceder SECRETARIO cria o registro `secretarios` na mesma transação, e a tela nunca o apaga. A equipe e a distribuição da fila do CRM passam a ser quem tem o registro, o perfil e o login ativo (RU9). Ao remover, a prévia avisa quantos leads ativos estão com a pessoa. | `SecretarioRepository.findAtendentes`, usado pelo `ProcessoMatriculaService` no lugar do `findAll`. Os leads não são reatribuídos sozinhos. |
+| D52 (16/11) | Acesso efetivo de outra pessoa (`USUARIO.ACESSOS.VER`): por perfil, cada tela e ação com a origem (grupo, acesso individual ou teto do ADMIN), os grupos inativos marcados, os grupos guardados de perfis que ela não tem mais e, à parte, o que o perfil abre direto no servidor. | `AcessoEfetivoCalculo`, com as regras do `PermissoesUsuarioService` (um teste confere que as duas contas batem). A lista do servidor é `AcessoDiretoDoPerfil`, espelho escrito à mão das regras por perfil do `SecurityConfigurations`: mudou lá, muda aqui. |
 
 As D28–D32 foram usadas na branch `feature/permissoes-grupos-mult-perfis` (grupos de vários perfis), abandonada em 29/10. Os números ficaram sem uso para não confundir com ela.
 
@@ -1091,7 +1094,7 @@ ORDER BY p.nome, dp.nome;
 
 **Já existem (08/10):** `PermissoesUsuarioServiceIntegracaoTest` cobre o cálculo de `/permissoes/me`: grupo padrão, sem grupo, grupo inativo, perfil perdido, dois perfis, item fora do teto, ADMIN com o teto inteiro, DIRETOR por grupo, vínculo no cadastro e vínculo repetido. Desde 04/11, os mesmos testes cobrem os dados das telas (D36): só as liberadas, o teto inteiro do ADMIN com o submódulo, perfil perdido, dois perfis e acesso individual. `PermissaoControllerTest` cobre o login exigido e o formato da resposta. Desde 15/10, `AcessosIndividuaisIntegracaoTest` cobre a seção 4.1: soma com o grupo, valer sem grupo, grupo inativo, as regras de um grupo, as recusas, o grupo individual apagado quando fica vazio e escondido dos endpoints de grupo, o contador da aba Pessoas e pessoas com o mesmo nome. Depois da D22, cobre também passar do teto (com dado sensível), o grupo normal ainda preso ao teto e o catálogo individual. `PerfilOuTelaTest` cobre a D26 pelo CRM: secretaria e diretor entram pelo perfil; o professor só entra depois de ganhar a tela. Desde 04/11, cobre também as áreas do FINANCEIRO, o estorno pelo perfil e pelo controle (D39), a aprovação de preço, o catálogo e a busca de pessoa (D42). `PermissoesUsuarioServiceIntegracaoTest` ganhou o teto do FINANCEIRO, da secretaria e da direção (D37–D40) e a concessão a quem já tem login, com e sem grupo menor (D41). `UsuarioServiceTest` confere que o `concederPerfil` só vincula quando o perfil é novo.
 
-### 8.7 Tela de Usuários (D43–D49)
+### 8.7 Tela de Usuários (D43–D52)
 
 **Fatia 1, entregue em 16/11:** lista, cabeçalho e login. Pacote `br.com.brain.usuario.gestao`.
 
@@ -1110,7 +1113,19 @@ ORDER BY p.nome, dp.nome;
 
 **RU7:** antes de desativar alguém com ADMIN, o serviço trava os logins de ADMIN (`SELECT ... FOR UPDATE`) e conta os outros ativos e verificados, lendo do banco depois da trava.
 
-**Fatias seguintes:** perfis (RU3 a RU6, RU9, RU10) e acesso efetivo; depois grupos a partir da pessoa, acessos individuais e o redirecionamento da página antiga da aba Pessoas.
+**Fatia 2, entregue em 16/11:** perfis e acesso efetivo (D50–D52).
+
+| Endpoint | O que faz | Quem |
+|---|---|---|
+| `GET /usuarios/{id}/acessos` | Acesso efetivo por perfil, com a origem de cada item e o que o perfil abre direto no servidor | `USUARIO.ACESSOS.VER` |
+| `GET /usuarios/{id}/perfis/{perfil}/previa` | O que muda ao conceder (se a pessoa não tem) ou remover (se tem), com o bloqueio quando não pode | `USUARIO.PERFIS.GERENCIAR` |
+| `POST /usuarios/{id}/perfis/{perfil}` e `DELETE …` | Concede ou remove o perfil e devolve o detalhe atualizado | `USUARIO.PERFIS.GERENCIAR`, alcance (D46), RU1, U13, RU5 a RU7 |
+
+O detalhe (`GET /usuarios/{id}`) ganhou `secoes` (o que mais quem vê pode abrir) e `perfisDeFuncao` (uma linha por perfil, com o bloqueio de cada uma; vazia sem o controle). A aba Pessoas da tela de grupos marca quem continua no grupo "sem o perfil" (`MembroGrupoDto.semOPerfil`, RU4).
+
+A mudança de perfil vale na hora no servidor, que lê os perfis do banco a cada requisição. O menu da pessoa só muda no próximo login, porque o perfil vai no token.
+
+**Fatia seguinte:** grupos a partir da pessoa, acessos individuais, o redirecionamento da página antiga da aba Pessoas e a página da pessoa sem login.
 
 ## 9. Frontend
 
@@ -1254,6 +1269,8 @@ O perfil veio da main em 04/11, com os enums e a precedência (acima de SECRETAR
 
 - **Lista** ([page.tsx](../frontend/src/app/(private)/usuarios/page.tsx)): busca, filtros e paginação no servidor, no padrão das listas da tela de grupos. Cada linha mostra perfis, grupos (o inativo tracejado), o selo "Acesso individual", o alerta "Sem acesso em PERFIL" e a situação do login.
 - **Página da pessoa** (`/usuarios/[dadosPessoaisId]`): cabeçalho e a seção Login. Os botões vêm de `acoes`, calculado no servidor; quando não há o que fazer, aparece o motivo (o próprio login, fora do alcance, sem permissão).
+- **Perfis** (quem tem `USUARIO.PERFIS.GERENCIAR`): uma linha por perfil, com Conceder ou Remover; o botão desabilitado explica o bloqueio. Cada ação abre um diálogo com a prévia do servidor antes de confirmar.
+- **Acesso efetivo** (quem tem `USUARIO.ACESSOS.VER`): uma aba por perfil, com os grupos (o inativo marcado), as telas por módulo e as ações, cada uma com os chips de origem, e o que o perfil abre direto no servidor.
 - **Menu:** a entrada `USUARIOS` perdeu o `livre` e declara ADMIN, DIRETOR e SECRETARIO. A secretaria só a vê se a escola liberar a tela num grupo dela (D45).
 - **Login:** o botão "Esqueci a senha" abre um diálogo com escola e e-mail. Depois do login, cada perfil vai para `rotaInicialDoPerfil`, a mesma do middleware; o `switch` antigo lia só o primeiro perfil. O painel em `/` manda para a rota inicial quem não tem painel ali (ADMIN, SECRETARIO, FINANCEIRO).
 - **Página pública `/nova-senha`:** lê o token, mostra se é primeiro acesso ou redefinição e salva a senha (mínimo de 8 caracteres).

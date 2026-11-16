@@ -3,8 +3,10 @@ package br.com.brain.usuario.gestao;
 import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.autenticacao.SituacaoLogin;
 import br.com.brain.enums.PerfilNome;
+import br.com.brain.usuario.gestao.dto.AcessoEfetivoDto;
 import br.com.brain.usuario.gestao.dto.FiltroUsuariosDto;
 import br.com.brain.usuario.gestao.dto.GrupoFiltroDto;
+import br.com.brain.usuario.gestao.dto.PreviaPerfilDto;
 import br.com.brain.usuario.gestao.dto.UsuarioDetalheDto;
 import br.com.brain.usuario.gestao.dto.UsuarioListaDto;
 
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GestaoUsuariosController {
 
     private final GestaoUsuariosService service;
+    private final PerfisUsuarioService perfisService;
 
     @GetMapping
     public ResponseEntity<Page<UsuarioListaDto>> listar(
@@ -85,5 +89,29 @@ public class GestaoUsuariosController {
             @AuthenticationPrincipal DadosAutenticacao usuario) {
         service.enviarRedefinicao(dadosPessoaisId, usuario);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{dadosPessoaisId}/acessos")
+    public ResponseEntity<AcessoEfetivoDto> acessoEfetivo(@PathVariable Long dadosPessoaisId,
+            @AuthenticationPrincipal DadosAutenticacao usuario) {
+        return ResponseEntity.ok(service.acessoEfetivo(dadosPessoaisId, usuario));
+    }
+
+    @GetMapping("/{dadosPessoaisId}/perfis/{perfil}/previa")
+    public ResponseEntity<PreviaPerfilDto> previaPerfil(@PathVariable Long dadosPessoaisId,
+            @PathVariable PerfilNome perfil, @AuthenticationPrincipal DadosAutenticacao usuario) {
+        return ResponseEntity.ok(perfisService.previa(dadosPessoaisId, perfil, usuario));
+    }
+
+    @PostMapping("/{dadosPessoaisId}/perfis/{perfil}")
+    public ResponseEntity<UsuarioDetalheDto> concederPerfil(@PathVariable Long dadosPessoaisId,
+            @PathVariable PerfilNome perfil, @AuthenticationPrincipal DadosAutenticacao usuario) {
+        return ResponseEntity.ok(perfisService.conceder(dadosPessoaisId, perfil, usuario));
+    }
+
+    @DeleteMapping("/{dadosPessoaisId}/perfis/{perfil}")
+    public ResponseEntity<UsuarioDetalheDto> removerPerfil(@PathVariable Long dadosPessoaisId,
+            @PathVariable PerfilNome perfil, @AuthenticationPrincipal DadosAutenticacao usuario) {
+        return ResponseEntity.ok(perfisService.remover(dadosPessoaisId, perfil, usuario));
     }
 }

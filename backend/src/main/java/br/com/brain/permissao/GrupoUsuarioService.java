@@ -195,10 +195,12 @@ public class GrupoUsuarioService {
     public Page<MembroGrupoDto> buscarMembros(Long id, String busca, Pageable pageable) {
         var grupo = buscar(id);
         var pagina = membroRepository.buscarMembros(grupo.getId(), padraoDeBusca(busca), semOrdenacao(pageable));
-        var individuais = contarIndividuais(grupo.getPerfil(),
-                pagina.getContent().stream().map(PessoaGrupoDto::dadosPessoaisId).toList());
+        var ids = pagina.getContent().stream().map(PessoaGrupoDto::dadosPessoaisId).toList();
+        var individuais = contarIndividuais(grupo.getPerfil(), ids);
+        Set<Long> comPerfil = ids.isEmpty() ? Set.of() : membroRepository.findComPerfilEntre(grupo.getPerfil().getId(), ids);
         return pagina.map(pessoa -> new MembroGrupoDto(pessoa,
-                individuais.getOrDefault(pessoa.dadosPessoaisId(), 0L)));
+                individuais.getOrDefault(pessoa.dadosPessoaisId(), 0L),
+                !comPerfil.contains(pessoa.dadosPessoaisId())));
     }
 
     @Transactional(readOnly = true)

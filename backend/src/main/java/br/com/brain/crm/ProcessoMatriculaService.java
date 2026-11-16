@@ -229,7 +229,7 @@ public class ProcessoMatriculaService {
     @Transactional
     public List<ProcessoMatricula> distribuirFila() {
         var pendentes = repository.findByStatusAndFuncionarioIsNullOrderByCriadoEmAsc(StatusProcessoMatricula.ATIVO);
-        var secretarios = secretarioRepository.findAll();
+        var secretarios = secretarioRepository.findAtendentes();
 
         if (secretarios.isEmpty()) {
             throw ErrosSistema.OperacaoInvalidaException.com("Não há atendentes cadastrados para distribuir a fila.");
@@ -260,7 +260,7 @@ public class ProcessoMatriculaService {
     }
 
     public List<CargaEquipeDto> equipe() {
-        return secretarioRepository.findAll().stream()
+        return secretarioRepository.findAtendentes().stream()
                 .map(s -> new CargaEquipeDto(
                         s.getDadosPessoais().getId(),
                         s.getDadosPessoais().getNome(),

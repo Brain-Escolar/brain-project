@@ -472,7 +472,7 @@ class ProcessoMatriculaServiceTest {
     @Test
     @DisplayName("distribuirFila: sem atendentes cadastrados, lanca OperacaoInvalidaException")
     void distribuirFilaSemAtendentes() {
-        when(secretarioRepository.findAll()).thenReturn(List.of());
+        when(secretarioRepository.findAtendentes()).thenReturn(List.of());
 
         assertThatThrownBy(() -> service.distribuirFila()).isInstanceOf(OperacaoInvalidaException.class);
     }
@@ -481,7 +481,7 @@ class ProcessoMatriculaServiceTest {
     @DisplayName("distribuirFila: sem pendentes, retorna lista vazia sem tocar no repositorio")
     void distribuirFilaSemPendentes() {
         var ana = secretario(1L, "Ana");
-        when(secretarioRepository.findAll()).thenReturn(List.of(ana));
+        when(secretarioRepository.findAtendentes()).thenReturn(List.of(ana));
         when(repository.findByStatusAndFuncionarioIsNullOrderByCriadoEmAsc(StatusProcessoMatricula.ATIVO))
                 .thenReturn(List.of());
 
@@ -496,7 +496,7 @@ class ProcessoMatriculaServiceTest {
     void distribuirFilaRoundRobinPorMenorCarga() {
         var ana = secretario(1L, "Ana");
         var beto = secretario(2L, "Beto");
-        when(secretarioRepository.findAll()).thenReturn(List.of(ana, beto));
+        when(secretarioRepository.findAtendentes()).thenReturn(List.of(ana, beto));
         when(repository.countByStatusAndFuncionarioId(StatusProcessoMatricula.ATIVO, 1L)).thenReturn(3L);
         when(repository.countByStatusAndFuncionarioId(StatusProcessoMatricula.ATIVO, 2L)).thenReturn(1L);
 
@@ -523,7 +523,7 @@ class ProcessoMatriculaServiceTest {
     void distribuirFilaEmpateAlfabetico() {
         var beto = secretario(2L, "Beto");
         var ana = secretario(1L, "Ana");
-        when(secretarioRepository.findAll()).thenReturn(List.of(beto, ana));
+        when(secretarioRepository.findAtendentes()).thenReturn(List.of(beto, ana));
         when(repository.countByStatusAndFuncionarioId(eq(StatusProcessoMatricula.ATIVO), anyLong())).thenReturn(0L);
 
         var p1 = new ProcessoMatricula();

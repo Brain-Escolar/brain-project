@@ -35,6 +35,9 @@ public class SecurityConfigurations {
     private final SecurityFilter securityFilter;
     private final PerfilOuTela perfilOuTela;
 
+    // As regras por perfil daqui sao espelhadas em permissao.AcessoDiretoDoPerfil,
+    // que a tela de Usuarios mostra. Mudou uma regra por perfil, mude la tambem.
+    //
     // As areas da secretaria abaixo aceitam estes perfis OU quem tem uma das
     // telas que as usam liberada por grupo ou acesso individual
     // (docs/permissoes.md, D26). So libera: ninguem que entra hoje deixa de entrar.

@@ -6,9 +6,12 @@ import {
   NovaSenhaRequest,
   VerificarContaRequest,
 } from "./request";
+import { PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 import {
+  AcessoEfetivoResponse,
   GrupoFiltroResponse,
   InformacaoLinkSenhaResponse,
+  PreviaPerfilResponse,
   UsuarioDetalheResponse,
   UsuarioListaResponse,
   VerificarContaResponse,
@@ -52,6 +55,22 @@ export class UsuarioAPI {
 
   enviarRedefinicao(dadosPessoaisId: number): Promise<void> {
     return httpClient.post(`${GESTAO}/${dadosPessoaisId}/login/redefinir-senha`);
+  }
+
+  acessoEfetivo(dadosPessoaisId: number): Promise<AcessoEfetivoResponse> {
+    return httpClient.get(`${GESTAO}/${dadosPessoaisId}/acessos`);
+  }
+
+  previaPerfil(dadosPessoaisId: number, perfil: PerfilNomeEnum): Promise<PreviaPerfilResponse> {
+    return httpClient.get(`${GESTAO}/${dadosPessoaisId}/perfis/${perfil}/previa`);
+  }
+
+  concederPerfil(dadosPessoaisId: number, perfil: PerfilNomeEnum): Promise<UsuarioDetalheResponse> {
+    return httpClient.post(`${GESTAO}/${dadosPessoaisId}/perfis/${perfil}`);
+  }
+
+  removerPerfil(dadosPessoaisId: number, perfil: PerfilNomeEnum): Promise<UsuarioDetalheResponse> {
+    return httpClient.delete(`${GESTAO}/${dadosPessoaisId}/perfis/${perfil}`);
   }
 
   // ---------- Públicos: esqueci a senha e o link de nova senha (D48).

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { usuarioApi } from "@/services/api";
 import { mensagemDeErro } from "@/hooks/useDocumentoMutations";
+import { PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
 import { FiltroUsuariosParams, UsuarioDetalheResponse } from "@/services/domains/usuario";
 
 /** Lista da tela de Usuários, paginada e filtrada no servidor. */
@@ -98,4 +99,78 @@ export function useUsuarioMutations() {
   });
 
   return { desativar, reativar, reenviarVerificacao, enviarRedefinicao };
+}
+
+/** Seção "Acesso efetivo": só busca quando quem vê tem o controle. */
+export function useAcessoEfetivo(dadosPessoaisId: number, habilitado: boolean) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: QUERY_KEYS.usuarios.acessos(dadosPessoaisId),
+    queryFn: () => usuarioApi.acessoEfetivo(dadosPessoaisId),
+    enabled: habilitado,
+  });
+  return {
+    acesso: data ?? null,
+    loading: isLoading,
+    error: error ? mensagemDeErro(error, "Erro ao carregar o acesso efetivo.") : null,
+  };
+}
+
+/** Prévia do diálogo de conceder ou remover perfil. Sem cache: o grupo pode ter mudado. */
+export function usePreviaPerfil(dadosPessoaisId: number, perfil: PerfilNomeEnum | null) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: QUERY_KEYS.usuarios.previaPerfil(dadosPessoaisId, perfil ?? ""),
+    queryFn: () => usuarioApi.previaPerfil(dadosPessoaisId, perfil!),
+    enabled: perfil != null,
+    staleTime: 0,
+    gcTime: 0,
+  });
+  return {
+    previa: data ?? null,
+    loading: isLoading,
+    error: error ? mensagemDeErro(error, "Erro ao carregar o que muda com o perfil.") : null,
+  };
+}
+
+export function usePerfilMutations() {
+  const queryClient = useQueryClient();
+
+  const atualizar = (detalhe: UsuarioDetalheResponse) => {
+    queryClient.setQueryData(QUERY_KEYS.usuarios.detail(detalhe.dadosPessoaisId), detalhe);
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.usuarios.all });
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.gruposUsuarios.all });
+  };
+
+  const conceder = useMutation({
+    retry: false,
+    mutationFn: ({
+      dadosPessoaisId,
+      perfil,
+    }: {
+      dadosPessoaisId: number;
+      perfil: PerfilNomeEnum;
+    }) => usuarioApi.concederPerfil(dadosPessoaisId, perfil),
+    onSuccess: (detalhe) => {
+      atualizar(detalhe);
+      toast.success("Perfil concedido. O menu da pessoa muda no próximo login.");
+    },
+    onError: (error) => toast.error(mensagemDeErro(error, "Erro ao conceder o perfil.")),
+  });
+
+  const remover = useMutation({
+    retry: false,
+    mutationFn: ({
+      dadosPessoaisId,
+      perfil,
+    }: {
+      dadosPessoaisId: number;
+      perfil: PerfilNomeEnum;
+    }) => usuarioApi.removerPerfil(dadosPessoaisId, perfil),
+    onSuccess: (detalhe) => {
+      atualizar(detalhe);
+      toast.success("Perfil removido. Os grupos ficam guardados caso ele volte.");
+    },
+    onError: (error) => toast.error(mensagemDeErro(error, "Erro ao remover o perfil.")),
+  });
+
+  return { conceder, remover };
 }

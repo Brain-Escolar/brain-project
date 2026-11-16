@@ -14,11 +14,15 @@ import br.com.brain.professor.ProfessorRepository;
 import br.com.brain.responsavel.ResponsavelRepository;
 import br.com.brain.secretario.SecretarioRepository;
 import br.com.brain.usuario.LinkDeSenhaService;
+import br.com.brain.usuario.gestao.dto.AcessoDoPerfilDto;
+import br.com.brain.usuario.gestao.dto.AcessoEfetivoDto;
 import br.com.brain.usuario.gestao.dto.AcoesLoginDto;
 import br.com.brain.usuario.gestao.dto.FiltroUsuariosDto;
 import br.com.brain.usuario.gestao.dto.GrupoDoUsuarioDto;
 import br.com.brain.usuario.gestao.dto.GrupoFiltroDto;
 import br.com.brain.usuario.gestao.dto.OrigemCadastroDto;
+import br.com.brain.usuario.gestao.dto.PerfilDeFuncaoDto;
+import br.com.brain.usuario.gestao.dto.SecoesDto;
 import br.com.brain.usuario.gestao.dto.UsuarioDetalheDto;
 import br.com.brain.usuario.gestao.dto.UsuarioListaDto;
 
@@ -37,8 +41,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Tela de Usuários, fatia 1: lista, cabeçalho e ações de login
- * (docs/permissoes.md, seção 8.7).
+ * Tela de Usuários: lista, cabeçalho, ações de login e acesso efetivo
+ * (docs/permissoes.md, seção 8.7). Conceder e remover perfil fica no
+ * PerfisUsuarioService.
  *
  * A tela não cria pessoas nem logins: aluno, professor, responsável e
  * secretário continuam nascendo nas telas de cada área. Aqui se administra o
@@ -57,6 +62,7 @@ public class GestaoUsuariosService {
     private final ResponsavelRepository responsavelRepository;
     private final AcessoGestaoUsuarios acesso;
     private final LinkDeSenhaService linkDeSenhaService;
+    private final AcessoEfetivoCalculo calculo;
 
     // ------------------------------------------------------------- leitura
 
@@ -86,7 +92,39 @@ public class GestaoUsuariosService {
         var perfis = AcessoGestaoUsuarios.perfis(login);
         return new UsuarioDetalheDto(pessoa.getId(), pessoa.getNome(), pessoa.getNomeSocial(), login.getEmail(),
                 mascarar(LinkDeSenhaService.emailPessoal(login)), ordenados(perfis), login.getSituacao(),
-                login.getMotivoDesativacao(), origens(pessoa.getId()), acoes(login, quemVe));
+                login.getMotivoDesativacao(), origens(pessoa.getId()), acoes(login, quemVe),
+                new SecoesDto(acesso.temControle(quemVe, ControlesDeGestao.ACESSOS_VER),
+                        acesso.temControle(quemVe, ControlesDeGestao.PERFIS_GERENCIAR)),
+                perfisDeFuncao(login, quemVe));
+    }
+
+    /**
+     * O que a pessoa abre em cada perfil, com a origem de cada item, e o que o
+     * perfil abre direto no servidor (USUARIO.ACESSOS.VER). Não tem trava do
+     * próprio: ver não altera nada.
+     */
+    @Transactional(readOnly = true)
+    public AcessoEfetivoDto acessoEfetivo(Long dadosPessoaisId, DadosAutenticacao quemVe) {
+        acesso.exigirControle(quemVe, ControlesDeGestao.ACESSOS_VER);
+        var login = buscar(dadosPessoaisId);
+        var perfis = AcessoGestaoUsuarios.perfis(login);
+        var vinculos = membroRepository.findVinculosDe(List.of(dadosPessoaisId));
+
+        var blocos = perfis.stream().sorted().map(perfil -> {
+            if (perfil == PerfilNome.ADMIN) {
+                var itens = calculo.tetoDoAdmin();
+                return new AcessoDoPerfilDto(perfil, true, List.of(), false, itens.telas(), itens.controles(),
+                        AcessoEfetivoCalculo.servidor(perfil));
+            }
+            var doPerfil = vinculos.stream().filter(v -> v.perfil() == perfil).toList();
+            var itens = calculo.dosGrupos(perfil, doPerfil);
+            return new AcessoDoPerfilDto(perfil, false, gruposNormais(doPerfil),
+                    doPerfil.stream().anyMatch(VinculoDeGrupo::individual), itens.telas(), itens.controles(),
+                    AcessoEfetivoCalculo.servidor(perfil));
+        }).toList();
+
+        var guardados = gruposNormais(vinculos.stream().filter(v -> !perfis.contains(v.perfil())).toList());
+        return new AcessoEfetivoDto(dadosPessoaisId, blocos, guardados);
     }
 
     // ------------------------------------------------------------- ações de login
@@ -160,9 +198,13 @@ public class GestaoUsuariosService {
 
     // ------------------------------------------------------------- regras
 
-    /** Controle de login, RU1 (o próprio) e RU2 (alcance). */
     private DadosAutenticacao buscarParaAgir(Long dadosPessoaisId, DadosAutenticacao quem) {
-        acesso.exigirControle(quem, ControlesDeGestao.LOGIN_GERENCIAR);
+        return buscarParaAgir(dadosPessoaisId, quem, ControlesDeGestao.LOGIN_GERENCIAR);
+    }
+
+    /** O controle da ação, RU1 (o próprio) e RU2 (alcance). */
+    DadosAutenticacao buscarParaAgir(Long dadosPessoaisId, DadosAutenticacao quem, String controle) {
+        acesso.exigirControle(quem, controle);
         var login = buscar(dadosPessoaisId);
         if (AcessoGestaoUsuarios.ehOProprio(quem, dadosPessoaisId)) {
             throw new ErrosSistema.AcessoNegadoException(AcessoGestaoUsuarios.MOTIVO_PROPRIO);
@@ -180,7 +222,7 @@ public class GestaoUsuariosService {
      * ADMIN antes de contar, para dois administradores não se desativarem ao
      * mesmo tempo.
      */
-    private void garantirOutroAdmin(DadosAutenticacao alvo) {
+    void garantirOutroAdmin(DadosAutenticacao alvo) {
         var travados = loginRepository.travarComPerfil(PerfilNome.ADMIN.name());
         // A desativação de quem age já pode ter sido gravada: lê do banco, não da memória.
         loginRepository.flush();
@@ -217,7 +259,47 @@ public class GestaoUsuariosService {
 
     // ------------------------------------------------------------- apoio
 
-    private DadosAutenticacao buscar(Long dadosPessoaisId) {
+    /**
+     * Linhas da seção Perfis, com o que quem vê pode fazer em cada uma. Vazia
+     * para quem não tem USUARIO.PERFIS.GERENCIAR: a seção nem aparece.
+     */
+    private List<PerfilDeFuncaoDto> perfisDeFuncao(DadosAutenticacao login, DadosAutenticacao quemVe) {
+        if (!acesso.temControle(quemVe, ControlesDeGestao.PERFIS_GERENCIAR)) {
+            return List.of();
+        }
+        var ator = AcessoGestaoUsuarios.perfis(quemVe);
+        var alvo = AcessoGestaoUsuarios.perfis(login);
+        String geral = AcessoGestaoUsuarios.ehOProprio(quemVe, login.getDadosPessoais().getId())
+                ? AcessoGestaoUsuarios.MOTIVO_PROPRIO
+                : AlcanceGestaoUsuarios.motivoForaDoAlcance(ator, alvo);
+        return RegrasDePerfil.linhas(ator, alvo).stream()
+                .map(perfil -> {
+                    var tem = alvo.contains(perfil);
+                    var bloqueio = geral != null ? geral : motivoNaoAltera(ator, alvo, perfil);
+                    return new PerfilDeFuncaoDto(perfil, tem, bloqueio == null, bloqueio);
+                })
+                .toList();
+    }
+
+    /** As regras do próprio perfil, depois do controle, de RU1 e de RU2. */
+    static String motivoNaoAltera(Set<PerfilNome> ator, Set<PerfilNome> alvo, PerfilNome perfil) {
+        var semPermissao = RegrasDePerfil.motivoSemPermissao(ator, perfil);
+        if (semPermissao != null) {
+            return semPermissao;
+        }
+        return alvo.contains(perfil) ? RegrasDePerfil.motivoNaoRemove(alvo, perfil)
+                : RegrasDePerfil.motivoNaoConcede(alvo, perfil);
+    }
+
+    static List<GrupoDoUsuarioDto> gruposNormais(List<VinculoDeGrupo> vinculos) {
+        return vinculos.stream()
+                .filter(v -> !v.individual())
+                .map(v -> new GrupoDoUsuarioDto(v.grupoId(), v.nome(), v.perfil(), Boolean.TRUE.equals(v.ativo()),
+                        Boolean.TRUE.equals(v.padrao())))
+                .toList();
+    }
+
+    DadosAutenticacao buscar(Long dadosPessoaisId) {
         return loginRepository.findByDadosPessoaisId(dadosPessoaisId)
                 .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Usuário", dadosPessoaisId));
     }
@@ -226,11 +308,7 @@ public class GestaoUsuariosService {
         var pessoa = login.getDadosPessoais();
         var perfis = AcessoGestaoUsuarios.perfis(login);
 
-        var grupos = vinculos.stream()
-                .filter(v -> !v.individual())
-                .map(v -> new GrupoDoUsuarioDto(v.grupoId(), v.nome(), v.perfil(), Boolean.TRUE.equals(v.ativo()),
-                        Boolean.TRUE.equals(v.padrao())))
-                .toList();
+        var grupos = gruposNormais(vinculos);
         Set<PerfilNome> comIndividual = vinculos.stream()
                 .filter(VinculoDeGrupo::individual)
                 .map(VinculoDeGrupo::perfil)
