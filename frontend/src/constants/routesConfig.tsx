@@ -657,12 +657,13 @@ export const ROUTES: RouteConfig[] = [
     roles: [UserRoleEnum.ADMIN],
   },
   {
+    // No catálogo desde a V127 (docs/permissoes.md, D43). A secretaria tem a tela
+    // no teto, mas só a recebe se a escola a liberar num grupo dela (D45).
     text: RouteLabelsEnum.USUARIOS,
     icon: <GroupIcon fontSize="small" />,
     router: RoutesEnum.USUARIOS,
     isShowMenu: true,
-    roles: [UserRoleEnum.ADMIN],
-    livre: true,
+    roles: [UserRoleEnum.ADMIN, UserRoleEnum.DIRETOR, UserRoleEnum.SECRETARIO],
   },
   {
     // Fora do catálogo: o acesso é por perfil. ADMIN e DIRETOR gerenciam os grupos (D3).

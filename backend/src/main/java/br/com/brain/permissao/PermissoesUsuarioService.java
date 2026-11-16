@@ -26,7 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * - ADMIN: o teto inteiro do perfil, sem grupo (RP4).
  * - Demais perfis: o que os grupos ativos da pessoa concedem, dentro do teto (RP1),
- *   mais o acesso individual, que não tem teto (D22). Perfil sem grupo nenhum
+ *   mais o acesso individual, que não tem teto (D22), menos para a gestão de
+ *   usuários (U14). Perfil sem grupo nenhum
  *   vem com as listas vazias.
  *
  * Só perfis que a pessoa tem agora entram na resposta: grupo de um perfil que
@@ -75,8 +76,8 @@ public class PermissoesUsuarioService {
         Map<PerfilNome, List<String>> telas = Map.of();
         Map<PerfilNome, List<String>> controles = Map.of();
         if (pessoa != null && perfis.stream().anyMatch(perfil -> perfil != PerfilNome.ADMIN)) {
-            telas = porPerfil(membroRepository.findTelasEfetivas(pessoa.getId()));
-            controles = porPerfil(membroRepository.findControlesEfetivos(pessoa.getId()));
+            telas = porPerfil(membroRepository.findTelasEfetivas(pessoa.getId(), ControlesDeGestao.todos()));
+            controles = porPerfil(membroRepository.findControlesEfetivos(pessoa.getId(), ControlesDeGestao.todos()));
         }
 
         Map<PerfilNome, PermissoesPerfilDto> resposta = new LinkedHashMap<>();

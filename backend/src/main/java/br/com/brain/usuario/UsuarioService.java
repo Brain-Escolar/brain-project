@@ -2,11 +2,10 @@ package br.com.brain.usuario;
 
 import br.com.brain.autenticacao.DadosAutenticacao;
 import br.com.brain.autenticacao.DadosAutenticacaoRepository;
+import br.com.brain.autenticacao.MotivoDesativacao;
 import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.perfil.PerfilRepository;
 import br.com.brain.usuario.dto.AlteracaoSenhaDto;
-import br.com.brain.usuario.dto.ListagemUsuarioDto;
-import br.com.brain.usuario.dto.RedefinicaoSenhaDto;
 import br.com.brain.enums.PerfilNome;
 import br.com.brain.exception.ErrosSistema;
 import br.com.brain.infra.email.EmailService;
@@ -21,8 +20,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +32,7 @@ public class UsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final GrupoPadraoService grupoPadraoService;
+    private final LinkDeSenhaService linkDeSenhaService;
 
     @PersistenceContext
     private EntityManager em;
@@ -100,8 +98,8 @@ public class UsuarioService {
         }
         // Login desligado por revogarPerfil (ficou sem papel) volta com o papel.
         // Nao verificado continua inativo: quem ativa e o link do e-mail.
-        if (Boolean.TRUE.equals(login.getVerificado()) && !Boolean.TRUE.equals(login.getAtivo())) {
-            login.reativar();
+        // Desativação administrativa não volta assim: só pela tela de Usuários (D47).
+        if (login.reativar(MotivoDesativacao.SEM_PERFIL)) {
             usuarioRepository.save(login);
         }
     }
@@ -119,22 +117,10 @@ public class UsuarioService {
         }
         if (dadosPessoais.getPerfis().isEmpty()) {
             usuarioRepository.findByDadosPessoaisId(dadosPessoais.getId()).ifPresent(login -> {
-                login.desativar();
+                login.desativarSemPerfil();
                 usuarioRepository.save(login);
             });
         }
-    }
-
-    public Page<ListagemUsuarioDto> listar(Pageable paginacao) {
-        return usuarioRepository.findAll(paginacao).map(ListagemUsuarioDto::new);
-    }
-
-    @Transactional
-    public void excluir(Long id) {
-        var usuario = usuarioRepository
-                .findById(id)
-                .orElseThrow(() -> ErrosSistema.RecursoNaoEncontradoException.para("Usuario", id));
-        usuarioRepository.delete(usuario);
     }
 
     public DadosAutenticacao recuperarUsuarioPorId(Long id) {
@@ -185,15 +171,20 @@ public class UsuarioService {
                         "Usuário de email " + email + " não encontrado ou não verificado"));
     }
 
+    /**
+     * "Esqueci a senha" da tela de login (F5). Responde igual exista ou não o
+     * login, para a tela não revelar quem tem conta. Quem ainda não verificou
+     * recebe o link de definir senha, que também verifica; login desativado
+     * não recebe nada. O link vai para o e-mail pessoal (D48).
+     */
     @Transactional
     public void esqueciMinhaSenha(String email) {
-        final int MINUTOS_60 = 60;
-        var usuario = recuperarUsuarioPorEmail(email);
-
-        usuario.gerarToken(MINUTOS_60);
-        usuarioRepository.save(usuario);
-
-        emailService.enviarEmailEsqueciMinhaSenha(email, usuario.getToken());
+        usuarioRepository.findFirstByEmailIgnoreCase(email.trim())
+                .filter(login -> login.getMotivoDesativacao() == null)
+                .filter(login -> LinkDeSenhaService.emailPessoal(login) != null)
+                .ifPresent(login -> linkDeSenhaService.enviar(login, Boolean.TRUE.equals(login.getVerificado())
+                        ? LinkDeSenhaService.Finalidade.REDEFINIR
+                        : LinkDeSenhaService.Finalidade.DEFINIR));
     }
 
     @Transactional
@@ -205,25 +196,5 @@ public class UsuarioService {
         var novaSenhaCriptografada = passwordEncoder.encode(dados.novaSenha());
         usuario.setSenha(novaSenhaCriptografada);
         usuarioRepository.save(usuario);
-    }
-
-    @Transactional
-    public DadosAutenticacao redefinirSenha(RedefinicaoSenhaDto dados, String token) {
-        var usuario = usuarioRepository.findByToken(token)
-                .orElseThrow(() -> new ErrosSistema.TokenInvalidoOuExpiradoException("Token inválido ou expirado"));
-
-        if (usuario.getExpiracaoToken() == null || usuario.getExpiracaoToken().isBefore(LocalDateTime.now())) {
-            throw new ErrosSistema.TokenInvalidoOuExpiradoException("Token expirado");
-        }
-
-        if (!dados.novaSenha().equals(dados.novaSenhaConfirmacao())) {
-            throw new ErrosSistema.SenhaIncorretaException("As senhas não coincidem");
-        }
-
-        var novaSenhaCriptografada = passwordEncoder.encode(dados.novaSenha());
-        usuario.setSenha(novaSenhaCriptografada);
-        usuario.resetarToken();
-        usuarioRepository.save(usuario);
-        return usuario;
     }
 }

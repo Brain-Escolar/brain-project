@@ -3,6 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePerfilAtivo } from "@/contexts/PerfilAtivoContext";
 import { UserRoleEnum } from "@/enums";
 import { Box, CircularProgress, Typography } from "@mui/material";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { RoutesEnum } from "@/enums";
+import { rotaInicialDoPerfil } from "@/constants/routesConfig";
 import DashProfessorPage from "./dashProfessor/dashProfessor";
 import DashAlunoPage from "./dashAluno/dashAluno";
 import DashOrientadorPage from "./dashOrientador/dashOrientador";
@@ -13,6 +17,15 @@ export default function Dashboard() {
   const { user, isLoading } = useAuth();
   // Despacha pelo perfil ativo — quem acumula troca no SeletorPerfil.
   const { perfilAtivo } = usePerfilAtivo();
+  const router = useRouter();
+
+  // Perfis sem dashboard aqui (ADMIN, SECRETARIO, FINANCEIRO) têm outra rota
+  // inicial. Sem isso, quem trocava para eles no seletor ficava em
+  // "Redirecionando..." para sempre.
+  const rotaInicial = perfilAtivo ? rotaInicialDoPerfil(perfilAtivo) : RoutesEnum.HOME;
+  useEffect(() => {
+    if (rotaInicial !== RoutesEnum.HOME) router.replace(rotaInicial);
+  }, [rotaInicial, router]);
 
   if (isLoading && !user) {
     return (

@@ -108,7 +108,8 @@ public interface GrupoUsuarioMembroRepository extends JpaRepository<GrupoUsuario
     /**
      * Telas que os grupos ativos da pessoa concedem, por perfil do grupo, só as
      * ativas e dentro do teto do perfil (RP1). O grupo individual não tem teto
-     * (D22). Quem chama descarta os perfis que a pessoa não tem mais.
+     * (D22), menos para os itens de gestão, passados em gestao (U14). Quem
+     * chama descarta os perfis que a pessoa não tem mais.
      */
     @Query("""
             select distinct new br.com.brain.permissao.ItemPorPerfil(g.perfil.nome, t.codigo)
@@ -118,9 +119,11 @@ public interface GrupoUsuarioMembroRepository extends JpaRepository<GrupoUsuario
             join gt.tela t
             where m.dadosPessoais.id = :dadosPessoaisId
               and g.ativo = true and t.ativo = true
-              and (g.dadosPessoais is not null or g.perfil member of t.perfisPermitidos)
+              and (g.perfil member of t.perfisPermitidos
+                   or (g.dadosPessoais is not null and t.codigo not in :gestao))
             """)
-    List<ItemPorPerfil> findTelasEfetivas(@Param("dadosPessoaisId") Long dadosPessoaisId);
+    List<ItemPorPerfil> findTelasEfetivas(@Param("dadosPessoaisId") Long dadosPessoaisId,
+            @Param("gestao") Collection<String> gestao);
 
     /** O mesmo da consulta de telas, para os controles. */
     @Query("""
@@ -131,9 +134,11 @@ public interface GrupoUsuarioMembroRepository extends JpaRepository<GrupoUsuario
             join gc.controle c
             where m.dadosPessoais.id = :dadosPessoaisId
               and g.ativo = true and c.ativo = true
-              and (g.dadosPessoais is not null or g.perfil member of c.perfisPermitidos)
+              and (g.perfil member of c.perfisPermitidos
+                   or (g.dadosPessoais is not null and c.codigo not in :gestao))
             """)
-    List<ItemPorPerfil> findControlesEfetivos(@Param("dadosPessoaisId") Long dadosPessoaisId);
+    List<ItemPorPerfil> findControlesEfetivos(@Param("dadosPessoaisId") Long dadosPessoaisId,
+            @Param("gestao") Collection<String> gestao);
 
     /** Nome (o social vale sobre o civil) e login de uma pessoa. */
     @Query("""
@@ -182,6 +187,19 @@ public interface GrupoUsuarioMembroRepository extends JpaRepository<GrupoUsuario
             """)
     List<ItemDeGrupo> findControlesDosGrupos(@Param("dadosPessoaisId") Long dadosPessoaisId,
             @Param("perfil") PerfilNome perfil);
+
+    /** Grupos (normais e individuais) das pessoas informadas, para a lista de Usuários. */
+    @Query("""
+            select new br.com.brain.permissao.VinculoDeGrupo(m.dadosPessoais.id, g.id, g.nome, p.nome, g.ativo,
+                   g.padrao, gdp.id)
+            from GrupoUsuarioMembro m
+            join m.grupoUsuario g
+            join g.perfil p
+            left join g.dadosPessoais gdp
+            where m.dadosPessoais.id in :ids
+            order by g.padrao desc, g.nome
+            """)
+    List<VinculoDeGrupo> findVinculosDe(@Param("ids") Collection<Long> ids);
 
     /** Das pessoas informadas, as que têm o perfil (só elas podem entrar no grupo). */
     @Query("select dp.id from DadosPessoais dp join dp.perfis p where p.id = :perfilId and dp.id in :ids")

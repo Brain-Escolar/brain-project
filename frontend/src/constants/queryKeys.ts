@@ -89,6 +89,18 @@ export const QUERY_KEYS = {
     porTela: (codigo: string) => [...QUERY_KEYS.gruposUsuarios.all, "porTela", codigo] as const,
     historico: (id: number) => [...QUERY_KEYS.gruposUsuarios.all, "historico", id] as const,
   },
+  usuarios: {
+    all: ["usuarios"] as const,
+    list: (filtros: Record<string, unknown>) =>
+      [...QUERY_KEYS.usuarios.all, "list", filtros] as const,
+    detail: (dadosPessoaisId: number) =>
+      [...QUERY_KEYS.usuarios.all, "detail", dadosPessoaisId] as const,
+    grupos: () => [...QUERY_KEYS.usuarios.all, "grupos"] as const,
+    acessos: (dadosPessoaisId: number) =>
+      [...QUERY_KEYS.usuarios.all, "acessos", dadosPessoaisId] as const,
+    previaPerfil: (dadosPessoaisId: number, perfil: string) =>
+      [...QUERY_KEYS.usuarios.all, "previaPerfil", dadosPessoaisId, perfil] as const,
+  },
   gruposDisciplina: {
     all: ["gruposDisciplina"] as const,
     lists: () => [...QUERY_KEYS.gruposDisciplina.all, "list"] as const,

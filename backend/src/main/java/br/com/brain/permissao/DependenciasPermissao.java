@@ -23,7 +23,10 @@ public final class DependenciasPermissao {
             "ATENDIMENTO_PSICOLOGICO.VER", Set.of("FICHA_MEDICA.VER"),
             "FICHA_MEDICA.EDITAR", Set.of("FICHA_MEDICA.VER"),
             "SITUACAO_FAMILIAR.EDITAR", Set.of("SITUACAO_FAMILIAR.VER"),
-            "ATENDIMENTO_PSICOLOGICO.REGISTRAR", Set.of("ATENDIMENTO_PSICOLOGICO.VER"));
+            "ATENDIMENTO_PSICOLOGICO.REGISTRAR", Set.of("ATENDIMENTO_PSICOLOGICO.VER"),
+            // Editam o que a seção de acessos da pessoa mostra (tela de Usuários).
+            "USUARIO.GRUPOS.GERENCIAR", Set.of("USUARIO.ACESSOS.VER"),
+            "USUARIO.ACESSOS_INDIVIDUAIS.GERENCIAR", Set.of("USUARIO.ACESSOS.VER"));
 
     private DependenciasPermissao() {
     }

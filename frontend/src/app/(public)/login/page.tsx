@@ -24,6 +24,24 @@ import { Suspense, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import * as S from "./styles";
 import BrainDropdownField from "@/components/brainForms/_base/brainDropdownField/brainDropdownField";
+import { rotaInicialDoPerfil } from "@/constants/routesConfig";
+import { parseRoles, perfilPrincipal } from "@/utils/perfis";
+import EsqueciSenhaDialog from "./EsqueciSenhaDialog";
+
+function decodificarPerfis(token: string): string | null {
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const json = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(""),
+    );
+    return JSON.parse(json).role ?? null;
+  } catch {
+    return null;
+  }
+}
 
 /** Painel da marca (esquerda) — wordmark, pitch e mascote Brainy. */
 function BrandAside() {
@@ -46,6 +64,7 @@ function LoginContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [esqueciAberto, setEsqueciAberto] = useState(false);
   const { loginWithGoogle, isLoading: googleLoading } = useGoogleLogin();
 
   // TEMPORÁRIO: seleção manual da escola no login. Remover quando a escola
@@ -85,43 +104,12 @@ function LoginContent() {
       // Salva também no localStorage para as requisições automáticas
       setAccessToken(response.tokenAcesso);
 
-      try {
-        const base64Url = response.tokenAcesso.split(".")[1];
-        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-        const jsonPayload = decodeURIComponent(
-          atob(base64)
-            .split("")
-            .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-            .join(""),
-        );
-
-        const payload = JSON.parse(jsonPayload);
-        const role = payload.role.replace(/[\[\]]/g, ""); // Remove os colchetes
-
-        let redirectPath = "/";
-        switch (role) {
-          case "ESTUDANTE":
-            redirectPath = "/aluno";
-            break;
-          case "PROFESSOR":
-            redirectPath = "/";
-            break;
-          case "ADMIN":
-            redirectPath = "/aluno";
-            break;
-          case "DIRETOR":
-            redirectPath = "/";
-            break;
-        }
-
-        toast.success("Login realizado com sucesso!");
-
-        window.location.href = redirectPath;
-      } catch (decodeError) {
-        console.log("Erro ao decodificar token:", decodeError);
-        toast.success("Login realizado com sucesso!");
-        window.location.href = "/";
-      }
+      // Cada perfil vai para a rota inicial dele, a mesma do middleware. Ler só o
+      // primeiro perfil da claim deixava quem acumula perfis, a secretaria e o
+      // admin presos em "Redirecionando...".
+      const perfis = parseRoles(decodificarPerfis(response.tokenAcesso));
+      toast.success("Login realizado com sucesso!");
+      window.location.href = perfis.length > 0 ? rotaInicialDoPerfil(perfilPrincipal(perfis)) : "/";
     } catch (error) {
       if (error instanceof Error) {
         console.log("message", error.message);
@@ -217,7 +205,9 @@ function LoginContent() {
                 label="Manter conectada"
                 slotProps={{ typography: { fontSize: "0.833rem" } }}
               />
-              <S.MiniLink type="button">Esqueci a senha</S.MiniLink>
+              <S.MiniLink type="button" onClick={() => setEsqueciAberto(true)} disabled={disabled}>
+                Esqueci a senha
+              </S.MiniLink>
             </S.Row>
 
             <Button
@@ -259,6 +249,13 @@ function LoginContent() {
             Continuar com Google
           </Button>
         </S.FormBox>
+        <EsqueciSenhaDialog
+          open={esqueciAberto}
+          onClose={() => setEsqueciAberto(false)}
+          emailInicial={email}
+          codigoEscola={escolaValida ? codigoEscola : ""}
+          escolas={escolas}
+        />
       </S.Main>
     </S.LoginWrapper>
   );

@@ -5,7 +5,10 @@ import br.com.brain.dadosPessoais.DadosPessoais;
 import br.com.brain.perfil.Perfil;
 import br.com.brain.shared.EntidadeBase;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -51,6 +54,18 @@ public class DadosAutenticacao extends EntidadeBase implements UserDetails {
     private String token;
     private LocalDateTime expiracaoToken;
     private Boolean ativo;
+
+    /** Por que o login está desligado; nulo quando ativo ou aguardando verificação (D47). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "motivo_desativacao")
+    private MotivoDesativacao motivoDesativacao;
+
+    /** Código de uso único do link de definir ou redefinir senha (D48). */
+    @Column(name = "token_senha")
+    private String tokenSenha;
+
+    @Column(name = "expiracao_token_senha")
+    private LocalDateTime expiracaoTokenSenha;
 
     private String googleAccessToken;
     private String googleRefreshToken;
@@ -115,31 +130,74 @@ public class DadosAutenticacao extends EntidadeBase implements UserDetails {
         return this.ativo;
     }
 
+    /**
+     * Confirma o e-mail. Um login desligado continua desligado: o link de
+     * verificação não pode desfazer uma desativação (F4).
+     */
     public void verificar() {
         this.verificado = true;
-        this.ativo = true;
+        this.ativo = this.motivoDesativacao == null;
         this.token = null;
         this.expiracaoToken = null;
     }
 
-    public void desativar() {
+    /** A pessoa ficou sem papel nenhum. Não troca uma desativação administrativa. */
+    public void desativarSemPerfil() {
         this.ativo = false;
+        if (this.motivoDesativacao == null) {
+            this.motivoDesativacao = MotivoDesativacao.SEM_PERFIL;
+        }
     }
 
-    public void reativar() {
-        this.ativo = true;
+    /** Pela tela de Usuários. Vale mesmo para quem ainda não verificou. */
+    public void desativarAdministrativamente() {
+        this.ativo = false;
+        this.motivoDesativacao = MotivoDesativacao.ADMINISTRATIVA;
+        resetarTokenSenha();
     }
 
+    /**
+     * Desfaz a desativação do motivo informado. Quem ainda não verificou volta
+     * a aguardar a verificação, sem entrar.
+     */
+    public boolean reativar(MotivoDesativacao motivo) {
+        if (this.motivoDesativacao != motivo) {
+            return false;
+        }
+        this.motivoDesativacao = null;
+        this.ativo = Boolean.TRUE.equals(this.verificado);
+        return true;
+    }
+
+    public SituacaoLogin getSituacao() {
+        if (this.motivoDesativacao != null) {
+            return SituacaoLogin.DESATIVADO;
+        }
+        if (!Boolean.TRUE.equals(this.verificado)) {
+            return SituacaoLogin.AGUARDANDO_VERIFICACAO;
+        }
+        return Boolean.TRUE.equals(this.ativo) ? SituacaoLogin.ATIVO : SituacaoLogin.DESATIVADO;
+    }
+
+    public void gerarTokenSenha(String codigo, LocalDateTime expiracao) {
+        this.tokenSenha = codigo;
+        this.expiracaoTokenSenha = expiracao;
+    }
+
+    public void resetarTokenSenha() {
+        this.tokenSenha = null;
+        this.expiracaoTokenSenha = null;
+    }
+
+    /** Sem senha nem tokens: o toString vai parar em log. */
     @Override
     public String toString() {
         return "Usuario{" +
                 "id=" + id +
                 ", email='" + email + '\'' +
-                ", senha='" + senha + '\'' +
                 ", verificado=" + verificado +
-                ", token='" + token + '\'' +
-                ", expiracaoToken=" + expiracaoToken +
                 ", ativo=" + ativo +
+                ", motivoDesativacao=" + motivoDesativacao +
                 '}';
     }
 

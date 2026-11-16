@@ -58,6 +58,16 @@ Na implantação, cada perfil ganha um grupo padrão com tudo o que já acessa h
 | D40 (04/11) | A fila de aprovação de bolsa é também de DIRETOR e ADMIN, como a de preço. | Na main ela é só de SECRETARIO e FINANCEIRO, embora a V118 diga que "a direção abre a tela". Revê a D35 nesse ponto e diverge da main até corrigirem lá (seção 12, item 12). |
 | D41 (04/11) | Conceder perfil a quem já tem login também vincula ao grupo padrão, a não ser que a pessoa já esteja em outro grupo normal daquele perfil. | O `concederPerfil`, da main, adicionava o perfil sem vincular. A exceção vem do `revogarPerfil`, também da main: quem perde o perfil continua nos grupos, e entrar no padrão ao voltar desfaria uma restrição (RP2). Seção 8.4. |
 | D42 (04/11) | A regra "perfil OU tela" (D26) vale também para as áreas que a main trancou por perfil (`/produto/**`, `/dados-pessoais/**`) e para `/financeiro/**` e `/contratos/**`. | Sem isso, quem recebe a tela por acesso individual abre a página e toma 403. O estorno pede o controle, não a tela (D39). Seção 8.2. |
+| D43 (16/11) | A tela de Usuários (`/usuarios`) entra no catálogo como `USUARIOS`, com cinco controles, e deixa de ser rota livre. Usuários é a visão por pessoa; Grupos, a visão por regra. A tela não cria pessoas nem logins, que continuam nascendo nas telas de cada área. Sai em fatias: lista e login primeiro, depois perfis e acesso efetivo, depois grupos e acessos individuais. | V127 e seções 6.1, 6.3, 8.7 e 9.8. A proposta completa tem as decisões U1 a U16 e as regras RU1 a RU10. |
+| D44 (16/11) | A checagem no servidor é "perfil gestor OU controle", no molde do `PerfilOuTela`. ADMIN e DIRETOR passam pelo perfil, sempre. Qualquer outro perfil passa só pelo controle, e o código nunca testa "é secretaria". A tela e os controles de gestão ficam no `ControlesDeGestao`, e o acesso individual não os concede fora do teto do perfil (U14). | `/usuarios/**` exige a tela ou o perfil no `SecurityConfigurations`; cada ação confere o controle no `GestaoUsuariosService`. O cálculo (seção 5) também descarta gestão gravada num grupo individual fora do teto. |
+| D45 (16/11) | Teto: ADMIN e DIRETOR com a tela e os cinco controles; SECRETARIO com a tela e `USUARIO.LOGIN.GERENCIAR`. Só o grupo padrão do DIRETOR recebe os itens. O da secretaria fica sem nada, e a escola libera num grupo dela se quiser. | É o primeiro caso em que o grupo padrão não recebe todo o teto do perfil (seção 10). |
+| D46 (16/11) | Alcance (RU2): o ADMIN age sobre todos; o DIRETOR, sobre todos menos quem tem ADMIN; qualquer outro perfil com o controle, sobre quem não tem ADMIN nem DIRETOR. A secretaria, portanto, desativa aluno, responsável, professor, orientador e outro secretário, mas não a direção. Ninguém altera o próprio acesso (RU1). A escola nunca fica sem ADMIN ativo e verificado (RU7). | `AlcanceGestaoUsuarios`, uma regra só. Para dar a outro perfil um alcance diferente, muda-se só ela. |
+| D47 (16/11) | O login desativado tem motivo: `SEM_PERFIL`, quando a pessoa ficou sem papel nenhum (desmatrícula, desligamento), e `ADMINISTRATIVA`, pela tela. A tela não reativa `SEM_PERFIL`: ele volta sozinho quando a pessoa recebe um perfil de novo. Uma rematrícula não desfaz a `ADMINISTRATIVA`. O link de verificação não religa um login desativado (F4). | Coluna `motivo_desativacao` (V127). Quem já estava verificado e desligado recebeu `SEM_PERFIL`. O DELETE de login saiu (U4). |
+| D48 (16/11) | Link de senha único para definir (primeiro acesso, que também verifica) e redefinir. Vai sempre para o e-mail pessoal (`dados_pessoais.email`), com a escola dentro de um token assinado e um código de uso único no banco. Sem e-mail pessoal, a redefinição pela gestão é bloqueada. "Esqueci a senha" passa a funcionar e responde igual exista ou não o login (F5). | `LinkDeSenhaService`, `POST /login/esqueci-minha-senha`, `GET`/`POST /login/nova-senha` e a página pública `/nova-senha`. Substitui o reenvio do e-mail de verificação, que exigia a senha em texto puro. O token antigo fica só para o link de verificação. |
+| D49 (16/11) | Conceder e remover perfil passa pelo Envers (F6), e `dados_autenticacao.dados_pessoais_id` é único (uma linha por pessoa com login). | V127: `dados_pessoais_perfis_AUD`, o UNIQUE e os tokens do Google como TEXT no `_AUD`. Se houver duplicata, a migration para com o id repetido na mensagem. |
+| D50 (16/11) | A tela de Usuários concede e remove DIRETOR, ORIENTADOR e SECRETARIO, e o ADMIN para quem é ADMIN (U7, U13). Os outros perfis aparecem sem ação (RU6). Conceder põe a pessoa no grupo padrão só se ela não tiver nenhum grupo normal no perfil; quem volta ao perfil volta aos grupos de antes (RU3). Remover guarda os vínculos (RU4) e não tira o único perfil (RU5) nem o ADMIN do último administrador ativo (RU7). Perfil de funcionário não vai para quem só tem ESTUDANTE. | `PerfisUsuarioService` e `RegrasDePerfil`. Antes de confirmar, o diálogo mostra a prévia (`…/previa`): grupos que voltam ou o padrão, o que o perfil vai abrir com o dado sensível marcado, o que abre direto no servidor e, ao remover, se a pessoa é a última com o perfil (RU10). |
+| D51 (16/11) | Conceder SECRETARIO cria o registro `secretarios` na mesma transação, e a tela nunca o apaga. A equipe e a distribuição da fila do CRM passam a ser quem tem o registro, o perfil e o login ativo (RU9). Ao remover, a prévia avisa quantos leads ativos estão com a pessoa. | `SecretarioRepository.findAtendentes`, usado pelo `ProcessoMatriculaService` no lugar do `findAll`. Os leads não são reatribuídos sozinhos. |
+| D52 (16/11) | Acesso efetivo de outra pessoa (`USUARIO.ACESSOS.VER`): por perfil, cada tela e ação com a origem (grupo, acesso individual ou teto do ADMIN), os grupos inativos marcados, os grupos guardados de perfis que ela não tem mais e, à parte, o que o perfil abre direto no servidor. | `AcessoEfetivoCalculo`, com as regras do `PermissoesUsuarioService` (um teste confere que as duas contas batem). A lista do servidor é `AcessoDiretoDoPerfil`, espelho escrito à mão das regras por perfil do `SecurityConfigurations`: mudou lá, muda aqui. |
 
 As D28–D32 foram usadas na branch `feature/permissoes-grupos-mult-perfis` (grupos de vários perfis), abandonada em 29/10. Os números ficaram sem uso para não confundir com ela.
 
@@ -208,18 +218,18 @@ WHERE t.ativo = TRUE;
 
 ## 6. Catálogo inicial
 
-O catálogo foi gerado a partir do `routesConfig.tsx`: 84 entradas, 64 rotas distintas e 57 telas no catálogo. O merge da main de 29/10 trouxe mais 7 telas e a área própria do diretor (V125, D35). O de 04/11 trouxe mais 3 e o perfil FINANCEIRO (V126, D37), e hoje são 67 telas. As tabelas abaixo mostram o estado atual.
+O catálogo foi gerado a partir do `routesConfig.tsx`: 84 entradas, 64 rotas distintas e 57 telas no catálogo. O merge da main de 29/10 trouxe mais 7 telas e a área própria do diretor (V125, D35). O de 04/11 trouxe mais 3 e o perfil FINANCEIRO (V126, D37). A tela de Usuários entrou na V127 (D43), e hoje são 68 telas. As tabelas abaixo mostram o estado atual.
 
 ### 6.1 Telas por perfil
 
-Em cada perfil, a lista abaixo é ao mesmo tempo o teto e o conteúdo do grupo padrão. Para o ADMIN, é o que ele recebe direto, sem grupo.
+Em cada perfil, a lista abaixo é ao mesmo tempo o teto e o conteúdo do grupo padrão. Para o ADMIN, é o que ele recebe direto, sem grupo. A exceção é `USUARIOS` no teto da secretaria, que não vem no grupo padrão dela (D45).
 
 | Perfil | Telas |
 |---|---|
-| ADMIN (45) | As 31 telas de cadastro listadas abaixo, mais `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `AVALIACOES`, `AVALIACAO_DETALHE`, `AVALIACAO_TURMA_NOTAS`, `DIARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO`, `RELATORIOS` e as filas `SECRETARIA_APROVACAO_BOLSA` e `SECRETARIA_APROVACAO_PRECO` |
-| DIRETOR (45) | As 31 telas de cadastro, mais `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO`, as filas `SECRETARIA_APROVACAO_BOLSA` e `SECRETARIA_APROVACAO_PRECO` e a área da Direção: `GESTAO_PROFESSORES`, `GESTAO_PROFESSOR_DETALHE`, `GESTAO_ANO_LETIVO` e `RELATORIO_ACOMPANHAMENTO_TURMA` |
+| ADMIN (46) | As 31 telas de cadastro listadas abaixo, mais `USUARIOS`, `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `AVALIACOES`, `AVALIACAO_DETALHE`, `AVALIACAO_TURMA_NOTAS`, `DIARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO`, `RELATORIOS` e as filas `SECRETARIA_APROVACAO_BOLSA` e `SECRETARIA_APROVACAO_PRECO` |
+| DIRETOR (46) | As 31 telas de cadastro, mais `USUARIOS`, `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO`, as filas `SECRETARIA_APROVACAO_BOLSA` e `SECRETARIA_APROVACAO_PRECO` e a área da Direção: `GESTAO_PROFESSORES`, `GESTAO_PROFESSOR_DETALHE`, `GESTAO_ANO_LETIVO` e `RELATORIO_ACOMPANHAMENTO_TURMA` |
 | PROFESSOR (14) | `ALUNO_DETALHE`, `MINHAS_TURMAS`, `MINHAS_TURMAS_DETALHE`, `AULAS_DETALHE`, `AULA_CADASTRO`, `AVALIACOES`, `AVALIACAO_DETALHE`, `AVALIACAO_TURMA_NOTAS`, `DIARIO`, `CONTRACHEQUE`, `CALENDARIO`, `COMUNICADOS`, `COMUNICACAO`, `MATERIAIS_COMPLEMENTARES` |
-| SECRETARIO (14) | `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `SECRETARIA_MATRICULAS`, `SECRETARIA_CRM`, `SECRETARIA_FINANCEIRO`, `SECRETARIA_CATALOGO`, `SECRETARIA_APROVACAO_BOLSA`, `SECRETARIA_DOCUMENTOS`, `SECRETARIA_ENTURMACAO`, `SECRETARIA_TURMA_GERENCIAR`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO` |
+| SECRETARIO (14 + 1) | No teto, também `USUARIOS`, que não vem no grupo padrão (D45). `ALUNO_CADASTRO`, `ALUNO_DETALHE`, `SECRETARIA_MATRICULAS`, `SECRETARIA_CRM`, `SECRETARIA_FINANCEIRO`, `SECRETARIA_CATALOGO`, `SECRETARIA_APROVACAO_BOLSA`, `SECRETARIA_DOCUMENTOS`, `SECRETARIA_ENTURMACAO`, `SECRETARIA_TURMA_GERENCIAR`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO` |
 | FINANCEIRO (6) | `SECRETARIA_FINANCEIRO`, `SECRETARIA_CATALOGO`, `SECRETARIA_APROVACAO_BOLSA`, `SECRETARIA_APROVACAO_PRECO`, `ALUNO_LISTA`, `ALUNO_DETALHE` |
 | ORIENTADOR (6) | `ALUNO_DETALHE`, `ORIENTACAO_ALUNOS`, `CALENDARIO`, `COMUNICADOS`, `COMUNICADOS_CADASTRO`, `COMUNICACAO` |
 | ESTUDANTE (6) | `ALUNO_AULA`, `CALENDARIO`, `COMUNICADOS`, `COMUNICACAO`, `MATERIAIS_COMPLEMENTARES`, `RELATORIOS` |
@@ -248,7 +258,7 @@ Assim as escritas desses cadastros têm um código para checar (seção 8.3), e 
 - **Rotas livres**, guardadas só pelo `roles`:
   - `HOME` (`/`), `PERFIL` (`/perfil`) e `HOME_ADMIN` (`/admin`, só do ADMIN desde que o diretor ganhou o painel dele em `/`);
   - as novas `GRUPOS_USUARIOS` (`/grupos-usuarios`), para ADMIN e DIRETOR, e `SEM_ACESSO` (`/sem-acesso`), para todos.
-- **Entradas do `routesConfig` sem página:** `/usuarios`, `/configuracoes`, `/ficha-medica/cadastro` e `/dashAluno/inicio`. No frontend também são livres, para o menu e a guarda as tratarem como antes.
+- **Entradas do `routesConfig` sem página:** `/configuracoes`, `/ficha-medica/cadastro` e `/dashAluno/inicio`. No frontend também são livres, para o menu e a guarda as tratarem como antes.
 - **Páginas sem entrada no `routesConfig`:** `/minhas-aulas`, `/alerta/detalhamento` e `/ficha-medica/[dadosPessoaisId]`. O middleware já as bloqueia para todos.
 
 ### 6.3 Controles
@@ -274,10 +284,15 @@ Entram só as diferenças que já existem hoje entre perfis dentro de uma mesma 
 | `FICHA_MEDICA.INCLUIR` | `FICHA_MEDICA_RESPONSAVEL` | RESPONSAVEL | Incluir medicação e laudo (`usePermissoes().incluirNaFichaMedica`) | Inclusões em `/portal-responsavel/aluno/{alunoId}/ficha-medica/laudos` e `…/medicacoes` |
 | `GRUPO_USUARIO.HISTORICO.VER` | — (tela de grupos, fora do catálogo) | ADMIN, DIRETOR | Botão "Histórico" no detalhe do grupo (V123) | `GET /grupos-usuarios/{id}/historico` |
 | `PAGAMENTO.ESTORNAR` | `SECRETARIA_FINANCEIRO` | FINANCEIRO | Botão "Estornar" no carnê do aluno | `POST /financeiro/pagamentos/{id}/estorno`: por perfil (FINANCEIRO, DIRETOR, ADMIN) ou pelo controle (D39) |
+| `USUARIO.LOGIN.GERENCIAR` | `USUARIOS` | ADMIN, DIRETOR, SECRETARIO (padrão: só DIRETOR, D45) | Desativar e reativar, reenviar verificação e enviar redefinição de senha | `POST /usuarios/{id}/login/*`: ADMIN e DIRETOR pelo perfil, os outros pelo controle (D44) |
+| `USUARIO.ACESSOS.VER` | `USUARIOS` | ADMIN, DIRETOR | Grupos e acesso efetivo da pessoa (fatia 2) | — (fatia 2) |
+| `USUARIO.GRUPOS.GERENCIAR` | `USUARIOS` | ADMIN, DIRETOR | Pôr e tirar a pessoa de grupos (fatia 3) | — (fatia 3) |
+| `USUARIO.PERFIS.GERENCIAR` | `USUARIOS` | ADMIN, DIRETOR | Conceder e remover DIRETOR, ORIENTADOR e SECRETARIO (fatia 2) | — (fatia 2) |
+| `USUARIO.ACESSOS_INDIVIDUAIS.GERENCIAR` | `USUARIOS` | ADMIN, DIRETOR | Editor de acessos individuais na página da pessoa (fatia 3) | — (fatia 3) |
 
 ⚠️ Ver a seção 12.
 
-Situação familiar e atendimento psicológico ficam fora do teto de ADMIN e DIRETOR (D9). No total são 17 controles. O ADMIN recebe 9 deles (o de histórico veio na V123). O diretor também recebia 9 até a V125. Hoje recebe 7: ganhou `EVENTO.GERENCIAR` e perdeu `FICHA_MEDICA.EDITAR`, `ALUNO.PRODUTOS.VER` e `ALUNO.MATRICULA.ALTERAR`, como na main, onde ele vê a ficha sem editar, não vê produtos e não tem os botões de matrícula do detalhe (D35).
+Situação familiar e atendimento psicológico ficam fora do teto de ADMIN e DIRETOR (D9). No total são 22 controles. O ADMIN recebe 14 deles (o de histórico veio na V123, e os cinco de Usuários na V127). O diretor também recebia 9 até a V125. Hoje recebe 7: ganhou `EVENTO.GERENCIAR` e perdeu `FICHA_MEDICA.EDITAR`, `ALUNO.PRODUTOS.VER` e `ALUNO.MATRICULA.ALTERAR`, como na main, onde ele vê a ficha sem editar, não vê produtos e não tem os botões de matrícula do detalhe (D35).
 
 ### 6.4 Dependências
 
@@ -291,6 +306,8 @@ As dependências ficam declaradas no código (`DependenciasPermissao`). O endpoi
 | `FICHA_MEDICA.EDITAR` | `FICHA_MEDICA.VER` | — |
 | `SITUACAO_FAMILIAR.EDITAR` | `SITUACAO_FAMILIAR.VER` | — |
 | `ATENDIMENTO_PSICOLOGICO.REGISTRAR` | `ATENDIMENTO_PSICOLOGICO.VER` | — |
+| `USUARIO.GRUPOS.GERENCIAR` | `USUARIO.ACESSOS.VER` | Edita o que a seção de acessos da pessoa mostra. |
+| `USUARIO.ACESSOS_INDIVIDUAIS.GERENCIAR` | `USUARIO.ACESSOS.VER` | O mesmo. |
 
 ### 6.5 Módulos e submódulos (V124, D33)
 
@@ -1049,12 +1066,7 @@ ORDER BY p.nome, dp.nome;
 
 ### 8.5 Segurança: pré-requisitos e cuidados
 
-- **Fechar `/usuario/**`.** O `SecurityConfigurations` libera `/usuario/**` inteiro, então `GET /usuario` (lista de usuários), `GET /usuario/{id}` e `DELETE /usuario/{id}` respondem sem login. A correção:
-  - deixar públicos só `GET /usuario/verificar-conta` e `POST /usuario/redefinir-senha`;
-  - `POST /usuario/alterar-senha` passa a exigir login;
-  - listagem, detalhe e exclusão ficam só para o ADMIN.
-
-  Essas regras entram acima do `permitAll("/**")` para já valerem.
+- **Fechar `/usuario/**`.** O `SecurityConfigurations` libera `/usuario/**` inteiro. Desde a V127 (D43), `GET /usuario`, `GET /usuario/{id}`, `DELETE /usuario/{id}` e `POST /usuario/redefinir-senha` não existem mais: a gestão foi para `/usuarios/**` e a redefinição para `/login/nova-senha`. Sobram `GET /usuario/verificar-conta`, que deve ficar público, e `POST /usuario/alterar-senha`, que deve passar a exigir login. A correção do `verificar-conta` (o `schema` da URL vai direto para o datasource) e da sessão de login desativado é da PR de F1 a F4, separada desta.
 - **Remover o `permitAll("/**")`.** Nenhuma regra que vem abaixo dele no `SecurityConfigurations` nunca rodou. Removê-lo é o que faz as leituras compartilhadas exigirem login (D5). Antes, revise uma a uma as regras de baixo, porque elas passarão a valer.
 - **Não colocar permissões em `getAuthorities()`.** O [TokenService.java](../backend/src/main/java/br/com/brain/autenticacao/TokenService.java) grava `getAuthorities().toString()` no claim `role`, que o frontend lê com `parseRoles`. O claim incharia e a leitura quebraria.
 - **Não colocar permissões no JWT.** O token cresceria, e as mudanças levariam até 30 minutos (a validade do token) para valer. O frontend busca `GET /permissoes/me`.
@@ -1081,6 +1093,39 @@ ORDER BY p.nome, dp.nome;
 - **Controllers:** para cada linha da tabela 6.3, 403 sem o controle e 200 com ele.
 
 **Já existem (08/10):** `PermissoesUsuarioServiceIntegracaoTest` cobre o cálculo de `/permissoes/me`: grupo padrão, sem grupo, grupo inativo, perfil perdido, dois perfis, item fora do teto, ADMIN com o teto inteiro, DIRETOR por grupo, vínculo no cadastro e vínculo repetido. Desde 04/11, os mesmos testes cobrem os dados das telas (D36): só as liberadas, o teto inteiro do ADMIN com o submódulo, perfil perdido, dois perfis e acesso individual. `PermissaoControllerTest` cobre o login exigido e o formato da resposta. Desde 15/10, `AcessosIndividuaisIntegracaoTest` cobre a seção 4.1: soma com o grupo, valer sem grupo, grupo inativo, as regras de um grupo, as recusas, o grupo individual apagado quando fica vazio e escondido dos endpoints de grupo, o contador da aba Pessoas e pessoas com o mesmo nome. Depois da D22, cobre também passar do teto (com dado sensível), o grupo normal ainda preso ao teto e o catálogo individual. `PerfilOuTelaTest` cobre a D26 pelo CRM: secretaria e diretor entram pelo perfil; o professor só entra depois de ganhar a tela. Desde 04/11, cobre também as áreas do FINANCEIRO, o estorno pelo perfil e pelo controle (D39), a aprovação de preço, o catálogo e a busca de pessoa (D42). `PermissoesUsuarioServiceIntegracaoTest` ganhou o teto do FINANCEIRO, da secretaria e da direção (D37–D40) e a concessão a quem já tem login, com e sem grupo menor (D41). `UsuarioServiceTest` confere que o `concederPerfil` só vincula quando o perfil é novo.
+
+### 8.7 Tela de Usuários (D43–D52)
+
+**Fatia 1, entregue em 16/11:** lista, cabeçalho e login. Pacote `br.com.brain.usuario.gestao`.
+
+| Endpoint | O que faz | Quem |
+|---|---|---|
+| `GET /usuarios` | Lista paginada no servidor, uma linha por pessoa com login. Filtros: `busca` (nome, nome social, login), `perfil`, `grupoId`, `situacao`, `semAcesso`, `comAcessoIndividual`. Ordena por nome. | A tela `USUARIOS`, ou ADMIN e DIRETOR pelo perfil |
+| `GET /usuarios/grupos` | Grupos normais para o filtro | O mesmo |
+| `GET /usuarios/{dadosPessoaisId}` | Cabeçalho: login, e-mail pessoal mascarado, perfis, situação, motivo, cadastros de origem e as ações que quem vê pode fazer agora (`acoes`), com o motivo quando não pode | O mesmo |
+| `POST /usuarios/{id}/login/desativar` e `…/reativar` | Desativação administrativa e a volta dela (D47) | `USUARIO.LOGIN.GERENCIAR`, alcance (D46), RU1 e RU7 |
+| `POST /usuarios/{id}/login/reenviar-verificacao` | Link de primeiro acesso, só para quem não verificou (D48) | O mesmo |
+| `POST /usuarios/{id}/login/redefinir-senha` | Link de redefinição, só para quem já verificou; bloqueia sem e-mail pessoal | O mesmo |
+
+**Situação do login**, em `DadosAutenticacao.getSituacao` e igual no filtro: com motivo, "Desativado"; sem motivo e sem verificação, "Aguardando verificação"; verificado e ativo, "Ativo".
+
+**Sem acesso em um perfil:** perfil da pessoa, menos o ADMIN, sem nenhum grupo ativo dela. Conta o grupo individual. A consulta da seção 8.4 conta também grupos inativos, então não serve para isso.
+
+**RU7:** antes de desativar alguém com ADMIN, o serviço trava os logins de ADMIN (`SELECT ... FOR UPDATE`) e conta os outros ativos e verificados, lendo do banco depois da trava.
+
+**Fatia 2, entregue em 16/11:** perfis e acesso efetivo (D50–D52).
+
+| Endpoint | O que faz | Quem |
+|---|---|---|
+| `GET /usuarios/{id}/acessos` | Acesso efetivo por perfil, com a origem de cada item e o que o perfil abre direto no servidor | `USUARIO.ACESSOS.VER` |
+| `GET /usuarios/{id}/perfis/{perfil}/previa` | O que muda ao conceder (se a pessoa não tem) ou remover (se tem), com o bloqueio quando não pode | `USUARIO.PERFIS.GERENCIAR` |
+| `POST /usuarios/{id}/perfis/{perfil}` e `DELETE …` | Concede ou remove o perfil e devolve o detalhe atualizado | `USUARIO.PERFIS.GERENCIAR`, alcance (D46), RU1, U13, RU5 a RU7 |
+
+O detalhe (`GET /usuarios/{id}`) ganhou `secoes` (o que mais quem vê pode abrir) e `perfisDeFuncao` (uma linha por perfil, com o bloqueio de cada uma; vazia sem o controle). A aba Pessoas da tela de grupos marca quem continua no grupo "sem o perfil" (`MembroGrupoDto.semOPerfil`, RU4).
+
+A mudança de perfil vale na hora no servidor, que lê os perfis do banco a cada requisição. O menu da pessoa só muda no próximo login, porque o perfil vai no token.
+
+**Fatia seguinte:** grupos a partir da pessoa, acessos individuais, o redirecionamento da página antiga da aba Pessoas e a página da pessoa sem login.
 
 ## 9. Frontend
 
@@ -1220,6 +1265,16 @@ O perfil veio da main em 04/11, com os enums e a precedência (acima de SECRETAR
 
 **Menu.** Com as filas de aprovação, o menu passou da largura da tela: no ADMIN até 1440 px, no DIRETOR até 1366 px e no SECRETARIO em 1280 px. O sino e o avatar iam para fora, e não há como rolar até eles. Agora o menu quebra em mais uma linha quando falta espaço ([appBar.tsx](../frontend/src/components/appBar/appBar.tsx)). A barra fica com até 79 px, abaixo dos 80 px em que o conteúdo começa. Agrupar as telas de dinheiro num módulo encolheria o menu, mas muda o que a secretaria vê e diverge da main, então ficou para decidir depois.
 
+### 9.8 Tela de Usuários (`/usuarios`)
+
+- **Lista** ([page.tsx](../frontend/src/app/(private)/usuarios/page.tsx)): busca, filtros e paginação no servidor, no padrão das listas da tela de grupos. Cada linha mostra perfis, grupos (o inativo tracejado), o selo "Acesso individual", o alerta "Sem acesso em PERFIL" e a situação do login.
+- **Página da pessoa** (`/usuarios/[dadosPessoaisId]`): cabeçalho e a seção Login. Os botões vêm de `acoes`, calculado no servidor; quando não há o que fazer, aparece o motivo (o próprio login, fora do alcance, sem permissão).
+- **Perfis** (quem tem `USUARIO.PERFIS.GERENCIAR`): uma linha por perfil, com Conceder ou Remover; o botão desabilitado explica o bloqueio. Cada ação abre um diálogo com a prévia do servidor antes de confirmar.
+- **Acesso efetivo** (quem tem `USUARIO.ACESSOS.VER`): uma aba por perfil, com os grupos (o inativo marcado), as telas por módulo e as ações, cada uma com os chips de origem, e o que o perfil abre direto no servidor.
+- **Menu:** a entrada `USUARIOS` perdeu o `livre` e declara ADMIN, DIRETOR e SECRETARIO. A secretaria só a vê se a escola liberar a tela num grupo dela (D45).
+- **Login:** o botão "Esqueci a senha" abre um diálogo com escola e e-mail. Depois do login, cada perfil vai para `rotaInicialDoPerfil`, a mesma do middleware; o `switch` antigo lia só o primeiro perfil. O painel em `/` manda para a rota inicial quem não tem painel ali (ADMIN, SECRETARIO, FINANCEIRO).
+- **Página pública `/nova-senha`:** lê o token, mostra se é primeiro acesso ou redefinição e salva a senha (mínimo de 8 caracteres).
+
 ## 10. Telas e controles novos (convenção)
 
 1. **Página nova.** Continua entrando no `RoutesEnum` e no `routesConfig`, como hoje. Se não for livre, a mesma PR traz uma migration com a tela, o teto e a concessão aos grupos padrão:
@@ -1244,7 +1299,7 @@ O perfil veio da main em 04/11, com os enums e a precedência (acima de SECRETAR
    WHERE g.padrao = TRUE;
    ```
 
-   O ADMIN não tem grupo: recebe a tela nova se o teto tiver uma linha para o perfil ADMIN. Entre os grupos, só os padrão recebem a tela nova. Os grupos personalizados foram restringidos de propósito, e quem os mantém decide se libera ou não. Sem essa regra, cada escola teria que liberar à mão toda funcionalidade nova.
+   O ADMIN não tem grupo: recebe a tela nova se o teto tiver uma linha para o perfil ADMIN. Entre os grupos, só os padrão recebem a tela nova, a não ser que a decisão da tela diga outra coisa (a de Usuários fica fora do padrão da secretaria, D45). Os grupos personalizados foram restringidos de propósito, e quem os mantém decide se libera ou não. Sem essa regra, cada escola teria que liberar à mão toda funcionalidade nova.
 2. **Controle novo.** Segue o mesmo padrão em `controles`, `controles_perfis` e `grupos_usuarios_controles`, e ganha a constante em `CodigosPermissao` (Java) e em `CONTROLES` (TS).
 3. **Módulo novo.** Entra no `RoutesModuleEnum` (ou no `RoutesSectionEnum`, se for setor) e no `MODULE_CONFIG` (ou `SECTION_CONFIG`). A mesma PR traz uma migration com a linha em `modulos` e o `modulo_id` das telas que mudam de lugar.
 4. **Perfil novo.** Além dos enums, a mesma PR traz uma migration com o teto e o grupo padrão (a V121 só cria grupo para os perfis que já existem nela), a entrada no `PERFIS_COM_GRUPO` e o caso em `rotaInicialDoPerfil`, se a rota inicial não for `/`.
@@ -1290,4 +1345,4 @@ O seed reproduz o comportamento de hoje, inclusive nestes pontos. Cada um é uma
 - Cadastro de diretor com login. É pré-requisito da seção 9.6 e merece uma spec própria.
 - Acesso individual que retira o que um grupo dá (D20) ou que vence numa data (D21).
 - Fazer as telas pessoais funcionarem para quem não é o dono do dado (D22): Minhas turmas, Contracheque e Diário dependem de a pessoa ser professor; Minhas aulas, de ser aluno; e as telas do responsável, de ter filhos vinculados.
-- Tela de usuários (`/usuarios` está no menu do ADMIN, mas não tem página).
+- Na tela de Usuários: criar login para quem foi cadastrado sem login (U11), conceder COORDENADOR e RECURSOS_HUMANOS (U15, até existirem no frontend), forçar logout na troca de perfil e corrigir o código que usa o "primeiro perfil" da pessoa (conversa e view do aluno).

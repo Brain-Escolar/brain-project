@@ -3,12 +3,15 @@ package br.com.brain.infra.email;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import br.com.brain.autenticacao.DadosAutenticacao;
 
@@ -72,12 +75,27 @@ public class EmailService {
                 .replace("[[senha]]", senha);
     }
 
-    public void enviarEmailEsqueciMinhaSenha(String email, String token) {
-        String assunto = "Redefinição de senha";
-        String conteudo = "Olá,<br>" +
-                "Para redefinir sua senha, clique no link abaixo:<br>" +
-                "<h3><a href=\"" + urlSite + "/usuario/alterar-senha?codigo=" + token
-                + "\" target=\"_self\">ALTERAR SENHA</a></h3>";
+    /**
+     * Link para a página pública de nova senha (D48). Definir é o primeiro
+     * acesso de quem ainda não verificou o e-mail; redefinir é para quem já
+     * entrava. O token leva a escola, então o link funciona sem mais nada.
+     */
+    @Async
+    public void enviarEmailLinkSenha(String nome, String email, String login, String token, boolean primeiroAcesso,
+            String validade) {
+        var link = urlSite + "/nova-senha?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+        var assunto = primeiroAcesso ? "Defina sua senha de acesso ao Brain" : "Redefinição de senha do Brain";
+        var abertura = primeiroAcesso
+                ? "Seu acesso ao Brain está pronto. Para entrar pela primeira vez, defina sua senha."
+                : "Recebemos um pedido para redefinir a sua senha do Brain.";
+        var conteudo = "Olá, " + HtmlUtils.htmlEscape(nome) + ".<br><br>"
+                + abertura + "<br>"
+                + "Seu login é <b>" + HtmlUtils.htmlEscape(login) + "</b>.<br>"
+                + "<h3><a href=\"" + link + "\" target=\"_self\">"
+                + (primeiroAcesso ? "DEFINIR SENHA" : "REDEFINIR SENHA") + "</a></h3>"
+                + "O link vale por " + validade + " e só pode ser usado uma vez.<br>"
+                + "Se você não esperava este e-mail, pode ignorá-lo: sua senha não muda.<br><br>"
+                + "Brain.";
         enviarEmail(email, assunto, conteudo);
     }
 }

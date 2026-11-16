@@ -25,6 +25,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,8 @@ class AcessosIndividuaisIntegracaoTest {
     private DadosAutenticacaoRepository dadosAutenticacaoRepository;
     @Autowired
     private PerfilRepository perfilRepository;
+    @Autowired
+    private JdbcTemplate jdbc;
 
     @Test
     @DisplayName("os acessos individuais somam aos do grupo, e a tela mostra de onde vem cada um")
@@ -152,7 +155,7 @@ class AcessosIndividuaisIntegracaoTest {
         var catalogo = catalogoService.catalogoIndividual(SECRETARIO);
         var doPerfil = catalogoService.catalogo(SECRETARIO);
 
-        assertThat(catalogo.telas()).hasSize(67).extracting(TelaCatalogoDto::nome).isSorted();
+        assertThat(catalogo.telas()).hasSize(68).extracting(TelaCatalogoDto::nome).isSorted();
         assertThat(catalogo.telas().stream().filter(TelaCatalogoDto::doPerfil).map(TelaCatalogoDto::codigo))
                 .containsExactlyInAnyOrderElementsOf(doPerfil.telas().stream().map(TelaCatalogoDto::codigo).toList());
         var controlesDoDetalhe = catalogo.telas().stream().filter(t -> t.codigo().equals("ALUNO_DETALHE"))
@@ -240,6 +243,46 @@ class AcessosIndividuaisIntegracaoTest {
 
         assertThat(telasEfetivas(uma)).containsExactly("CALENDARIO");
         assertThat(telasEfetivas(outra)).containsExactly("COMUNICADOS");
+    }
+
+    @Test
+    @DisplayName("a gestão de usuários não passa pelo acesso individual fora do teto do perfil (U14)")
+    void gestaoForaDoTeto() {
+        var prof = login("Paulo Mendes", PerfilNome.PROFESSOR);
+
+        assertThatThrownBy(() -> service.salvarAcessosIndividuais(idDe(prof), PerfilNome.PROFESSOR,
+                acessos(Set.of("USUARIOS"), Set.of("USUARIO.LOGIN.GERENCIAR"))))
+                .hasMessageContaining("gestão de usuários")
+                .hasMessageContaining("USUARIO.LOGIN.GERENCIAR")
+                .hasMessageContaining("USUARIOS");
+    }
+
+    @Test
+    @DisplayName("no teto, a secretaria recebe a tela de Usuários e o controle de login pelo acesso individual")
+    void gestaoNoTeto() {
+        var sara = login("Sara Nunes", SECRETARIO);
+
+        service.salvarAcessosIndividuais(idDe(sara), SECRETARIO,
+                acessos(Set.of("USUARIOS"), Set.of("USUARIO.LOGIN.GERENCIAR")));
+
+        assertThat(telasEfetivas(sara)).containsExactly("USUARIOS");
+        assertThat(permissoesService.temControle(sara, "USUARIO.LOGIN.GERENCIAR")).isTrue();
+        assertThat(permissoesService.temControle(sara, "USUARIO.PERFIS.GERENCIAR")).isFalse();
+    }
+
+    @Test
+    @DisplayName("gestão gravada num acesso individual fora do teto não vale no cálculo (U14)")
+    void gestaoGravadaForaDoTetoNaoVale() {
+        var prof = login("Rita Alves", PerfilNome.PROFESSOR);
+        service.salvarAcessosIndividuais(idDe(prof), PerfilNome.PROFESSOR, acessos(Set.of("CALENDARIO"), Set.of()));
+        // Como se tivesse sido gravado antes da regra: direto no banco, sem o serviço.
+        var individual = grupoRepository.findIndividual(PerfilNome.PROFESSOR, idDe(prof)).orElseThrow();
+        jdbc.update("insert into grupos_usuarios_telas (grupo_usuario_id, tela_id, criado_em) "
+                + "select ?, id, now() from telas where codigo = 'USUARIOS'", individual.getId());
+
+        var telas = permissoesService.doUsuario(prof).perfis().get(PerfilNome.PROFESSOR).telas();
+
+        assertThat(telas).contains("CALENDARIO").doesNotContain("USUARIOS");
     }
 
     // ------------------------------------------------------------ apoio

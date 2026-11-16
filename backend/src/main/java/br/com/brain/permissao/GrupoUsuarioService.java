@@ -195,10 +195,12 @@ public class GrupoUsuarioService {
     public Page<MembroGrupoDto> buscarMembros(Long id, String busca, Pageable pageable) {
         var grupo = buscar(id);
         var pagina = membroRepository.buscarMembros(grupo.getId(), padraoDeBusca(busca), semOrdenacao(pageable));
-        var individuais = contarIndividuais(grupo.getPerfil(),
-                pagina.getContent().stream().map(PessoaGrupoDto::dadosPessoaisId).toList());
+        var ids = pagina.getContent().stream().map(PessoaGrupoDto::dadosPessoaisId).toList();
+        var individuais = contarIndividuais(grupo.getPerfil(), ids);
+        Set<Long> comPerfil = ids.isEmpty() ? Set.of() : membroRepository.findComPerfilEntre(grupo.getPerfil().getId(), ids);
         return pagina.map(pessoa -> new MembroGrupoDto(pessoa,
-                individuais.getOrDefault(pessoa.dadosPessoaisId(), 0L)));
+                individuais.getOrDefault(pessoa.dadosPessoaisId(), 0L),
+                !comPerfil.contains(pessoa.dadosPessoaisId())));
     }
 
     @Transactional(readOnly = true)
@@ -268,6 +270,7 @@ public class GrupoUsuarioService {
 
         var catalogo = catalogoService.todos();
         validarAcessos(catalogo, "que não existem no catálogo", dados.telas(), dados.controles());
+        validarGestaoNoTeto(perfil, dados);
 
         var existente = grupoRepository.findIndividual(perfil, dadosPessoaisId);
         if (dados.telas().isEmpty() && dados.controles().isEmpty()) {
@@ -379,6 +382,26 @@ public class GrupoUsuarioService {
 
         if (!problemas.isEmpty()) {
             throw ErrosSistema.OperacaoInvalidaException.com("Acessos inválidos: " + String.join("; ", problemas) + ".");
+        }
+    }
+
+    /**
+     * U14: a tela de Usuários e os controles de gestão só vêm de um perfil que
+     * os tem no teto, mesmo no acesso individual. Sem isso, um grupo de uma
+     * pessoa só faria um gestor fora das regras.
+     */
+    private void validarGestaoNoTeto(PerfilNome perfil, AcessosGrupoUsuarioDto dados) {
+        var teto = catalogoService.teto(perfil);
+        var foraDoTeto = Stream.concat(
+                        dados.telas().stream().filter(ControlesDeGestao::contem)
+                                .filter(codigo -> !teto.telas().containsKey(codigo)),
+                        dados.controles().stream().filter(ControlesDeGestao::contem)
+                                .filter(codigo -> !teto.controles().containsKey(codigo)))
+                .sorted()
+                .toList();
+        if (!foraDoTeto.isEmpty()) {
+            throw ErrosSistema.OperacaoInvalidaException.com("A gestão de usuários não pode ser dada pelo acesso "
+                    + "individual fora do que o perfil " + perfil + " permite: " + String.join(", ", foraDoTeto) + ".");
         }
     }
 

@@ -104,7 +104,7 @@ public class DadosPessoais extends EntidadeBase {
     @OneToMany(mappedBy = "dadosPessoais", fetch = FetchType.LAZY)
     private List<Documento> documentos = new ArrayList<>();
 
-    @NotAudited
+    // Auditado desde a V127 (F6): conceder e remover perfil passa a ter histórico.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "dados_pessoais_perfis", joinColumns = @JoinColumn(name = "dados_pessoais_id"), inverseJoinColumns = @JoinColumn(name = "perfil_id"))
     private List<Perfil> perfis = new ArrayList<>();

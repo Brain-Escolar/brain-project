@@ -15,6 +15,8 @@ const publicRoutes = [
   { path: "/login", whenAuthenticated: "redirect" },
   { path: "/login/google/autorizado", whenAuthenticated: "next" },
   { path: "/usuario/verificar-conta", whenAuthenticated: "next" },
+  // Link de definir ou redefinir senha do e-mail (D48). Abre logado ou não.
+  { path: "/nova-senha", whenAuthenticated: "next" },
   { path: "/register", whenAuthenticated: "redirect" },
   { path: "/princing", whenAuthenticated: "next" },
 ] as const;

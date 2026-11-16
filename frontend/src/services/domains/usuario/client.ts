@@ -1,13 +1,89 @@
 import { httpClient } from "@/services/http";
-import { VerificarContaRequest } from "./request";
-import { VerificarContaResponse } from "./response";
+import { IBrainResult } from "@/services/commoResponse";
+import {
+  EsqueciSenhaRequest,
+  FiltroUsuariosParams,
+  NovaSenhaRequest,
+  VerificarContaRequest,
+} from "./request";
+import { PerfilNomeEnum } from "@/enums/PerfilNomeEnum";
+import {
+  AcessoEfetivoResponse,
+  GrupoFiltroResponse,
+  InformacaoLinkSenhaResponse,
+  PreviaPerfilResponse,
+  UsuarioDetalheResponse,
+  UsuarioListaResponse,
+  VerificarContaResponse,
+} from "./response";
 
 const BASE_ROUTE = "usuario";
+const GESTAO = "usuarios";
 
 export class UsuarioAPI {
   verificarConta(request: VerificarContaRequest): Promise<VerificarContaResponse> {
     return httpClient.get(`${BASE_ROUTE}/verificar-conta`, {
       params: request,
     });
+  }
+
+  // ---------- Tela de Usuários (docs/permissoes.md, seção 8.7). O id é o da pessoa.
+
+  listar(params: FiltroUsuariosParams): Promise<IBrainResult<UsuarioListaResponse>> {
+    return httpClient.get(GESTAO, { params });
+  }
+
+  gruposParaFiltro(): Promise<GrupoFiltroResponse[]> {
+    return httpClient.get(`${GESTAO}/grupos`);
+  }
+
+  detalhar(dadosPessoaisId: number): Promise<UsuarioDetalheResponse> {
+    return httpClient.get(`${GESTAO}/${dadosPessoaisId}`);
+  }
+
+  desativar(dadosPessoaisId: number): Promise<UsuarioDetalheResponse> {
+    return httpClient.post(`${GESTAO}/${dadosPessoaisId}/login/desativar`);
+  }
+
+  reativar(dadosPessoaisId: number): Promise<UsuarioDetalheResponse> {
+    return httpClient.post(`${GESTAO}/${dadosPessoaisId}/login/reativar`);
+  }
+
+  reenviarVerificacao(dadosPessoaisId: number): Promise<void> {
+    return httpClient.post(`${GESTAO}/${dadosPessoaisId}/login/reenviar-verificacao`);
+  }
+
+  enviarRedefinicao(dadosPessoaisId: number): Promise<void> {
+    return httpClient.post(`${GESTAO}/${dadosPessoaisId}/login/redefinir-senha`);
+  }
+
+  acessoEfetivo(dadosPessoaisId: number): Promise<AcessoEfetivoResponse> {
+    return httpClient.get(`${GESTAO}/${dadosPessoaisId}/acessos`);
+  }
+
+  previaPerfil(dadosPessoaisId: number, perfil: PerfilNomeEnum): Promise<PreviaPerfilResponse> {
+    return httpClient.get(`${GESTAO}/${dadosPessoaisId}/perfis/${perfil}/previa`);
+  }
+
+  concederPerfil(dadosPessoaisId: number, perfil: PerfilNomeEnum): Promise<UsuarioDetalheResponse> {
+    return httpClient.post(`${GESTAO}/${dadosPessoaisId}/perfis/${perfil}`);
+  }
+
+  removerPerfil(dadosPessoaisId: number, perfil: PerfilNomeEnum): Promise<UsuarioDetalheResponse> {
+    return httpClient.delete(`${GESTAO}/${dadosPessoaisId}/perfis/${perfil}`);
+  }
+
+  // ---------- Públicos: esqueci a senha e o link de nova senha (D48).
+
+  esqueciSenha(dados: EsqueciSenhaRequest): Promise<void> {
+    return httpClient.post("login/esqueci-minha-senha", dados);
+  }
+
+  informacaoLinkSenha(token: string): Promise<InformacaoLinkSenhaResponse> {
+    return httpClient.get("login/nova-senha", { params: { token } });
+  }
+
+  definirSenha(dados: NovaSenhaRequest): Promise<void> {
+    return httpClient.post("login/nova-senha", dados);
   }
 }
